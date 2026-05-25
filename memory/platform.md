@@ -19,22 +19,37 @@
 - Folder naming: `<HH>-<slug>/` e.g. `01-pat-todo/`
 - All assignments recorded in `nagents/<group>/registry.yaml`
 
-## Session Startup Protocol (3-step)
+## Session Startup Protocol
 
-1. **Group selection** — list all groups with ID, name, agent count
-2. **Agent selection** — list agents in chosen group; offer "+ Create new agent"
-3. **Sub-session init** — read chosen agent's `03-nucleus/CLAUDE.md`, confirm active agent
+- **Step 0** — Load `memory/platform.md`, `memory/user.md`, `memory/agents.md`
+- **Step 1** — Group selection — list all groups with ID, name, agent count
+- **Step 2** — Agent selection — list agents in chosen group; offer "+ Create new agent"
+- **Step 3** — Sub-session init — read chosen agent's `03-nucleus/CLAUDE.md`, confirm active agent
 
 ## Folder Conventions
 
 ```
-nagents/<group>/registry.yaml          ← permanent DE code assignments
-nagents/<group>/<DE##>-<slug>/         ← agent root (01–08 + agent.yaml)
+nagents/<group>/registry.yaml          ← permanent code assignments (01–FF)
+nagents/<group>/<HH>-<slug>/           ← agent root (01–08 + agent.yaml)
 secrets/credentials-map.yaml          ← credential location reference (no real secrets)
 secrets/shell-exports.sh              ← git-ignored shell secrets (sourced in .zshrc)
 memory/                               ← this folder — platform-wide memory
 memory/private/                       ← git-ignored sensitive memory
 ```
+
+## Template Placeholders (nagent-template)
+
+`create-agent.sh` substitutes these in `agent.yaml` and `03-nucleus/CLAUDE.md`:
+
+| Placeholder        | Replaced with              |
+|--------------------|----------------------------|
+| `<Agent Name>`     | Agent name (e.g. pat-todo) |
+| `<code>`           | Hex code (e.g. 01)         |
+| `<group>`          | Group folder name          |
+| `<Primary Role>`   | Role description           |
+| `<Your Name>`      | `whoami` output            |
+| `<date>`           | `YYYY-MM-DD`               |
+| `<What this agent does>` | Role description     |
 
 ## Scripting Notes
 

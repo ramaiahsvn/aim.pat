@@ -27,4 +27,4 @@ _None defined yet._
 
 ## Notes
 
-- DE01 pat-todo nucleus (`03-nucleus/CLAUDE.md`) is a template shell — domain and project conventions not yet filled in
+- 01 pat-todo nucleus (`03-nucleus/CLAUDE.md`) is a template shell — domain and project conventions not yet filled in
