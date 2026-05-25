@@ -3,6 +3,9 @@ secrets/secrets.yaml
 secrets/shell-exports.sh
 nagents/**/01-dendrite/secrets/secrets.yaml
 
+# Memory — private subfolder only
+memory/private/
+
 # macOS
 .DS_Store
 .AppleDouble

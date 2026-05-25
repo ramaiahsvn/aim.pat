@@ -13,6 +13,12 @@ signal flow from inputs to outputs to memory.
 
 At the start of every session, before anything else:
 
+**Step 0 — Load global memory**
+Read all files in `memory/` (skip `memory/private/` unless relevant):
+- `memory/platform.md` — architecture decisions, conventions, repo layout
+- `memory/user.md` — user profile and preferences
+- `memory/agents.md` — active agents and cross-agent context
+
 **Step 1 — Group selection**
 1. Read `nagents/` and list all group folders
 2. Display the group menu — show ID, name, agent count, and description
@@ -124,4 +130,9 @@ aim.pat/
       DE<HH>-<name>/        ← individual agent (01–08 folders + agent.yaml)
   secrets/
     secrets.example.yaml    ← shared secrets template
+  memory/
+    platform.md             ← platform decisions and conventions
+    user.md                 ← user profile and preferences
+    agents.md               ← active agents and cross-agent context
+    private/                ← git-ignored sensitive memory
 ```
