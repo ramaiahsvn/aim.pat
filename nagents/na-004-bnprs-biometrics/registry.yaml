@@ -1,0 +1,21 @@
+# ============================================================
+#  AGENT REGISTRY — na-004-bnprs-biometrics
+# ============================================================
+#  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
+#  IMMUTABLE: once a code is assigned it is NEVER reused,
+#  even if the agent is retired or deleted.
+# ============================================================
+
+group:
+  id: "na-004"
+  name: "bnprs-biometrics"
+  description: "Biometrics product development, research, and data workflows"
+  max_agents: 255
+
+registry: []
+
+# ---- CODE ALLOCATION RULES ---- #
+# DE01–DE3F  (001–063)  Data processing and pipeline agents
+# DE40–DE7F  (064–127)  Research and analysis
+# DE80–DEBF  (128–191)  Compliance and privacy
+# DEC0–DEFF  (192–255)  Reserved for future use

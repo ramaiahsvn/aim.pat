@@ -1,0 +1,21 @@
+# ============================================================
+#  AGENT REGISTRY — na-006-bnprs-deployments
+# ============================================================
+#  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
+#  IMMUTABLE: once a code is assigned it is NEVER reused,
+#  even if the agent is retired or deleted.
+# ============================================================
+
+group:
+  id: "na-006"
+  name: "bnprs-deployments"
+  description: "Release management, CI/CD pipelines, and environment operations"
+  max_agents: 255
+
+registry: []
+
+# ---- CODE ALLOCATION RULES ---- #
+# DE01–DE3F  (001–063)  Release and deploy agents
+# DE40–DE7F  (064–127)  Environment management
+# DE80–DEBF  (128–191)  CI/CD and pipeline automation
+# DEC0–DEFF  (192–255)  Reserved for future use

@@ -1,0 +1,34 @@
+# Secrets — never commit real credentials
+secrets/secrets.yaml
+nagents/**/01-dendrite/secrets/secrets.yaml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*.env
+.venv/
+venv/
+
+# Node
+node_modules/
+.npm
+
+# Logs
+*.log
+logs/
+
+# Runtime / temp
+*.tmp
+*.bak
+.cache/

@@ -1,0 +1,21 @@
+# ============================================================
+#  AGENT REGISTRY — na-005-bnprs-fintech
+# ============================================================
+#  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
+#  IMMUTABLE: once a code is assigned it is NEVER reused,
+#  even if the agent is retired or deleted.
+# ============================================================
+
+group:
+  id: "na-005"
+  name: "bnprs-fintech"
+  description: "Fintech product workflows, financial data, and transaction processing"
+  max_agents: 255
+
+registry: []
+
+# ---- CODE ALLOCATION RULES ---- #
+# DE01–DE3F  (001–063)  Transaction and payment agents
+# DE40–DE7F  (064–127)  Reporting and reconciliation
+# DE80–DEBF  (128–191)  Risk and compliance
+# DEC0–DEFF  (192–255)  Reserved for future use

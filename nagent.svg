@@ -1,0 +1,472 @@
+<svg viewBox="0 0 780 534" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>nagent Template — Neuron Anatomy → AI Agent Architecture</title>
+  <desc>Multipolar neuron diagram mapping the 8 nagent template folders to AI agent components: 01-Dendrite (inputs: MCP connectors, APIs, sensors, user messages) — 02-Cell Body (LLM reasoning, planning, models, CoT/RAG strategies) — 03-Nucleus/DNA (system-prompt.md, identity.yaml, guardrails.yaml, CLAUDE.md) — 04-Axon (multi-step workflows and execution pipelines) — 05-Myelin Sheath (SKILL.md packages for accelerated execution) — 06-Node of Ranvier (checkpoints: quality gates, human-in-the-loop, verify/retry/escalate) — 07-Axon Terminals (outputs: files, messages, API calls, notifications, deliverables) — 08-Synaptic Plasticity/Memory (short-term session, long-term persistent, learned preferences — spans all layers).</desc>
+
+  <defs>
+    <!-- Soma gradient: blue (matching agent-core card color) -->
+    <radialGradient id="somaGrad" cx="38%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#D8EEFA"/>
+      <stop offset="100%" stop-color="#6898C8"/>
+    </radialGradient>
+    <!-- Nucleus gradient: deeper blue -->
+    <radialGradient id="nucGrad" cx="38%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#90B4E0"/>
+      <stop offset="100%" stop-color="#3050A0"/>
+    </radialGradient>
+    <!-- Myelin gradient: yellow-gold -->
+    <linearGradient id="myelinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FDED88"/>
+      <stop offset="42%" stop-color="#E8D040"/>
+      <stop offset="100%" stop-color="#B89810"/>
+    </linearGradient>
+    <!-- Synaptic bouton gradient -->
+    <radialGradient id="boutonGrad" cx="33%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#E07878"/>
+      <stop offset="100%" stop-color="#882020"/>
+    </radialGradient>
+    <!-- Arrowhead for signal flow -->
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--text-secondary-color, #888)"/>
+    </marker>
+  </defs>
+
+  <!-- ===== TITLE ===== -->
+  <text x="390" y="28" text-anchor="middle"
+        style="fill:rgb(26,26,26);font-family:system-ui,-apple-system,sans-serif;font-size:15px;font-weight:700">
+    Neuron Anatomy → AI Agent Architecture
+  </text>
+  <line x1="180" y1="36" x2="600" y2="36" stroke="var(--border-color,#d0d0d0)" stroke-width="1"/>
+
+  <!-- ============================= -->
+  <!-- ======= NEURON DRAWING ====== -->
+  <!-- ============================= -->
+
+  <!-- == 01: DENDRITES (green) == -->
+  <!-- Drawn before soma so soma covers the base attachments naturally -->
+
+  <!-- Primary apical dendrite (top, from soma top) -->
+  <path d="M 205,151 C 203,134 200,120 196,104"
+        stroke="#5A9868" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <!-- Apical branch L (from ~196,104) -->
+  <path d="M 196,104 C 188,90 176,80 162,70"
+        stroke="#5A9868" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Apical branch R -->
+  <path d="M 196,104 C 200,89 206,76 210,62"
+        stroke="#5A9868" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Sub-branch LL (from 162,70) -->
+  <path d="M 162,70 C 152,61 140,55 126,50"
+        stroke="#5A9868" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Sub-branch LR (from 162,70) -->
+  <path d="M 162,70 C 159,59 161,50 163,40"
+        stroke="#5A9868" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Tertiary from 126,50 -->
+  <path d="M 126,50 C 116,45 106,43 94,43"
+        stroke="#5A9868" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M 126,50 C 122,43 121,37 124,30"
+        stroke="#5A9868" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Sub-branch RL (from 210,62) -->
+  <path d="M 210,62 C 205,52 204,43 207,35"
+        stroke="#5A9868" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Sub-branch RR -->
+  <path d="M 210,62 C 217,53 222,46 226,38"
+        stroke="#5A9868" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Apical tips -->
+  <circle cx="94" cy="43" r="2.5" fill="#5A9868"/>
+  <circle cx="124" cy="30" r="2"   fill="#5A9868"/>
+  <circle cx="163" cy="40" r="2.5" fill="#5A9868"/>
+  <circle cx="207" cy="35" r="2"   fill="#5A9868"/>
+  <circle cx="226" cy="38" r="2.5" fill="#5A9868"/>
+
+  <!-- Primary upper-left dendrite -->
+  <path d="M 170,162 C 150,150 130,140 106,128"
+        stroke="#5A9868" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Branch U -->
+  <path d="M 106,128 C 88,116 73,106 58,98"
+        stroke="#5A9868" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Branch D -->
+  <path d="M 106,128 C 92,138 78,148 62,156"
+        stroke="#5A9868" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Sub U (from 58,98) -->
+  <path d="M 58,98 C 46,90 36,84 24,80"
+        stroke="#5A9868" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M 58,98 C 52,87 52,78 54,68"
+        stroke="#5A9868" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Sub D (from 62,156) -->
+  <path d="M 62,156 C 50,160 40,162 28,162"
+        stroke="#5A9868" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M 62,156 C 55,164 53,172 56,180"
+        stroke="#5A9868" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Upper-left tips -->
+  <circle cx="24" cy="80"  r="2.5" fill="#5A9868"/>
+  <circle cx="54" cy="68"  r="2"   fill="#5A9868"/>
+  <circle cx="28" cy="162" r="2.5" fill="#5A9868"/>
+  <circle cx="56" cy="180" r="2"   fill="#5A9868"/>
+
+  <!-- Primary left dendrite -->
+  <path d="M 150,194 C 128,192 105,191 80,191"
+        stroke="#5A9868" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- Branch U -->
+  <path d="M 80,191 C 64,183 50,175 36,168"
+        stroke="#5A9868" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Branch D -->
+  <path d="M 80,191 C 64,199 50,207 36,214"
+        stroke="#5A9868" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Sub (tips) -->
+  <path d="M 36,168 C 28,163 22,161 16,160"
+        stroke="#5A9868" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M 36,214 C 28,218 22,221 16,222"
+        stroke="#5A9868" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <circle cx="16" cy="160" r="2"   fill="#5A9868"/>
+  <circle cx="16" cy="222" r="2"   fill="#5A9868"/>
+
+  <!-- Primary lower-left dendrite -->
+  <path d="M 173,232 C 152,244 132,255 110,265"
+        stroke="#5A9868" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Branch LL -->
+  <path d="M 110,265 C 90,274 72,280 52,284"
+        stroke="#5A9868" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Branch LD (more downward) -->
+  <path d="M 110,265 C 104,275 103,284 108,293"
+        stroke="#5A9868" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Sub LL (from 52,284) -->
+  <path d="M 52,284 C 40,285 30,284 20,282"
+        stroke="#5A9868" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M 52,284 C 48,291 48,297 50,303"
+        stroke="#5A9868" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Tips -->
+  <circle cx="20"  cy="282" r="2.5" fill="#5A9868"/>
+  <circle cx="50"  cy="303" r="2"   fill="#5A9868"/>
+  <circle cx="108" cy="293" r="2.5" fill="#5A9868"/>
+
+  <!-- Dendritic spines (small protrusions giving realism) -->
+  <!-- On apical trunk -->
+  <path d="M 200,123 L 206,117" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="206" cy="116" r="1.8" fill="#5A9868"/>
+  <path d="M 198,134 L 192,130" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="191" cy="129" r="1.8" fill="#5A9868"/>
+  <!-- On upper-left -->
+  <path d="M 138,143 L 140,136" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="140" cy="135" r="1.8" fill="#5A9868"/>
+  <path d="M 120,136 L 118,130" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="118" cy="129" r="1.8" fill="#5A9868"/>
+  <!-- On left -->
+  <path d="M 112,192 L 113,185" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="113" cy="184" r="1.8" fill="#5A9868"/>
+  <path d="M 94,192 L 93,199" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="93" cy="200" r="1.8" fill="#5A9868"/>
+  <!-- On lower-left -->
+  <path d="M 143,249 L 137,245" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="136" cy="244" r="1.8" fill="#5A9868"/>
+  <path d="M 124,258 L 120,265" stroke="#5A9868" stroke-width="1" fill="none"/>
+  <circle cx="120" cy="266" r="1.8" fill="#5A9868"/>
+
+  <!-- == 02/03: SOMA + NUCLEUS  == -->
+
+  <!-- Soma: organic oval path centered ~(207, 194) -->
+  <path d="
+    M 207,150
+    C 226,147 246,157 256,172
+    C 265,185 265,198 262,212
+    C 258,228 248,240 234,246
+    C 220,252 204,253 190,247
+    C 176,241 165,230 158,216
+    C 151,202 151,186 158,173
+    C 164,160 176,153 191,150
+    C 198,148 203,149 207,150 Z
+  " fill="url(#somaGrad)" stroke="#4A7AAA" stroke-width="2"/>
+
+  <!-- Nucleus: circle inside soma -->
+  <circle cx="210" cy="192" r="27"
+          fill="url(#nucGrad)" stroke="#3050A0" stroke-width="1.5"/>
+  <!-- Nucleolus -->
+  <circle cx="218" cy="184" r="7.5"
+          fill="#1A3888" fill-opacity="0.88"/>
+  <!-- Chromatin dots (texture) -->
+  <circle cx="202" cy="200" r="2"   fill="#3060B8" fill-opacity="0.55"/>
+  <circle cx="220" cy="202" r="1.5" fill="#3060B8" fill-opacity="0.55"/>
+  <circle cx="206" cy="180" r="1.5" fill="#3060B8" fill-opacity="0.45"/>
+
+  <!-- == 04: AXON HILLOCK (cone-shaped taper, orange)  == -->
+  <path d="
+    M 260,179
+    C 270,183 278,187 290,191
+    L 290,197
+    C 278,200 270,204 260,208
+    Z
+  " fill="#C07818" stroke="#9A6010" stroke-width="1"/>
+
+  <!-- == AXON SHAFT (drawn beneath myelin sheaths)  == -->
+  <line x1="290" y1="194" x2="572" y2="194"
+        stroke="#C07818" stroke-width="6" stroke-linecap="butt"/>
+
+  <!-- == 05: MYELIN SHEATHS (3 segments, gold capsule shape)  == -->
+  <!-- Each sheath: outer ellipse (myelin), highlight, Schwann cell nucleus -->
+
+  <!-- Sheath 1: center x=336 -->
+  <ellipse cx="336" cy="194" rx="40" ry="13.5"
+           fill="url(#myelinGrad)" stroke="#A08810" stroke-width="1.3" opacity="0.93"/>
+  <ellipse cx="329" cy="188" rx="27" ry="5"
+           fill="#FFFDE0" fill-opacity="0.38"/>
+  <!-- Schwann cell nucleus on sheath -->
+  <ellipse cx="345" cy="200" rx="8" ry="3.5"
+           fill="#8A6808" fill-opacity="0.68" stroke="#6A5008" stroke-width="0.8"/>
+
+  <!-- Sheath 2: center x=431 -->
+  <ellipse cx="431" cy="194" rx="40" ry="13.5"
+           fill="url(#myelinGrad)" stroke="#A08810" stroke-width="1.3" opacity="0.93"/>
+  <ellipse cx="424" cy="188" rx="27" ry="5"
+           fill="#FFFDE0" fill-opacity="0.38"/>
+  <ellipse cx="440" cy="200" rx="8" ry="3.5"
+           fill="#8A6808" fill-opacity="0.68" stroke="#6A5008" stroke-width="0.8"/>
+
+  <!-- Sheath 3: center x=526 -->
+  <ellipse cx="526" cy="194" rx="40" ry="13.5"
+           fill="url(#myelinGrad)" stroke="#A08810" stroke-width="1.3" opacity="0.93"/>
+  <ellipse cx="519" cy="188" rx="27" ry="5"
+           fill="#FFFDE0" fill-opacity="0.38"/>
+  <ellipse cx="535" cy="200" rx="8" ry="3.5"
+           fill="#8A6808" fill-opacity="0.68" stroke="#6A5008" stroke-width="0.8"/>
+
+  <!-- == 06: NODES OF RANVIER (gaps between sheaths, exposed axon)  == -->
+  <!-- Axon shaft is already visible in the ~8px gaps between sheaths -->
+  <!-- Node 1 at x~383 (between sheath1 and sheath2) -->
+  <circle cx="383" cy="194" r="4.5" fill="#C07818"/>
+  <!-- Node 2 at x~478 (between sheath2 and sheath3) -->
+  <circle cx="478" cy="194" r="4.5" fill="#C07818"/>
+
+  <!-- == 07: AXON TERMINALS (branches, red)  == -->
+  <!-- Main fork point at x=572 -->
+  <!-- Upper branch -->
+  <path d="M 572,194 C 592,184 612,170 628,156"
+        stroke="#B03030" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Middle branch -->
+  <path d="M 572,194 C 596,194 616,194 634,194"
+        stroke="#B03030" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Lower branch -->
+  <path d="M 572,194 C 592,204 612,218 628,232"
+        stroke="#B03030" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Secondary upper splits -->
+  <path d="M 628,156 C 640,148 652,143 664,140"
+        stroke="#B03030" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 628,156 C 638,160 648,166 656,172"
+        stroke="#B03030" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Secondary middle splits -->
+  <path d="M 634,194 C 645,190 655,186 665,182"
+        stroke="#B03030" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 634,194 C 645,198 655,202 665,206"
+        stroke="#B03030" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Secondary lower splits -->
+  <path d="M 628,232 C 638,238 648,244 658,248"
+        stroke="#B03030" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 628,232 C 636,240 641,250 642,260"
+        stroke="#B03030" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Synaptic boutons (terminal bulbs) -->
+  <circle cx="664" cy="140" r="8"   fill="url(#boutonGrad)" stroke="#701818" stroke-width="0.8"/>
+  <circle cx="656" cy="172" r="6.5" fill="url(#boutonGrad)" stroke="#701818" stroke-width="0.8"/>
+  <circle cx="665" cy="182" r="7"   fill="url(#boutonGrad)" stroke="#701818" stroke-width="0.8"/>
+  <circle cx="665" cy="206" r="7"   fill="url(#boutonGrad)" stroke="#701818" stroke-width="0.8"/>
+  <circle cx="658" cy="248" r="8"   fill="url(#boutonGrad)" stroke="#701818" stroke-width="0.8"/>
+  <circle cx="642" cy="260" r="6"   fill="url(#boutonGrad)" stroke="#701818" stroke-width="0.8"/>
+
+  <!-- Synaptic vesicle dots (neurotransmitter release) -->
+  <circle cx="674" cy="137" r="2"   fill="#D05050" fill-opacity="0.5"/>
+  <circle cx="671" cy="144" r="1.5" fill="#D05050" fill-opacity="0.5"/>
+  <circle cx="674" cy="179" r="2"   fill="#D05050" fill-opacity="0.5"/>
+  <circle cx="674" cy="186" r="1.5" fill="#D05050" fill-opacity="0.5"/>
+  <circle cx="666" cy="245" r="2"   fill="#D05050" fill-opacity="0.5"/>
+  <circle cx="662" cy="252" r="1.5" fill="#D05050" fill-opacity="0.5"/>
+
+  <!-- == 08: POST-SYNAPTIC MEMBRANE stubs (next neuron's dendrites) == -->
+  <!-- The gap between each bouton and stub IS the synaptic cleft -->
+  <!-- Synaptic plasticity (memory) occurs here, strengthening these connections -->
+  <path d="M 677,133 C 683,137 684,145 678,149"
+        stroke="#8B6BB3" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 677,177 C 683,181 684,189 678,193"
+        stroke="#8B6BB3" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 670,243 C 676,247 677,255 671,259"
+        stroke="#8B6BB3" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- ============================= -->
+  <!-- ======= ANATOMY LABELS ====== -->
+  <!-- ============================= -->
+  <!-- Numbered badges (01-08) on the neuron, matching the template folders -->
+
+  <!-- 01 · Dendrites -->
+  <rect x="22" y="88" width="82" height="15" rx="3" fill="#5A9868"/>
+  <text x="63" y="99" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:8px;font-weight:600">01 · Dendrites</text>
+
+  <!-- 02 · Soma -->
+  <rect x="172" y="149" width="60" height="15" rx="3" fill="#4A7AAA"/>
+  <text x="202" y="160" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:8px;font-weight:600">02 · Soma</text>
+
+  <!-- 03 · Nucleus -->
+  <rect x="181" y="220" width="62" height="14" rx="3" fill="#3050A0" fill-opacity="0.9"/>
+  <text x="212" y="231" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:7.5px;font-weight:600">03 · Nucleus</text>
+
+  <!-- 04 · Axon Hillock -->
+  <rect x="236" y="168" width="92" height="14" rx="3" fill="#C07818"/>
+  <text x="282" y="179" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:7.5px;font-weight:600">04 · Axon Hillock</text>
+
+  <!-- 05 · Myelin -->
+  <rect x="389" y="168" width="64" height="14" rx="3" fill="#A08810"/>
+  <text x="421" y="179" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:7.5px;font-weight:600">05 · Myelin</text>
+
+  <!-- 06 · Node of Ranvier -->
+  <rect x="336" y="218" width="106" height="14" rx="3" fill="#C07818" fill-opacity="0.88"/>
+  <text x="389" y="229" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:7.5px;font-weight:600">06 · Node of Ranvier</text>
+
+  <!-- 07 · Axon Terminals (moved above topmost bouton) -->
+  <rect x="592" y="122" width="100" height="14" rx="3" fill="#B03030"/>
+  <text x="642" y="133" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:7.5px;font-weight:600">07 · Axon Terminals</text>
+
+  <!-- 08 · Memory / Synaptic Plasticity — spanning indicator across full neuron -->
+  <!-- Purple dashed line shows memory spans all layers (dendrite → terminals) -->
+  <line x1="22" y1="254" x2="692" y2="254"
+        stroke="#8B6BB3" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.5"/>
+  <circle cx="22"  cy="254" r="3" fill="#8B6BB3" opacity="0.5"/>
+  <circle cx="692" cy="254" r="3" fill="#8B6BB3" opacity="0.5"/>
+  <rect x="426" y="245" width="96" height="14" rx="3" fill="#8B6BB3" opacity="0.92"/>
+  <text x="474" y="256" text-anchor="middle"
+        style="fill:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:7.5px;font-weight:600">08 · Memory</text>
+
+  <!-- ============================= -->
+  <!-- ======= SIGNAL FLOW ========= -->
+  <!-- ============================= -->
+  <path d="M 63,312 L 680,312" stroke="var(--text-secondary-color,#888)"
+        stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="390" y="308" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:9px">
+    Signal flow: 01 receive → 02 integrate → 03 identity → 04 execute → 05 accelerate → 06 verify → 07 output  ↻ 08 remember
+  </text>
+
+  <!-- ============================= -->
+  <!-- ======= MAPPING CARDS ======= -->
+  <!-- ============================= -->
+
+  <!-- Card 01: Dendrite → Resources -->
+  <rect x="15" y="330" width="120" height="55" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#5A9868" stroke-width="1.5"/>
+  <text x="75" y="347" text-anchor="middle" fill="#5A9868"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">01 · Resources</text>
+  <text x="75" y="359" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">MCP connectors, APIs,</text>
+  <text x="75" y="370" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">sensors (Slack, web search)</text>
+  <text x="75" y="381" text-anchor="middle" fill="#5A9868"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 01 Dendrite</text>
+
+  <!-- Card 02: Cell Body → Agent Core -->
+  <rect x="148" y="330" width="120" height="55" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#4A7AAA" stroke-width="1.5"/>
+  <text x="208" y="347" text-anchor="middle" fill="#4A7AAA"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">02 · Agent Core (LLM)</text>
+  <text x="208" y="359" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">LLM config, planning,</text>
+  <text x="208" y="370" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">CoT · RAG · strategies</text>
+  <text x="208" y="381" text-anchor="middle" fill="#4A7AAA"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 02 Cell Body</text>
+
+  <!-- Card 03: Nucleus → Identity / DNA (dashed = read-only) -->
+  <rect x="148" y="395" width="120" height="64" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#3050A0" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="208" y="412" text-anchor="middle" fill="#3050A0"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">03 · Identity (DNA)</text>
+  <text x="208" y="424" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">system-prompt + persona,</text>
+  <text x="208" y="436" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">guardrails · read-only</text>
+  <text x="208" y="451" text-anchor="middle" fill="#3050A0"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 03 Nucleus</text>
+
+  <!-- Card 04: Axon → Workflows -->
+  <rect x="281" y="330" width="120" height="55" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#C07818" stroke-width="1.5"/>
+  <text x="341" y="347" text-anchor="middle" fill="#C07818"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">04 · Workflows</text>
+  <text x="341" y="359" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">multi-step pipelines,</text>
+  <text x="341" y="370" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">e.g. doc-creation wf</text>
+  <text x="341" y="381" text-anchor="middle" fill="#C07818"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 04 Axon</text>
+
+  <!-- Card 05: Myelin → Skills -->
+  <rect x="281" y="395" width="120" height="64" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#A08810" stroke-width="1.5"/>
+  <text x="341" y="412" text-anchor="middle" fill="#A08810"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">05 · Skills</text>
+  <text x="341" y="424" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">pre-built expertise</text>
+  <text x="341" y="436" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">packages (SKILL.md)</text>
+  <text x="341" y="451" text-anchor="middle" fill="#A08810"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 05 Myelin Sheath</text>
+
+  <!-- Card 06: Node of Ranvier → Checkpoints (dashed = gate) -->
+  <rect x="414" y="330" width="120" height="55" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#C07818" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="474" y="347" text-anchor="middle" fill="#C07818"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">06 · Checkpoints</text>
+  <text x="474" y="359" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">quality gates,</text>
+  <text x="474" y="370" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">human-in-the-loop approval</text>
+  <text x="474" y="381" text-anchor="middle" fill="#C07818"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 06 Node of Ranvier</text>
+
+  <!-- Card 07: Axon Terminals → Outputs -->
+  <rect x="547" y="330" width="120" height="55" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#B03030" stroke-width="1.5"/>
+  <text x="607" y="347" text-anchor="middle" fill="#B03030"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">07 · Outputs</text>
+  <text x="607" y="359" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">file delivery, notifs,</text>
+  <text x="607" y="370" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">available actions</text>
+  <text x="607" y="381" text-anchor="middle" fill="#B03030"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 07 Axon Terminals</text>
+
+  <!-- Card 08: Memory (synaptic plasticity, spans all) -->
+  <rect x="414" y="395" width="120" height="64" rx="6"
+        fill="var(--bg-color,#fff)" stroke="#8B6BB3" stroke-width="1.5"/>
+  <text x="474" y="412" text-anchor="middle" fill="#8B6BB3"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:600">08 · Memory</text>
+  <text x="474" y="424" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">short-term (session),</text>
+  <text x="474" y="436" text-anchor="middle"
+        style="fill:#666;font-family:system-ui,-apple-system,sans-serif;font-size:8px">long-term + user prefs</text>
+  <text x="474" y="451" text-anchor="middle" fill="#8B6BB3"
+        style="font-family:system-ui,-apple-system,sans-serif;font-size:7px;font-weight:600">← 08 Synaptic Plasticity</text>
+
+  <!-- ============================= -->
+  <!-- ===== CONNECTOR LINES ======= -->
+  <!-- (dashed lines linking neuron anatomy to cards) -->
+  <!-- ============================= -->
+  <!-- Dendrites label → Card 01 -->
+  <path d="M 63,104 L 75,326" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Soma bottom → Card 02 -->
+  <path d="M 205,253 L 208,326" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Nucleus bottom → Card 03 -->
+  <path d="M 207,236 L 208,392" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Axon Hillock → Card 04 -->
+  <path d="M 272,175 L 341,326" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Myelin label → Card 05 -->
+  <path d="M 412,182 L 341,392" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Node of Ranvier label → Card 06 -->
+  <path d="M 389,232 L 474,326" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Terminals label → Card 07 (badge now at y=122-136) -->
+  <path d="M 642,136 L 607,326" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Memory spanning label → Card 08 -->
+  <path d="M 474,259 L 474,392" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"/>
+
+</svg>
