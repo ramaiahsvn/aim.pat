@@ -2,8 +2,9 @@
 # ============================================================
 #  create-agent.sh — Scaffold a new nagent in the right group
 # ============================================================
-#  ISO 8583 DE-style codes: DE01–DEFF per group (255 max).
-#  Agent codes are PERMANENT — once assigned, never reused.
+#  Agent codes: 01–FF per group (255 max). Inspired by ISO 8583
+#  DE numbering — docs may refer to them as DE01, DE02, etc.
+#  Codes are PERMANENT — once assigned, never reused.
 #
 #  Usage:
 #    ./create-agent.sh
@@ -112,13 +113,13 @@ echo ""
 echo -e "  ${GREEN}Group:${RESET} $GROUP_NAME"
 
 # ============================================================
-#  STEP 2 — ASSIGN NEXT DE CODE
+#  STEP 2 — ASSIGN NEXT CODE
 # ============================================================
 
 # Collect already-used codes from registry
-mapfile -t USED_CODES < <(grep "^  - code:" "$GROUP_REGISTRY" 2>/dev/null | sed 's/.*"DE//' | sed 's/".*//' | tr '[:lower:]' '[:upper:]' || true)
+mapfile -t USED_CODES < <(grep "^  - code:" "$GROUP_REGISTRY" 2>/dev/null | sed 's/.*"\([0-9A-Fa-f]*\)".*/\1/' | tr '[:lower:]' '[:upper:]' || true)
 
-# Find next available code DE01–DEFF
+# Find next available code 01–FF
 NEXT_CODE=""
 for i in $(seq 1 255); do
   HEX=$(printf '%02X' "$i")
@@ -130,7 +131,7 @@ for i in $(seq 1 255); do
     fi
   done
   if [[ "$TAKEN" == false ]]; then
-    NEXT_CODE="DE$HEX"
+    NEXT_CODE="$HEX"
     break
   fi
 done
@@ -141,7 +142,7 @@ if [[ -z "$NEXT_CODE" ]]; then
 fi
 
 USED_COUNT=${#USED_CODES[@]}
-echo -e "  ${GREEN}Next code:${RESET} $NEXT_CODE  ${DIM}(${USED_COUNT}/255 used)${RESET}"
+echo -e "  ${GREEN}Next code:${RESET} $NEXT_CODE  ${DIM}(${USED_COUNT}/255 used | ref: DE$NEXT_CODE)${RESET}"
 
 # ============================================================
 #  STEP 3 — AGENT NAME & ROLE
