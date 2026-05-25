@@ -129,7 +129,7 @@ aim.pat/
   nagent-template/          ← canonical template (01–08 folders)
   nagents/
     na-00N-<group>/
-      registry.yaml         ← permanent DE code assignments
+      registry.yaml         ← permanent code assignments (01–FF)
       <HH>-<name>/          ← individual agent (01–08 folders + agent.yaml)
   secrets/
     secrets.example.yaml    ← shared secrets template
