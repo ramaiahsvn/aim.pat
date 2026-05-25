@@ -13,16 +13,28 @@ signal flow from inputs to outputs to memory.
 
 At the start of every session, before anything else:
 
-1. **Read** `nagents/` and list all group folders
-2. **Display the group menu** — show ID, name, agent count, and description
-3. **Ask the user to select a group** (or say "all" to work across groups)
-4. **Once a group is selected**, read its `registry.yaml` and display:
-   - Active agents (code, name, role, status)
+**Step 1 — Group selection**
+1. Read `nagents/` and list all group folders
+2. Display the group menu — show ID, name, agent count, and description
+3. Ask the user to select a group (or "all" to work across groups)
+
+**Step 2 — Agent selection** (once a group is chosen)
+4. Read the group's `registry.yaml` and display all agents in a numbered list:
+   - Code, name, role, status (active / retired)
    - Total used / 255 slots
-5. **Ask what the user wants to do**:
-   - Work with an existing agent → open that agent's `03-nucleus/CLAUDE.md`
-   - Create a new agent → run `./create-agent.sh`
-   - Manage the platform → proceed as instructed
+   - Include a "+ Create new agent" option at the bottom
+5. Ask the user to select an agent by number (or choose to create a new one)
+
+**Step 3 — Sub-session initialization** (once an agent is chosen)
+6. Read that agent's `03-nucleus/CLAUDE.md` and load it as the active context
+7. Confirm which agent is now active: display its code, name, role, and status
+8. Ask what the user wants to do with this agent
+
+**If the user chooses "Create new agent"** at step 5:
+- Run `./create-agent.sh`
+
+**If the user says "all"** at step 1:
+- Skip steps 2–3 and ask what platform-level management task to perform
 
 ## Agent groups
 

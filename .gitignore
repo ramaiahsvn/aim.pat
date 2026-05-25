@@ -1,5 +1,6 @@
 # Secrets — never commit real credentials
 secrets/secrets.yaml
+secrets/shell-exports.sh
 nagents/**/01-dendrite/secrets/secrets.yaml
 
 # macOS
