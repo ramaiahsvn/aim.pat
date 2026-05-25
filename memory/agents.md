@@ -7,7 +7,7 @@
 
 | Code | Group       | Name      | Role                  | Status | Created    |
 |------|-------------|-----------|------------------------|--------|------------|
-| DE01 | na-001      | pat-todo  | Productivity Assistant | active | 2026-05-26 |
+| 01   | na-001      | pat-todo  | Productivity Assistant | active | 2026-05-26 |
 
 ## Group Slot Usage
 

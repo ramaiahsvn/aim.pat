@@ -12,10 +12,11 @@
 
 ## Agent Code System
 
-- Codes run `DE01` → `DEFF` per group (255 max)
-- `DE00` is reserved — never assign
+- Codes run `01` → `FF` per group (255 max); `00` is reserved — never assign
+- Inspired by ISO 8583 DE numbering — docs may reference them as DE01, DE02, etc.
 - Codes are **permanent** — never reused even after retirement
 - Next code = lowest unused hex in the group registry
+- Folder naming: `<HH>-<slug>/` e.g. `01-pat-todo/`
 - All assignments recorded in `nagents/<group>/registry.yaml`
 
 ## Session Startup Protocol (3-step)

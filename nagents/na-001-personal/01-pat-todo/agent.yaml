@@ -8,7 +8,7 @@
 agent:
   name: "pat-todo"
   version: "1.0.0"
-  code: "DE01"
+  code: "01"
   group: "na-001-personal"
   description: "Productivity Assistant"
   created_by: "bnprs"

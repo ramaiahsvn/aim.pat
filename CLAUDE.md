@@ -54,19 +54,22 @@ Read all files in `memory/` (skip `memory/private/` unless relevant):
 | 006 | na-006-bnprs-deployments | Release management, CI/CD, environments                             |
 | 007 | na-007-bnprs-zoo         | Enterprise portal: people, payroll, contracts, sprints, projects, expenses, inventory |
 
-## Agent code system (ISO 8583 DE-style)
+## Agent code system
 
 Each group supports up to **255 agents**, identified by a 1-byte hex code:
 
 ```
-DE01 → first agent in group
-DE02 → second agent
+01 → first agent in group
+02 → second agent
 ...
-DEFF → 255th agent (maximum)
+FF → 255th agent (maximum)
 ```
 
+Inspired by ISO 8583 Data Element (DE) numbering — you may see these referred
+to as DE01, DE02, etc. in documentation and external references.
+
 **Rules — enforce strictly:**
-- Codes run DE01 to DEFF (DE00 is reserved/invalid)
+- Codes run 01 to FF (00 is reserved/invalid)
 - Once a code is assigned it is **permanent** — never reassigned, even if the agent is deleted or retired
 - Retired agents keep their code with `status: retired` in `registry.yaml`
 - The next available code is always the lowest unused hex value
@@ -82,7 +85,7 @@ Run the interactive script from the repo root:
 
 The script will:
 1. Show all groups → user selects one
-2. Auto-assign the next DE code from the group registry
+2. Auto-assign the next code from the group registry
 3. Prompt for agent name and role
 4. Scaffold the full 01–08 folder structure from `nagent-template/`
 5. Register the new agent in `registry.yaml` (permanent entry)
@@ -127,7 +130,7 @@ aim.pat/
   nagents/
     na-00N-<group>/
       registry.yaml         ← permanent DE code assignments
-      DE<HH>-<name>/        ← individual agent (01–08 folders + agent.yaml)
+      <HH>-<name>/          ← individual agent (01–08 folders + agent.yaml)
   secrets/
     secrets.example.yaml    ← shared secrets template
   memory/

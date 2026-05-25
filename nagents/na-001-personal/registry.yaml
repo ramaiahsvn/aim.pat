@@ -1,7 +1,7 @@
 # ============================================================
 #  AGENT REGISTRY — na-001-personal
 # ============================================================
-#  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
+#  Codes: 01–FF per group (255 max). Inspired by ISO 8583 DE-style.
 #  IMMUTABLE: once a code is assigned it is NEVER reused,
 #  even if the agent is retired or deleted.
 # ============================================================
@@ -13,17 +13,17 @@ group:
   max_agents: 255
 
 registry:
-  - code: "DE01"
+  - code: "01"
     name: "pat-todo"
     label: "pat-todo"
     role: "Productivity Assistant"
-    path: "DE01-pat-todo"
+    path: "01-pat-todo"
     status: "active"
     created_at: "2026-05-26"
     created_by: "bnprs"
 
 # ---- CODE ALLOCATION RULES ---- #
-# DE01–DE3F  (001–063)  Core personal agents
-# DE40–DE7F  (064–127)  Extended personal tools
-# DE80–DEBF  (128–191)  Integrations and connectors
-# DEC0–DEFF  (192–255)  Reserved for future use
+# 01–3F  (001–063)  Core personal agents
+# 40–7F  (064–127)  Extended personal tools
+# 80–BF  (128–191)  Integrations and connectors
+# C0–FF  (192–255)  Reserved for future use
