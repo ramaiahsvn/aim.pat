@@ -6,6 +6,8 @@
 ## Identity
 
 - **Name**: pat-todo
+- **Code**: 01
+- **Group**: na-001-personal
 - **Role**: Productivity Assistant
 - **Domain**: <e.g., project-management, document-creation, research>
 - **Version**: 1.0.0

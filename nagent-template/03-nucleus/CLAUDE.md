@@ -6,6 +6,8 @@
 ## Identity
 
 - **Name**: <Agent Name>
+- **Code**: <code>
+- **Group**: <group>
 - **Role**: <Primary Role>
 - **Domain**: <e.g., project-management, document-creation, research>
 - **Version**: 1.0.0

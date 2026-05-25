@@ -7,6 +7,8 @@
 
 agent:
   name: "<Agent Name>"
+  code: "<code>"
+  group: "<group>"
   version: "1.0.0"
   description: "<What this agent does>"
   created_by: "<Your Name>"

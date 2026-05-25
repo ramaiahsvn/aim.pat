@@ -246,16 +246,17 @@ cp "$TEMPLATE_DIR/agent.yaml" "$AGENT_DIR/"
 TODAY=$(date +"%Y-%m-%d")
 CREATOR=$(whoami)
 
-sed -i "s|<Agent Name>|$AGENT_NAME|g"          "$AGENT_DIR/agent.yaml"
-sed -i "s|<Your Name>|$CREATOR|g"              "$AGENT_DIR/agent.yaml"
-sed -i "s|<date>|$TODAY|g"                     "$AGENT_DIR/agent.yaml"
+sed -i "s|<Agent Name>|$AGENT_NAME|g"           "$AGENT_DIR/agent.yaml"
+sed -i "s|<code>|$NEXT_CODE|g"                  "$AGENT_DIR/agent.yaml"
+sed -i "s|<group>|$GROUP_NAME|g"                "$AGENT_DIR/agent.yaml"
+sed -i "s|<Your Name>|$CREATOR|g"               "$AGENT_DIR/agent.yaml"
+sed -i "s|<date>|$TODAY|g"                      "$AGENT_DIR/agent.yaml"
 sed -i "s|<What this agent does>|$AGENT_ROLE|g" "$AGENT_DIR/agent.yaml"
 
-sed -i "s|<Agent Name>|$AGENT_NAME|g"          "$AGENT_DIR/03-nucleus/CLAUDE.md"
-sed -i "s|<Primary Role>|$AGENT_ROLE|g"        "$AGENT_DIR/03-nucleus/CLAUDE.md"
-
-# Add agent code to agent.yaml
-sed -i "s|version: \"1.0.0\"|version: \"1.0.0\"\n  code: \"$NEXT_CODE\"\n  group: \"$GROUP_NAME\"|" "$AGENT_DIR/agent.yaml"
+sed -i "s|<Agent Name>|$AGENT_NAME|g"           "$AGENT_DIR/03-nucleus/CLAUDE.md"
+sed -i "s|<code>|$NEXT_CODE|g"                  "$AGENT_DIR/03-nucleus/CLAUDE.md"
+sed -i "s|<group>|$GROUP_NAME|g"                "$AGENT_DIR/03-nucleus/CLAUDE.md"
+sed -i "s|<Primary Role>|$AGENT_ROLE|g"         "$AGENT_DIR/03-nucleus/CLAUDE.md"
 
 # ============================================================
 #  STEP 6 — REGISTER AGENT (append to registry.yaml)
