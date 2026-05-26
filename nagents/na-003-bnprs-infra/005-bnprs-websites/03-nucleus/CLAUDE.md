@@ -14,12 +14,25 @@
 
 ## Managed Domains
 
-| Domain | Purpose |
-|--------|---------|
-| bnprs.ai | AI products and platform |
-| bnprs.in | India-facing business site |
-| bnprs.com | Global business site |
-| aandhipe.in | AandhiPe product site |
+| Domain | S3 Bucket | CloudFront ID | Source Path | Status |
+|--------|-----------|---------------|-------------|--------|
+| bnprs.ai | bnprs-ai-fe | EHKEPP01C2TFV | BPR2004_Design/bpr2004.bnprs.ai | deployed |
+| bnprs.in | bnprs-in-fe | E1SC03F64TLZZ0 | BPR2004_Design/bpr2004.bnprs.in | deployed |
+| bnprs.com | bnprs-com-fe | EIRPPLAXGKOQA | BPR2004_Design/bpr2004.bnprs.com | deployed |
+| aandhipe.in | — | — | not created | not deployed |
+
+## Infrastructure
+
+- **Cloud**: AWS account 891963159778 (bnprs), region ap-south-2
+- **Hosting**: S3 static hosting + CloudFront CDN
+- **Framework**: Astro (all sites) — build output in `dist/`
+- **AWS profile**: `bnprs` (via `001-bnprs-aws` agent)
+- **Source root**: `/Users/bnprs/BPR/GitRepos2/BPR2004_Design/`
+
+## Inter-Agent Dependencies
+
+- **001-bnprs-aws** (na-003-bnprs-infra): provides AWS credentials and account context
+  — always confirm with 001-bnprs-aws before any S3 or CloudFront change
 
 ## Persona
 

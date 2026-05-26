@@ -37,7 +37,9 @@
 
 ## Inter-Agent Dependencies
 
-_None defined yet._
+| Agent | Depends On | Reason |
+|-------|-----------|--------|
+| na-003/005 bnprs-websites | na-003/001 bnprs-aws | AWS credentials (profile bnprs) for S3 sync and CloudFront invalidation |
 
 ## Notes
 

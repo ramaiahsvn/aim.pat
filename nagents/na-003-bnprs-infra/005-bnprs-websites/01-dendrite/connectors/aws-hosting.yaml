@@ -1,0 +1,60 @@
+id: connector-aws-hosting
+name: "BNPRS AWS Website Hosting"
+type: aws
+protocol: aws-sdk
+version: "1.0.0"
+
+depends_on_agent:
+  group: "na-003-bnprs-infra"
+  code: "001"
+  name: "bnprs-aws"
+  note: "Credentials and AWS account context come from 001-bnprs-aws agent"
+
+connection:
+  aws_profile: "bnprs"
+  account_id: "891963159778"
+  region: "ap-south-2"
+
+sites:
+  - domain: "bnprs.ai"
+    source: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai"
+    framework: "astro"
+    dist_folder: "dist"
+    s3_bucket: "bnprs-ai-fe"
+    cloudfront_id: "EHKEPP01C2TFV"
+    status: deployed
+
+  - domain: "bnprs.in"
+    source: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.in"
+    framework: "astro"
+    dist_folder: "dist"
+    s3_bucket: "bnprs-in-fe"
+    cloudfront_id: "E1SC03F64TLZZ0"
+    status: deployed
+
+  - domain: "bnprs.com"
+    source: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com"
+    framework: "astro"
+    dist_folder: "dist"
+    s3_bucket: "bnprs-com-fe"
+    cloudfront_id: "EIRPPLAXGKOQA"
+    status: deployed
+
+  - domain: "aandhipe.in"
+    source: ""
+    framework: "astro"
+    dist_folder: "dist"
+    s3_bucket: ""
+    cloudfront_id: ""
+    status: not_deployed
+    note: "Source and hosting not yet set up"
+
+capabilities:
+  - s3_sync
+  - cloudfront_invalidation
+  - cloudfront_status
+  - s3_list
+  - s3_upload
+  - route53_dns
+
+priority: high

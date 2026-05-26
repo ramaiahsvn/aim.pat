@@ -1,0 +1,32 @@
+id: connector-sources
+name: "Website Source Code"
+type: local-filesystem
+protocol: local
+
+base_path: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design"
+
+sources:
+  - domain: "bnprs.ai"
+    path: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai"
+    framework: astro
+    build_cmd: "npm run build"
+    dist: "dist"
+
+  - domain: "bnprs.in"
+    path: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.in"
+    framework: astro
+    build_cmd: "npm run build"
+    dist: "dist"
+
+  - domain: "bnprs.com"
+    path: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com"
+    framework: astro
+    build_cmd: "npm run build"
+    dist: "dist"
+
+  - domain: "aandhipe.in"
+    path: ""
+    framework: astro
+    build_cmd: "npm run build"
+    dist: "dist"
+    note: "Source not yet created"
