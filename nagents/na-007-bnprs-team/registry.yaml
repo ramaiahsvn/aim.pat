@@ -1,5 +1,5 @@
 # ============================================================
-#  AGENT REGISTRY — na-007-bnprs-zoo
+#  AGENT REGISTRY — na-007-bnprs-team
 # ============================================================
 #  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
 #  IMMUTABLE: once a code is assigned it is NEVER reused,
@@ -8,7 +8,7 @@
 
 group:
   id: "na-007"
-  name: "bnprs-zoo"
+  name: "bnprs-team"
   description: "BNPRS enterprise portal: people, payroll, contracts, sprints, projects, expenses, inventory"
   max_agents: 255
 
