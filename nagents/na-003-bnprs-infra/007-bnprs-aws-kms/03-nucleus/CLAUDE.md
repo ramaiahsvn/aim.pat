@@ -31,7 +31,7 @@
 ## Production System — k3-verifychallenge
 
 A complete KMS-backed service is **already live in production** (since BprCardQi v2.56.3, 2026-05-18).
-Source code: `/Users/bnprs/BPR/GitRepos1/bpr.cpp/cloud/k3-verifychallenge`
+Source code: `/Users/bnprs/BPR/GitRepos1/bpr.grc/bpr.kms/k3-verifychallenge`
 
 ### Architecture
 
