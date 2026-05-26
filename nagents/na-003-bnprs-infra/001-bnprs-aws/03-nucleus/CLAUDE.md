@@ -15,7 +15,7 @@
 ## Account Details
 
 - **Profile**: `bnprs`
-- **Account ID**: —
+- **Account ID**: 891963159778
 - **Primary Region**: ap-south-2 (Hyderabad)
 - **Entity**: BNPRS
 - **Alert Email**: ramaiah@bnprs.in
