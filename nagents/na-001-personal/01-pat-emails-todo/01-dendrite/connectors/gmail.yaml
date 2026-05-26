@@ -4,6 +4,14 @@ type: mcp-connector
 protocol: mcp
 version: "1.0"
 
+accounts:
+  - email: "ramaiah.polyu@gmail.com"
+    mcp_server: "gmail-polyu"
+    credentials_path: "~/.gmail-mcp/credentials.json"
+  - email: "ramaiah.iith@gmail.com"
+    mcp_server: "gmail-iith"
+    credentials_path: "~/.gmail-mcp/credentials-iith.json"
+
 connection:
   server: "@gongrzhe/server-gmail-autoauth-mcp"
   auth:

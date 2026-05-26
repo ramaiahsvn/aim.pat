@@ -11,6 +11,9 @@ memory/private/
 .AppleDouble
 .LSOverride
 
+# Claude Code — local overrides only (settings.json is committed)
+.claude/settings.local.json
+
 # Editor
 .vscode/
 .idea/
