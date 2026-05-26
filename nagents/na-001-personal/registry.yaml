@@ -22,6 +22,15 @@ registry:
     created_at: "2026-05-26"
     created_by: "bnprs"
 
+  - code: "02"
+    name: "pat-fbmi"
+    label: "pat-fbmi"
+    role: "Family Health & Nutrition Assistant"
+    path: "02-pat-fbmi"
+    status: "active"
+    created_at: "2026-05-26"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # 01–3F  (001–063)  Core personal agents
 # 40–7F  (064–127)  Extended personal tools
