@@ -12,10 +12,9 @@ components:
 
   01_resources:
     path: "./01-resources"
-    role: "Resources — everything the agent can read or call"
+    role: "Resources — project context and task inputs"
     contains:
-      files:   "Reference documents, lookup tables, static data"
-      secrets: "Credentials and tokens (git-ignored)"
+      context.yaml: "Project description, tasks, git repo URLs, and general inputs"
 
   02_workflows:
     path: "./02-workflows"

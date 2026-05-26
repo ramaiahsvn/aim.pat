@@ -1,0 +1,31 @@
+# ============================================================
+#  AGENT CONTEXT — fill this in before starting work
+# ============================================================
+
+project:
+  name: "<Project Name>"
+  description: >
+    <What this project is about — one paragraph is enough>
+  status: active          # active | paused | completed
+
+tasks:
+  - id: task-1
+    title: "<Task title>"
+    description: "<What needs to be done>"
+    priority: high        # high | medium | low
+    status: pending       # pending | in_progress | done
+
+repositories:
+  - name: "<repo-name>"
+    url: "https://github.com/<org>/<repo>"
+    branch: main
+    notes: "<optional — what this repo is for>"
+
+inputs:
+  # Any other general inputs the agent needs.
+  # Add as key: value pairs.
+  #
+  # example:
+  #   environment: production
+  #   notify_on_completion: true
+  #   target_audience: engineering

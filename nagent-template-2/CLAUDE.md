@@ -22,8 +22,7 @@
 
 ## Resources
 
-- Reference files: `01-resources/files/`
-- Credentials: `01-resources/secrets/secrets.yaml` (git-ignored)
+- Project context, tasks, repo URLs, general inputs: `01-resources/context.yaml`
 
 ## Workflows
 

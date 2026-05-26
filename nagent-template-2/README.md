@@ -5,8 +5,8 @@ A lightweight agent template. No neuron anatomy — just four plain folders.
 ## Structure
 
 ```
-01-resources/       Everything the agent can read
-  files/            Reference docs, lookup tables, static data
+01-resources/
+  context.yaml      Project description, tasks, git repo URLs, general inputs
   secrets/          Credentials (git-ignored)
 
 02-workflows/       Step-by-step task definitions (one file per workflow)
