@@ -1,0 +1,27 @@
+# Checkpoint Template — Node of Ranvier
+# A verification gate where the signal is regenerated/validated
+
+checkpoint:
+  id: "cp-<name>"
+  type: verification          # verification | approval | quality_gate | human_review
+  description: "<What is being verified>"
+
+  conditions:
+    # All conditions must pass for the signal to continue
+    - check: "output_exists"
+      expected: true
+    - check: "quality_score"
+      operator: ">="
+      threshold: 0.7
+
+  on_pass:
+    action: continue           # Signal proceeds to next step
+    log: true
+
+  on_fail:
+    action: retry              # retry | escalate | abort | ask_user
+    max_retries: 2
+    fallback: ask_user
+    message: "Checkpoint failed: {reason}. How should I proceed?"
+
+  timeout: 60s                 # Max time to wait for approval

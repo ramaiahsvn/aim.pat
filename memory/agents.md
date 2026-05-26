@@ -31,6 +31,18 @@
 | 006  | na-003 | bnprs-claude | AI Model Subscription Instance (EC2: aim1001-bnprs-claude) | active | 2026-05-26 |
 | 007  | na-003 | bnprs-grc-kms | HSM Key Management System (kms.bnprs.ai, alias/qi-supervisor-key) | active | 2026-05-26 |
 | 008  | na-003 | bnprs-grc | Governance, Risk, and Compliance (bpr.grc: bpr.usb, bpr.pci, bpr.kms) | active | 2026-05-27 |
+| 001  | na-004 | cpp-face | BprFace C++ Module (face detection, recognition, expression, action) | active | 2026-05-27 |
+| 002  | na-004 | cpp-finger | BprFinger C++ Module (Fjfx, Forg, M3gl, Nbis, Nfiq2, Nnmq) | active | 2026-05-27 |
+| 003  | na-004 | cpp-finger-cless | BprFingerCless C++ Module (contactless fingerprint preprocessing) | active | 2026-05-27 |
+| 004  | na-004 | cpp-finger-knuckle | BprFingerKnuckle C++ Module (L4/R4/T2 segmentation + matching) | active | 2026-05-27 |
+| 005  | na-004 | cpp-palmprint | BprPalmprint C++ Module (not yet implemented) | active | 2026-05-27 |
+| 006  | na-004 | cpp-iris | BprIris C++ Module (Masek + VASIR iris recognition) | active | 2026-05-27 |
+| 007  | na-004 | cpp-dna | BprDNA C++ Module (not yet implemented) | active | 2026-05-27 |
+| 008  | na-004 | cpp-sheep | BprSheep C++ Module (livestock biometrics, not yet implemented) | active | 2026-05-27 |
+| 009  | na-004 | cpp-video | BprVideo C++ Module (video biometrics, not yet implemented) | active | 2026-05-27 |
+| 010  | na-004 | algo-certify | Algorithm Certification and Benchmarking (all modalities) | active | 2026-05-27 |
+| 011  | na-004 | rnd-biometrics | Biometrics Research and Development | active | 2026-05-27 |
+| 012  | na-004 | rnd-evaluations | Biometric Algorithm Evaluations (DET, EER, FMR/FNMR) | active | 2026-05-27 |
 
 ## Group Slot Usage
 
@@ -39,7 +51,7 @@
 | na-001-personal          | na-001 | 6  | 255 |
 | na-002-bnprs-core        | na-002 | 10 | 255 |
 | na-003-bnprs-infra       | na-003 | 8  | 255 |
-| na-004-bnprs-biometrics  | na-004 | 0  | 255 |
+| na-004-bnprs-biometrics  | na-004 | 12 | 255 |
 | na-005-bnprs-fintech     | na-005 | 0  | 255 |
 | na-006-bnprs-deployments | na-006 | 0  | 255 |
 | na-007-bnprs-team        | na-007 | 0  | 255 |
