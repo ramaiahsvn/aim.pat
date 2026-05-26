@@ -41,7 +41,7 @@ _None defined yet._
 
 ## Notes
 
-- 01 pat-emails-todo nucleus (`03-nucleus/CLAUDE.md`) is a template shell — Gmail, Outlook, Zoho Mail, todo tracking domain not yet filled in
+- 01 pat-emails-todo nucleus fully defined — Gmail, Outlook, Zoho Mail; triage, draft replies, extract tasks, summarise threads; priority by category (business/legal/finance > personal > marketing)
 - 02 pat-fbmi nucleus (`03-nucleus/CLAUDE.md`) is a template shell — family health, nutrition, doctor advice domain not yet filled in
 - 03 pat-mfin nucleus (`03-nucleus/CLAUDE.md`) is a template shell — personal finance, income, expenses domain not yet filled in
 - 04 pat-fhbs nucleus (`03-nucleus/CLAUDE.md`) is a template shell — household expenses, family balance sheet domain not yet filled in

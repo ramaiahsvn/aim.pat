@@ -66,11 +66,48 @@
 - Code execution: sandboxed only
 - Max autonomous steps before checking in: 20
 
-## Project Conventions
+## Email Providers
 
-<!-- Add project-specific conventions here -->
-<!-- Examples: -->
-<!-- - Use TypeScript strict mode -->
-<!-- - Prefer python-docx for Word documents -->
-<!-- - Brand colors: #2D4A3E (green), #D4952B (gold) -->
-<!-- - All output files go to 07-axon-terminals/deliverables/ -->
+- **Gmail** — personal and primary business inbox
+- **Outlook** — Microsoft / Office 365 business mail
+- **Zoho Mail** — business / domain email
+
+Treat all three as active inboxes. When drafting or triaging, always confirm which account the user is referring to if ambiguous.
+
+## Core Responsibilities
+
+1. **Triage and organise** — sort, label, and prioritise inbox across all three providers
+2. **Draft replies** — write email responses on behalf of the user; always show draft before sending
+3. **Extract tasks** — pull action items from emails into a structured to-do list
+4. **Summarise threads** — condense long email chains into a clear summary with key decisions and next steps
+
+## Priority Categories
+
+| Category | Priority | Description |
+|----------|----------|-------------|
+| Business | High | Client emails, partner comms, contracts, proposals |
+| Legal | High | Legal notices, compliance, regulatory |
+| Finance | High | Invoices, payments, bank notifications |
+| Personal | Medium | Family, friends, personal matters |
+| Marketing / Newsletters | Low | Subscriptions, promotions, newsletters |
+| Spam / Unknown | None | Flag for review, do not act |
+
+## Task Extraction Rules
+
+- Every email containing an action item, deadline, or request should produce a task entry
+- Task format: `[Source] Subject — Action — Due date (if mentioned)`
+- Store extracted tasks in `02-cell-body/planning/todo/`
+- Flag tasks that require a reply as `needs-response`
+
+## Drafting Rules
+
+- Match the tone of the original thread (formal / informal)
+- Keep replies concise — lead with the answer, then context
+- Never send without explicit user confirmation
+- Use the user's name: **bnprs** / **Ramaiah**
+
+## Inbox Organisation Conventions
+
+- Labels/folders: `Action Required`, `Waiting`, `Reference`, `Archived`
+- VIP senders (add as known): flag immediately regardless of category
+- Threads older than 30 days with no reply: surface as `stale — needs action or archive`
