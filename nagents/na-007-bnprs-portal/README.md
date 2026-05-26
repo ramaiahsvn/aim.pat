@@ -1,6 +1,6 @@
-# na-007-bnprs-zoo — BNPRS Enterprise Portal Agents
+# na-007-bnprs-portal — BNPRS Enterprise Portal Agents
 
-Agents for the BNPRS Zoo enterprise portal — the central system managing
+Agents for the BNPRS enterprise portal — the central system managing
 people, operations, and resources across the organisation.
 
 ## Domain
