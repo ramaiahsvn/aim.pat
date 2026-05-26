@@ -7,7 +7,7 @@
 
 | Code | Group       | Name      | Role                                    | Status | Created    |
 |------|-------------|-----------|------------------------------------------|--------|------------|
-| 01   | na-001      | pat-todo  | Productivity Assistant                  | active | 2026-05-26 |
+| 01   | na-001      | pat-emails-todo | Email and Task Manager            | active | 2026-05-26 |
 | 02   | na-001      | pat-fbmi  | Family Health & Nutrition Assistant     | active | 2026-05-26 |
 | 03   | na-001      | pat-mfin  | Personal Finance Manager                | active | 2026-05-26 |
 | 04   | na-001      | pat-fhbs  | Home Balance Sheet                      | active | 2026-05-26 |
@@ -38,7 +38,7 @@ _None defined yet._
 
 ## Notes
 
-- 01 pat-todo nucleus (`03-nucleus/CLAUDE.md`) is a template shell — domain and project conventions not yet filled in
+- 01 pat-emails-todo nucleus (`03-nucleus/CLAUDE.md`) is a template shell — Gmail, Outlook, Zoho Mail, todo tracking domain not yet filled in
 - 02 pat-fbmi nucleus (`03-nucleus/CLAUDE.md`) is a template shell — family health, nutrition, doctor advice domain not yet filled in
 - 03 pat-mfin nucleus (`03-nucleus/CLAUDE.md`) is a template shell — personal finance, income, expenses domain not yet filled in
 - 04 pat-fhbs nucleus (`03-nucleus/CLAUDE.md`) is a template shell — household expenses, family balance sheet domain not yet filled in

@@ -14,10 +14,10 @@ group:
 
 registry:
   - code: "01"
-    name: "pat-todo"
-    label: "pat-todo"
-    role: "Productivity Assistant"
-    path: "01-pat-todo"
+    name: "pat-emails-todo"
+    label: "pat-emails-todo"
+    role: "Email and Task Manager"
+    path: "01-pat-emails-todo"
     status: "active"
     created_at: "2026-05-26"
     created_by: "bnprs"

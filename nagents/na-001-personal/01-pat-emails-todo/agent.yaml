@@ -6,11 +6,11 @@
 # ============================================================
 
 agent:
-  name: "pat-todo"
+  name: "pat-emails-todo"
   version: "1.0.0"
   code: "01"
   group: "na-001-personal"
-  description: "Productivity Assistant"
+  description: "Email and Task Manager — Gmail, Outlook, Zoho Mail, inbox management, and to-do tracking"
   created_by: "bnprs"
   created_at: "2026-05-26"
 
