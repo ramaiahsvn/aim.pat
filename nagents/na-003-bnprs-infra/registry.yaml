@@ -67,6 +67,15 @@ registry:
     created_at: "2026-05-26"
     created_by: "bnprs"
 
+  - code: "008"
+    name: "bnprs-grc"
+    label: "bnprs-grc"
+    role: "Governance, Risk, and Compliance (GRC)"
+    path: "008-bnprs-grc"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
   - code: "007"
     name: "bnprs-aws-kms"
     label: "bnprs-aws-kms"

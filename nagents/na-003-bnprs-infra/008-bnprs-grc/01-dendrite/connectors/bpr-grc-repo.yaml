@@ -1,0 +1,46 @@
+id: connector-bpr-grc-repo
+name: "bpr.grc — GRC Source Repository"
+type: git
+protocol: https
+version: "1.0.0"
+
+repository:
+  local_path: "/Users/bnprs/BPR/GitRepos1/bpr.grc"
+  remote: "https://github.com/ramaiahsvn/bpr.grc"
+  branch: "main"
+  account: "ramaiahsvn"
+
+modules:
+  - name: "bpr.usb"
+    path: "bpr.grc/bpr.usb/"
+    description: "USB storage control — policy enforcement and admin challenge-response"
+    platforms: [Windows, Linux, macOS]
+    build: "CMake (C++17, OpenSSL)"
+    status: active
+
+  - name: "bpr.pci"
+    path: "bpr.grc/bpr.pci/"
+    description: "PCI-DSS compliance monitor — endpoint anomaly detection and alerting"
+    platforms: [Windows, Linux, macOS]
+    build: "CMake (C++17, OpenSSL)"
+    status: active
+
+  - name: "bpr.kms"
+    path: "bpr.grc/bpr.kms/"
+    description: "HSM key management — k3-verifychallenge Lambda service at kms.bnprs.ai"
+    platforms: [AWS Lambda (arm64, provided.al2023)]
+    build: "Rust (cargo lambda)"
+    status: active
+    related_agent: "na-003/007-bnprs-aws-kms"
+
+capabilities:
+  - read_source_code
+  - list_modules
+  - read_documentation
+  - review_compliance_mappings
+  - track_changes
+
+notes: >
+  bpr.usb and bpr.pci are C++ modules built with CMake.
+  bpr.kms is a Rust AWS Lambda — see 007-bnprs-aws-kms for operational management.
+  All modules deploy independently; see each module's docs/DEPLOY.md for fleet deployment.
