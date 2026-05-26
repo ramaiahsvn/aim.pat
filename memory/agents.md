@@ -61,6 +61,8 @@
 | 005  | na-006 | bpr1005-icba-prod | BPR ICBA Production (Issuer Controlled Biometric Authentication) | active | 2026-05-27 |
 | 006  | na-006 | trp1004-nagents-prod | TRP nagents AI Agent Platform Production (aim.pat) | active | 2026-05-27 |
 | 007  | na-006 | bpr1007-acs-prod | BPR ACS Production (Access Control System) | active | 2026-05-27 |
+| 001  | na-100 | rnd-mpos | mPOS R&D and Competitive Analysis (BPR1003 PatPOS, PhonePe ref) | active | 2026-05-27 |
+| 002  | na-100 | rnd-superapp | AandhiPe Super-App R&D (BPR2001, SuperQi/WeChat/ONDC ref) | active | 2026-05-27 |
 
 ## Group Slot Usage
 
@@ -73,7 +75,7 @@
 | na-005-bnprs-fintech     | na-005 | 11 | 255 |
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-team        | na-007 | 0  | 255 |
-| na-100-gne-esrever       | na-100 | 0  | 255 |
+| na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies
 

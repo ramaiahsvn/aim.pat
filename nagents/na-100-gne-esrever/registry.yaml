@@ -12,7 +12,24 @@ group:
   description: "Miscellaneous tasks and ad-hoc agents"
   max_agents: 255
 
-registry: []
+registry:
+  - code: "001"
+    name: "rnd-mpos"
+    label: "rnd-mpos"
+    role: "mPOS R&D and Competitive Analysis (BPR1003 PatPOS)"
+    path: "001-rnd-mpos"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "002"
+    name: "rnd-superapp"
+    label: "rnd-superapp"
+    role: "AandhiPe Super-App R&D and Competitive Analysis (BPR2001)"
+    path: "002-rnd-superapp"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
 
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  General purpose / ad-hoc agents
