@@ -1,0 +1,34 @@
+id: connector-outlook
+name: "Outlook / Office 365"
+type: mcp-connector
+protocol: mcp
+version: "1.0"
+
+connection:
+  server: "@softeria/ms-365-mcp-server"
+  auth:
+    type: oauth2
+    scopes:
+      - Mail.Read
+      - Mail.ReadWrite
+      - Mail.Send
+      - MailboxSettings.Read
+
+capabilities:
+  - list_messages
+  - get_message
+  - send_message
+  - create_draft
+  - move_message
+  - list_folders
+  - create_folder
+  - list_threads
+  - search_messages
+  - flag_message
+
+priority: high
+rate_limit: 60/min
+
+notes: >
+  Microsoft / Office 365 business mail.
+  Credentials stored in 01-dendrite/secrets/secrets.yaml.

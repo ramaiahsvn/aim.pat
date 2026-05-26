@@ -1,0 +1,32 @@
+id: connector-zoho-mail
+name: "Zoho Mail"
+type: rest-api
+protocol: http
+version: "1.0"
+
+connection:
+  server: "https://mail.zoho.com/api"
+  auth:
+    type: oauth2
+    scopes:
+      - ZohoMail.messages.READ
+      - ZohoMail.messages.CREATE
+      - ZohoMail.messages.UPDATE
+      - ZohoMail.folders.READ
+
+capabilities:
+  - list_messages
+  - get_message
+  - send_message
+  - create_draft
+  - move_message
+  - list_folders
+  - search_messages
+  - flag_message
+
+priority: high
+rate_limit: 60/min
+
+notes: >
+  Business / domain email via Zoho Mail.
+  Credentials stored in 01-dendrite/secrets/secrets.yaml.

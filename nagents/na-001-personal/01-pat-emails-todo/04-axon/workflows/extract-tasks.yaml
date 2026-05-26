@@ -1,0 +1,40 @@
+id: wf-extract-tasks
+name: "Extract Tasks from Emails"
+description: "Scan emails and pull action items into the to-do list"
+version: "1.0"
+
+steps:
+  - id: scan
+    name: "Scan Emails for Action Items"
+    action: soma.reason
+    inputs: [email_list, task_trigger_keywords]
+    outputs: [raw_tasks]
+    checkpoint: false
+
+  - id: structure
+    name: "Structure Tasks"
+    action: soma.reason
+    inputs: [raw_tasks]
+    outputs: [structured_tasks]
+    format: "[Account] Sender — Subject — Action — Due date"
+    checkpoint: false
+
+  - id: prioritise
+    name: "Assign Priority"
+    action: soma.reason
+    inputs: [structured_tasks, task_priority_rules]
+    outputs: [prioritised_tasks]
+    checkpoint: false
+
+  - id: save
+    name: "Save to To-Do List"
+    action: terminals.create_file
+    inputs: [prioritised_tasks]
+    outputs: [todo_file_path]
+    target: "02-cell-body/planning/todo/"
+    checkpoint: true
+    checkpoint_message: "Extracted {count} tasks. Review before saving?"
+
+on_failure:
+  retry: 1
+  fallback: "notify_user_with_partial_output"

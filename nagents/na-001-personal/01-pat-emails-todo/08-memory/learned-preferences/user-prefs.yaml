@@ -1,28 +1,29 @@
-# Learned Preferences — Hebbian Learning
-# "Neurons that fire together, wire together"
-# Patterns discovered from repeated user behavior
-
 preferences:
-  formatting:
-    preferred_font: null           # Discovered over time
-    preferred_colors: []           # e.g., ["#2D4A3E", "#D4952B"]
-    document_style: null           # formal | casual | technical
-    bullet_style: null             # dashes | dots | numbered
-
   communication:
-    verbosity: null                # concise | balanced | detailed
-    asks_followup: null            # true = user likes proactive questions
-    preferred_language: null       # en | es | fr | etc.
-    tone: null                     # professional | casual | friendly
+    verbosity: concise
+    tone: professional
+    preferred_language: en
+    asks_followup: false
+    sign_off: "Regards,\nRamaiah"
+
+  email_behaviour:
+    show_draft_before_send: true
+    auto_archive_newsletters: true
+    stale_thread_threshold_days: 30
+    preferred_triage_time: "morning"
+    accounts_order: [gmail, outlook, zoho_mail]
+
+  formatting:
+    document_style: professional
+    bullet_style: dashes
+    preferred_output_format: md
 
   workflow:
-    reviews_plans: null            # true = always show plan first
-    preferred_output_format: null  # docx | pdf | md | xlsx
-    auto_save_preference: null     # always | ask | never
-    likes_progress_updates: null   # true = send updates during long tasks
+    reviews_plans: true
+    auto_save_preference: always
+    likes_progress_updates: false
 
-  # How preferences are learned
   learning_rules:
-    min_observations: 3            # See pattern 3+ times before storing
-    decay_rate: 0.1                # Weaken if not reinforced
-    override: "user_explicit"      # Explicit instruction always wins
+    min_observations: 3
+    decay_rate: 0.1
+    override: "user_explicit"

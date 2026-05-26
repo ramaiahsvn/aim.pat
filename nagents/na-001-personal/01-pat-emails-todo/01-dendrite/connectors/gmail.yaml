@@ -1,0 +1,35 @@
+id: connector-gmail
+name: "Gmail"
+type: mcp-connector
+protocol: mcp
+version: "1.0"
+
+connection:
+  server: "@gongrzhe/server-gmail-autoauth-mcp"
+  auth:
+    type: oauth2
+    scopes:
+      - https://www.googleapis.com/auth/gmail.readonly
+      - https://www.googleapis.com/auth/gmail.send
+      - https://www.googleapis.com/auth/gmail.modify
+      - https://www.googleapis.com/auth/gmail.labels
+
+capabilities:
+  - list_messages
+  - get_message
+  - send_message
+  - create_draft
+  - modify_labels
+  - list_labels
+  - create_label
+  - list_threads
+  - get_thread
+  - trash_message
+  - search_messages
+
+priority: high
+rate_limit: 100/min
+
+notes: >
+  Primary personal and business inbox.
+  Credentials stored in 01-dendrite/secrets/secrets.yaml.

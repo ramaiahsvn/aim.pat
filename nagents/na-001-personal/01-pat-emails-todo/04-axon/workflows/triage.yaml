@@ -1,0 +1,45 @@
+id: wf-email-triage
+name: "Email Triage"
+description: "Scan inbox, categorise, label, and surface action items"
+version: "1.0"
+
+steps:
+  - id: fetch
+    name: "Fetch Unread Emails"
+    action: dendrite.list_messages
+    inputs: [account, filters: {unread: true}]
+    outputs: [email_list]
+    checkpoint: false
+
+  - id: categorise
+    name: "Categorise Each Email"
+    action: soma.reason
+    inputs: [email_list, priority_rules]
+    outputs: [categorised_emails]
+    checkpoint: false
+
+  - id: label
+    name: "Apply Labels / Folders"
+    action: dendrite.modify_labels
+    inputs: [categorised_emails]
+    outputs: [labelled_emails]
+    checkpoint: false
+
+  - id: surface
+    name: "Surface High-Priority Items"
+    action: terminals.notify_user
+    inputs: [categorised_emails, filter: {priority: [high, critical]}]
+    outputs: [triage_summary]
+    checkpoint: true
+    checkpoint_message: "Triage complete. Here's your inbox summary — any corrections?"
+
+  - id: extract_tasks
+    name: "Extract Action Items"
+    action: wf-extract-tasks
+    inputs: [categorised_emails]
+    outputs: [task_list]
+    checkpoint: false
+
+on_failure:
+  retry: 1
+  fallback: "notify_user_with_partial_output"

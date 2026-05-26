@@ -1,38 +1,52 @@
-# Priority Rules — The Firing Threshold
-
-# Determines whether the agent acts (fires) or defers (inhibits)
+# Priority Rules — pat-emails-todo
 
 threshold:
-  # Minimum confidence to act autonomously
   auto_act: 0.8
-  # Below this, ask the user for clarification
   ask_user: 0.5
-  # Below this, defer entirely
   defer: 0.3
 
-priority_matrix:
-  critical:
-    description: "User-blocking, time-sensitive, data-loss risk"
-    max_wait: "0s"
-    auto_escalate: true
-
+# Email category priority tiers
+email_priority:
   high:
-    description: "Explicitly requested, clear requirements"
-    max_wait: "30s"
-    auto_escalate: false
+    categories: [business, legal, finance]
+    description: "Client, partner, legal, financial emails — act within the hour"
+    auto_escalate: true
+    label: "Action Required"
 
   medium:
-    description: "Useful but not urgent, can batch with others"
-    max_wait: "5m"
+    categories: [personal]
+    description: "Family, friends, personal matters"
     auto_escalate: false
+    label: "Action Required"
 
   low:
-    description: "Background optimization, nice-to-have"
-    max_wait: "1h"
+    categories: [marketing, newsletters, promotions]
+    description: "Subscriptions, offers, newsletters — batch or archive"
     auto_escalate: false
+    label: "Reference"
 
-# Competing signal resolution
+  none:
+    categories: [spam, unknown]
+    description: "Flag for review, never act autonomously"
+    auto_escalate: false
+    label: "Review"
+
+# Task extraction priority (from emails)
+task_priority:
+  critical:
+    triggers: ["urgent", "asap", "immediately", "deadline today", "overdue"]
+    max_wait: "0s"
+  high:
+    triggers: ["by end of day", "eod", "by tomorrow", "action required", "please respond"]
+    max_wait: "1h"
+  medium:
+    triggers: ["this week", "follow up", "let me know"]
+    max_wait: "24h"
+  low:
+    triggers: ["when you get a chance", "no rush", "fyi"]
+    max_wait: "1w"
+
 conflict_resolution:
-  strategy: priority_then_fifo   # priority_then_fifo | round_robin | user_choice
+  strategy: priority_then_fifo
   max_parallel_tasks: 5
-  preemption_allowed: true       # Can a critical task interrupt medium?
+  preemption_allowed: true

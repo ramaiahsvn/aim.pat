@@ -1,0 +1,23 @@
+checkpoint:
+  id: "cp-email-send"
+  type: human_review
+  description: "Verify draft reply before sending on behalf of user"
+
+  conditions:
+    - check: "draft_exists"
+      expected: true
+    - check: "recipient_confirmed"
+      expected: true
+    - check: "account_confirmed"
+      expected: true
+
+  on_pass:
+    action: continue
+    log: true
+
+  on_fail:
+    action: ask_user
+    max_retries: 3
+    message: "Send cancelled. Would you like to edit the draft or discard it?"
+
+  timeout: 300s

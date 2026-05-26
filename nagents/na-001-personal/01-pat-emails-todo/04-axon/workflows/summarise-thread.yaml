@@ -1,0 +1,47 @@
+id: wf-summarise-thread
+name: "Summarise Email Thread"
+description: "Condense a long thread into key decisions, actions, and next steps"
+version: "1.0"
+
+steps:
+  - id: fetch
+    name: "Fetch Full Thread"
+    action: dendrite.get_thread
+    inputs: [thread_id, account]
+    outputs: [thread]
+    checkpoint: false
+
+  - id: summarise
+    name: "Generate Summary"
+    action: soma.reason
+    inputs: [thread]
+    outputs: [summary]
+    format: |
+      ## Thread Summary
+      **Subject:** {subject}
+      **Participants:** {participants}
+      **Date range:** {date_range}
+
+      ### Key Points
+      {bullet_points}
+
+      ### Decisions Made
+      {decisions}
+
+      ### Action Items
+      {action_items}
+
+      ### Next Steps
+      {next_steps}
+    checkpoint: false
+
+  - id: deliver
+    name: "Deliver Summary"
+    action: terminals.notify_user
+    inputs: [summary]
+    outputs: [delivery_confirmation]
+    checkpoint: false
+
+on_failure:
+  retry: 1
+  fallback: "notify_user_with_partial_output"

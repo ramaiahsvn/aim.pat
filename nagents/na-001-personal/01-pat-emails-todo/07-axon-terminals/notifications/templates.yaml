@@ -1,10 +1,34 @@
 # Notification Templates — Neurotransmitter Shapes
 
 templates:
-  task_complete:
+  triage_summary:
     channel: chat
-    message: "Task completed: {task_subject}. {summary}"
-    attach: "{deliverable_path}"
+    trigger: "after_triage"
+    message: |
+      Inbox Triage — {account} ({date})
+      High priority  : {high_count} emails
+      Medium priority: {medium_count} emails
+      Low / archive  : {low_count} emails
+      Tasks extracted: {task_count}
+      Top actions: {top_actions}
+
+  draft_ready:
+    channel: chat
+    trigger: "draft_created"
+    message: |
+      Draft ready — To: {recipient} | Account: {account} | Subject: {subject}
+      {draft_body}
+      Reply: Send / Edit / Discard
+
+  tasks_extracted:
+    channel: chat
+    trigger: "tasks_extracted"
+    message: "{task_count} tasks extracted from emails. Saved to planning/todo/\n{task_list}"
+
+  stale_alert:
+    channel: chat
+    trigger: "stale_thread_detected"
+    message: "Stale thread ({days_ago}d): {subject} from {sender} [{account}] — Reply, Archive, or Ignore?"
 
   needs_input:
     channel: chat
@@ -13,9 +37,5 @@ templates:
 
   error_report:
     channel: chat
-    message: "I encountered an issue: {error}. {suggested_fix}"
+    message: "Issue encountered: {error}. {suggested_fix}"
     severity: "{level}"
-
-  progress_update:
-    channel: chat
-    message: "Progress: {completed}/{total} steps done. Currently: {current_step}"

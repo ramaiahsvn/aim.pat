@@ -1,0 +1,39 @@
+id: wf-draft-reply
+name: "Draft Email Reply"
+description: "Draft a reply to an email thread, show for approval before sending"
+version: "1.0"
+
+steps:
+  - id: fetch_thread
+    name: "Fetch Full Thread"
+    action: dendrite.get_thread
+    inputs: [thread_id, account]
+    outputs: [thread]
+    checkpoint: false
+
+  - id: summarise
+    name: "Summarise Thread Context"
+    action: soma.reason
+    inputs: [thread]
+    outputs: [thread_summary, key_points, action_requested]
+    checkpoint: false
+
+  - id: draft
+    name: "Draft Reply"
+    action: soma.reason
+    inputs: [thread_summary, action_requested, user_tone_preferences, sender_name]
+    outputs: [draft_reply]
+    checkpoint: true
+    checkpoint_message: "Here's my draft reply. Approve, edit, or discard?"
+
+  - id: send
+    name: "Send Reply"
+    action: dendrite.send_message
+    inputs: [draft_reply, account, thread_id]
+    outputs: [send_confirmation]
+    requires_confirmation: true
+    checkpoint: false
+
+on_failure:
+  retry: 0
+  fallback: "save_draft_and_notify_user"

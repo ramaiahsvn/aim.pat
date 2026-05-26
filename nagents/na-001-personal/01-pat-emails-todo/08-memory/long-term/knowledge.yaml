@@ -4,27 +4,44 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: user_context
+    content: "User name: Ramaiah (username: bnprs). Email: ramaiah.polyu@gmail.com (Gmail)."
+    created_at: "2026-05-26"
+    last_accessed: "2026-05-26"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.99
+    source: "session-init"
+    tags: [user, identity]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: account_context
+    content: "Three active email accounts: Gmail (personal), Outlook (business), Zoho Mail (business-domain). Outlook and Zoho account emails not yet configured."
+    created_at: "2026-05-26"
+    last_accessed: "2026-05-26"
+    access_count: 1
+    confidence: 0.99
+    source: "session-init"
+    tags: [email, accounts]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: behaviour_preference
+    content: "Always show draft before sending. Never send autonomously. User is concise and prefers professional tone."
+    created_at: "2026-05-26"
+    last_accessed: "2026-05-26"
+    access_count: 1
+    confidence: 0.99
+    source: "session-init"
+    tags: [preference, drafting, safety]
+
+  - id: mem-004
+    type: project_context
+    content: "BNPRS is the business entity. Domains: bnprs.ai, bnprs.in, bnprs.com."
+    created_at: "2026-05-26"
+    last_accessed: "2026-05-26"
+    access_count: 1
+    confidence: 0.99
+    source: "session-init"
+    tags: [bnprs, business, domains]
 
 # Pruning rules
 pruning:
