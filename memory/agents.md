@@ -5,35 +5,42 @@
 
 ## Active Agents
 
-| Code | Group       | Name      | Role                                    | Status | Created    |
-|------|-------------|-----------|------------------------------------------|--------|------------|
-| 01   | na-001      | pat-emails-todo | Email and Task Manager            | active | 2026-05-26 |
-| 02   | na-001      | pat-fbmi  | Family Health & Nutrition Assistant     | active | 2026-05-26 |
-| 03   | na-001      | pat-mfin  | Personal Finance Manager                | active | 2026-05-26 |
-| 04   | na-001      | pat-fhbs  | Home Balance Sheet                      | active | 2026-05-26 |
-| 05   | na-001      | pat-assets  | Personal Asset Manager                 | active | 2026-05-26 |
-| 06   | na-001      | pat-patents | Patents and IP Manager                 | active | 2026-05-26 |
-| 01   | na-002      | bnprs-leadership | Leadership and Strategy Advisor   | active | 2026-05-26 |
-| 02   | na-002      | bnprs-admin      | Admin, HR, Legal and Compliance   | active | 2026-05-26 |
-| 03   | na-002      | bnprs-finance    | Business Finance, Accounting, Tax | active | 2026-05-26 |
-| 04   | na-002      | bnprs-sales      | Sales, Marketing and Customer     | active | 2026-05-26 |
-| 05   | na-002      | bnprs-websites     | Website and Digital Presence      | active | 2026-05-26 |
-| 06   | na-002      | bnprs-social-media | Social Media and Content          | active | 2026-05-26 |
-| 07   | na-002      | bnprs-docs         | Business Documents and Templates  | active | 2026-05-26 |
-| 08   | na-002      | bnprs-tech-docs      | Technical Products Documentation  | active | 2026-05-26 |
-| 09   | na-002      | bnprs-presentations  | Presentations and Pitch Decks     | active | 2026-05-26 |
+| Code | Group  | Name | Role | Status | Created |
+|------|--------|------|------|--------|---------|
+| 001  | na-001 | pat-emails-todo | Email and Task Manager | active | 2026-05-26 |
+| 002  | na-001 | pat-fbmi | Family Health & Nutrition Assistant | active | 2026-05-26 |
+| 003  | na-001 | pat-mfin | Personal Finance Manager | active | 2026-05-26 |
+| 004  | na-001 | pat-fhbs | Home Balance Sheet | active | 2026-05-26 |
+| 005  | na-001 | pat-assets | Personal Asset Manager | active | 2026-05-26 |
+| 006  | na-001 | pat-patents | Patents and IP Manager | active | 2026-05-26 |
+| 001  | na-002 | bnprs-chat | Messaging and Communications Manager | active | 2026-05-26 |
+| 002  | na-002 | bnprs-admin | Admin, HR, Legal and Compliance | active | 2026-05-26 |
+| 003  | na-002 | bnprs-finance | Business Finance, Accounting, Tax | active | 2026-05-26 |
+| 004  | na-002 | bnprs-sales | Sales, Marketing and Customer | active | 2026-05-26 |
+| 005  | na-002 | bnprs-websites | Website and Digital Presence | active | 2026-05-26 |
+| 006  | na-002 | bnprs-social-media | Social Media and Content | active | 2026-05-26 |
+| 007  | na-002 | bnprs-docs | Business Documents and Templates | active | 2026-05-26 |
+| 008  | na-002 | bnprs-tech-docs | Technical Products Documentation | active | 2026-05-26 |
+| 009  | na-002 | bnprs-presentations | Presentations and Pitch Decks | active | 2026-05-26 |
+| 010  | na-002 | bnprs-certifications | ISO, PCI-DSS, CMMI Certifications | active | 2026-05-26 |
+| 001  | na-003 | bnprs-aws | BNPRS AWS Account Manager (891963159778, ap-south-2) | active | 2026-05-26 |
+| 002  | na-003 | bnprs-aws-itp | ITPCore AWS Account Manager (819144294008, us-east-2) | active | 2026-05-26 |
+| 003  | na-003 | bnprs-gitlab | Self-Hosted GitLab Manager (gitlab.bnprs.ai, CE 18.9.0) | active | 2026-05-26 |
+| 004  | na-003 | bnprs-github | GitHub Accounts Manager (ramaiahsvn, ramaiahsvn2, iCodeScrum) | active | 2026-05-26 |
+| 005  | na-003 | bnprs-websites | Website Infrastructure Manager (bnprs.ai/in/com, aandhipe.in) | active | 2026-05-26 |
+| 006  | na-003 | bnprs-claude | AI Model Subscription Instance (EC2: aim1001-bnprs-claude) | active | 2026-05-26 |
 
 ## Group Slot Usage
 
-| Group | ID     | Used | Max |
-|-------|--------|------|-----|
-| na-001-personal          | na-001 | 6   | 255 |
-| na-002-bnprs-core        | na-002 | 9   | 255 |
-| na-003-bnprs-infra       | na-003 | 0   | 255 |
-| na-004-bnprs-biometrics  | na-004 | 0   | 255 |
-| na-005-bnprs-fintech     | na-005 | 0   | 255 |
-| na-006-bnprs-deployments | na-006 | 0   | 255 |
-| na-007-bnprs-team        | na-007 | 0   | 255 |
+| Group | ID | Used | Max |
+|-------|----|------|-----|
+| na-001-personal          | na-001 | 6  | 255 |
+| na-002-bnprs-core        | na-002 | 10 | 255 |
+| na-003-bnprs-infra       | na-003 | 6  | 255 |
+| na-004-bnprs-biometrics  | na-004 | 0  | 255 |
+| na-005-bnprs-fintech     | na-005 | 0  | 255 |
+| na-006-bnprs-deployments | na-006 | 0  | 255 |
+| na-007-bnprs-team        | na-007 | 0  | 255 |
 
 ## Inter-Agent Dependencies
 

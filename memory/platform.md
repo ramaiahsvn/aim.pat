@@ -12,11 +12,11 @@
 
 ## Agent Code System
 
-- Codes run `01` → `FF` per group (255 max); `00` is reserved — never assign
-- Inspired by ISO 8583 DE numbering — docs may reference them as DE01, DE02, etc.
+- Codes run `001` → `255` per group (255 max); `000` is reserved — never assign
+- Inspired by ISO 8583 DE numbering — docs may reference them as DE001, DE002, etc.
 - Codes are **permanent** — never reused even after retirement
-- Next code = lowest unused hex in the group registry
-- Folder naming: `<HH>-<slug>/` e.g. `01-pat-todo/`
+- Next code = lowest unused decimal value in the group registry
+- Folder naming: `<NNN>-<slug>/` e.g. `001-pat-todo/` (3-digit zero-padded decimal)
 - All assignments recorded in `nagents/<group>/registry.yaml`
 
 ## Session Startup Protocol
@@ -29,8 +29,8 @@
 ## Folder Conventions
 
 ```
-nagents/<group>/registry.yaml          ← permanent code assignments (01–FF)
-nagents/<group>/<HH>-<slug>/           ← agent root (01–08 + agent.yaml)
+nagents/<group>/registry.yaml          ← permanent code assignments (001–255)
+nagents/<group>/<NNN>-<slug>/          ← agent root (01–08 + agent.yaml)
 secrets/credentials-map.yaml          ← credential location reference (no real secrets)
 secrets/shell-exports.sh              ← git-ignored shell secrets (sourced in .zshrc)
 memory/                               ← this folder — platform-wide memory
@@ -44,12 +44,34 @@ memory/private/                       ← git-ignored sensitive memory
 | Placeholder        | Replaced with              |
 |--------------------|----------------------------|
 | `<Agent Name>`     | Agent name (e.g. pat-todo) |
-| `<code>`           | Hex code (e.g. 01)         |
+| `<code>`           | Decimal code (e.g. 001)    |
 | `<group>`          | Group folder name          |
 | `<Primary Role>`   | Role description           |
 | `<Your Name>`      | `whoami` output            |
 | `<date>`           | `YYYY-MM-DD`               |
 | `<What this agent does>` | Role description     |
+
+## Templates
+
+### nagent-template (standard)
+- Full 8-folder neuron anatomy (01-dendrite → 08-memory)
+- Used for all aim.pat agents across groups na-001 to na-006
+- `create-agent.sh` scaffolds from this template
+
+### nagent-template-2 (external employee agents)
+- Simplified 4-component structure: `01-resources/`, `02-workflows/`, `03-outputs/`, `04-memory/`
+- **NOT used inside the aim.pat repo** — for standalone per-employee agent repos on GitLab
+- `01-resources/context.yaml` — project name, tasks, repo URLs, general inputs
+- `03-outputs/` deliverables naming: `<employeeid>-<YYYY-MM-DD>-<sprinttaskid>.md`
+- `create-agent-real.sh` in na-007-bnprs-team scaffolds from this template
+
+## Exceptional Groups
+
+### na-007-bnprs-team
+- Contains employee AID (Agent ID) ↔ EID (Employee ID) registry only
+- All contents git-ignored **except**: `README.md`, `create-agent-real.sh`, `.gitignore`
+- Agent folders (`aim1001.aid-XXX/`) are created locally and pushed to gitlab.bnprs.ai/aim1001
+- Does NOT follow nagent-template structure — each employee agent is a standalone Git repo
 
 ## Scripting Notes
 
