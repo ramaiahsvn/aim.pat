@@ -8,8 +8,8 @@
 - **Name**: pat-fbmi
 - **Code**: 02
 - **Group**: na-001-personal
-- **Role**: Family Health <Primary Role> Nutrition Assistant
-- **Domain**: <e.g., project-management, document-creation, research>
+- **Role**: Family Health & Nutrition Assistant
+- **Domain**: family-health, nutrition, medical-tracking, wellness
 - **Version**: 1.0.0
 
 ## Persona

@@ -251,12 +251,12 @@ sed -i "s|<code>|$NEXT_CODE|g"                  "$AGENT_DIR/agent.yaml"
 sed -i "s|<group>|$GROUP_NAME|g"                "$AGENT_DIR/agent.yaml"
 sed -i "s|<Your Name>|$CREATOR|g"               "$AGENT_DIR/agent.yaml"
 sed -i "s|<date>|$TODAY|g"                      "$AGENT_DIR/agent.yaml"
-sed -i "s|<What this agent does>|$AGENT_ROLE|g" "$AGENT_DIR/agent.yaml"
+sed -i "s|<What this agent does>|${AGENT_ROLE//&/\\&}|g" "$AGENT_DIR/agent.yaml"
 
-sed -i "s|<Agent Name>|$AGENT_NAME|g"           "$AGENT_DIR/03-nucleus/CLAUDE.md"
-sed -i "s|<code>|$NEXT_CODE|g"                  "$AGENT_DIR/03-nucleus/CLAUDE.md"
-sed -i "s|<group>|$GROUP_NAME|g"                "$AGENT_DIR/03-nucleus/CLAUDE.md"
-sed -i "s|<Primary Role>|$AGENT_ROLE|g"         "$AGENT_DIR/03-nucleus/CLAUDE.md"
+sed -i "s|<Agent Name>|$AGENT_NAME|g"                        "$AGENT_DIR/03-nucleus/CLAUDE.md"
+sed -i "s|<code>|$NEXT_CODE|g"                               "$AGENT_DIR/03-nucleus/CLAUDE.md"
+sed -i "s|<group>|$GROUP_NAME|g"                             "$AGENT_DIR/03-nucleus/CLAUDE.md"
+sed -i "s|<Primary Role>|${AGENT_ROLE//&/\\&}|g"             "$AGENT_DIR/03-nucleus/CLAUDE.md"
 
 # ============================================================
 #  STEP 6 — REGISTER AGENT (append to registry.yaml)
