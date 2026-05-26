@@ -1,0 +1,55 @@
+id: connector-github
+name: "GitHub"
+type: mcp-connector
+protocol: mcp
+version: "1.0.0"
+
+accounts:
+  - username: "ramaiahsvn"
+    type: personal
+    mcp_server: "github-ramaiahsvn"
+    status: connected
+    orgs: []
+  - username: "ramaiahsvn2"
+    type: personal
+    mcp_server: "github-ramaiahsvn2"
+    status: connected
+    orgs: [BNPRS, IscQicard, ITPCQI]
+  - username: "iCodeSrum"
+    type: organisation
+    mcp_server: "github-icodesrum"
+    status: pending_auth
+    note: "Run: gh auth login --hostname github.com (sign in as iCodeSrum)"
+
+connection:
+  server: "ghcr.io/github/github-mcp-server"
+  transport: docker
+  auth:
+    type: personal_access_token
+    env_var: GITHUB_PERSONAL_ACCESS_TOKEN
+
+capabilities:
+  - list_repositories
+  - get_repository
+  - create_repository
+  - list_issues
+  - create_issue
+  - get_issue
+  - list_pull_requests
+  - create_pull_request
+  - get_pull_request
+  - merge_pull_request
+  - list_branches
+  - create_branch
+  - search_code
+  - search_repositories
+  - list_commits
+  - get_file_contents
+  - create_or_update_file
+
+priority: high
+
+notes: >
+  Official GitHub MCP server via Docker (ghcr.io/github/github-mcp-server).
+  Tokens stored in 01-dendrite/secrets/secrets.yaml (git-ignored).
+  iCodeSrum pending authentication via gh CLI.

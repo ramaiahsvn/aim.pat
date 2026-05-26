@@ -2,53 +2,87 @@
   "mcpServers": {
     "gmail-polyu": {
       "command": "npx",
-      "args": ["-y", "@gongrzhe/server-gmail-autoauth-mcp"],
+      "args": [
+        "-y",
+        "@gongrzhe/server-gmail-autoauth-mcp"
+      ],
       "env": {
         "GMAIL_CREDENTIALS_PATH": "/Users/bnprs/.gmail-mcp/credentials.json"
       }
     },
     "gmail-iith": {
       "command": "npx",
-      "args": ["-y", "@gongrzhe/server-gmail-autoauth-mcp"],
+      "args": [
+        "-y",
+        "@gongrzhe/server-gmail-autoauth-mcp"
+      ],
       "env": {
         "GMAIL_CREDENTIALS_PATH": "/Users/bnprs/.gmail-mcp/credentials-iith.json"
       }
     },
     "zoho-ramaiah": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": [
+        "/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"
+      ],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "ramaiah@bnprs.in"
       }
     },
     "zoho-info": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": [
+        "/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"
+      ],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "info@bnprs.in"
       }
     },
     "zoho-hr": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": [
+        "/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"
+      ],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "hr@bnprs.in"
       }
     },
     "zoho-accounts": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": [
+        "/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"
+      ],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "accounts@bnprs.in"
       }
     },
     "outlook-itpartners": {
       "command": "npx",
-      "args": ["-y", "@softeria/ms-365-mcp-server", "--expected-username", "p.ramaiah@itpartners.me", "--preset", "mail"]
+      "args": [
+        "-y",
+        "@softeria/ms-365-mcp-server",
+        "--expected-username",
+        "p.ramaiah@itpartners.me",
+        "--preset",
+        "mail"
+      ]
     },
     "outlook-bnprs-ai": {
       "command": "npx",
-      "args": ["-y", "@softeria/ms-365-mcp-server", "--expected-username", "p@bnprs.ai", "--preset", "mail"]
+      "args": [
+        "-y",
+        "@softeria/ms-365-mcp-server",
+        "--expected-username",
+        "p@bnprs.ai",
+        "--preset",
+        "mail"
+      ]
+    },
+    "github-ramaiahsvn": {
+      "command": "/Users/bnprs/.github-mcp/run-ramaiahsvn.sh"
+    },
+    "github-ramaiahsvn2": {
+      "command": "/Users/bnprs/.github-mcp/run-ramaiahsvn2.sh"
     }
   }
 }
