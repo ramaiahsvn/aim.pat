@@ -53,6 +53,7 @@ Read all files in `memory/` (skip `memory/private/` unless relevant):
 | 005 | na-005-bnprs-fintech     | Fintech products and financial workflows                            |
 | 006 | na-006-bnprs-deployments | Release management, CI/CD, environments                             |
 | 007 | na-007-bnprs-team        | BNPRS employee agents — one agent per employee (AIDs)               |
+| 100 | na-100-gne-esrever       | Miscellaneous tasks and ad-hoc agents                               |
 
 > **na-007-bnprs-team is exceptional** — agents here do not follow the nagent-template structure.
 > Only `README.md` is git-tracked; all agent folders are git-ignored.
