@@ -15,7 +15,7 @@ memories:
 
   - id: mem-002
     type: account_context
-    content: "All active email accounts for Ramaiah."
+    content: "9 email accounts across 3 providers: Gmail (×2), Zoho Mail (×4, bnprs.in), Outlook (×3, itpartners.me + bnprs.ai + qi.iq)."
     created_at: "2026-05-26"
     last_accessed: "2026-05-26"
     access_count: 1
@@ -55,23 +55,23 @@ memories:
         role: business-accounts
         connector: zoho-mail
 
-      # Zoho Mail / custom — bnprs.ai domain
+      # Outlook — bnprs.ai domain
       - email: "p@bnprs.ai"
-        provider: zoho_mail
+        provider: outlook
         role: business-ai
-        connector: zoho-mail
+        connector: outlook
 
-      # Outlook / custom — itpartners.me
+      # Outlook — itpartners.me
       - email: "p.ramaiah@itpartners.me"
         provider: outlook
         role: business-itpartners
         connector: outlook
 
-      # Custom — qi.iq domain
+      # Outlook — qi.iq domain
       - email: "p.ramaiah@qi.iq"
-        provider: unknown        # confirm provider
+        provider: outlook
         role: business-qi
-        connector: null          # to be configured
+        connector: outlook
 
   - id: mem-003
     type: behaviour_preference
