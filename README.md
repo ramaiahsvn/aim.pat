@@ -29,7 +29,7 @@ aim.pat/
     na-004-bnprs-biometrics/
     na-005-bnprs-fintech/
     na-006-bnprs-deployments/
-    na-007-bnprs-portal/
+    na-007-bnprs-team/
   secrets/                  ← shared secrets (git-ignored)
   create-agent.sh           ← interactive scaffolding script
   nagent.svg                ← neuron anatomy diagram
@@ -66,7 +66,7 @@ Signal flow: `01 RECEIVE → 02 INTEGRATE ↔ 03 IDENTITY → 04 EXECUTE → 05 
 | 004  | na-004-bnprs-biometrics  | Biometrics product development and research                               |
 | 005  | na-005-bnprs-fintech     | Fintech products and financial workflows                                   |
 | 006  | na-006-bnprs-deployments | Release management, CI/CD pipelines, environments                         |
-| 007  | na-007-bnprs-portal      | Enterprise portal: people, payroll, contracts, sprints, projects, expenses, inventory |
+| 007  | na-007-bnprs-team        | BNPRS employee agents — one agent per employee (AIDs)               |
 
 ---
 
@@ -184,6 +184,6 @@ Never commit real credentials. All `secrets/` folders are git-ignored except the
 ./create-agent.sh                      # create a new agent (interactive)
 ./create-agent.sh --help               # show options
 
-cat nagents/na-007-bnprs-portal/registry.yaml   # view portal group ledger
+cat nagents/na-007-bnprs-team/README.md          # view team employee AIDs
 ls  nagents/na-001-personal/                 # list personal agents
 ```

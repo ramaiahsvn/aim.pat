@@ -33,7 +33,7 @@
 | na-004-bnprs-biometrics  | na-004 | 0   | 255 |
 | na-005-bnprs-fintech     | na-005 | 0   | 255 |
 | na-006-bnprs-deployments | na-006 | 0   | 255 |
-| na-007-bnprs-portal      | na-007 | 0   | 255 |
+| na-007-bnprs-team        | na-007 | 0   | 255 |
 
 ## Inter-Agent Dependencies
 
