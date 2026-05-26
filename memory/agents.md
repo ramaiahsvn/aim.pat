@@ -13,13 +13,14 @@
 | 04   | na-001      | pat-fhbs  | Home Balance Sheet                      | active | 2026-05-26 |
 | 05   | na-001      | pat-assets  | Personal Asset Manager                 | active | 2026-05-26 |
 | 06   | na-001      | pat-patents | Patents and IP Manager                 | active | 2026-05-26 |
+| 01   | na-002      | bnprs-leadership | Leadership and Strategy Advisor   | active | 2026-05-26 |
 
 ## Group Slot Usage
 
 | Group | ID     | Used | Max |
 |-------|--------|------|-----|
 | na-001-personal          | na-001 | 6   | 255 |
-| na-002-bnprs-core        | na-002 | 0   | 255 |
+| na-002-bnprs-core        | na-002 | 1   | 255 |
 | na-003-bnprs-infra       | na-003 | 0   | 255 |
 | na-004-bnprs-biometrics  | na-004 | 0   | 255 |
 | na-005-bnprs-fintech     | na-005 | 0   | 255 |
@@ -38,3 +39,4 @@ _None defined yet._
 - 04 pat-fhbs nucleus (`03-nucleus/CLAUDE.md`) is a template shell — household expenses, family balance sheet domain not yet filled in
 - 05 pat-assets nucleus (`03-nucleus/CLAUDE.md`) is a template shell — lands, flats, properties, real estate portfolio domain not yet filled in
 - 06 pat-patents nucleus (`03-nucleus/CLAUDE.md`) is a template shell — patents, trademarks, copyrights, IP portfolio domain not yet filled in
+- na-002/01 bnprs-leadership nucleus (`03-nucleus/CLAUDE.md`) is a template shell — CEO/CTO vision, strategy, certifications domain not yet filled in
