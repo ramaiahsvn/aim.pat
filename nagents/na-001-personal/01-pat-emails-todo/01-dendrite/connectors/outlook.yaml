@@ -4,10 +4,23 @@ type: mcp-connector
 protocol: mcp
 version: "1.0"
 
+accounts:
+  - email: "p.ramaiah@itpartners.me"
+    mcp_server: "outlook-itpartners"
+    status: connected
+  - email: "p@bnprs.ai"
+    mcp_server: "outlook-bnprs-ai"
+    status: connected
+  - email: "p.ramaiah@qi.iq"
+    mcp_server: ~
+    status: pending_admin_consent
+    note: "qi.iq tenant requires admin consent for third-party OAuth apps"
+
 connection:
   server: "@softeria/ms-365-mcp-server"
   auth:
-    type: oauth2
+    type: msal
+    method: "--login (interactive, per account)"
     scopes:
       - Mail.Read
       - Mail.ReadWrite
@@ -21,8 +34,6 @@ capabilities:
   - create_draft
   - move_message
   - list_folders
-  - create_folder
-  - list_threads
   - search_messages
   - flag_message
 
@@ -30,5 +41,6 @@ priority: high
 rate_limit: 60/min
 
 notes: >
-  Microsoft / Office 365 business mail.
-  Credentials stored in 01-dendrite/secrets/secrets.yaml.
+  Microsoft / Office 365 business mail via MSAL cached tokens.
+  Re-auth: npx @softeria/ms-365-mcp-server --login
+  qi.iq account blocked: tenant admin consent required.

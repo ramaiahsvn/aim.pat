@@ -41,6 +41,14 @@
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "accounts@bnprs.in"
       }
+    },
+    "outlook-itpartners": {
+      "command": "npx",
+      "args": ["-y", "@softeria/ms-365-mcp-server", "--expected-username", "p.ramaiah@itpartners.me", "--preset", "mail"]
+    },
+    "outlook-bnprs-ai": {
+      "command": "npx",
+      "args": ["-y", "@softeria/ms-365-mcp-server", "--expected-username", "p@bnprs.ai", "--preset", "mail"]
     }
   }
 }
