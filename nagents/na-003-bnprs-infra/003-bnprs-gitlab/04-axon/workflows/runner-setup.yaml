@@ -1,0 +1,70 @@
+id: wf-gitlab-runner-setup
+name: "GitLab Runner Setup"
+description: "Install and register a Docker-based GitLab shared runner on a separate machine"
+version: "1.0.0"
+
+prerequisites:
+  - "Separate Ubuntu 22.04 LTS machine (NOT the GitLab EC2)"
+  - "Machine must reach https://gitlab.bnprs.ai over network/VPN"
+  - "Root/sudo access on the runner machine"
+  - "GitLab registration token from Admin Area → CI/CD → Runners"
+
+recommended_specs:
+  cpu_min: "2 cores"
+  cpu_recommended: "4 cores"
+  ram_min: "4 GB"
+  ram_recommended: "8 GB"
+  storage_min: "50 GB"
+  storage_recommended: "100 GB SSD"
+  os: "Ubuntu 22.04 LTS"
+
+steps:
+  - id: install-docker
+    name: "Install Docker"
+    checkpoint: false
+    commands: |
+      sudo apt update && sudo apt install -y docker.io
+      sudo usermod -aG docker gitlab-runner
+
+  - id: install-runner
+    name: "Install GitLab Runner"
+    checkpoint: false
+    commands: |
+      curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+      sudo apt install -y gitlab-runner
+
+  - id: get-token
+    name: "Get Registration Token"
+    checkpoint: true
+    instructions:
+      - "Log in as root at https://gitlab.bnprs.ai"
+      - "Go to Admin Area → CI/CD → Runners"
+      - "Copy the registration token"
+
+  - id: register-runner
+    name: "Register as Shared Runner"
+    checkpoint: true
+    command: |
+      sudo gitlab-runner register \
+        --url "https://gitlab.bnprs.ai" \
+        --registration-token "<token-from-admin>" \
+        --description "shared-runner" \
+        --executor "docker" \
+        --docker-image "python:3-alpine" \
+        --non-interactive
+
+  - id: verify
+    name: "Verify Runner is Active"
+    checkpoint: true
+    commands:
+      - "sudo gitlab-runner status"
+      - "Check GitLab UI: Admin Area → CI/CD → Runners — runner should appear green/active"
+
+docker_images:
+  python_ci: "python:3-alpine"        # CI scripts, check_approvals job
+  gradle: "gradle:8-jdk17"            # Android / Java (Gradle)
+  maven: "maven:3-eclipse-temurin-17" # Java (Maven)
+  spring_boot: "eclipse-temurin:17-jdk"
+
+runner_tag_convention: "bnprs-<environment>-<arch>"
+runner_tag_example: "bnprs-prod-amd64"

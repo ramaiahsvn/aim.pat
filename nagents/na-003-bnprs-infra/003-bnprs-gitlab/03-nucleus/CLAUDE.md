@@ -102,6 +102,171 @@ docker exec -it gitlab /bin/bash
 - **API auth:** `$GITLAB_PAT` env var (set in `~/.zshrc`)
 - **AWS credentials:** `gitlab` profile — IAM user for GitLab runner access to AWS resources
 
+## Branch Strategy
+
+```
+developer branch
+      ↓  MR
+   bp_dev       ← active development, daily feature merges
+      ↓  MR (when ready for release)
+   bp_rel       ← release candidate, QA/staging, bug fixes only
+      ↓  MR (after QA passes)
+   master       ← stable production code
+```
+
+| Branch | Purpose |
+|--------|---------|
+| `master` | Stable production code |
+| `bp_dev` | Active development — developers merge features/fixes here |
+| `bp_rel` | Release candidate — freeze, QA, bug fixes only |
+| `ai_dev` | AI-assisted experiments — **not** part of release flow |
+
+## Branch Protection Rules
+
+Applied to **all projects** in the organization.
+
+| Branch | Push | Merge | Force Push |
+|--------|------|-------|------------|
+| `master` | Maintainers only | Maintainers only | Disabled |
+| `bp_dev` | Maintainers only | Maintainers only | Disabled |
+| `bp_rel` | Maintainers only | Maintainers only | Disabled |
+| `ai_dev` | Maintainers only | Maintainers only | Disabled |
+
+> Developers can raise MRs to any branch but only Maintainers can merge them.
+
+## Member Roles
+
+| Role | Level | Key Permissions |
+|------|-------|----------------|
+| Guest | 10 | View issues, comment |
+| Reporter | 20 | Clone repo, view pipelines, create MRs |
+| Developer | 30 | Push to unprotected branches, create MRs |
+| Maintainer | 40 | Push/merge to protected branches, manage settings |
+| Owner | 50 | Full control — delete project, manage members |
+
+Current member roster → `08-memory/long-term/members.yaml`
+
+## Merge Request Settings
+
+Applied to **all projects** in the organization.
+
+| Setting | Value |
+|---------|-------|
+| Auto-delete source branch after merge | Enabled |
+| Pipeline must pass before merge | Enabled |
+
+## Approval Workflow
+
+> **CE limitation:** GitLab CE does not support native approval rules (EE/Premium feature only).
+> Approvals are enforced via CI/CD pipeline using emoji reactions.
+
+### How to Approve an MR
+
+1. Open the merge request in GitLab
+2. React with 👍 (thumbs up) emoji on the MR description
+3. At least **2 unique team members** must react with 👍
+
+### Approval Requirements
+
+| Target Branch | Approvals Required |
+|---------------|--------------------|
+| `bp_dev` | 2 unique 👍 |
+| `bp_rel` | 2 unique 👍 |
+| `master` | None (pipeline still runs) |
+| `ai_dev` | None (pipeline still runs) |
+
+### Flow
+
+```
+Developer raises MR → bp_dev or bp_rel
+         ↓
+  Team members react with 👍
+         ↓
+  CI pipeline checks approval count (check_approvals job)
+         ↓
+  < 2 approvals → Pipeline fails → Merge blocked
+  ≥ 2 approvals → Pipeline passes → Maintainer can merge
+```
+
+## CI/CD Pipeline
+
+Each project must contain a `.gitlab-ci.yml` in the default branch root.
+
+### Pipeline Stages
+
+| Stage | Job | Trigger |
+|-------|-----|---------|
+| `review` | `check_approvals` | MR pipeline events only (`merge_request_event`) |
+
+### `check_approvals` Job
+
+- Runs only when `$CI_PIPELINE_SOURCE == "merge_request_event"`
+- Skips if target branch is not `bp_dev` or `bp_rel`
+- Counts unique 👍 emoji reactions on the MR
+- Fails if count < 2
+- Docker image: `python:3-alpine`
+
+```yaml
+stages:
+  - review
+
+check_approvals:
+  stage: review
+  image: python:3-alpine
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+```
+
+### Recommended Docker Images per Project Type
+
+| Project Type | Docker Image |
+|-------------|-------------|
+| CI scripts / approval check | `python:3-alpine` |
+| Android / Java (Gradle) | `gradle:8-jdk17` |
+| Java (Maven) | `maven:3-eclipse-temurin-17` |
+| Spring Boot | `eclipse-temurin:17-jdk` |
+
+## GitLab Runner Setup
+
+Runner runs on a **separate machine** (not the GitLab EC2). Workflow → `04-axon/workflows/runner-setup.yaml`
+
+### Recommended Specs
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| CPU | 2 cores | 4 cores |
+| RAM | 4 GB | 8 GB |
+| Storage | 50 GB | 100 GB SSD |
+| OS | Ubuntu 22.04 LTS | Ubuntu 22.04 LTS |
+| Network | Must reach `gitlab.bnprs.ai` | Same network/VPN |
+
+### Quick Steps
+
+```bash
+# 1. Install Docker
+sudo apt update && sudo apt install -y docker.io
+sudo usermod -aG docker gitlab-runner
+
+# 2. Install GitLab Runner
+curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+sudo apt install -y gitlab-runner
+
+# 3. Register (get token from Admin Area → CI/CD → Runners)
+sudo gitlab-runner register \
+  --url "https://gitlab.bnprs.ai" \
+  --registration-token "<token-from-admin>" \
+  --description "shared-runner" \
+  --executor "docker" \
+  --docker-image "python:3-alpine" \
+  --non-interactive
+
+# 4. Verify
+sudo gitlab-runner status
+```
+
+Get registration token: GitLab → Admin Area → CI/CD → Runners → copy registration token.
+Verify in UI: Admin Area → CI/CD → Runners — runner should appear green/active.
+
 ## Backup System
 
 ### Script
@@ -330,4 +495,7 @@ rclone handles refresh automatically. If auth fails after long inactivity, re-au
 - Backup reports → `07-axon-terminals/deliverables/backup-reports/`
 - Use `glab` CLI for interactive operations; GitLab REST API for automation
 - All runner tags follow convention: `bnprs-<environment>-<arch>` (e.g. `bnprs-prod-amd64`)
-- Branch protection: `main` and `master` always protected — no force push
+- Protected branches: `master`, `bp_dev`, `bp_rel`, `ai_dev` — Maintainers only for push/merge, force push disabled
+- Branch flow: `developer branch → bp_dev → bp_rel → master`; `ai_dev` is experimental, not in release flow
+- MR approvals: 2 unique 👍 emoji required for `bp_dev` and `bp_rel` (CE workaround — no native approvals in CE)
+- All projects must have `.gitlab-ci.yml` with `check_approvals` job in `review` stage

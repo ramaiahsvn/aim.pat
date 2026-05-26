@@ -1,0 +1,58 @@
+# GitLab Member Roster — bnprs-gitlab
+# Source: 20260224_GITLAB_BRANCHING_SETUP.md
+# Reference project: BPR2002/bpr2002.misc.dev-playground (standard template)
+# Last updated: 2026-02-24
+
+roles:
+  - role: Owner
+    level: 50
+    permissions: "Full control — delete project, manage members"
+    members:
+      - root
+
+  - role: Maintainer
+    level: 40
+    permissions: "Push/merge to protected branches, manage settings"
+    members:
+      - charan
+      - doddamurali
+      - jranjithk
+      - sai1365
+      - VenkatBorusu
+      - krishnavamsi
+      - Ashok
+      - trinadhadabala
+      - teja
+      - venkatesh1117
+      - chiranjeevinarukula
+
+  - role: Developer
+    level: 30
+    permissions: "Push to unprotected branches, create MRs"
+    members:
+      - navya
+      - Harani1020
+      - jaganmortha
+      - Mohan
+      - Aravind31
+      - Santoshkumar
+      - Anil
+      - suneelvalavala34
+      - vamsikrishna
+      - narasimhanaidu
+      - Mahalakshmi_Devu
+      - Hemanthlanke
+      - GaneshBommisetti
+      - satya_krishna
+
+  - role: Reporter
+    level: 20
+    permissions: "Clone repo, view pipelines, create MRs"
+    members:
+      - info_bnprs
+      - devops_bnprs
+
+notes:
+  - "Maintainers are the only users who can push/merge to protected branches (master, bp_dev, bp_rel, ai_dev)"
+  - "Developers can raise MRs but cannot merge them — Maintainer approval + 2x 👍 required"
+  - "devops_bnprs and info_bnprs are service accounts (Reporter level)"

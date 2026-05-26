@@ -79,6 +79,51 @@ memories:
     confidence: 0.99
     tags: [zoho, rclone, workdrive, oauth, backup]
 
+  - id: mem-008
+    type: configuration
+    content: >
+      Branch strategy: developer branch → MR → bp_dev (daily dev merges) → MR → bp_rel (QA/staging, bug fixes only)
+      → MR → master (stable production). ai_dev is experimental, not in release flow.
+      All 4 branches (master, bp_dev, bp_rel, ai_dev) are protected on all projects:
+      Maintainers only for push/merge, force push disabled. Developers can raise MRs but cannot merge.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [branching, protection, strategy, gitflow]
+
+  - id: mem-009
+    type: workaround
+    content: >
+      GitLab CE has no native MR approval rules (EE/Premium only). Workaround: emoji-based approval via CI/CD.
+      Team members react with 👍 on the MR. CI job check_approvals (python:3-alpine) counts unique reactions.
+      Requires 2 unique 👍 for bp_dev and bp_rel; master and ai_dev have no approval requirement.
+      Pipeline fails if count < 2, blocking merge. Job runs only on merge_request_event pipelines.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [approvals, workaround, ce-limitation, pipeline, emoji]
+
+  - id: mem-010
+    type: team
+    content: >
+      Current members documented in 08-memory/long-term/members.yaml. Reference project:
+      BPR2002/bpr2002.misc.dev-playground. Maintainers (11): charan, doddamurali, jranjithk,
+      sai1365, VenkatBorusu, krishnavamsi, Ashok, trinadhadabala, teja, venkatesh1117,
+      chiranjeevinarukula. Developers (14). Reporters: info_bnprs, devops_bnprs (service accounts).
+    created_at: "2026-05-26"
+    confidence: 0.9
+    tags: [members, team, roles, maintainer, developer]
+
+  - id: mem-011
+    type: infrastructure
+    content: >
+      GitLab Runner should be on a SEPARATE machine (not the GitLab EC2). Ubuntu 22.04 LTS,
+      minimum 2 CPU / 4 GB RAM / 50 GB storage. Install: Docker + gitlab-runner package.
+      Register with token from Admin Area → CI/CD → Runners. Executor: docker,
+      default image: python:3-alpine. Tag convention: bnprs-<environment>-<arch>.
+      Full steps in 04-axon/workflows/runner-setup.yaml.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [runner, docker, cicd, setup, infrastructure]
+
 # Pruning rules
 pruning:
   max_entries: 500
