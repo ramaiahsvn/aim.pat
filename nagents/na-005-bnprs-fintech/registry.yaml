@@ -58,6 +58,51 @@ registry:
     created_at: "2026-05-27"
     created_by: "bnprs"
 
+  - code: "006"
+    name: "k3-bix-applet"
+    label: "k3-bix-applet"
+    role: "BIX JavaCard Applet — Biometric Storage on Chip"
+    path: "006-k3-bix-applet"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "007"
+    name: "bruid-applet"
+    label: "bruid-applet"
+    role: "BRUID JavaCard Applet (Patent-3 India)"
+    path: "007-bruid-applet"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "008"
+    name: "bruid-dprep"
+    label: "bruid-dprep"
+    role: "BRUID Data Preparation"
+    path: "008-bruid-dprep"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "009"
+    name: "bruid-cperso"
+    label: "bruid-cperso"
+    role: "BRUID Central Personalization"
+    path: "009-bruid-cperso"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "010"
+    name: "bruid-iperso"
+    label: "bruid-iperso"
+    role: "BRUID Instant Issuance Solution"
+    path: "010-bruid-iperso"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Transaction and payment agents
 # DE40–DE7F  (064–127)  Reporting and reconciliation

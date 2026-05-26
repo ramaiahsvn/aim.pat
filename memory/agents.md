@@ -48,6 +48,11 @@
 | 003  | na-005 | cpp-card-emv | BprCardEmv — EMV smart card, AID selection, PureScript APDU | active | 2026-05-27 |
 | 004  | na-005 | cpp-card-pure | BprScripts — QiScript (perso/reset/read) + PureScript (EMV APDU) | active | 2026-05-27 |
 | 005  | na-005 | cpp-pcsc-all | BprPcSc — cross-platform PC/SC (Windows/Linux/Android 8 vendors, TP9000, TTC) | active | 2026-05-27 |
+| 006  | na-005 | k3-bix-applet | BIX JavaCard applet v2.55.2 (biometric storage on chip, IP transferred to Menta) | active | 2026-05-27 |
+| 007  | na-005 | bruid-applet | BRUID JavaCard applet (Patent-3 India, BNPRS-owned) | active | 2026-05-27 |
+| 008  | na-005 | bruid-dprep | BRUID Data Preparation (74-field central blob / 52-field instant hex) | active | 2026-05-27 |
+| 009  | na-005 | bruid-cperso | BRUID Central Personalization (bureau batch, HSM, BprQiEmv DLL) | active | 2026-05-27 |
+| 010  | na-005 | bruid-iperso | BRUID Instant Issuance Solution (branch counter, remote kms.bnprs.ai auth) | active | 2026-05-27 |
 
 ## Group Slot Usage
 
@@ -57,7 +62,7 @@
 | na-002-bnprs-core        | na-002 | 10 | 255 |
 | na-003-bnprs-infra       | na-003 | 8  | 255 |
 | na-004-bnprs-biometrics  | na-004 | 12 | 255 |
-| na-005-bnprs-fintech     | na-005 | 5  | 255 |
+| na-005-bnprs-fintech     | na-005 | 10 | 255 |
 | na-006-bnprs-deployments | na-006 | 0  | 255 |
 | na-007-bnprs-team        | na-007 | 0  | 255 |
 
