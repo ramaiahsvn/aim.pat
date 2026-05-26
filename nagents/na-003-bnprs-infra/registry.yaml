@@ -16,7 +16,7 @@ registry:
   - code: "001"
     name: "bnprs-aws"
     label: "bnprs-aws"
-    role: "AWS Infrastructure, Cost Optimisation and Alerts Manager"
+    role: "BNPRS AWS Account Manager"
     path: "001-bnprs-aws"
     status: "active"
     created_at: "2026-05-26"

@@ -10,9 +10,9 @@ agent:
   code: "001"
   group: "na-003-bnprs-infra"
   version: "1.0.0"
-  description: "<AWS Infrastructure, Cost Optimisation and Alerts Manager>"
-  created_by: "<Your Name>"
-  created_at: "<date>"
+  description: "BNPRS AWS Account Manager — profile: bnprs, region: ap-south-2"
+  created_by: "bnprs"
+  created_at: "2026-05-26"
 
 # ---- NEURON COMPONENT MAP ---- #
 
