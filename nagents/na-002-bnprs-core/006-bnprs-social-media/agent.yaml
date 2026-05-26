@@ -1,0 +1,100 @@
+# ============================================================
+#  AGENT MANIFEST — The Complete Neuron
+# ============================================================
+#  Folders numbered 01–08 following signal flow order.
+#  Names match standard neuron anatomy labels.
+# ============================================================
+
+agent:
+  name: "bnprs-social-media"
+  code: "006"
+  group: "na-002-bnprs-core"
+  version: "1.0.0"
+  description: "Social Media and Content Manager — LinkedIn leads and posts, Twitter, Instagram, YouTube podcasts and interviews"
+  created_by: "bnprs"
+  created_at: "2026-05-26"
+
+# ---- NEURON COMPONENT MAP ---- #
+
+components:
+
+  01_dendrite:
+    path: "./01-dendrite"
+    role: "Resources / Inputs"
+    analogy: "Branching receivers that gather signals from the environment"
+    contains:
+      connectors: "MCP servers, APIs, database connections"
+      inputs: "User messages, file uploads, form data"
+      sensors: "Web search, scrapers, webhooks, RSS feeds"
+
+  02_cell_body:
+    path: "./02-cell-body"
+    role: "Agent Core — LLM Reasoning + Planning"
+    analogy: "Integrates all inputs, reasons, and decides whether to act"
+    contains:
+      reasoning: "Chain-of-thought strategies, thinking templates"
+      models: "LLM configurations, fallback chains, escalation rules"
+      planning: "Task queue, status tracking, priority rules (decision gate)"
+
+  03_nucleus:
+    path: "./03-nucleus"
+    role: "System Prompt / Identity (DNA)"
+    analogy: "Genetic code defining the agent's fundamental nature"
+    contains:
+      system_prompt: "Core identity and behavioral instructions"
+      identity: "Name, role, persona configuration"
+      guardrails: "Safety boundaries, content policies"
+
+  04_axon:
+    path: "./04-axon"
+    role: "Workflows / Execution Pipeline"
+    analogy: "Long projection carrying decisions from cell body to terminals"
+    contains:
+      workflows: "Multi-step execution definitions"
+      pipelines: "Composite workflows chaining multiple stages"
+
+  05_myelin_sheath:
+    path: "./05-myelin-sheath"
+    role: "Skills (Accelerated Execution)"
+    analogy: "Insulation that dramatically speeds up signal transmission"
+    contains:
+      skills: "Pre-built expertise packages (each folder = one skill)"
+
+  06_node_of_ranvier:
+    path: "./06-node-of-ranvier"
+    role: "Checkpoints / Verification Gates"
+    analogy: "Gaps in myelin where signal is regenerated and verified"
+    contains:
+      checkpoints: "Quality gates, human-in-the-loop approvals, validations"
+
+  07_axon_terminals:
+    path: "./07-axon-terminals"
+    role: "Outputs / Actions"
+    analogy: "Release points where neurotransmitters affect the next cell"
+    contains:
+      actions: "Available output types and action definitions"
+      deliverables: "Output folder — finished work lands here"
+      notifications: "Message templates for user communication"
+
+  08_memory:
+    path: "./08-memory"
+    role: "Memory (Synaptic Plasticity)"
+    analogy: "Strengthened connections that emerge from experience"
+    contains:
+      short_term: "Session context, conversation buffer"
+      long_term: "Persistent knowledge across sessions"
+      learned_preferences: "User patterns discovered over time"
+
+# ---- SIGNAL FLOW ---- #
+
+signal_flow:
+  description: "How information moves through the agent (follows folder numbering)"
+  path:
+    - "01-dendrite         → Receive inputs (resources, user messages, sensors)"
+    - "02-cell-body        → Integrate, reason, and plan (consult 03-nucleus)"
+    - "03-nucleus          → Identity and guardrails (read-only DNA)"
+    - "04-axon             → Execute workflow steps"
+    - "05-myelin-sheath    → Load skills to accelerate execution"
+    - "06-node-of-ranvier  → Verify at checkpoints between steps"
+    - "07-axon-terminals   → Deliver outputs (files, messages, API calls)"
+    - "08-memory           → Learn and remember (spans all layers)"

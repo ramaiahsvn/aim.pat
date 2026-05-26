@@ -16,28 +16,28 @@
     },
     "zoho-ramaiah": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/01-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "ramaiah@bnprs.in"
       }
     },
     "zoho-info": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/01-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "info@bnprs.in"
       }
     },
     "zoho-hr": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/01-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "hr@bnprs.in"
       }
     },
     "zoho-accounts": {
       "command": "node",
-      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/01-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
+      "args": ["/Users/bnprs/BPR/GitRepos1/aim.pat/nagents/na-001-personal/001-pat-emails-todo/01-dendrite/zoho-mail-mcp/index.js"],
       "env": {
         "ZOHO_ACCOUNT_EMAIL": "accounts@bnprs.in"
       }

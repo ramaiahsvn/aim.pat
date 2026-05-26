@@ -56,23 +56,26 @@ Read all files in `memory/` (skip `memory/private/` unless relevant):
 
 ## Agent code system
 
-Each group supports up to **255 agents**, identified by a 1-byte hex code:
+Each group supports up to **255 agents**, identified by a 3-digit zero-padded decimal code:
 
 ```
-01 → first agent in group
-02 → second agent
+001 → first agent in group
+002 → second agent
 ...
-FF → 255th agent (maximum)
+010 → tenth agent
+...
+255 → 255th agent (maximum)
 ```
 
 Inspired by ISO 8583 Data Element (DE) numbering — you may see these referred
-to as DE01, DE02, etc. in documentation and external references.
+to as DE001, DE002, etc. in documentation and external references.
 
 **Rules — enforce strictly:**
-- Codes run 01 to FF (00 is reserved/invalid)
+- Codes run 001 to 255 (000 is reserved/invalid)
+- Folder prefix uses 3-digit zero-padded decimal: 001, 002, ... 009, 010, 011, ... 255
 - Once a code is assigned it is **permanent** — never reassigned, even if the agent is deleted or retired
 - Retired agents keep their code with `status: retired` in `registry.yaml`
-- The next available code is always the lowest unused hex value
+- The next available code is always the lowest unused decimal value
 - All assignments are recorded in `nagents/<group>/registry.yaml`
 
 ## Creating a new agent
@@ -129,8 +132,8 @@ aim.pat/
   nagent-template/          ← canonical template (01–08 folders)
   nagents/
     na-00N-<group>/
-      registry.yaml         ← permanent code assignments (01–FF)
-      <HH>-<name>/          ← individual agent (01–08 folders + agent.yaml)
+      registry.yaml         ← permanent code assignments (001–255)
+      <NNN>-<name>/         ← individual agent (01–08 folders + agent.yaml)
   secrets/
     secrets.example.yaml    ← shared secrets template
   memory/
