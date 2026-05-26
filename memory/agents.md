@@ -54,6 +54,13 @@
 | 009  | na-005 | bruid-cperso | BRUID Central Personalization (bureau batch, HSM, BprQiEmv DLL) | active | 2026-05-27 |
 | 010  | na-005 | bruid-iperso | BRUID Instant Issuance Solution (branch counter, remote kms.bnprs.ai auth) | active | 2026-05-27 |
 | 011  | na-005 | rnd-fintech | Fintech Research and Development (EMV, DUKPT, CPS, BRUID, biometric templates) | active | 2026-05-27 |
+| 001  | na-006 | bpr1002-mgate-prod | BPR M-Gate Production (API/Mobile Gateway) | active | 2026-05-27 |
+| 002  | na-006 | bpr1004-utms-prod | BPR UTMS Production (Unified Transaction Management System) | active | 2026-05-27 |
+| 003  | na-006 | bpr1000-license-prod | BPR License Server Production | active | 2026-05-27 |
+| 004  | na-006 | trp1001-sbioids-prod | TRP SBI Biometric IDS Production | active | 2026-05-27 |
+| 005  | na-006 | bpr1005-icba-prod | BPR ICBA Production (Issuer Controlled Biometric Authentication) | active | 2026-05-27 |
+| 006  | na-006 | trp1004-nagents-prod | TRP nagents AI Agent Platform Production (aim.pat) | active | 2026-05-27 |
+| 007  | na-006 | bpr1007-acs-prod | BPR ACS Production (Access Control System) | active | 2026-05-27 |
 
 ## Group Slot Usage
 
@@ -64,7 +71,7 @@
 | na-003-bnprs-infra       | na-003 | 8  | 255 |
 | na-004-bnprs-biometrics  | na-004 | 12 | 255 |
 | na-005-bnprs-fintech     | na-005 | 11 | 255 |
-| na-006-bnprs-deployments | na-006 | 0  | 255 |
+| na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-team        | na-007 | 0  | 255 |
 
 ## Inter-Agent Dependencies

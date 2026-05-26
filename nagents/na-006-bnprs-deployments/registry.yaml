@@ -12,7 +12,69 @@ group:
   description: "Release management, CI/CD pipelines, and environment operations"
   max_agents: 255
 
-registry: []
+registry:
+  - code: "001"
+    name: "bpr1002-mgate-prod"
+    label: "bpr1002-mgate-prod"
+    role: "BPR M-Gate Production Deployment (API/Mobile Gateway)"
+    path: "001-bpr1002-mgate-prod"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "002"
+    name: "bpr1004-utms-prod"
+    label: "bpr1004-utms-prod"
+    role: "BPR UTMS Production Deployment (Unified Transaction Management System)"
+    path: "002-bpr1004-utms-prod"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "003"
+    name: "bpr1000-license-prod"
+    label: "bpr1000-license-prod"
+    role: "BPR License Server Production Deployment"
+    path: "003-bpr1000-license-prod"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "004"
+    name: "trp1001-sbioids-prod"
+    label: "trp1001-sbioids-prod"
+    role: "TRP SBI Biometric IDS Production Deployment"
+    path: "004-trp1001-sbioids-prod"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "005"
+    name: "bpr1005-icba-prod"
+    label: "bpr1005-icba-prod"
+    role: "BPR ICBA Production Deployment (Issuer Controlled Biometric Authentication)"
+    path: "005-bpr1005-icba-prod"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "006"
+    name: "trp1004-nagents-prod"
+    label: "trp1004-nagents-prod"
+    role: "TRP nagents AI Agent Platform Production Deployment (aim.pat)"
+    path: "006-trp1004-nagents-prod"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "007"
+    name: "bpr1007-acs-prod"
+    label: "bpr1007-acs-prod"
+    role: "BPR ACS Production Deployment (Access Control System)"
+    path: "007-bpr1007-acs-prod"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
 
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Release and deploy agents
