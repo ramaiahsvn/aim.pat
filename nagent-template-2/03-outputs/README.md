@@ -9,8 +9,8 @@ Finished work lands here.
 ## Naming convention
 
 ```
-<YYYY-MM-DD>-<short-description>.<ext>
-# e.g. 2026-05-26-monthly-report.pdf
+<employeeid>-<YYYY-MM-DD>-<sprinttaskid>.md
+# e.g. EMP001-2026-05-26-TASK-42.md
 ```
 
 Files here are safe to share or send. Never put raw secrets or temp data here.
