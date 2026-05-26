@@ -12,10 +12,18 @@ group:
   description: "Infrastructure management, DevOps, and platform operations"
   max_agents: 255
 
-registry: []
+registry:
+  - code: "001"
+    name: "bnprs-aws"
+    label: "bnprs-aws"
+    role: "AWS Infrastructure, Cost Optimisation and Alerts Manager"
+    path: "001-bnprs-aws"
+    status: "active"
+    created_at: "2026-05-26"
+    created_by: "bnprs"
 
 # ---- CODE ALLOCATION RULES ---- #
-# DE01–DE3F  (001–063)  Monitoring and alerting agents
-# DE40–DE7F  (064–127)  Provisioning and automation
-# DE80–DEBF  (128–191)  Security and compliance
-# DEC0–DEFF  (192–255)  Reserved for future use
+# 001–063   Cloud infrastructure agents
+# 064–127   Provisioning and automation
+# 128–191   Security and compliance
+# 192–255   Reserved for future use
