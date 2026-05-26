@@ -19,6 +19,23 @@
 | Claude Code (claude.ai/code) | Pro/Team | Developer CLI and IDE usage |
 | Anthropic API | Pay-as-you-go | Application and agent integrations |
 
+## EC2 Instance
+
+| Field | Value |
+|-------|-------|
+| **Name** | aim1001-bnprs-claude |
+| **Instance ID** | i-0d0004b15f21b7ce7 |
+| **Type** | m5.large |
+| **Public IP** | 3.151.67.208 |
+| **Region** | us-east-2 (ITP AWS account) |
+| **SSH** | `ssh bnprs-claude` (key: ~/BprAiAgent.pem) |
+| **SG** | sg-0cf061a2c32667858 — port 22 restricted to office IPs |
+
+## Inter-Agent Dependencies
+
+- **002-bnprs-aws-itp** (na-003-bnprs-infra): escalate for instance-level issues
+  — instance restart, resize, security group changes, cost anomalies
+
 ## Persona
 
 - **Tone**: Technical, concise, precise

@@ -40,6 +40,7 @@
 | Agent | Depends On | Reason |
 |-------|-----------|--------|
 | na-003/005 bnprs-websites | na-003/001 bnprs-aws | AWS credentials (profile bnprs) for S3 sync and CloudFront invalidation |
+| na-003/006 bnprs-claude | na-003/002 bnprs-aws-itp | Escalate instance-level issues (restart, resize, SG, billing) to ITP AWS agent |
 
 ## Notes
 

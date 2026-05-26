@@ -1,0 +1,50 @@
+id: connector-instance-ssh
+name: "aim1001-bnprs-claude EC2 Instance (SSH)"
+type: ssh
+protocol: ssh
+version: "1.0.0"
+
+instance:
+  id: "i-0d0004b15f21b7ce7"
+  name: "aim1001-bnprs-claude"
+  type: "m5.large"
+  public_ip: "3.151.67.208"
+  private_ip: "10.0.1.89"
+  region: "us-east-2"
+  aws_account: "819144294008"
+  aws_profile: "itp"
+
+connection:
+  host: "3.151.67.208"
+  port: 22
+  user: "ubuntu"
+  key_path: "~/BprAiAgent.pem"
+  key_name: "BprAiAgent"
+  status: restricted
+
+access:
+  security_group: "sg-0cf061a2c32667858"
+  allowed_cidrs:
+    - "103.106.181.48/32"
+    - "5.107.232.224/32"
+    - "152.57.168.249/32"   # TRP Office
+    - "152.57.167.180/32"
+    - "94.202.83.38/32"     # bnprs temp
+  note: "Add your current public IP to sg-0cf061a2c32667858 before connecting"
+
+ssh_command: "ssh -i ~/BprAiAgent.pem ubuntu@3.151.67.208"
+
+capabilities:
+  - instance_health_check
+  - process_status
+  - log_tailing
+  - service_restart
+  - disk_usage
+  - memory_usage
+  - cpu_usage
+
+depends_on_agent:
+  group: "na-003-bnprs-infra"
+  code: "002"
+  name: "bnprs-aws-itp"
+  note: "Escalate to 002-bnprs-aws-itp for instance-level issues (restart, resize, SG changes, billing)"
