@@ -52,7 +52,7 @@ Read all files in `memory/` (skip `memory/private/` unless relevant):
 | 004 | na-004-bnprs-biometrics  | Biometrics product development and research                         |
 | 005 | na-005-bnprs-fintech     | Fintech products and financial workflows                            |
 | 006 | na-006-bnprs-deployments | Release management, CI/CD, environments                             |
-| 007 | na-007-bnprs-team        | Enterprise portal: people, payroll, contracts, sprints, projects, expenses, inventory |
+| 007 | na-007-bnprs-portal      | Enterprise portal: people, payroll, contracts, sprints, projects, expenses, inventory |
 
 ## Agent code system
 
