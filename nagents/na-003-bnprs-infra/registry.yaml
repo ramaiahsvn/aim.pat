@@ -77,10 +77,10 @@ registry:
     created_by: "bnprs"
 
   - code: "007"
-    name: "bnprs-aws-kms"
-    label: "bnprs-aws-kms"
+    name: "bnprs-grc-kms"
+    label: "bnprs-grc-kms"
     role: "HSM Key Management System"
-    path: "007-bnprs-aws-kms"
+    path: "007-bnprs-grc-kms"
     status: "active"
     created_at: "2026-05-26"
     created_by: "bnprs"

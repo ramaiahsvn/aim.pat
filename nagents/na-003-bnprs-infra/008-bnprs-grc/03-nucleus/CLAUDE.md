@@ -59,7 +59,7 @@ Alert delivery: **SMTP email** (CISO, IT Manager) and/or **webhook** (Slack, Tea
 - Rust Lambda `k3-verifychallenge`, live at `kms.bnprs.ai` since BprCardQi v2.56.3 (2026-05-18)
 - mTLS with self-managed OpenSSL CA (`bpr.kms/k3-verifychallenge/ca/`)
 - Fleet cert: `CN=bpr-cardqi-fleet`, valid to 2036-05-15
-- Full KMS operational details → `007-bnprs-aws-kms` agent (na-003-bnprs-infra)
+- Full KMS operational details → `007-bnprs-grc-kms` agent (na-003-bnprs-infra)
 
 ## Compliance Frameworks in Scope
 
@@ -72,7 +72,7 @@ Alert delivery: **SMTP email** (CISO, IT Manager) and/or **webhook** (Slack, Tea
 
 ## Inter-Agent Dependencies
 
-- **007-bnprs-aws-kms** (na-003-bnprs-infra): KMS/HSM operational management — escalate key rotation, policy changes, cert renewals here
+- **007-bnprs-grc-kms** (na-003-bnprs-infra): KMS/HSM operational management — escalate key rotation, policy changes, cert renewals here
 - **001-bnprs-aws** (na-003-bnprs-infra): AWS account context for bpr.kms infrastructure
 - **na-002/010-bnprs-certifications**: ISO, PCI-DSS, CMMI certification work — coordinate GRC tooling evidence with certification agent
 
@@ -81,7 +81,7 @@ Alert delivery: **SMTP email** (CISO, IT Manager) and/or **webhook** (Slack, Tea
 - [ ] Document bpr.usb challenge-response key generation procedure
 - [ ] Map all bpr.pci detections to full PCI-DSS v4.0 requirement list (current mappings are v3.2.1 refs)
 - [ ] Set up bpr.pci webhook integration for Slack/Teams alerts
-- [ ] Review bpr.kms Lambda IAM role for least-privilege (coordinate with 007-bnprs-aws-kms)
+- [ ] Review bpr.kms Lambda IAM role for least-privilege (coordinate with 007-bnprs-grc-kms)
 - [ ] Create incident response runbook for CRITICAL-severity bpr.pci alerts
 - [ ] Establish vulnerability scanning schedule for CDE endpoints
 
@@ -98,7 +98,7 @@ Alert delivery: **SMTP email** (CISO, IT Manager) and/or **webhook** (Slack, Tea
 2. Classify every security event by severity (CRITICAL / HIGH / MEDIUM / LOW / INFO)
 3. Escalate CRITICAL findings to the user immediately — do not batch
 4. Never dismiss a finding without documenting the reason and residual risk
-5. Coordinate with 007-bnprs-aws-kms for any cryptographic key or certificate action
+5. Coordinate with 007-bnprs-grc-kms for any cryptographic key or certificate action
 6. Evidence of controls must be documented for audit — outputs go to `07-axon-terminals/deliverables/`
 
 ## Capabilities

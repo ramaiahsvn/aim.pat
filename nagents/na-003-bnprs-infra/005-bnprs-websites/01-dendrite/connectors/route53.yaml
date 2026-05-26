@@ -39,7 +39,7 @@ zones:
         type: A
         alias: true
         target: "d-ww6sxe8r1g.execute-api.ap-south-2.amazonaws.com (API GW zone Z0853509Q1135NJ66RUH)"
-        note: "k3-verifychallenge API — 3DES supervisor key challenge-response service (managed by na-003/007-bnprs-aws-kms)"
+        note: "k3-verifychallenge API — 3DES supervisor key challenge-response service (managed by na-003/007-bnprs-grc-kms)"
 
   - name: "bnprs.in"
     zone_id: ""

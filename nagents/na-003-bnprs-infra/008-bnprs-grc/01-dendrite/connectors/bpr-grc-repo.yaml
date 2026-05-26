@@ -31,7 +31,7 @@ modules:
     platforms: [AWS Lambda (arm64, provided.al2023)]
     build: "Rust (cargo lambda)"
     status: active
-    related_agent: "na-003/007-bnprs-aws-kms"
+    related_agent: "na-003/007-bnprs-grc-kms"
 
 capabilities:
   - read_source_code
@@ -42,5 +42,5 @@ capabilities:
 
 notes: >
   bpr.usb and bpr.pci are C++ modules built with CMake.
-  bpr.kms is a Rust AWS Lambda — see 007-bnprs-aws-kms for operational management.
+  bpr.kms is a Rust AWS Lambda — see 007-bnprs-grc-kms for operational management.
   All modules deploy independently; see each module's docs/DEPLOY.md for fleet deployment.

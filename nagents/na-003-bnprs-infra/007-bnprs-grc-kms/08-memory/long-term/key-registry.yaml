@@ -1,4 +1,4 @@
-# KMS Key Registry — bnprs-aws-kms
+# KMS Key Registry — bnprs-grc-kms
 # Key aliases, IDs, ARNs, and metadata ONLY — never key material or plaintext values.
 # Update whenever a key is created, rotated, disabled, or deleted.
 
