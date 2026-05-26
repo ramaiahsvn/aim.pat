@@ -1,0 +1,21 @@
+# Dendritic Spine Template
+# Copy this file and fill in your connector details
+
+id: connector-<name>
+name: "<Display Name>"
+type: mcp-connector          # mcp-connector | rest-api | webhook | database
+protocol: mcp                # mcp | http | grpc | websocket
+version: "1.0"
+
+connection:
+  server: "<mcp-server-package>"
+  auth:
+    type: oauth2              # oauth2 | api-key | bearer | none
+    scopes: []
+
+capabilities: []              # List of actions this connector can perform
+
+# Signal strength: how the soma prioritizes this input
+# high = always considered | medium = on-demand | low = background
+priority: medium
+rate_limit: 60/min

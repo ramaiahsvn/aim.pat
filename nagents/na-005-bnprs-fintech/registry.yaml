@@ -103,6 +103,15 @@ registry:
     created_at: "2026-05-27"
     created_by: "bnprs"
 
+  - code: "011"
+    name: "rnd-fintech"
+    label: "rnd-fintech"
+    role: "Fintech Research and Development"
+    path: "011-rnd-fintech"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Transaction and payment agents
 # DE40–DE7F  (064–127)  Reporting and reconciliation
