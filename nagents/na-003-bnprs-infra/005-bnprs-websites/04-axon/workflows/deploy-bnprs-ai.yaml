@@ -1,0 +1,106 @@
+id: deploy-bnprs-ai
+name: "Deploy bnprs.ai"
+description: "Build Astro site and deploy to S3 + CloudFront for bnprs.ai"
+trigger: manual
+version: "1.0.0"
+
+# ---- CONTEXT ---- #
+domain: "bnprs.ai"
+source: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai"
+s3_bucket: "bnprs-ai-fe"
+cloudfront_id: "EHKEPP01C2TFV"
+aws_profile: "bnprs"
+aws_region: "ap-south-2"
+
+# ---- STEPS ---- #
+steps:
+
+  - id: preflight
+    name: "Preflight checks"
+    description: "Verify source exists, AWS credentials are valid, S3 bucket is reachable"
+    commands:
+      - "test -d /Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai"
+      - "aws --profile bnprs sts get-caller-identity"
+      - "aws --profile bnprs s3 ls s3://bnprs-ai-fe"
+    on_failure: stop
+
+  - id: install
+    name: "Install dependencies"
+    description: "npm install in the site folder"
+    cwd: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai"
+    commands:
+      - "npm install"
+    on_failure: stop
+
+  - id: build
+    name: "Build Astro site"
+    description: "Run npm run build — output lands in dist/"
+    cwd: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai"
+    commands:
+      - "npm run build"
+    output_dir: "dist"
+    on_failure: stop
+
+  - id: verify-build
+    name: "Verify build output"
+    description: "Confirm dist/ exists and is non-empty"
+    commands:
+      - "test -d /Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai/dist"
+      - "test -f /Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai/dist/index.html"
+    on_failure: stop
+
+  - id: checkpoint-deploy
+    name: "CHECKPOINT — confirm deploy to production"
+    description: "Human approval required before pushing to S3"
+    type: human-in-the-loop
+    message: "Build succeeded. Ready to sync to s3://bnprs-ai-fe and invalidate CloudFront (EHKEPP01C2TFV). Proceed?"
+    on_failure: stop
+
+  - id: s3-sync
+    name: "Sync dist/ to S3"
+    description: "Upload build output to bnprs-ai-fe, delete removed files"
+    cwd: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.ai"
+    commands:
+      - "aws --profile bnprs s3 sync dist/ s3://bnprs-ai-fe --delete --region ap-south-2"
+    on_failure: stop
+
+  - id: cloudfront-invalidate
+    name: "Invalidate CloudFront cache"
+    description: "Purge all cached objects so visitors get the new build immediately"
+    commands:
+      - "aws --profile bnprs cloudfront create-invalidation --distribution-id EHKEPP01C2TFV --paths '/*'"
+    on_failure: notify
+
+  - id: verify-live
+    name: "Verify live site"
+    description: "Curl the live URL and confirm HTTP 200"
+    commands:
+      - "curl -s -o /dev/null -w '%{http_code}' https://bnprs.ai | grep -q 200"
+    on_failure: notify
+
+  - id: done
+    name: "Report deployment"
+    description: "Write deployment record to memory and deliverables"
+    output:
+      deliverable: "07-axon-terminals/deliverables/deployment-reports/bnprs-ai-<YYYY-MM-DD-HH-MM>.md"
+      memory: "08-memory/long-term/deployments.yaml"
+    on_failure: continue
+
+# ---- ROLLBACK ---- #
+rollback:
+  description: "Restore previous S3 contents (manual — no versioning enabled by default)"
+  steps:
+    - "Identify the previous build in git: git log --oneline in source repo"
+    - "Re-checkout that commit, rebuild, and re-sync to S3"
+    - "Invalidate CloudFront again: aws cloudfront create-invalidation --distribution-id EHKEPP01C2TFV --paths '/*'"
+
+# ---- OUTPUT ---- #
+output:
+  deliverable: "07-axon-terminals/deliverables/deployment-reports/"
+  format: "markdown"
+  fields:
+    - deployed_at
+    - build_duration_seconds
+    - files_uploaded
+    - cloudfront_invalidation_id
+    - live_url_status
