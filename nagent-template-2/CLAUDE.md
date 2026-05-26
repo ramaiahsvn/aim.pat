@@ -22,7 +22,6 @@
 
 ## Resources
 
-- Connectors and API configs: `01-resources/connectors/`
 - Reference files: `01-resources/files/`
 - Credentials: `01-resources/secrets/secrets.yaml` (git-ignored)
 

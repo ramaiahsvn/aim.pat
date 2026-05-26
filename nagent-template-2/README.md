@@ -5,8 +5,7 @@ A lightweight agent template. No neuron anatomy — just four plain folders.
 ## Structure
 
 ```
-01-resources/       Everything the agent can read or call
-  connectors/       MCP servers, API configs
+01-resources/       Everything the agent can read
   files/            Reference docs, lookup tables, static data
   secrets/          Credentials (git-ignored)
 

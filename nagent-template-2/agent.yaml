@@ -14,9 +14,8 @@ components:
     path: "./01-resources"
     role: "Resources — everything the agent can read or call"
     contains:
-      connectors: "MCP servers, API configs, database connections"
-      files:      "Reference documents, lookup tables, static data"
-      secrets:    "Credentials and tokens (git-ignored)"
+      files:   "Reference documents, lookup tables, static data"
+      secrets: "Credentials and tokens (git-ignored)"
 
   02_workflows:
     path: "./02-workflows"
