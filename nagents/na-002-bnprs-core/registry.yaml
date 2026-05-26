@@ -67,6 +67,15 @@ registry:
     created_at: "2026-05-26"
     created_by: "bnprs"
 
+  - code: "07"
+    name: "bnprs-docs"
+    label: "bnprs-docs"
+    role: "Business Documents and Templates Manager"
+    path: "07-bnprs-docs"
+    status: "active"
+    created_at: "2026-05-26"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core business agents
 # DE40–DE7F  (064–127)  Administration and reporting

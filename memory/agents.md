@@ -19,13 +19,14 @@
 | 04   | na-002      | bnprs-sales      | Sales, Marketing and Customer     | active | 2026-05-26 |
 | 05   | na-002      | bnprs-websites     | Website and Digital Presence      | active | 2026-05-26 |
 | 06   | na-002      | bnprs-social-media | Social Media and Content          | active | 2026-05-26 |
+| 07   | na-002      | bnprs-docs         | Business Documents and Templates  | active | 2026-05-26 |
 
 ## Group Slot Usage
 
 | Group | ID     | Used | Max |
 |-------|--------|------|-----|
 | na-001-personal          | na-001 | 6   | 255 |
-| na-002-bnprs-core        | na-002 | 6   | 255 |
+| na-002-bnprs-core        | na-002 | 7   | 255 |
 | na-003-bnprs-infra       | na-003 | 0   | 255 |
 | na-004-bnprs-biometrics  | na-004 | 0   | 255 |
 | na-005-bnprs-fintech     | na-005 | 0   | 255 |
@@ -50,3 +51,4 @@ _None defined yet._
 - na-002/04 bnprs-sales nucleus (`03-nucleus/CLAUDE.md`) is a template shell — sales, marketing, customer relations domain not yet filled in
 - na-002/05 bnprs-websites nucleus (`03-nucleus/CLAUDE.md`) is a template shell — bnprs.ai, bnprs.in, bnprs.com web presence domain not yet filled in
 - na-002/06 bnprs-social-media nucleus (`03-nucleus/CLAUDE.md`) is a template shell — LinkedIn, Twitter, Instagram, YouTube, podcasts domain not yet filled in
+- na-002/07 bnprs-docs nucleus (`03-nucleus/CLAUDE.md`) is a template shell — offer letters, NDAs, appointment letters, contracts domain not yet filled in
