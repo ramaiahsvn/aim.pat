@@ -1,0 +1,98 @@
+id: deploy-bnprs-com
+name: "Deploy bnprs.com"
+description: "Build Astro site and deploy to S3 + CloudFront for bnprs.com"
+trigger: manual
+version: "1.0.0"
+
+# ---- CONTEXT ---- #
+domain: "bnprs.com"
+source: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com"
+s3_bucket: "bnprs-com-fe"
+cloudfront_id: "EIRPPLAXGKOQA"
+aws_profile: "bnprs"
+aws_region: "ap-south-2"
+
+# ---- STEPS ---- #
+steps:
+
+  - id: preflight
+    name: "Preflight checks"
+    description: "Verify source exists, AWS credentials are valid, S3 bucket is reachable"
+    commands:
+      - "test -d /Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com"
+      - "aws --profile bnprs sts get-caller-identity"
+      - "aws --profile bnprs s3 ls s3://bnprs-com-fe"
+    on_failure: stop
+
+  - id: install
+    name: "Install dependencies"
+    cwd: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com"
+    commands:
+      - "npm install"
+    on_failure: stop
+
+  - id: build
+    name: "Build Astro site"
+    cwd: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com"
+    commands:
+      - "npm run build"
+    output_dir: "dist"
+    on_failure: stop
+
+  - id: verify-build
+    name: "Verify build output"
+    commands:
+      - "test -d /Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com/dist"
+      - "test -f /Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com/dist/index.html"
+    on_failure: stop
+
+  - id: checkpoint-deploy
+    name: "CHECKPOINT — confirm deploy to production"
+    type: human-in-the-loop
+    message: "Build succeeded. Ready to sync to s3://bnprs-com-fe and invalidate CloudFront (EIRPPLAXGKOQA). Proceed?"
+    on_failure: stop
+
+  - id: s3-sync
+    name: "Sync dist/ to S3"
+    cwd: "/Users/bnprs/BPR/GitRepos2/BPR2004_Design/bpr2004.bnprs.com"
+    commands:
+      - "aws --profile bnprs s3 sync dist/ s3://bnprs-com-fe --delete --region ap-south-2"
+    on_failure: stop
+
+  - id: cloudfront-invalidate
+    name: "Invalidate CloudFront cache"
+    commands:
+      - "aws --profile bnprs cloudfront create-invalidation --distribution-id EIRPPLAXGKOQA --paths '/*'"
+    on_failure: notify
+
+  - id: verify-live
+    name: "Verify live site"
+    commands:
+      - "curl -s -o /dev/null -w '%{http_code}' https://bnprs.com | grep -q 200"
+    on_failure: notify
+
+  - id: done
+    name: "Report deployment"
+    output:
+      deliverable: "07-axon-terminals/deliverables/deployment-reports/bnprs-com-<YYYY-MM-DD-HH-MM>.md"
+      memory: "08-memory/long-term/deployments.yaml"
+    on_failure: continue
+
+# ---- ROLLBACK ---- #
+rollback:
+  description: "Re-checkout previous commit, rebuild, re-sync to S3, invalidate CloudFront"
+  steps:
+    - "Identify previous build: git log --oneline in source repo"
+    - "Re-checkout, rebuild, re-sync: aws s3 sync dist/ s3://bnprs-com-fe --delete"
+    - "Invalidate: aws cloudfront create-invalidation --distribution-id EIRPPLAXGKOQA --paths '/*'"
+
+# ---- OUTPUT ---- #
+output:
+  deliverable: "07-axon-terminals/deliverables/deployment-reports/"
+  format: "markdown"
+  fields:
+    - deployed_at
+    - build_duration_seconds
+    - files_uploaded
+    - cloudfront_invalidation_id
+    - live_url_status
