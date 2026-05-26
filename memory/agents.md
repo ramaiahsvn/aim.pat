@@ -29,6 +29,7 @@
 | 004  | na-003 | bnprs-github | GitHub Accounts Manager (ramaiahsvn, ramaiahsvn2, iCodeScrum) | active | 2026-05-26 |
 | 005  | na-003 | bnprs-websites | Website Infrastructure Manager (bnprs.ai/in/com, aandhipe.in) | active | 2026-05-26 |
 | 006  | na-003 | bnprs-claude | AI Model Subscription Instance (EC2: aim1001-bnprs-claude) | active | 2026-05-26 |
+| 007  | na-003 | bnprs-aws-kms | HSM Key Management System (kms.bnprs.ai, alias/qi-supervisor-key) | active | 2026-05-26 |
 
 ## Group Slot Usage
 
@@ -36,7 +37,7 @@
 |-------|----|------|-----|
 | na-001-personal          | na-001 | 6  | 255 |
 | na-002-bnprs-core        | na-002 | 10 | 255 |
-| na-003-bnprs-infra       | na-003 | 6  | 255 |
+| na-003-bnprs-infra       | na-003 | 7  | 255 |
 | na-004-bnprs-biometrics  | na-004 | 0  | 255 |
 | na-005-bnprs-fintech     | na-005 | 0  | 255 |
 | na-006-bnprs-deployments | na-006 | 0  | 255 |

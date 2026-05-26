@@ -1,0 +1,40 @@
+# KMS Key Registry — bnprs-aws-kms
+# Key aliases, IDs, ARNs, and metadata ONLY — never key material or plaintext values.
+# Update whenever a key is created, rotated, disabled, or deleted.
+
+keys:
+  - alias: "alias/qi-supervisor-key"
+    key_id: "2a5874c0-7c3b-4663-93ff-34d9d6dd5189"
+    arn: "arn:aws:kms:ap-south-2:891963159778:key/2a5874c0-7c3b-4663-93ff-34d9d6dd5189"
+    account: "bnprs"
+    account_id: "891963159778"
+    region: "ap-south-2"
+    type: "SYMMETRIC_DEFAULT"
+    usage: "ENCRYPT_DECRYPT"
+    rotation_enabled: true
+    created_at: "2026-04-23"
+    service: "k3-verifychallenge (qi-supervisor-key Secrets Manager secret)"
+    tags:
+      project: "k3-verifychallenge"
+      environment: "prod"
+    notes: >
+      Encrypts the qi-supervisor-key Secrets Manager secret which holds the
+      3DES supervisor key halves for BprCardQi challenge-response verification.
+      Key material is NEVER stored here — stays in Secrets Manager only.
+
+secrets_manager:
+  - name: "qi-supervisor-key"
+    arn: "arn:aws:secretsmanager:ap-south-2:891963159778:secret:qi-supervisor-key-xZ7609"
+    version_id: "6102bdf2-6508-4f4a-bc55-2ac619cdf2a3"
+    encrypted_by: "alias/qi-supervisor-key"
+    created_at: "2026-04-23"
+    content_description: "3DES key halves (k1, k2, k3) for BprCardQi supervisor challenge-response"
+    notes: >
+      Secret VALUES are never stored here. Only name, ARN, and version tracking.
+      Decrypted into Lambda memory at cold start only — never logged or persisted.
+
+# Inventory status
+inventory:
+  bnprs_account: "partial — qi-supervisor-key known; full inventory pending"
+  itp_account: "not yet inventoried"
+  last_updated: "2026-05-26"

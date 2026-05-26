@@ -35,6 +35,11 @@ zones:
         alias: false
         target: "16.112.21.84"
         note: "GitLab EC2 Elastic IP — managed by na-003/003-bnprs-gitlab"
+      - name: "kms.bnprs.ai"
+        type: A
+        alias: true
+        target: "d-ww6sxe8r1g.execute-api.ap-south-2.amazonaws.com (API GW zone Z0853509Q1135NJ66RUH)"
+        note: "k3-verifychallenge API — 3DES supervisor key challenge-response service (managed by na-003/007-bnprs-aws-kms)"
 
   - name: "bnprs.in"
     zone_id: ""

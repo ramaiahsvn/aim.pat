@@ -117,21 +117,21 @@ echo -e "  ${GREEN}Group:${RESET} $GROUP_NAME"
 # ============================================================
 
 # Collect already-used codes from registry
-mapfile -t USED_CODES < <(grep "^  - code:" "$GROUP_REGISTRY" 2>/dev/null | sed 's/.*"\([0-9A-Fa-f]*\)".*/\1/' | tr '[:lower:]' '[:upper:]' || true)
+mapfile -t USED_CODES < <(grep "^  - code:" "$GROUP_REGISTRY" 2>/dev/null | sed 's/.*"\([0-9]*\)".*/\1/' || true)
 
-# Find next available code 01–FF
+# Find next available code 001–255 (3-digit zero-padded decimal)
 NEXT_CODE=""
 for i in $(seq 1 255); do
-  HEX=$(printf '%02X' "$i")
+  DEC=$(printf '%03d' "$i")
   TAKEN=false
   for used in "${USED_CODES[@]}"; do
-    if [[ "$used" == "$HEX" ]]; then
+    if [[ "$used" == "$DEC" ]]; then
       TAKEN=true
       break
     fi
   done
   if [[ "$TAKEN" == false ]]; then
-    NEXT_CODE="$HEX"
+    NEXT_CODE="$DEC"
     break
   fi
 done
@@ -142,7 +142,7 @@ if [[ -z "$NEXT_CODE" ]]; then
 fi
 
 USED_COUNT=${#USED_CODES[@]}
-echo -e "  ${GREEN}Next code:${RESET} $NEXT_CODE  ${DIM}(${USED_COUNT}/255 used | ref: DE$NEXT_CODE)${RESET}"
+echo -e "  ${GREEN}Next code:${RESET} $NEXT_CODE  ${DIM}(${USED_COUNT}/255 used)${RESET}"
 
 # ============================================================
 #  STEP 3 — AGENT NAME & ROLE

@@ -1,0 +1,81 @@
+id: connector-aws-kms
+name: "AWS KMS — BNPRS Key Management"
+type: aws
+protocol: aws-sdk
+version: "1.0.0"
+
+accounts:
+  - profile: "bnprs"
+    account_id: "891963159778"
+    region: "ap-south-2"
+    purpose: "BNPRS production encryption keys"
+
+  - profile: "itp"
+    account_id: "819144294008"
+    region: "us-east-2"
+    purpose: "ITPCore / AI agent encryption keys"
+
+services:
+  kms:
+    endpoint: "kms.<region>.amazonaws.com"
+    capabilities:
+      - create_key
+      - describe_key
+      - list_keys
+      - list_aliases
+      - create_alias
+      - delete_alias
+      - enable_key
+      - disable_key
+      - schedule_key_deletion
+      - cancel_key_deletion
+      - enable_key_rotation
+      - get_key_rotation_status
+      - put_key_policy
+      - get_key_policy
+      - list_key_policies
+      - create_grant
+      - list_grants
+      - retire_grant
+      - revoke_grant
+      - generate_data_key
+      - encrypt
+      - decrypt
+      - re_encrypt
+
+  secrets_manager:
+    endpoint: "secretsmanager.<region>.amazonaws.com"
+    capabilities:
+      - list_secrets
+      - get_secret_value
+      - create_secret
+      - update_secret
+      - rotate_secret
+      - delete_secret
+      - tag_resource
+
+  ssm_parameter_store:
+    endpoint: "ssm.<region>.amazonaws.com"
+    capabilities:
+      - get_parameter
+      - get_parameters_by_path
+      - put_parameter
+      - delete_parameter
+      - describe_parameters
+
+  cloudtrail:
+    purpose: "Audit KMS API calls"
+    capabilities:
+      - lookup_events
+
+key_alias_convention: "alias/bnprs-<service>-<environment>"
+key_alias_examples:
+  - "alias/bnprs-s3-prod"
+  - "alias/bnprs-rds-prod"
+  - "alias/bnprs-secrets-prod"
+  - "alias/bnprs-ebs-prod"
+
+notes: >
+  All KMS operations use AWS CLI profiles (bnprs or itp) — never hardcoded credentials.
+  Key material is never returned or stored in agent outputs.
+  All operations are audited via CloudTrail in the respective AWS account.
