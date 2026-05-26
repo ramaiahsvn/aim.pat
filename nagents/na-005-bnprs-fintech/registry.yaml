@@ -12,7 +12,51 @@ group:
   description: "Fintech product workflows, financial data, and transaction processing"
   max_agents: 255
 
-registry: []
+registry:
+  - code: "001"
+    name: "cpp-icba-all"
+    label: "cpp-icba-all"
+    role: "Issuer Controlled Biometric Authentication (ICBA)"
+    path: "001-cpp-icba-all"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "002"
+    name: "cpp-card-qi"
+    label: "cpp-card-qi"
+    role: "BprCardQi C++ Module — Qi Smart Card"
+    path: "002-cpp-card-qi"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "003"
+    name: "cpp-card-emv"
+    label: "cpp-card-emv"
+    role: "BprCardEmv C++ Module — EMV Smart Card"
+    path: "003-cpp-card-emv"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "004"
+    name: "cpp-card-pure"
+    label: "cpp-card-pure"
+    role: "BprScripts C++ Module — Qi and Pure EMV APDU Scripts"
+    path: "004-cpp-card-pure"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+
+  - code: "005"
+    name: "cpp-pcsc-all"
+    label: "cpp-pcsc-all"
+    role: "BprPcSc C++ Module — Cross-Platform PC/SC"
+    path: "005-cpp-pcsc-all"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
 
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Transaction and payment agents

@@ -43,6 +43,11 @@
 | 010  | na-004 | algo-certify | Algorithm Certification and Benchmarking (all modalities) | active | 2026-05-27 |
 | 011  | na-004 | rnd-biometrics | Biometrics Research and Development | active | 2026-05-27 |
 | 012  | na-004 | rnd-evaluations | Biometric Algorithm Evaluations (DET, EER, FMR/FNMR) | active | 2026-05-27 |
+| 001  | na-005 | cpp-icba-all | Issuer Controlled Biometric Authentication (ICBA orchestrator) | active | 2026-05-27 |
+| 002  | na-005 | cpp-card-qi | BprCardQi — Qi smart card I/O, biometric data read, fleet cert (kms.bnprs.ai) | active | 2026-05-27 |
+| 003  | na-005 | cpp-card-emv | BprCardEmv — EMV smart card, AID selection, PureScript APDU | active | 2026-05-27 |
+| 004  | na-005 | cpp-card-pure | BprScripts — QiScript (perso/reset/read) + PureScript (EMV APDU) | active | 2026-05-27 |
+| 005  | na-005 | cpp-pcsc-all | BprPcSc — cross-platform PC/SC (Windows/Linux/Android 8 vendors, TP9000, TTC) | active | 2026-05-27 |
 
 ## Group Slot Usage
 
@@ -52,7 +57,7 @@
 | na-002-bnprs-core        | na-002 | 10 | 255 |
 | na-003-bnprs-infra       | na-003 | 8  | 255 |
 | na-004-bnprs-biometrics  | na-004 | 12 | 255 |
-| na-005-bnprs-fintech     | na-005 | 0  | 255 |
+| na-005-bnprs-fintech     | na-005 | 5  | 255 |
 | na-006-bnprs-deployments | na-006 | 0  | 255 |
 | na-007-bnprs-team        | na-007 | 0  | 255 |
 
