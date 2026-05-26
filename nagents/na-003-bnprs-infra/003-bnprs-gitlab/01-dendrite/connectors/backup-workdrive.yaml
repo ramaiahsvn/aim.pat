@@ -1,0 +1,58 @@
+id: connector-backup-workdrive
+name: "Zoho WorkDrive — GitLab Backup Storage"
+type: rclone
+protocol: oauth2
+version: "1.0.0"
+
+rclone:
+  version: "v1.73.1"
+  binary: "/usr/bin/rclone"
+  remote_name: "zoho-workdrive"
+  config_root: "/root/.config/rclone/rclone.conf"   # used by backup script
+  config_ubuntu: "/home/ubuntu/.config/rclone/rclone.conf"
+
+zoho:
+  account: "ramaiah@bnprs.in"
+  role: "Business Admin"
+  workspace: "B_GitLab"
+  workspace_id: "vz3ifa8cc02e94d60494e8e8f5758ec9752fb"
+  backup_root_folder_id: "vz3if9fdcbf1ad2ee4eafb79d5a8a30c256e7"
+  workdrive_url: "https://workdrive.zoho.com"
+
+oauth_app:
+  name: "GitLab Backup"
+  type: "Server-based Application"
+  client_id: "1000.GC6M0Y8P78GM1JTVACRNEHLR11LJOK"
+  client_secret: "see rclone.conf on server (git-ignored)"
+  redirect_uri: "http://localhost"
+  scopes:
+    - "WorkDrive.files.ALL"
+    - "WorkDrive.workspace.READ"
+    - "WorkDrive.team.READ"
+  manage_url: "https://api-console.zoho.com"
+
+reauth_url: >
+  https://accounts.zoho.com/oauth/v2/auth?scope=WorkDrive.files.ALL+WorkDrive.workspace.READ+WorkDrive.team.READ&client_id=1000.GC6M0Y8P78GM1JTVACRNEHLR11LJOK&response_type=code&access_type=offline&redirect_uri=http://localhost
+
+reauth_token_exchange: |
+  curl -X POST "https://accounts.zoho.com/oauth/v2/token" \
+    -d "code=<AUTH_CODE>" \
+    -d "client_id=1000.GC6M0Y8P78GM1JTVACRNEHLR11LJOK" \
+    -d "client_secret=<SECRET>" \
+    -d "redirect_uri=http://localhost" \
+    -d "grant_type=authorization_code"
+  # Then update token in BOTH rclone.conf files (root and ubuntu paths)
+
+test_commands:
+  list_files: "rclone ls zoho-workdrive:"
+  list_folders: "rclone lsf zoho-workdrive: --dirs-only"
+
+known_limitation: >
+  Files >10MB are routed through upload.zoho.com which requires OAuth scopes beyond
+  WorkDrive standard API — causes INVALID_OAUTHSCOPE. Backup script splits TAR into
+  9MB chunks to bypass this. Threshold: ≤9MB works, ≥11MB fails.
+
+notes: >
+  rclone handles OAuth token refresh automatically using stored refresh token.
+  If auth fails after long inactivity, re-authorize using reauth_url above.
+  After re-auth, update token in BOTH rclone.conf files.

@@ -1,0 +1,50 @@
+id: connector-instance-ssh
+name: "GitLab EC2 Instance (SSH)"
+type: ssh
+protocol: ssh
+version: "1.0.0"
+
+instance:
+  public_ip: "16.112.21.84"
+  os: "Ubuntu (latest LTS)"
+  aws_account: "891963159778"
+  aws_profile: "bnprs"
+  region: "ap-south-2"
+  hosted_service: "gitlab/gitlab-ce:latest (Docker)"
+
+access:
+  admin:
+    method: key-based
+    ssh_command: "ssh -i ~/.ssh/gitlab-server-key.pem ubuntu@16.112.21.84"
+    key_path: "~/.ssh/gitlab-server-key.pem"
+    user: "ubuntu"
+  credentials: "see 01-dendrite/secrets/secrets.yaml"
+
+gitlab_web_ui:
+  url: "http://16.112.21.84"
+  admin_email: "ramaiah@bnprs.in"
+
+gitlab_volumes:
+  config: "/srv/gitlab/config"    # gitlab.rb, gitlab-secrets.json
+  logs: "/srv/gitlab/logs"
+  data: "/srv/gitlab/data"        # repos, database, backups
+
+gitlab_ports:
+  http: 80
+  https: 443
+  git_ssh: 2222
+
+capabilities:
+  - instance_health_check
+  - docker_container_status
+  - log_tailing
+  - service_restart
+  - backup_trigger
+  - disk_usage
+  - memory_usage
+  - cpu_usage
+
+auto_restart:
+  container_policy: "always"
+  docker_systemd: "restart on-failure, 5s delay"
+  enabled_at_boot: true

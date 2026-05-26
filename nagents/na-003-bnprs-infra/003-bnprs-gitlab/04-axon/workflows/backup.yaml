@@ -1,0 +1,87 @@
+id: wf-gitlab-backup
+name: "GitLab Weekly Backup to Zoho WorkDrive"
+description: "Create GitLab TAR backup, split into 9MB chunks, upload to Zoho WorkDrive, verify, cleanup"
+version: "1.0.0"
+
+schedule:
+  cron: "30 18 * * 5"
+  human: "Every Friday at 18:30 UTC = Friday midnight IST (UTC+5:30)"
+  manage: "sudo crontab -e"
+
+script: "/usr/local/bin/gitlab-backup-upload.sh"
+log: "/var/log/gitlab-backup.log"
+manual_run: "sudo /usr/local/bin/gitlab-backup-upload.sh"
+monitor: "tail -f /var/log/gitlab-backup.log"
+
+steps:
+  - id: notify-start
+    name: "Send Start Email"
+    action: msmtp
+    subject: "[GitLab Backup] Started - <timestamp>"
+    to: "ramaiah@bnprs.in"
+
+  - id: create-backup
+    name: "Create GitLab Backup TAR"
+    action: docker-exec
+    command: "docker exec gitlab gitlab-backup create STRATEGY=copy"
+    output_path: "/srv/gitlab/data/backups/"
+    checkpoint: false
+
+  - id: split-chunks
+    name: "Split TAR into 9MB Chunks"
+    action: bash
+    command: "split -b 9m <backup.tar> /tmp/gitlab-backup-split/<backup-name>/part."
+    note: "Must stay under 10MB — Zoho routes larger files through upload.zoho.com causing INVALID_OAUTHSCOPE"
+    checkpoint: false
+
+  - id: upload-chunks
+    name: "Upload Chunks to Zoho WorkDrive"
+    action: rclone
+    command: "rclone copy /tmp/gitlab-backup-split/<backup-name>/ zoho-workdrive:<backup-name>/"
+    retry:
+      max_attempts: 3
+      delay_seconds: 300
+      behavior: "rclone skips already-uploaded chunks — no re-upload from scratch"
+    checkpoint: false
+
+  - id: verify-upload
+    name: "Verify Chunk Count"
+    action: bash
+    description: "Compare local vs remote chunk count — fail if mismatch"
+    checkpoint: true
+
+  - id: upload-config
+    name: "Upload Config Files"
+    action: rclone
+    files:
+      - "/srv/gitlab/config/gitlab.rb"
+      - "/srv/gitlab/config/gitlab-secrets.json"
+    destination: "zoho-workdrive:gitlab-config/YYYY-MM-DD/"
+    note: "gitlab-secrets.json is CRITICAL — required for restore; loss = irrecoverable data"
+    checkpoint: false
+
+  - id: cleanup
+    name: "Clean Up Old Backups"
+    action: bash
+    local_keep: 1
+    remote_keep: 4
+    checkpoint: false
+
+  - id: notify-complete
+    name: "Send Completion Email"
+    action: msmtp
+    subject: "[GitLab Backup] Completed - <timestamp>"
+    to: "ramaiah@bnprs.in"
+
+on_failure:
+  action: "send failure email with error details and exit"
+  subject: "[GitLab Backup] FAILED - <timestamp>"
+  to: "ramaiah@bnprs.in"
+  max_retries: 3
+  retry_delay_seconds: 300
+
+retention:
+  local: 1
+  remote: 4
+
+chunk_size: "9m"

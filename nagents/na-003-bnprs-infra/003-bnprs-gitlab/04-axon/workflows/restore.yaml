@@ -1,0 +1,64 @@
+id: wf-gitlab-restore
+name: "GitLab Restore from Zoho WorkDrive"
+description: "Step-by-step procedure to restore a GitLab instance from Zoho WorkDrive backup chunks"
+version: "1.0.0"
+
+prerequisites:
+  - "SSH access: ssh -i ~/.ssh/gitlab-server-key.pem ubuntu@16.112.21.84"
+  - "rclone configured with zoho-workdrive remote (run as root)"
+  - "Know the backup name to restore (e.g. 1771762865_2026_02_22_18.9.0_gitlab_backup.tar)"
+  - "CRITICAL: restore gitlab-secrets.json from the SAME backup run as the data — mismatch = irrecoverable data"
+
+steps:
+  - id: download-chunks
+    name: "Download Backup Chunks from Zoho"
+    checkpoint: true
+    commands: |
+      BACKUP_NAME="<timestamp>_gitlab_backup.tar"
+      mkdir -p /tmp/restore
+      rclone copy "zoho-workdrive:${BACKUP_NAME}/" /tmp/restore/
+
+  - id: reassemble-tar
+    name: "Reassemble the TAR"
+    checkpoint: false
+    commands: |
+      cat /tmp/restore/part.* > /srv/gitlab/data/backups/${BACKUP_NAME}
+      chmod 600 /srv/gitlab/data/backups/${BACKUP_NAME}
+      chown 998:998 /srv/gitlab/data/backups/${BACKUP_NAME}
+
+  - id: stop-services
+    name: "Stop GitLab Services (keep DB running)"
+    checkpoint: true
+    commands: |
+      docker exec gitlab gitlab-ctl stop puma
+      docker exec gitlab gitlab-ctl stop sidekiq
+
+  - id: restore-backup
+    name: "Restore Backup"
+    checkpoint: true
+    command: "docker exec gitlab gitlab-backup restore BACKUP=<TIMESTAMP>"
+    note: "TIMESTAMP = everything before _gitlab_backup.tar in the filename (e.g. 1771762865_2026_02_22_18.9.0)"
+
+  - id: restore-config
+    name: "Restore Config Files"
+    checkpoint: true
+    commands: |
+      # Download from Zoho (preferred)
+      rclone copy "zoho-workdrive:gitlab-config/YYYY-MM-DD/" /srv/gitlab/config/
+      # Or copy manually if available
+      # cp gitlab.rb /srv/gitlab/config/gitlab.rb
+      # cp gitlab-secrets.json /srv/gitlab/config/gitlab-secrets.json
+    warning: "gitlab-secrets.json MUST be from the SAME backup run — mismatched keys = all encrypted data lost"
+
+  - id: restart-gitlab
+    name: "Restart GitLab"
+    checkpoint: false
+    command: "docker restart gitlab"
+
+  - id: verify
+    name: "Verify Restore"
+    checkpoint: true
+    command: "docker exec gitlab gitlab-rake gitlab:check SANITIZE=true"
+
+example_backup_name: "1771762865_2026_02_22_18.9.0_gitlab_backup.tar"
+example_timestamp: "1771762865_2026_02_22_18.9.0"

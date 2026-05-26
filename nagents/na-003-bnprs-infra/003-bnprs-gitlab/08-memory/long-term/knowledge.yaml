@@ -1,30 +1,83 @@
 # Long-Term Memory — Persistent Knowledge (LTP)
 # Survives across sessions. The agent's accumulated wisdom.
 
-# Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
-    access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    type: infrastructure
+    content: >
+      GitLab CE 18.9.0 runs as Docker container (gitlab/gitlab-ce:latest) on EC2 16.112.21.84
+      (ap-south-2 Mumbai, bnprs account 891963159778). SSH: ubuntu@16.112.21.84 with
+      ~/.ssh/gitlab-server-key.pem. Volumes: /srv/gitlab/config, /srv/gitlab/logs, /srv/gitlab/data.
+      Ports: 80 (HTTP), 443 (HTTPS), 2222 (Git SSH). Container restart policy: always.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [gitlab, docker, ec2, infrastructure, ssh]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: backup
+    content: >
+      Weekly backup every Friday 18:30 UTC (midnight IST) via cron running
+      /usr/local/bin/gitlab-backup-upload.sh. Creates Docker backup TAR, splits into 9MB chunks,
+      uploads to Zoho WorkDrive B_GitLab workspace (rclone remote: zoho-workdrive).
+      Retention: 1 local, 4 remote. Email alerts to ramaiah@bnprs.in on start/complete/fail.
+      Log: /var/log/gitlab-backup.log.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [backup, zoho, rclone, cron, weekly]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: workaround
+    content: >
+      Zoho WorkDrive routes files >10MB through upload.zoho.com which requires extra OAuth scopes
+      not in standard WorkDrive API — causes INVALID_OAUTHSCOPE error. Workaround: split backup
+      TAR into 9MB chunks with `split -b 9m`. Each chunk uploads fine via standard API.
+      Restore: reassemble with `cat part.* > backup.tar`. Confirmed threshold: ≤9MB works, ≥11MB fails.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [zoho, workaround, backup, rclone, limitation]
+
+  - id: mem-004
+    type: critical
+    content: >
+      gitlab-secrets.json at /srv/gitlab/config/gitlab-secrets.json contains encryption keys.
+      Loss of this file makes ALL encrypted data (CI/CD variables, tokens, 2FA secrets)
+      irrecoverable. Always backup and restore it alongside the data backup from the SAME run —
+      mismatched secrets from different backup runs = data loss.
+    created_at: "2026-05-26"
+    confidence: 1.0
+    tags: [critical, backup, restore, secrets, encryption]
+
+  - id: mem-005
+    type: configuration
+    content: >
+      Email notifications via msmtp. Use smtp.zoho.com:587 with STARTTLS — smtp.zoho.in does NOT
+      work. Auth with app password (not account password) generated at accounts.zoho.in → Security
+      → App Passwords. msmtp config at /etc/msmtprc with permissions 600. Log: /var/log/msmtp.log.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [email, msmtp, zoho, notifications, smtp]
+
+  - id: mem-006
+    type: pending
+    content: >
+      UptimeRobot not yet configured. Should monitor http://16.112.21.84 and alert
+      ramaiah@bnprs.in when server is down. Free tier available at https://uptimerobot.com.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [monitoring, pending, uptimerobot, server-down]
+
+  - id: mem-007
+    type: configuration
+    content: >
+      Zoho WorkDrive rclone config: remote name "zoho-workdrive", workspace B_GitLab
+      (ID: vz3ifa8cc02e94d60494e8e8f5758ec9752fb), backup root folder
+      vz3if9fdcbf1ad2ee4eafb79d5a8a30c256e7. OAuth app "GitLab Backup", client ID
+      1000.GC6M0Y8P78GM1JTVACRNEHLR11LJOK. Two rclone.conf locations:
+      /root/.config/rclone/rclone.conf (used by script) and /home/ubuntu/.config/rclone/rclone.conf.
+      Both must be updated when re-authorizing OAuth.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [zoho, rclone, workdrive, oauth, backup]
 
 # Pruning rules
 pruning:
