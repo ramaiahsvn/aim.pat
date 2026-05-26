@@ -1,0 +1,88 @@
+id: wf-bnprs-in-dns-setup
+name: "bnprs.in Post-Transfer DNS & Hosting Setup"
+description: "Steps to complete after bnprs.in domain transfer from HostGator to AWS Route53"
+version: "1.0.0"
+
+context:
+  transfer_operation_id: "f6f9d36b-0401-4ee3-826e-204f12f4ae4c"
+  transferred_from: "HostGator"
+  transferred_to: "AWS Route53"
+  expected_completion: "2026-03-14"
+  cloudfront_id: "EHKEPP01C2TFV"      # same as bnprs.ai — or use E1SC03F64TLZZ0 (existing bnprs.in CF)
+  acm_cert_id: "f5d91169-4d6d-40ca-91e6-0ff05f31f9d7"
+
+check_transfer_status:
+  command: |
+    aws route53domains get-operation-detail \
+      --operation-id f6f9d36b-0401-4ee3-826e-204f12f4ae4c \
+      --region us-east-1 \
+      --profile bnprs
+
+steps:
+  - id: create-hosted-zone
+    name: "Create Route53 Hosted Zone for bnprs.in"
+    checkpoint: true
+    command: |
+      aws route53 create-hosted-zone \
+        --name bnprs.in \
+        --caller-reference $(date +%s) \
+        --profile bnprs
+    note: "Note the new zone ID — needed for subsequent steps"
+
+  - id: migrate-mx-records
+    name: "Migrate Zoho MX Records from HostGator to Route53"
+    checkpoint: true
+    note: >
+      CRITICAL — do this before cancelling HostGator. Log in to HostGator DNS panel,
+      copy all MX records for bnprs.in (Zoho Mail), recreate them in the new Route53
+      hosted zone. Verify email delivery before proceeding.
+    zoho_mx_typical:
+      - "mx.zoho.com (priority 10)"
+      - "mx2.zoho.com (priority 20)"
+      - "mx3.zoho.com (priority 50)"
+
+  - id: add-cloudfront-aliases
+    name: "Add bnprs.in Aliases to CloudFront"
+    checkpoint: true
+    note: "Add bnprs.in and www.bnprs.in as alternate domain names on CloudFront distribution"
+    command: |
+      # Via AWS Console: CloudFront → E1SC03F64TLZZ0 → Settings → Alternate domain names
+      # Add: bnprs.in, www.bnprs.in
+      # Or use existing bnprs.in CF distribution E1SC03F64TLZZ0 which may already be set up
+
+  - id: update-acm-cert
+    name: "Update ACM Certificate to Include bnprs.in"
+    checkpoint: true
+    note: >
+      Update cert f5d91169-4d6d-40ca-91e6-0ff05f31f9d7 to include bnprs.in and www.bnprs.in.
+      Add DNS validation CNAME records to Route53 zone for bnprs.in.
+      Wait for cert to show ISSUED status before proceeding.
+
+  - id: add-route53-records
+    name: "Add Route53 DNS Records for bnprs.in"
+    checkpoint: true
+    records_to_create:
+      - name: "bnprs.in"
+        type: A
+        alias: true
+        target: "CloudFront distribution"
+      - name: "www.bnprs.in"
+        type: A
+        alias: true
+        target: "CloudFront distribution"
+
+  - id: verify-website
+    name: "Verify Website at https://bnprs.in"
+    checkpoint: true
+    checks:
+      - "https://bnprs.in loads correctly"
+      - "https://www.bnprs.in loads correctly"
+      - "HTTP redirects to HTTPS"
+      - "SSL cert is valid and covers bnprs.in"
+      - "Email delivery to bnprs.in addresses works"
+
+  - id: cancel-hostgator
+    name: "Cancel HostGator Services"
+    checkpoint: true
+    warning: "Only cancel AFTER verifying website AND email are both fully functional"
+    note: "Log in to HostGator account, cancel remaining services for bnprs.in"

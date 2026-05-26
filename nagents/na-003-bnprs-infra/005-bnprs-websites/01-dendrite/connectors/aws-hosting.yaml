@@ -21,7 +21,23 @@ sites:
     framework: "astro"
     dist_folder: "dist"
     s3_bucket: "bnprs-ai-fe"
+    s3_region: "ap-south-2"
+    s3_access: "static website hosting, public read"
     cloudfront_id: "EHKEPP01C2TFV"
+    cloudfront_domain: "dha96siea3my3.cloudfront.net"
+    cloudfront_aliases: ["bnprs.ai", "www.bnprs.ai"]
+    acm_cert_id: "f5d91169-4d6d-40ca-91e6-0ff05f31f9d7"
+    acm_cert_region: "us-east-1"
+    http_to_https: true
+    waf: enabled
+    route53_zone_id: "Z04070871PF9UEZWZ728D"
+    registrar: "GoDaddy"
+    nameservers:
+      - "ns-1077.awsdns-06.org"
+      - "ns-888.awsdns-47.net"
+      - "ns-460.awsdns-57.com"
+      - "ns-1872.awsdns-42.co.uk"
+    old_cert_to_delete: "ce616303-042d-480c-b558-949be1ca79de"
     status: deployed
 
   - domain: "bnprs.in"
@@ -30,6 +46,8 @@ sites:
     dist_folder: "dist"
     s3_bucket: "bnprs-in-fe"
     cloudfront_id: "E1SC03F64TLZZ0"
+    registrar: "AWS Route53 (transfer from HostGator, op f6f9d36b, expected complete 2026-03-14)"
+    note: "Verify post-transfer DNS setup — see 04-axon/workflows/bnprs-in-dns-setup.yaml"
     status: deployed
 
   - domain: "bnprs.com"

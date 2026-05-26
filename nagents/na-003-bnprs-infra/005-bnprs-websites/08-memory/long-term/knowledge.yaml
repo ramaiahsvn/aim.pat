@@ -1,30 +1,71 @@
 # Long-Term Memory — Persistent Knowledge (LTP)
 # Survives across sessions. The agent's accumulated wisdom.
 
-# Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
-    access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    type: infrastructure
+    content: >
+      bnprs.ai: S3 bnprs-ai-fe (ap-south-2), CloudFront EHKEPP01C2TFV → dha96siea3my3.cloudfront.net,
+      aliases bnprs.ai + www.bnprs.ai, HTTP→HTTPS redirect, WAF enabled.
+      ACM cert f5d91169-4d6d-40ca-91e6-0ff05f31f9d7 (us-east-1).
+      Route53 zone Z04070871PF9UEZWZ728D. Registrar: GoDaddy.
+      Nameservers: ns-1077.awsdns-06.org, ns-888.awsdns-47.net, ns-460.awsdns-57.com, ns-1872.awsdns-42.co.uk.
+    created_at: "2026-03-09"
+    confidence: 0.99
+    tags: [bnprs.ai, cloudfront, route53, ssl, s3, godaddy]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: infrastructure
+    content: >
+      gitlab.bnprs.ai: Route53 A record → 16.112.21.84 (EC2 Elastic IP, instance i-0b5a4cc29355c23bd,
+      SG sg-0e51840abef00c12b, ports 22/80/443/2222). SSL via Let's Encrypt (auto-renews;
+      was valid until 2026-05-24 — monitor for renewal). DNS managed in bnprs.ai Route53 zone
+      or separate zone, bnprs AWS account.
+    created_at: "2026-03-09"
+    confidence: 0.99
+    tags: [gitlab.bnprs.ai, route53, lets-encrypt, ssl, ec2, dns]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: pending
+    content: >
+      bnprs.in domain transfer from HostGator to AWS Route53 was IN PROGRESS as of 2026-03-09
+      (operation f6f9d36b-0401-4ee3-826e-204f12f4ae4c, step 7/14, expected completion 2026-03-14).
+      Post-transfer steps required: create Route53 zone, migrate Zoho MX records, add CloudFront
+      aliases, update ACM cert f5d91169 to include bnprs.in, add Route53 A records, verify site,
+      cancel HostGator. Full workflow: 04-axon/workflows/bnprs-in-dns-setup.yaml.
+    created_at: "2026-03-09"
+    confidence: 0.95
+    tags: [bnprs.in, transfer, hostgator, route53, pending, mx-records]
+
+  - id: mem-004
+    type: cleanup
+    content: >
+      Old ACM cert ce616303-042d-480c-b558-949be1ca79de (us-east-1) is a pre-existing bnprs.ai
+      cert that was superseded by f5d91169. It can be safely deleted from ACM.
+    created_at: "2026-03-09"
+    confidence: 0.99
+    tags: [bnprs.ai, acm, ssl, cleanup, pending]
+
+  - id: mem-005
+    type: infrastructure
+    content: >
+      AWS profiles: bnprs (account 891963159778, region ap-south-2, user Ramaiah) for all website
+      hosting; itp (account 819144294008, region us-east-2, user pathabi) for AI agent EC2.
+      All website S3/CloudFront/Route53 operations use --profile bnprs.
+    created_at: "2026-03-09"
+    confidence: 0.99
+    tags: [aws, profiles, bnprs, itp]
+
+  - id: mem-006
+    type: infrastructure
+    content: >
+      Deployment records: bnprs.ai deployed 2026-05-26 (9 files, CloudFront invalidation
+      IAANZ6LQ3D89JQ9TAUEWL99JAR, HTTP 200 confirmed). bnprs.in deployed via E1SC03F64TLZZ0.
+      bnprs.com deployed via EIRPPLAXGKOQA. All use Astro framework, source at
+      /Users/bnprs/BPR/GitRepos2/BPR2004_Design/, build output in dist/.
+    created_at: "2026-05-26"
+    confidence: 0.99
+    tags: [deployment, astro, s3, cloudfront, bnprs.ai, bnprs.in, bnprs.com]
 
 # Pruning rules
 pruning:

@@ -1,0 +1,87 @@
+id: connector-route53
+name: "AWS Route53 — BNPRS DNS"
+type: aws
+protocol: aws-sdk
+version: "1.0.0"
+
+connection:
+  aws_profile: "bnprs"
+  account_id: "891963159778"
+  region: "us-east-1"   # Route53 is global but API endpoint is us-east-1
+
+# ---- HOSTED ZONES ---- #
+
+zones:
+  - name: "bnprs.ai"
+    zone_id: "Z04070871PF9UEZWZ728D"
+    type: public
+    registrar: "GoDaddy"
+    nameservers:
+      - "ns-1077.awsdns-06.org"
+      - "ns-888.awsdns-47.net"
+      - "ns-460.awsdns-57.com"
+      - "ns-1872.awsdns-42.co.uk"
+    records:
+      - name: "bnprs.ai"
+        type: A
+        alias: true
+        target: "EHKEPP01C2TFV (dha96siea3my3.cloudfront.net)"
+      - name: "www.bnprs.ai"
+        type: A
+        alias: true
+        target: "EHKEPP01C2TFV (dha96siea3my3.cloudfront.net)"
+      - name: "gitlab.bnprs.ai"
+        type: A
+        alias: false
+        target: "16.112.21.84"
+        note: "GitLab EC2 Elastic IP — managed by na-003/003-bnprs-gitlab"
+
+  - name: "bnprs.in"
+    zone_id: ""
+    type: public
+    registrar: "AWS Route53 (transferred from HostGator — op f6f9d36b-0401-4ee3-826e-204f12f4ae4c)"
+    status: "verify zone creation post-transfer"
+    note: "Zoho MX records must be migrated here after transfer — see 04-axon/workflows/bnprs-in-dns-setup.yaml"
+
+# ---- SSL CERTIFICATES (ACM) ---- #
+
+acm_certs:
+  - id: "f5d91169-4d6d-40ca-91e6-0ff05f31f9d7"
+    region: "us-east-1"
+    domains: ["bnprs.ai", "www.bnprs.ai"]
+    status: active
+    used_by: "EHKEPP01C2TFV (CloudFront)"
+    note: "Add bnprs.in and www.bnprs.in after domain transfer completes"
+
+  - id: "ce616303-042d-480c-b558-949be1ca79de"
+    region: "us-east-1"
+    domains: ["bnprs.ai"]
+    status: superseded
+    note: "Pre-existing cert — can be deleted; replaced by f5d91169"
+
+# ---- EXTERNAL / NON-ACM CERTS ---- #
+
+external_certs:
+  - domain: "gitlab.bnprs.ai"
+    type: "Let's Encrypt"
+    auto_renews: true
+    valid_until: "2026-05-24"
+    note: "Monitor for auto-renewal — if renewal fails, SSH to EC2 and run certbot manually"
+
+# ---- CHECK TRANSFER STATUS ---- #
+
+transfer_check_command: |
+  aws route53domains get-operation-detail \
+    --operation-id f6f9d36b-0401-4ee3-826e-204f12f4ae4c \
+    --region us-east-1 \
+    --profile bnprs
+
+capabilities:
+  - list_zones
+  - get_zone
+  - list_records
+  - create_record
+  - update_record
+  - delete_record
+  - check_domain_transfer
+  - list_domains
