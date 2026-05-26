@@ -31,6 +31,15 @@ registry:
     created_at: "2026-05-26"
     created_by: "bnprs"
 
+  - code: "003"
+    name: "bnprs-gitlab"
+    label: "bnprs-gitlab"
+    role: "Self-Hosted GitLab Manager"
+    path: "003-bnprs-gitlab"
+    status: "active"
+    created_at: "2026-05-26"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # 001–063   Cloud infrastructure agents
 # 064–127   Provisioning and automation
