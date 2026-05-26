@@ -1,0 +1,44 @@
+id: connector-gitlab
+name: "BNPRS Self-Hosted GitLab"
+type: rest-api
+protocol: https
+version: "18.9.0"
+
+connection:
+  base_url: "https://gitlab.bnprs.ai/api/v4"
+  auth:
+    type: personal_access_token
+    env_var: GITLAB_PAT
+  status: connected
+
+capabilities:
+  - list_projects
+  - get_project
+  - create_project
+  - list_groups
+  - get_group
+  - list_merge_requests
+  - create_merge_request
+  - merge_merge_request
+  - list_issues
+  - create_issue
+  - list_pipelines
+  - get_pipeline
+  - trigger_pipeline
+  - list_jobs
+  - list_runners
+  - get_runner
+  - list_branches
+  - create_branch
+  - list_commits
+  - get_file
+  - create_or_update_file
+  - list_users
+  - get_user
+
+priority: high
+
+notes: >
+  Self-hosted GitLab CE 18.9.0 on BNPRS AWS (ap-south-2, account 891963159778).
+  API token via $GITLAB_PAT environment variable (set in ~/.zshrc).
+  KAS (Kubernetes Agent Server) enabled at wss://gitlab.bnprs.ai/-/kubernetes-agent/.

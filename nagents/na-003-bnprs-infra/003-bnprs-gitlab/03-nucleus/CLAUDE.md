@@ -17,7 +17,8 @@
 - **Type**: Self-hosted GitLab (deployed on BNPRS AWS account)
 - **Hosted on**: AWS account 891963159778 (bnprs), ap-south-2
 - **AWS credentials**: `gitlab` profile — IAM user for GitLab runner access to AWS resources
-- **GitLab URL**: (fill in from secrets.yaml)
+- **GitLab URL**: https://gitlab.bnprs.ai (CE 18.9.0)
+- **API auth**: `$GITLAB_PAT` env var (set in ~/.zshrc)
 - **Admin contact**: ramaiah@bnprs.in
 
 ## Persona
