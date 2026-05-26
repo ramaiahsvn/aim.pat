@@ -1,0 +1,16 @@
+{
+  "name": "zoho-mail-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Zoho Mail REST API",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "auth": "node auth.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.6.0",
+    "open": "^11.0.0"
+  }
+}

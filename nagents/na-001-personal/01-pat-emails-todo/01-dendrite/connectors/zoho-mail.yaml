@@ -1,11 +1,26 @@
 id: connector-zoho-mail
 name: "Zoho Mail"
-type: rest-api
-protocol: http
+type: mcp-connector
+protocol: mcp
 version: "1.0"
+
+accounts:
+  - email: "ramaiah@bnprs.in"
+    mcp_server: "zoho-ramaiah"
+    credentials_path: "~/.zoho-mail-mcp/ramaiah@bnprs.in.json"
+  - email: "info@bnprs.in"
+    mcp_server: "zoho-info"
+    credentials_path: "~/.zoho-mail-mcp/info@bnprs.in.json"
+  - email: "hr@bnprs.in"
+    mcp_server: "zoho-hr"
+    credentials_path: "~/.zoho-mail-mcp/hr@bnprs.in.json"
+  - email: "accounts@bnprs.in"
+    mcp_server: "zoho-accounts"
+    credentials_path: "~/.zoho-mail-mcp/accounts@bnprs.in.json"
 
 connection:
   server: "https://mail.zoho.com/api"
+  mcp_server_path: "01-dendrite/zoho-mail-mcp/index.js"
   auth:
     type: oauth2
     scopes:
@@ -21,12 +36,11 @@ capabilities:
   - create_draft
   - move_message
   - list_folders
-  - search_messages
-  - flag_message
 
 priority: high
 rate_limit: 60/min
 
 notes: >
-  Business / domain email via Zoho Mail.
-  Credentials stored in 01-dendrite/secrets/secrets.yaml.
+  Custom MCP server wrapping Zoho Mail REST API.
+  Auth: run `node auth.js` per account in zoho-mail-mcp/.
+  Credentials stored in ~/.zoho-mail-mcp/<email>.json (git-ignored).
