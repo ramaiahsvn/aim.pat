@@ -83,6 +83,9 @@
     },
     "github-ramaiahsvn2": {
       "command": "/Users/bnprs/.github-mcp/run-ramaiahsvn2.sh"
+    },
+    "github-icodescrum": {
+      "command": "/Users/bnprs/.github-mcp/run-icodescrum.sh"
     }
   }
 }

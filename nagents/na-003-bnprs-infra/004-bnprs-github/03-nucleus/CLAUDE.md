@@ -18,7 +18,7 @@
 |---------|------|--------------|---------|
 | ramaiahsvn | Personal | — | Primary personal account |
 | ramaiahsvn2 | Personal | BNPRS, IscQicard, ITPCQI | Secondary account — owns 3 orgs |
-| iCodeSrum | Organisation / Team | — | Team/product repositories |
+| iCodeScrum | Organisation / Team | — | Team/product repositories |
 
 ### Organisations under ramaiahsvn2
 

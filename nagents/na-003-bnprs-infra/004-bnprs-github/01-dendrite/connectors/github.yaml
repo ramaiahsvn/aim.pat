@@ -15,11 +15,11 @@ accounts:
     mcp_server: "github-ramaiahsvn2"
     status: connected
     orgs: [BNPRS, IscQicard, ITPCQI]
-  - username: "iCodeSrum"
+  - username: "iCodeScrum"
     type: organisation
-    mcp_server: "github-icodesrum"
-    status: pending_auth
-    note: "Run: gh auth login --hostname github.com (sign in as iCodeSrum)"
+    mcp_server: "github-icodescrum"
+    status: connected
+    orgs: []
 
 connection:
   server: "ghcr.io/github/github-mcp-server"
