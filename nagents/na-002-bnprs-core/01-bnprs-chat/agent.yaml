@@ -6,11 +6,11 @@
 # ============================================================
 
 agent:
-  name: "bnprs-leadership"
+  name: "bnprs-chat"
   code: "01"
   group: "na-002-bnprs-core"
   version: "1.0.0"
-  description: "Leadership and Strategy Advisor — CEO/CTO vision, business strategy, certifications, and organizational direction"
+  description: "Messaging and Communications Manager — unified hub for WhatsApp, Microsoft Teams, Zoho Cliq, Zoom, Slack, and all business messaging channels"
   created_by: "bnprs"
   created_at: "2026-05-26"
 

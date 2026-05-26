@@ -14,10 +14,10 @@ group:
 
 registry:
   - code: "01"
-    name: "bnprs-leadership"
-    label: "bnprs-leadership"
-    role: "Leadership and Strategy Advisor"
-    path: "01-bnprs-leadership"
+    name: "bnprs-chat"
+    label: "bnprs-chat"
+    role: "Messaging and Communications Manager"
+    path: "01-bnprs-chat"
     status: "active"
     created_at: "2026-05-26"
     created_by: "bnprs"
