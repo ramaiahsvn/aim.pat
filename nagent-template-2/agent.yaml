@@ -1,0 +1,38 @@
+agent:
+  name: "<Agent Name>"
+  code: "<code>"
+  group: "<group>"
+  template: "nagent-template-2"
+  version: "1.0.0"
+  description: "<What this agent does>"
+  created_by: "<Your Name>"
+  created_at: "<date>"
+
+components:
+
+  01_resources:
+    path: "./01-resources"
+    role: "Resources — everything the agent can read or call"
+    contains:
+      connectors: "MCP servers, API configs, database connections"
+      files:      "Reference documents, lookup tables, static data"
+      secrets:    "Credentials and tokens (git-ignored)"
+
+  02_workflows:
+    path: "./02-workflows"
+    role: "Workflows — step-by-step task definitions"
+    contains:
+      "*.yaml / *.md": "One file per workflow; Claude reads these to know how to execute tasks"
+
+  03_outputs:
+    path: "./03-outputs"
+    role: "Outputs — finished work delivered here"
+    contains:
+      deliverables: "Generated files, reports, exports"
+
+  04_memory:
+    path: "./04-memory"
+    role: "Memory — what the agent remembers across tasks"
+    contains:
+      session:   "Scratch notes for the current task"
+      long-term: "Persistent facts, learned preferences, history"
