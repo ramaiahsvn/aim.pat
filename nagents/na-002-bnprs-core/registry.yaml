@@ -49,6 +49,15 @@ registry:
     created_at: "2026-05-26"
     created_by: "bnprs"
 
+  - code: "05"
+    name: "bnprs-websites"
+    label: "bnprs-websites"
+    role: "Website and Digital Presence Manager"
+    path: "05-bnprs-websites"
+    status: "active"
+    created_at: "2026-05-26"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core business agents
 # DE40–DE7F  (064–127)  Administration and reporting

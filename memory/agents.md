@@ -17,13 +17,14 @@
 | 02   | na-002      | bnprs-admin      | Admin, HR, Legal and Compliance   | active | 2026-05-26 |
 | 03   | na-002      | bnprs-finance    | Business Finance, Accounting, Tax | active | 2026-05-26 |
 | 04   | na-002      | bnprs-sales      | Sales, Marketing and Customer     | active | 2026-05-26 |
+| 05   | na-002      | bnprs-websites   | Website and Digital Presence      | active | 2026-05-26 |
 
 ## Group Slot Usage
 
 | Group | ID     | Used | Max |
 |-------|--------|------|-----|
 | na-001-personal          | na-001 | 6   | 255 |
-| na-002-bnprs-core        | na-002 | 4   | 255 |
+| na-002-bnprs-core        | na-002 | 5   | 255 |
 | na-003-bnprs-infra       | na-003 | 0   | 255 |
 | na-004-bnprs-biometrics  | na-004 | 0   | 255 |
 | na-005-bnprs-fintech     | na-005 | 0   | 255 |
@@ -46,3 +47,4 @@ _None defined yet._
 - na-002/02 bnprs-admin nucleus (`03-nucleus/CLAUDE.md`) is a template shell — admin, HR, legal, compliance domain not yet filled in
 - na-002/03 bnprs-finance nucleus (`03-nucleus/CLAUDE.md`) is a template shell — business finance, accounting, tax domain not yet filled in
 - na-002/04 bnprs-sales nucleus (`03-nucleus/CLAUDE.md`) is a template shell — sales, marketing, customer relations domain not yet filled in
+- na-002/05 bnprs-websites nucleus (`03-nucleus/CLAUDE.md`) is a template shell — bnprs.ai, bnprs.in, bnprs.com web presence domain not yet filled in

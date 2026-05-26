@@ -1,0 +1,19 @@
+# Input Signal Schema
+# Defines the shape of signals arriving from users
+
+user_message:
+  type: object
+  properties:
+    id: { type: string, format: uuid }
+    timestamp: { type: string, format: datetime }
+    content: { type: string }
+    attachments:
+      type: array
+      items:
+        file_path: { type: string }
+        mime_type: { type: string }
+        size_bytes: { type: integer }
+    context:
+      session_id: { type: string }
+      user_id: { type: string }
+      conversation_history: { type: array }
