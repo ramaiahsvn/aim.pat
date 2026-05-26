@@ -22,6 +22,15 @@ registry:
     created_at: "2026-05-26"
     created_by: "bnprs"
 
+  - code: "02"
+    name: "bnprs-admin"
+    label: "bnprs-admin"
+    role: "Administration, HR, Legal and Compliance Manager"
+    path: "02-bnprs-admin"
+    status: "active"
+    created_at: "2026-05-26"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core business agents
 # DE40–DE7F  (064–127)  Administration and reporting
