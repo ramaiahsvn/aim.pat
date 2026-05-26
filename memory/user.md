@@ -16,6 +16,16 @@
 - Comfortable delegating decisions (e.g. role selection) but wants confirmation before commit/push
 - Expects Claude to follow CLAUDE.md startup protocol strictly every session
 
+## Email Formatting (all outbound emails)
+
+- **Format:** HTML — never plain text
+- **Font:** `'Segoe UI', Arial, sans-serif`
+- **Body font size:** 15px, line-height 1.6
+- **Table / detail font size:** 14px
+- **Max width:** 620px, centred, padding 24px
+- **Sign-off:** Regards,\nRamaiah (bold name)
+- **Always show draft before sending — never send autonomously**
+
 ## Platform Usage Patterns
 
 - Works across multiple agent groups; selects group and agent at session start
