@@ -19,6 +19,11 @@ A lightweight agent template. No neuron anatomy — just four plain folders.
   long-term/        Persistent facts and learned preferences
 ```
 
+## Scope
+
+This template is **not used** for agents inside the `aim.pat` repo (those use `nagent-template`).
+It is intended for external or standalone agent projects.
+
 ## When to use this template
 
 Use **nagent-template-2** when the agent has:
