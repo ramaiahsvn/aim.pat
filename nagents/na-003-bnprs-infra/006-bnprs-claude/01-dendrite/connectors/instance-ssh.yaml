@@ -1,5 +1,5 @@
 id: connector-instance-ssh
-name: "aim1001-bnprs-claude EC2 Instance (SSH)"
+name: "bpr1000-ai-agent EC2 Instance (SSH)"
 type: ssh
 protocol: ssh
 version: "1.0.0"
@@ -7,32 +7,58 @@ version: "1.0.0"
 instance:
   id: "i-0d0004b15f21b7ce7"
   name: "aim1001-bnprs-claude"
+  original_name: "bpr1000-ai-agent"
   type: "m5.large"
+  os: "Ubuntu 24.04 LTS"
+  storage: "100GB gp3"
   public_ip: "3.151.67.208"
   private_ip: "10.0.1.89"
+  elastic_ip: "BprAiAgentEip (eipalloc-00752328fead5b40a)"
   region: "us-east-2"
   aws_account: "819144294008"
   aws_profile: "itp"
+  vpc: "BprCoreVpc (vpc-04f315d3f8c6a3435)"
+  subnet: "bpr1000-lic-public (subnet-0dd247074654394d4 / 10.0.1.0/24)"
+  estimated_cost: "~$30/mo"
 
-connection:
-  host: "3.151.67.208"
-  port: 22
-  user: "ubuntu"
-  key_path: "~/BprAiAgent.pem"
-  key_name: "BprAiAgent"
-  status: restricted
+security_group:
+  id: "sg-0cf061a2c32667858"
+  name: "bpr1000-ai-agent-sg"
+  allowed_cidrs:
+    - cidr: "103.106.181.48/32"
+      tag: "Office Branch 1"
+    - cidr: "5.107.232.224/32"
+      tag: "mutawa1-bnprs"
+    - cidr: "152.57.168.249/32"
+      tag: "TRP Office"
+    - cidr: "152.57.167.180/32"
+      tag: "TRP Office 2"
+    - cidr: "94.202.83.38/32"
+      tag: "bnprs temp"
+  note: "Add current public IP here to enable SSH from new locations"
 
 access:
-  security_group: "sg-0cf061a2c32667858"
-  allowed_cidrs:
-    - "103.106.181.48/32"
-    - "5.107.232.224/32"
-    - "152.57.168.249/32"   # TRP Office
-    - "152.57.167.180/32"
-    - "94.202.83.38/32"     # bnprs temp
-  note: "Add your current public IP to sg-0cf061a2c32667858 before connecting"
+  admin:
+    method: key-based
+    ssh_command: "ssh -i ~/BprAiAgent.pem ubuntu@3.151.67.208"
+    key_path: "~/BprAiAgent.pem"
+    key_name: "BprAiAgent"
+    user: "ubuntu"
+  team:
+    method: password-based
+    ssh_command: "ssh devops@3.151.67.208"
+    user: "devops"
+    credentials: "see 01-dendrite/secrets/secrets.yaml"
 
-ssh_command: "ssh -i ~/BprAiAgent.pem ubuntu@3.151.67.208"
+vpn:
+  client: "OpenVPN"
+  install: "brew install openvpn"
+  config: "~/Downloads/OpenVPN-Config 3.ovpn"
+  note: "Connect via VPN before SSH if not on an office IP"
+
+ssh_aliases:
+  - alias: "bnprs-claude"
+    config: "~/.ssh/config"
 
 capabilities:
   - instance_health_check

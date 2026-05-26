@@ -23,13 +23,38 @@
 
 | Field | Value |
 |-------|-------|
-| **Name** | aim1001-bnprs-claude |
+| **Name** | aim1001-bnprs-claude (orig: bpr1000-ai-agent) |
 | **Instance ID** | i-0d0004b15f21b7ce7 |
-| **Type** | m5.large |
-| **Public IP** | 3.151.67.208 |
-| **Region** | us-east-2 (ITP AWS account) |
-| **SSH** | `ssh bnprs-claude` (key: ~/BprAiAgent.pem) |
-| **SG** | sg-0cf061a2c32667858 — port 22 restricted to office IPs |
+| **Type** | m5.large · Ubuntu 24.04 LTS · 100GB gp3 |
+| **Public IP** | 3.151.67.208 (Elastic: BprAiAgentEip) |
+| **Private IP** | 10.0.1.89 |
+| **VPC / Subnet** | BprCoreVpc / bpr1000-lic-public (10.0.1.0/24) |
+| **Region** | us-east-2 (ITP AWS, 819144294008) |
+| **Estimated cost** | ~$30/mo |
+| **SG** | bpr1000-ai-agent-sg (sg-0cf061a2c32667858) — port 22, office IPs only |
+
+### SSH Access
+
+```bash
+# Admin (key-based)
+ssh bnprs-claude
+# or
+ssh -i ~/BprAiAgent.pem ubuntu@3.151.67.208
+
+# Team (password-based)
+ssh devops@3.151.67.208
+# credentials in 01-dendrite/secrets/secrets.yaml
+```
+
+> If SSH fails: connect via OpenVPN first (`~/Downloads/OpenVPN-Config 3.ovpn`),
+> or add your IP to sg-0cf061a2c32667858 via 002-bnprs-aws-itp agent.
+
+## Pending Actions
+
+- [ ] Add second office branch public IP to security group
+- [ ] Install git and dev tools on the instance
+- [ ] Review and remove mutawa1-bnprs temp IP once VPN is confirmed working
+- [ ] Copy BprAiAgent.pem to WorkDrive backup (AWS/itp/us-east-2/key-pairs/)
 
 ## Inter-Agent Dependencies
 
