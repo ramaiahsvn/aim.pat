@@ -14,11 +14,19 @@
 
 ## GitHub Accounts
 
-| Account | Type | Purpose |
-|---------|------|---------|
-| ramaiahsvn | Personal | Primary personal account |
-| ramaiahsvn2 | Personal | Secondary personal account |
-| iCodeSrum | Organisation / Team | Team/product repositories |
+| Account | Type | Organisations | Purpose |
+|---------|------|--------------|---------|
+| ramaiahsvn | Personal | — | Primary personal account |
+| ramaiahsvn2 | Personal | BNPRS, IscQicard, ITPCQI | Secondary account — owns 3 orgs |
+| iCodeSrum | Organisation / Team | — | Team/product repositories |
+
+### Organisations under ramaiahsvn2
+
+| Organisation | Purpose |
+|-------------|---------|
+| BNPRS | BNPRS business repositories |
+| IscQicard | IscQicard product repositories |
+| ITPCQI | ITPCore / QI combined repositories |
 
 ## Persona
 
