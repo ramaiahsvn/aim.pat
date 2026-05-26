@@ -5,17 +5,19 @@ Each AID maps to an individual agent folder inside this group.
 
 ## Employee Agent IDs (AIDs)
 
-| AID   | Employee Name | Role / Department | Status  |
-|-------|--------------|-------------------|---------|
-| <!-- AID-001 | Full Name | Role | active --> |
+| AID    | EID    | Employee Name | Role / Department | Status  |
+|--------|--------|--------------|-------------------|---------|
+| <!-- AID-01 | E1001 | Full Name | Role | active --> |
 
 ## AID Format
 
 ```
-AID-<3-digit-number>    e.g. AID-001, AID-042
+AID-<2-digit-number>    e.g. AID-01, AID-42
+EID: actual HR employee ID  e.g. E1001, E1005
 ```
 
-- Codes run AID-001 to AID-255
+- AID is the agent sequence number (assigned in any order)
+- EID is the employee's actual HR ID — AID maps to EID
 - One AID per employee — permanent, never reassigned
 - Each AID has a corresponding agent folder in this group (git-ignored)
 - Retired employees keep their AID with status: inactive
