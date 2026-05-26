@@ -69,7 +69,7 @@ async function getAccountId() {
   if (_accountId) return _accountId;
   const data = await api('GET', '/accounts');
   const accounts = data.data || [];
-  const match = accounts.find(a => a.mailAddress === ACCOUNT_EMAIL) || accounts[0];
+  const match = accounts.find(a => a.primaryEmailAddress === ACCOUNT_EMAIL) || accounts[0];
   _accountId = match?.accountId;
   return _accountId;
 }
