@@ -54,6 +54,9 @@ Read all files in `memory/` (skip `memory/private/` unless relevant):
 | 006 | na-006-bnprs-deployments | Release management, CI/CD, environments                             |
 | 007 | na-007-bnprs-team        | BNPRS employee agents — one agent per employee (AIDs)               |
 
+> **na-007-bnprs-team is exceptional** — agents here do not follow the nagent-template structure.
+> Only `README.md` is git-tracked; all agent folders are git-ignored.
+
 ## Agent code system
 
 Each group supports up to **255 agents**, identified by a 3-digit zero-padded decimal code:

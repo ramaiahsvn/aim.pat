@@ -25,3 +25,4 @@ AID-<3-digit-number>    e.g. AID-001, AID-042
 - Agent folders (AID-NNN/) are git-ignored — only this file is tracked
 - Individual agent contents include daily deliverables, workflows, and memory
 - Deliverable naming: `<employeeid>-<YYYY-MM-DD>-<sprinttaskid>.md`
+- **Exception**: agents in this group do NOT follow the standard nagent-template structure
