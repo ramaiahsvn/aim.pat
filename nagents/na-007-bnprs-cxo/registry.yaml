@@ -1,0 +1,16 @@
+# ============================================================
+#  AGENT REGISTRY — na-007-bnprs-cxo
+# ============================================================
+#  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
+#  IMMUTABLE: once a code is assigned it is NEVER reused,
+#  even if the agent is retired or deleted.
+# ============================================================
+
+group:
+  id: "na-007"
+  name: "bnprs-cxo"
+  description: "CXO (C-level executive) AI agents — CEO, CTO, CFO, COO and related"
+  max_agents: 255
+
+registry: []
+# First agent will be code: "001"

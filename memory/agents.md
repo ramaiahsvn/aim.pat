@@ -74,6 +74,7 @@
 | na-004-bnprs-biometrics  | na-004 | 12 | 255 |
 | na-005-bnprs-fintech     | na-005 | 11 | 255 |
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
+| na-007-bnprs-cxo         | na-007 | 0  | 255 |
 | na-008-bnprs-team        | na-008 | 0  | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
