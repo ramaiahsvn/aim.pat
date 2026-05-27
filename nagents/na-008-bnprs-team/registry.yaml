@@ -1,0 +1,812 @@
+# ============================================================
+#  AGENT REGISTRY — na-008-bnprs-team
+# ============================================================
+#  ISO 8583 DE-style codes. IMMUTABLE: once assigned, never reused.
+# ============================================================
+
+group:
+  id: "na-008"
+  name: "bnprs-team"
+  description: "BNPRS team agents — 100 Kauravas (Kaurava warriors)"
+  max_agents: 255
+
+registry:
+  - code: "001"
+    name: "aid-duryodhana"
+    label: "duryodhana"
+    role: "BNPRS Team Member"
+    path: "001-aid-duryodhana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "002"
+    name: "aid-dushasana"
+    label: "dushasana"
+    role: "BNPRS Team Member"
+    path: "002-aid-dushasana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "003"
+    name: "aid-dussaha"
+    label: "dussaha"
+    role: "BNPRS Team Member"
+    path: "003-aid-dussaha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "004"
+    name: "aid-dussala"
+    label: "dussala"
+    role: "BNPRS Team Member"
+    path: "004-aid-dussala"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "005"
+    name: "aid-jalasandha"
+    label: "jalasandha"
+    role: "BNPRS Team Member"
+    path: "005-aid-jalasandha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "006"
+    name: "aid-sama"
+    label: "sama"
+    role: "BNPRS Team Member"
+    path: "006-aid-sama"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "007"
+    name: "aid-saha"
+    label: "saha"
+    role: "BNPRS Team Member"
+    path: "007-aid-saha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "008"
+    name: "aid-vinda"
+    label: "vinda"
+    role: "BNPRS Team Member"
+    path: "008-aid-vinda"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "009"
+    name: "aid-anuvinda"
+    label: "anuvinda"
+    role: "BNPRS Team Member"
+    path: "009-aid-anuvinda"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "010"
+    name: "aid-durdharsha"
+    label: "durdharsha"
+    role: "BNPRS Team Member"
+    path: "010-aid-durdharsha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "011"
+    name: "aid-subahu"
+    label: "subahu"
+    role: "BNPRS Team Member"
+    path: "011-aid-subahu"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "012"
+    name: "aid-dushpradharshana"
+    label: "dushpradharshana"
+    role: "BNPRS Team Member"
+    path: "012-aid-dushpradharshana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "013"
+    name: "aid-durmarshana"
+    label: "durmarshana"
+    role: "BNPRS Team Member"
+    path: "013-aid-durmarshana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "014"
+    name: "aid-durmukha"
+    label: "durmukha"
+    role: "BNPRS Team Member"
+    path: "014-aid-durmukha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "015"
+    name: "aid-dushkarna"
+    label: "dushkarna"
+    role: "BNPRS Team Member"
+    path: "015-aid-dushkarna"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "016"
+    name: "aid-karna"
+    label: "karna"
+    role: "BNPRS Team Member"
+    path: "016-aid-karna"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "017"
+    name: "aid-vivimsati"
+    label: "vivimsati"
+    role: "BNPRS Team Member"
+    path: "017-aid-vivimsati"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "018"
+    name: "aid-vikarna"
+    label: "vikarna"
+    role: "BNPRS Team Member"
+    path: "018-aid-vikarna"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "019"
+    name: "aid-shala"
+    label: "shala"
+    role: "BNPRS Team Member"
+    path: "019-aid-shala"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "020"
+    name: "aid-satva"
+    label: "satva"
+    role: "BNPRS Team Member"
+    path: "020-aid-satva"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "021"
+    name: "aid-sulochana"
+    label: "sulochana"
+    role: "BNPRS Team Member"
+    path: "021-aid-sulochana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "022"
+    name: "aid-chitra"
+    label: "chitra"
+    role: "BNPRS Team Member"
+    path: "022-aid-chitra"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "023"
+    name: "aid-upachitra"
+    label: "upachitra"
+    role: "BNPRS Team Member"
+    path: "023-aid-upachitra"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "024"
+    name: "aid-chitraksha"
+    label: "chitraksha"
+    role: "BNPRS Team Member"
+    path: "024-aid-chitraksha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "025"
+    name: "aid-charuchitra"
+    label: "charuchitra"
+    role: "BNPRS Team Member"
+    path: "025-aid-charuchitra"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "026"
+    name: "aid-sarasana"
+    label: "sarasana"
+    role: "BNPRS Team Member"
+    path: "026-aid-sarasana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "027"
+    name: "aid-durmada"
+    label: "durmada"
+    role: "BNPRS Team Member"
+    path: "027-aid-durmada"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "028"
+    name: "aid-durvigaha"
+    label: "durvigaha"
+    role: "BNPRS Team Member"
+    path: "028-aid-durvigaha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "029"
+    name: "aid-vivitsu"
+    label: "vivitsu"
+    role: "BNPRS Team Member"
+    path: "029-aid-vivitsu"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "030"
+    name: "aid-vikatanana"
+    label: "vikatanana"
+    role: "BNPRS Team Member"
+    path: "030-aid-vikatanana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "031"
+    name: "aid-urnanabha"
+    label: "urnanabha"
+    role: "BNPRS Team Member"
+    path: "031-aid-urnanabha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "032"
+    name: "aid-sunabha"
+    label: "sunabha"
+    role: "BNPRS Team Member"
+    path: "032-aid-sunabha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "033"
+    name: "aid-nanda"
+    label: "nanda"
+    role: "BNPRS Team Member"
+    path: "033-aid-nanda"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "034"
+    name: "aid-upananda"
+    label: "upananda"
+    role: "BNPRS Team Member"
+    path: "034-aid-upananda"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "035"
+    name: "aid-chitrabana"
+    label: "chitrabana"
+    role: "BNPRS Team Member"
+    path: "035-aid-chitrabana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "036"
+    name: "aid-chitravarma"
+    label: "chitravarma"
+    role: "BNPRS Team Member"
+    path: "036-aid-chitravarma"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "037"
+    name: "aid-suvarma"
+    label: "suvarma"
+    role: "BNPRS Team Member"
+    path: "037-aid-suvarma"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "038"
+    name: "aid-durvimochana"
+    label: "durvimochana"
+    role: "BNPRS Team Member"
+    path: "038-aid-durvimochana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "039"
+    name: "aid-ayobahu"
+    label: "ayobahu"
+    role: "BNPRS Team Member"
+    path: "039-aid-ayobahu"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "040"
+    name: "aid-mahabahu"
+    label: "mahabahu"
+    role: "BNPRS Team Member"
+    path: "040-aid-mahabahu"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "041"
+    name: "aid-chitranga"
+    label: "chitranga"
+    role: "BNPRS Team Member"
+    path: "041-aid-chitranga"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "042"
+    name: "aid-chitrakundala"
+    label: "chitrakundala"
+    role: "BNPRS Team Member"
+    path: "042-aid-chitrakundala"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "043"
+    name: "aid-bhimavega"
+    label: "bhimavega"
+    role: "BNPRS Team Member"
+    path: "043-aid-bhimavega"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "044"
+    name: "aid-bhimabala"
+    label: "bhimabala"
+    role: "BNPRS Team Member"
+    path: "044-aid-bhimabala"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "045"
+    name: "aid-balaki"
+    label: "balaki"
+    role: "BNPRS Team Member"
+    path: "045-aid-balaki"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "046"
+    name: "aid-balavardhana"
+    label: "balavardhana"
+    role: "BNPRS Team Member"
+    path: "046-aid-balavardhana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "047"
+    name: "aid-ugrayudha"
+    label: "ugrayudha"
+    role: "BNPRS Team Member"
+    path: "047-aid-ugrayudha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "048"
+    name: "aid-sushena"
+    label: "sushena"
+    role: "BNPRS Team Member"
+    path: "048-aid-sushena"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "049"
+    name: "aid-kundadhara"
+    label: "kundadhara"
+    role: "BNPRS Team Member"
+    path: "049-aid-kundadhara"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "050"
+    name: "aid-mahodara"
+    label: "mahodara"
+    role: "BNPRS Team Member"
+    path: "050-aid-mahodara"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "051"
+    name: "aid-chitrayudha"
+    label: "chitrayudha"
+    role: "BNPRS Team Member"
+    path: "051-aid-chitrayudha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "052"
+    name: "aid-nishangi"
+    label: "nishangi"
+    role: "BNPRS Team Member"
+    path: "052-aid-nishangi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "053"
+    name: "aid-pashi"
+    label: "pashi"
+    role: "BNPRS Team Member"
+    path: "053-aid-pashi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "054"
+    name: "aid-vrindaraka"
+    label: "vrindaraka"
+    role: "BNPRS Team Member"
+    path: "054-aid-vrindaraka"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "055"
+    name: "aid-dridhavarma"
+    label: "dridhavarma"
+    role: "BNPRS Team Member"
+    path: "055-aid-dridhavarma"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "056"
+    name: "aid-dridhakshatra"
+    label: "dridhakshatra"
+    role: "BNPRS Team Member"
+    path: "056-aid-dridhakshatra"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "057"
+    name: "aid-somakirti"
+    label: "somakirti"
+    role: "BNPRS Team Member"
+    path: "057-aid-somakirti"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "058"
+    name: "aid-anudara"
+    label: "anudara"
+    role: "BNPRS Team Member"
+    path: "058-aid-anudara"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "059"
+    name: "aid-dridhasandha"
+    label: "dridhasandha"
+    role: "BNPRS Team Member"
+    path: "059-aid-dridhasandha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "060"
+    name: "aid-jarasandha"
+    label: "jarasandha"
+    role: "BNPRS Team Member"
+    path: "060-aid-jarasandha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "061"
+    name: "aid-satyasandha"
+    label: "satyasandha"
+    role: "BNPRS Team Member"
+    path: "061-aid-satyasandha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "062"
+    name: "aid-sadasuvak"
+    label: "sadasuvak"
+    role: "BNPRS Team Member"
+    path: "062-aid-sadasuvak"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "063"
+    name: "aid-ugrashravas"
+    label: "ugrashravas"
+    role: "BNPRS Team Member"
+    path: "063-aid-ugrashravas"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "064"
+    name: "aid-ugrasena"
+    label: "ugrasena"
+    role: "BNPRS Team Member"
+    path: "064-aid-ugrasena"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "065"
+    name: "aid-senani"
+    label: "senani"
+    role: "BNPRS Team Member"
+    path: "065-aid-senani"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "066"
+    name: "aid-dushparajaya"
+    label: "dushparajaya"
+    role: "BNPRS Team Member"
+    path: "066-aid-dushparajaya"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "067"
+    name: "aid-aparajita"
+    label: "aparajita"
+    role: "BNPRS Team Member"
+    path: "067-aid-aparajita"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "068"
+    name: "aid-kundashayi"
+    label: "kundashayi"
+    role: "BNPRS Team Member"
+    path: "068-aid-kundashayi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "069"
+    name: "aid-vishalaksha"
+    label: "vishalaksha"
+    role: "BNPRS Team Member"
+    path: "069-aid-vishalaksha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "070"
+    name: "aid-duradhara"
+    label: "duradhara"
+    role: "BNPRS Team Member"
+    path: "070-aid-duradhara"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "071"
+    name: "aid-dridhahasta"
+    label: "dridhahasta"
+    role: "BNPRS Team Member"
+    path: "071-aid-dridhahasta"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "072"
+    name: "aid-suhasta"
+    label: "suhasta"
+    role: "BNPRS Team Member"
+    path: "072-aid-suhasta"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "073"
+    name: "aid-vatavega"
+    label: "vatavega"
+    role: "BNPRS Team Member"
+    path: "073-aid-vatavega"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "074"
+    name: "aid-suvarchas"
+    label: "suvarchas"
+    role: "BNPRS Team Member"
+    path: "074-aid-suvarchas"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "075"
+    name: "aid-adityaketu"
+    label: "adityaketu"
+    role: "BNPRS Team Member"
+    path: "075-aid-adityaketu"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "076"
+    name: "aid-bahvashi"
+    label: "bahvashi"
+    role: "BNPRS Team Member"
+    path: "076-aid-bahvashi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "077"
+    name: "aid-nagadatta"
+    label: "nagadatta"
+    role: "BNPRS Team Member"
+    path: "077-aid-nagadatta"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "078"
+    name: "aid-anuyayi"
+    label: "anuyayi"
+    role: "BNPRS Team Member"
+    path: "078-aid-anuyayi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "079"
+    name: "aid-kavachi"
+    label: "kavachi"
+    role: "BNPRS Team Member"
+    path: "079-aid-kavachi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "080"
+    name: "aid-nishangi"
+    label: "nishangi"
+    role: "BNPRS Team Member"
+    path: "080-aid-nishangi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "081"
+    name: "aid-dandi"
+    label: "dandi"
+    role: "BNPRS Team Member"
+    path: "081-aid-dandi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "082"
+    name: "aid-dandadhara"
+    label: "dandadhara"
+    role: "BNPRS Team Member"
+    path: "082-aid-dandadhara"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "083"
+    name: "aid-dhanurgraha"
+    label: "dhanurgraha"
+    role: "BNPRS Team Member"
+    path: "083-aid-dhanurgraha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "084"
+    name: "aid-ugra"
+    label: "ugra"
+    role: "BNPRS Team Member"
+    path: "084-aid-ugra"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "085"
+    name: "aid-bhimaratha"
+    label: "bhimaratha"
+    role: "BNPRS Team Member"
+    path: "085-aid-bhimaratha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "086"
+    name: "aid-vira"
+    label: "vira"
+    role: "BNPRS Team Member"
+    path: "086-aid-vira"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "087"
+    name: "aid-virabahu"
+    label: "virabahu"
+    role: "BNPRS Team Member"
+    path: "087-aid-virabahu"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "088"
+    name: "aid-alolupa"
+    label: "alolupa"
+    role: "BNPRS Team Member"
+    path: "088-aid-alolupa"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "089"
+    name: "aid-abhaya"
+    label: "abhaya"
+    role: "BNPRS Team Member"
+    path: "089-aid-abhaya"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "090"
+    name: "aid-raudrakarma"
+    label: "raudrakarma"
+    role: "BNPRS Team Member"
+    path: "090-aid-raudrakarma"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "091"
+    name: "aid-dridharatha"
+    label: "dridharatha"
+    role: "BNPRS Team Member"
+    path: "091-aid-dridharatha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "092"
+    name: "aid-anadhrishya"
+    label: "anadhrishya"
+    role: "BNPRS Team Member"
+    path: "092-aid-anadhrishya"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "093"
+    name: "aid-kundabhedi"
+    label: "kundabhedi"
+    role: "BNPRS Team Member"
+    path: "093-aid-kundabhedi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "094"
+    name: "aid-viravi"
+    label: "viravi"
+    role: "BNPRS Team Member"
+    path: "094-aid-viravi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "095"
+    name: "aid-dhirghalochana"
+    label: "dhirghalochana"
+    role: "BNPRS Team Member"
+    path: "095-aid-dhirghalochana"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "096"
+    name: "aid-pramatha"
+    label: "pramatha"
+    role: "BNPRS Team Member"
+    path: "096-aid-pramatha"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "097"
+    name: "aid-pramathi"
+    label: "pramathi"
+    role: "BNPRS Team Member"
+    path: "097-aid-pramathi"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "098"
+    name: "aid-dirghabahu"
+    label: "dirghabahu"
+    role: "BNPRS Team Member"
+    path: "098-aid-dirghabahu"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "099"
+    name: "aid-suvirya"
+    label: "suvirya"
+    role: "BNPRS Team Member"
+    path: "099-aid-suvirya"
+    status: active
+    created_at: "2026-05-27"
+
+  - code: "100"
+    name: "aid-dirghatama"
+    label: "dirghatama"
+    role: "BNPRS Team Member"
+    path: "100-aid-dirghatama"
+    status: active
+    created_at: "2026-05-27"

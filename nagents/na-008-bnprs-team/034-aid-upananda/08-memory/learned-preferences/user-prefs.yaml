@@ -1,0 +1,28 @@
+# Learned Preferences — Hebbian Learning
+# "Neurons that fire together, wire together"
+# Patterns discovered from repeated user behavior
+
+preferences:
+  formatting:
+    preferred_font: null           # Discovered over time
+    preferred_colors: []           # e.g., ["#2D4A3E", "#D4952B"]
+    document_style: null           # formal | casual | technical
+    bullet_style: null             # dashes | dots | numbered
+
+  communication:
+    verbosity: null                # concise | balanced | detailed
+    asks_followup: null            # true = user likes proactive questions
+    preferred_language: null       # en | es | fr | etc.
+    tone: null                     # professional | casual | friendly
+
+  workflow:
+    reviews_plans: null            # true = always show plan first
+    preferred_output_format: null  # docx | pdf | md | xlsx
+    auto_save_preference: null     # always | ask | never
+    likes_progress_updates: null   # true = send updates during long tasks
+
+  # How preferences are learned
+  learning_rules:
+    min_observations: 3            # See pattern 3+ times before storing
+    decay_rate: 0.1                # Weaken if not reinforced
+    override: "user_explicit"      # Explicit instruction always wins

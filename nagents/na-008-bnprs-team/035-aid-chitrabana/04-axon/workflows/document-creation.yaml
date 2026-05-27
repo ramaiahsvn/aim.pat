@@ -1,0 +1,55 @@
+# Workflow: Document Creation Pipeline
+
+id: wf-doc-creation
+name: Document Creation
+description: "End-to-end document creation from request to delivery"
+version: "1.0"
+
+steps:
+  - id: understand
+    name: "Parse Requirements"
+    action: soma.reason
+    inputs: [user_message, context]
+    outputs: [document_spec]
+    checkpoint: false
+
+  - id: plan
+    name: "Create Document Plan"
+    action: axon_hillock.create_todo
+    inputs: [document_spec]
+    outputs: [task_list]
+    checkpoint: true           # Node of Ranvier: user reviews plan
+    checkpoint_message: "Here's my plan. Should I proceed?"
+
+  - id: load_skill
+    name: "Load Relevant Skill"
+    action: myelin.activate
+    inputs: [document_type]
+    outputs: [skill_instructions]
+    checkpoint: false
+
+  - id: execute
+    name: "Generate Document"
+    action: terminals.create_file
+    inputs: [document_spec, skill_instructions]
+    outputs: [file_path]
+    checkpoint: false
+
+  - id: verify
+    name: "Quality Check"
+    action: soma.verify
+    inputs: [file_path, document_spec]
+    outputs: [verification_result]
+    checkpoint: true           # Node of Ranvier: verify before delivery
+    checkpoint_message: "Document created. Reviewing quality..."
+
+  - id: deliver
+    name: "Deliver to User"
+    action: terminals.deliver
+    inputs: [file_path]
+    outputs: [delivery_confirmation]
+    checkpoint: false
+
+on_failure:
+  retry: 2
+  fallback: "notify_user_with_partial_output"

@@ -1,0 +1,38 @@
+# Priority Rules — The Firing Threshold
+
+# Determines whether the agent acts (fires) or defers (inhibits)
+
+threshold:
+  # Minimum confidence to act autonomously
+  auto_act: 0.8
+  # Below this, ask the user for clarification
+  ask_user: 0.5
+  # Below this, defer entirely
+  defer: 0.3
+
+priority_matrix:
+  critical:
+    description: "User-blocking, time-sensitive, data-loss risk"
+    max_wait: "0s"
+    auto_escalate: true
+
+  high:
+    description: "Explicitly requested, clear requirements"
+    max_wait: "30s"
+    auto_escalate: false
+
+  medium:
+    description: "Useful but not urgent, can batch with others"
+    max_wait: "5m"
+    auto_escalate: false
+
+  low:
+    description: "Background optimization, nice-to-have"
+    max_wait: "1h"
+    auto_escalate: false
+
+# Competing signal resolution
+conflict_resolution:
+  strategy: priority_then_fifo   # priority_then_fifo | round_robin | user_choice
+  max_parallel_tasks: 5
+  preemption_allowed: true       # Can a critical task interrupt medium?
