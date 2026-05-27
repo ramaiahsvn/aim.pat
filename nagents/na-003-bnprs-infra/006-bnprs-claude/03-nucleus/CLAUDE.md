@@ -58,10 +58,18 @@ ssh devops@3.151.67.208
 ## Session Manager
 
 - **Script**: `03-nucleus/bnprs-sessions.sh`
-- **Purpose**: Claude Code session manager with persistent memory per employee ID (E1001, E1026, etc.)
-- **Storage**: `~/.claude/bnprs-sessions/<id>.meta` + `~/.claude/bnprs-memory/<id>.md`
-- **Commands**: `init`, `start <EID>`, `list`, `status <EID>`, `delete <EID>`, `save-memory <EID>`
-- **Deploy to EC2**: `scp -i ~/BprAiAgent.pem 03-nucleus/bnprs-sessions.sh ubuntu@3.151.67.208:/home/ubuntu/bnprs-sessions.sh`
+- **Session ID format**: `E<number>-aid.<NNN>`  e.g. `E1026-aid.001`
+  - `E1026` = employee HR ID
+  - `aid.001` = AID from na-008-bnprs-team
+- **GitLab repo per session**: `aim1001.aid.<NNN>` on `gitlab.bnprs.ai/aim1001`
+  - On `start`: checks if repo exists → clones (new) or fetch+pulls (existing)
+  - Memory stored in repo `08-memory/` as `aid.<NNN>.YYYY.MM.DD.HH.MM.SS`
+  - `save-memory` syncs repo, writes timestamped file, commits, pushes
+- **Local clone base**: `~/aim1001/aim1001.aid.<NNN>/`
+- **Local meta**: `~/.claude/bnprs-sessions/<id>.meta`
+- **Requires**: `GITLAB_PAT` env var
+- **Commands**: `init`, `start`, `sync`, `list`, `status`, `delete`, `save-memory`
+- **Deploy to EC2**: `scp -i ~/BprAiAgent.pem nagents/na-003-bnprs-infra/006-bnprs-claude/03-nucleus/bnprs-sessions.sh ubuntu@3.151.67.208:/home/ubuntu/bnprs-sessions.sh`
 
 ## Pending Actions
 
