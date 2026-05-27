@@ -1,0 +1,25 @@
+# GitLab Repository Connector — ayobahu (039)
+# Linked agent repo on gitlab.bnprs.ai
+
+connector:
+  type: gitlab-repo
+  name: "aim1001.aim.039"
+  agent_code: "039"
+  agent_name: "ayobahu"
+
+local:
+  path: "/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aim.039"
+  branch: "master"
+
+remote:
+  url: "https://gitlab.bnprs.ai/aim1001/aim1001.aim.039"
+  group: "aim1001"
+  project_id: 166
+  branch: "master"
+  visibility: private
+
+memory:
+  root: "08-memory/"
+  short_term:   "08-memory/short-term/session.yaml"
+  long_term:    "08-memory/long-term/knowledge.yaml"
+  preferences:  "08-memory/learned-preferences/user-prefs.yaml"

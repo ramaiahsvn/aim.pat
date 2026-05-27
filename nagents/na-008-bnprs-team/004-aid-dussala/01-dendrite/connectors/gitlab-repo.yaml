@@ -1,0 +1,25 @@
+# GitLab Repository Connector — dussala (004)
+# Linked agent repo on gitlab.bnprs.ai
+
+connector:
+  type: gitlab-repo
+  name: "aim1001.aim.004"
+  agent_code: "004"
+  agent_name: "dussala"
+
+local:
+  path: "/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aim.004"
+  branch: "master"
+
+remote:
+  url: "https://gitlab.bnprs.ai/aim1001/aim1001.aim.004"
+  group: "aim1001"
+  project_id: 131
+  branch: "master"
+  visibility: private
+
+memory:
+  root: "08-memory/"
+  short_term:   "08-memory/short-term/session.yaml"
+  long_term:    "08-memory/long-term/knowledge.yaml"
+  preferences:  "08-memory/learned-preferences/user-prefs.yaml"

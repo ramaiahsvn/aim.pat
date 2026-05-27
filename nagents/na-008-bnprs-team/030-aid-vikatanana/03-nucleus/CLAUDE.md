@@ -46,3 +46,13 @@
 
 ### Execution limits
 - Max autonomous steps before checking in: 10
+
+## Linked Repository
+
+- **Repo name**  : `aim1001.aim.030`
+- **Local path** : `/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aim.030/`
+- **Remote URL** : https://gitlab.bnprs.ai/aim1001/aim1001.aim.030
+- **GitLab ID**  : 157
+- **Branch**     : master
+- **Memory**     : `08-memory/` — session, long-term, preferences
+- **Connector**  : `01-dendrite/connectors/gitlab-repo.yaml`
