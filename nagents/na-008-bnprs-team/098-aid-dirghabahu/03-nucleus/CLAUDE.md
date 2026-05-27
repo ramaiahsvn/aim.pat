@@ -49,9 +49,9 @@
 
 ## Linked Repository
 
-- **Repo name**  : `aim1001.aim.098`
-- **Local path** : `/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aim.098/`
-- **Remote URL** : https://gitlab.bnprs.ai/aim1001/aim1001.aim.098
+- **Repo name**  : `aim1001.aid.098`
+- **Local path** : `/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aid.098/`
+- **Remote URL** : https://gitlab.bnprs.ai/aim1001/aim1001.aid.098
 - **GitLab ID**  : 225
 - **Branch**     : master
 - **Memory**     : `08-memory/` — session, long-term, preferences

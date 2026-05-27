@@ -3,16 +3,16 @@
 
 connector:
   type: gitlab-repo
-  name: "aim1001.aim.043"
+  name: "aim1001.aid.043"
   agent_code: "043"
   agent_name: "bhimavega"
 
 local:
-  path: "/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aim.043"
+  path: "/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aid.043"
   branch: "master"
 
 remote:
-  url: "https://gitlab.bnprs.ai/aim1001/aim1001.aim.043"
+  url: "https://gitlab.bnprs.ai/aim1001/aim1001.aid.043"
   group: "aim1001"
   project_id: 170
   branch: "master"

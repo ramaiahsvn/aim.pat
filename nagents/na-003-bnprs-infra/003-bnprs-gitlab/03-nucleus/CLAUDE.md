@@ -110,10 +110,10 @@ docker exec -it gitlab /bin/bash
 
 ## Projects — aim1001 group
 
-100 agent repos: `aim1001.aim.001` → `aim1001.aim.100` (GitLab IDs 128–227)
+100 agent repos: `aim1001.aid.001` → `aim1001.aid.100` (GitLab IDs 128–227)
 
-- **Local path:** `/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aim.NNN/`
-- **Remote:** `https://gitlab.bnprs.ai/aim1001/aim1001.aim.NNN`
+- **Local path:** `/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aid.NNN/`
+- **Remote:** `https://gitlab.bnprs.ai/aim1001/aim1001.aid.NNN`
 - **Branch:** `master` (only)
 - **Structure per repo:**
   ```
