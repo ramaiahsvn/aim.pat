@@ -18,11 +18,13 @@
 #    aid.001    — agent ID (AID-001 from na-008-bnprs-team)
 #
 #  Env vars (override defaults):
-#    GITLAB_PAT        GitLab personal access token (required)
 #    GITLAB_HOST       default: gitlab.bnprs.ai
 #    GITLAB_GROUP      default: aim1001
 #    REPOS_DIR         local clone base dir  default: ~/aim1001
 #    CLAUDE_CMD        claude binary          default: claude
+#
+#  Authentication: git will prompt in the terminal when needed
+#    (username + personal access token, or SSH key if remote uses git@)
 #
 # ============================================================
 
@@ -96,58 +98,33 @@ parse_session_id() {
 
 # ── GitLab Repo Operations ───────────────────────────────────
 
-require_gitlab_pat() {
-    if [[ -z "${GITLAB_PAT:-}" ]]; then
-        err "GITLAB_PAT is not set."
-        err "Add to your shell:  export GITLAB_PAT='glpat-xxxxxxxxxxxx'"
-        exit 1
-    fi
-}
-
-# Returns 0 if GitLab repo exists and is accessible
+# Returns 0 if GitLab repo exists and is accessible.
+# git ls-remote will prompt for credentials in the terminal if needed.
 check_gitlab_repo() {
     local repo_name="$1"
-    require_gitlab_pat
-    # URL-encode the path separator
-    local encoded_path
-    encoded_path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${GITLAB_GROUP}/${repo_name}', safe=''))" 2>/dev/null \
-        || echo "${GITLAB_GROUP}%2F${repo_name}")
-    local api_url="https://${GITLAB_HOST}/api/v4/projects/${encoded_path}"
-    local http_code
-    http_code=$(curl -s -o /dev/null -w "%{http_code}" \
-        --connect-timeout 10 \
-        -H "PRIVATE-TOKEN: ${GITLAB_PAT}" \
-        "$api_url")
-    [[ "$http_code" == "200" ]]
+    local repo_url="https://${GITLAB_HOST}/${GITLAB_GROUP}/${repo_name}.git"
+    git ls-remote --exit-code "$repo_url" HEAD > /dev/null
 }
 
-# Clone if not local; fetch+pull if already cloned
+# Clone if not local; fetch+pull if already cloned.
+# git prompts for credentials in the terminal when needed.
 sync_repo() {
     local repo_name="$1"
     local local_path="$2"
     local current_dir="$PWD"
-    require_gitlab_pat
-
-    local authed_url="https://oauth2:${GITLAB_PAT}@${GITLAB_HOST}/${GITLAB_GROUP}/${repo_name}.git"
-    local clean_url="https://${GITLAB_HOST}/${GITLAB_GROUP}/${repo_name}.git"
+    local repo_url="https://${GITLAB_HOST}/${GITLAB_GROUP}/${repo_name}.git"
 
     if [[ -d "${local_path}/.git" ]]; then
         log "Repo exists locally — fetching and pulling: ${repo_name}"
         cd "$local_path"
-        # Temporarily set authed URL for fetch/pull
-        git remote set-url origin "$authed_url"
         git fetch origin
         git pull origin master --ff-only 2>/dev/null \
             || git pull origin master --rebase
-        git remote set-url origin "$clean_url"
         cd "$current_dir"
     else
         log "Cloning repo: ${repo_name} → ${local_path}"
         mkdir -p "$(dirname "$local_path")"
-        git clone --branch master "$authed_url" "$local_path"
-        # Restore clean URL (no token in .git/config)
-        cd "$local_path"
-        git remote set-url origin "$clean_url"
+        git clone --branch master "$repo_url" "$local_path"
         cd "$current_dir"
     fi
 }
@@ -188,13 +165,8 @@ EOF
 Employee : ${SESSION_EID}
 Session  : ${full_sid}"
 
-    # Push with authed URL, then restore clean URL
-    require_gitlab_pat
-    local authed_url="https://oauth2:${GITLAB_PAT}@${GITLAB_HOST}/${GITLAB_GROUP}/${SESSION_REPO_NAME}.git"
-    local clean_url="https://${GITLAB_HOST}/${GITLAB_GROUP}/${SESSION_REPO_NAME}.git"
-    git remote set-url origin "$authed_url"
+    # git will prompt for credentials in the terminal if needed
     git push origin master
-    git remote set-url origin "$clean_url"
 
     cd "$current_dir"
     log "Pushed → ${SESSION_REPO_URL}/-/blob/master/08-memory/${filename}"
@@ -211,8 +183,7 @@ cmd_init() {
     echo ""
     log "Session ID format:  E<number>-aid.<NNN>   e.g. E1026-aid.001"
     log "GitLab base       : https://${GITLAB_HOST}/${GITLAB_GROUP}"
-    echo ""
-    log "Make sure GITLAB_PAT is exported in your shell."
+    log "Auth              : git will prompt in terminal when needed"
     echo ""
     log "${BOLD}Usage:${NC}"
     echo "  ./bnprs-sessions.sh start E1026-aid.001"
@@ -494,10 +465,11 @@ case "${1:-help}" in
         echo "  ./bnprs-sessions.sh status E1026-aid.001"
         echo ""
         echo "Env vars:"
-        echo "  GITLAB_PAT        required — your GitLab personal access token"
         echo "  GITLAB_HOST       default: gitlab.bnprs.ai"
         echo "  GITLAB_GROUP      default: aim1001"
         echo "  REPOS_DIR         default: ~/aim1001"
+        echo ""
+        echo "Auth: git prompts for username + token in the terminal when needed"
         echo ""
         ;;
 esac

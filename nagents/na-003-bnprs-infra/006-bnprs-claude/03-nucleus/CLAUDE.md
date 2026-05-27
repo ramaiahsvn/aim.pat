@@ -67,7 +67,7 @@ ssh devops@3.151.67.208
   - `save-memory` syncs repo, writes timestamped file, commits, pushes
 - **Local clone base**: `~/aim1001/aim1001.aid.<NNN>/`
 - **Local meta**: `~/.claude/bnprs-sessions/<id>.meta`
-- **Requires**: `GITLAB_PAT` env var
+- **Auth**: git prompts in the terminal (username + personal access token)
 - **Commands**: `init`, `start`, `sync`, `list`, `status`, `delete`, `save-memory`
 - **Deploy to EC2**: `scp -i ~/BprAiAgent.pem nagents/na-003-bnprs-infra/006-bnprs-claude/03-nucleus/bnprs-sessions.sh ubuntu@3.151.67.208:/home/ubuntu/bnprs-sessions.sh`
 
