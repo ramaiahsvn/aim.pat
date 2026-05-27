@@ -46,8 +46,14 @@ ssh devops@3.151.67.208
 # credentials in 01-dendrite/secrets/secrets.yaml
 ```
 
-> If SSH fails: connect via OpenVPN first (`~/Downloads/OpenVPN-Config 3.ovpn`),
+> If SSH fails: connect via OpenVPN first (see VPN section below),
 > or add your IP to sg-0cf061a2c32667858 via 002-bnprs-aws-itp agent.
+
+### VPN Access
+
+- **Config file**: `01-dendrite/secrets/bnprs-claude.ovpn` (git-ignored)
+- **Connect**: `open "nagents/na-003-bnprs-infra/006-bnprs-claude/01-dendrite/secrets/bnprs-claude.ovpn"`
+- **Note**: Must be connected before SSH if not on office IP
 
 ## Pending Actions
 
