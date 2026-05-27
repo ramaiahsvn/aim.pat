@@ -102,6 +102,12 @@ docker exec -it gitlab /bin/bash
 - **API auth:** `$GITLAB_PAT` env var (set in `~/.zshrc`)
 - **AWS credentials:** `gitlab` profile — IAM user for GitLab runner access to AWS resources
 
+## Groups
+
+| ID  | Path    | Name               | Visibility | Description |
+|-----|---------|--------------------|------------|-------------|
+| 193 | aim1001 | AIM1001 - AIM Team | private    | AIM Team — BNPRS AI Agent Management Platform (aim.pat) |
+
 ## Branch Strategy
 
 ```
