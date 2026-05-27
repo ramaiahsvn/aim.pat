@@ -55,6 +55,14 @@ ssh devops@3.151.67.208
 - **Connect**: `open "nagents/na-003-bnprs-infra/006-bnprs-claude/01-dendrite/secrets/bnprs-claude.ovpn"`
 - **Note**: Must be connected before SSH if not on office IP
 
+## Session Manager
+
+- **Script**: `03-nucleus/bnprs-sessions.sh`
+- **Purpose**: Claude Code session manager with persistent memory per employee ID (E1001, E1026, etc.)
+- **Storage**: `~/.claude/bnprs-sessions/<id>.meta` + `~/.claude/bnprs-memory/<id>.md`
+- **Commands**: `init`, `start <EID>`, `list`, `status <EID>`, `delete <EID>`, `save-memory <EID>`
+- **Deploy to EC2**: `scp -i ~/BprAiAgent.pem 03-nucleus/bnprs-sessions.sh ubuntu@3.151.67.208:/home/ubuntu/bnprs-sessions.sh`
+
 ## Pending Actions
 
 - [ ] Add second office branch public IP to security group
