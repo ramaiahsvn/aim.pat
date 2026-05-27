@@ -108,6 +108,25 @@ docker exec -it gitlab /bin/bash
 |-----|---------|--------------------|------------|-------------|
 | 193 | aim1001 | AIM1001 - AIM Team | private    | AIM Team — BNPRS AI Agent Management Platform (aim.pat) |
 
+## Projects — aim1001 group
+
+100 agent repos: `aim1001.aim.001` → `aim1001.aim.100` (GitLab IDs 128–227)
+
+- **Local path:** `/Users/bnprs/BPR/GitRepos2/AIM1001_Team/aim1001.aim.NNN/`
+- **Remote:** `https://gitlab.bnprs.ai/aim1001/aim1001.aim.NNN`
+- **Branch:** `master` (only)
+- **Structure per repo:**
+  ```
+  CLAUDE.md
+  agent.yaml
+  .gitignore
+  08-memory/
+    README.md
+    short-term/session.yaml
+    long-term/knowledge.yaml
+    learned-preferences/user-prefs.yaml
+  ```
+
 ## Branch Strategy
 
 ```
