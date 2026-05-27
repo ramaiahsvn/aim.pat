@@ -3,6 +3,17 @@
 > This is the nucleus. Claude reads this file at the start of every session.
 > Every line here should actively shape how the agent behaves.
 
+## Session Startup
+
+> **Run this every time this agent is loaded on the local machine (macOS).**
+
+```bash
+nagents/na-003-bnprs-infra/006-bnprs-claude/03-nucleus/bnprs-sessions.sh sync-all
+```
+
+This fetches and pulls all 100 repos in `~/BPR/GitRepos2/AIM1001_Team/` so every employee's
+`08-memory/` is up to date before any session work begins.
+
 ## Identity
 
 - **Name**: bnprs-claude

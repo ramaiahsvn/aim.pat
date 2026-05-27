@@ -20,11 +20,15 @@
 #  Env vars (override defaults):
 #    GITLAB_HOST       default: gitlab.bnprs.ai
 #    GITLAB_GROUP      default: aim1001
-#    REPOS_DIR         local clone base dir  default: ~/aim1001
-#    CLAUDE_CMD        claude binary          default: claude
+#    REPOS_DIR         local clone base dir
+#                        macOS  default: ~/BPR/GitRepos2/AIM1001_Team
+#                        Linux  default: ~/aim1001
+#    CLAUDE_CMD        claude binary  default: claude
 #
 #  Authentication: git will prompt in the terminal when needed
 #    (username + personal access token, or SSH key if remote uses git@)
+#
+#  On agent load (macOS): run sync-all to pull all AIM1001_Team repos
 #
 # ============================================================
 
@@ -33,11 +37,21 @@ set -euo pipefail
 # ── Config ──────────────────────────────────────────────────
 SESSIONS_DIR="$HOME/.claude/bnprs-sessions"
 MEMORY_DIR="$HOME/.claude/bnprs-memory"
-REPOS_DIR="${BNPRS_REPOS_DIR:-$HOME/aim1001}"
 GITLAB_HOST="${GITLAB_HOST:-gitlab.bnprs.ai}"
 GITLAB_GROUP="${GITLAB_GROUP:-aim1001}"
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"
 PROJECT_ROOT="${BNPRS_PROJECT_ROOT:-$(pwd)}"
+
+# REPOS_DIR: OS-aware default
+# macOS (local dev)  → ~/BPR/GitRepos2/AIM1001_Team
+# Linux  (EC2)       → ~/aim1001
+if [[ -n "${BNPRS_REPOS_DIR:-}" ]]; then
+    REPOS_DIR="$BNPRS_REPOS_DIR"
+elif [[ "$(uname)" == "Darwin" ]]; then
+    REPOS_DIR="$HOME/BPR/GitRepos2/AIM1001_Team"
+else
+    REPOS_DIR="$HOME/aim1001"
+fi
 
 # macOS/Linux-compatible sed -i
 if [[ "$(uname)" == "Darwin" ]]; then
@@ -174,6 +188,59 @@ Session  : ${full_sid}"
 
 # ── Commands ────────────────────────────────────────────────
 
+cmd_sync_all() {
+    ensure_dirs
+
+    if [[ ! -d "$REPOS_DIR" ]]; then
+        warn "REPOS_DIR not found: $REPOS_DIR"
+        warn "Nothing to sync — repos will be cloned on first 'start'"
+        return 0
+    fi
+
+    local repos=()
+    for d in "$REPOS_DIR"/*/; do
+        [[ -d "${d}.git" ]] && repos+=("$d")
+    done
+
+    local total=${#repos[@]}
+    if [[ $total -eq 0 ]]; then
+        warn "No git repos found in: $REPOS_DIR"
+        return 0
+    fi
+
+    log "Syncing ${total} repos in: $REPOS_DIR"
+    echo ""
+
+    local ok=0 fail=0 current_dir="$PWD"
+    for repo_path in "${repos[@]}"; do
+        local name
+        name=$(basename "$repo_path")
+        cd "$repo_path"
+        # stdout suppressed; stderr (including auth prompts) stays visible
+        if git fetch origin > /dev/null && git pull origin master --ff-only > /dev/null 2>&1; then
+            ok=$(( ok + 1 ))
+            printf "  ${GREEN}✓${NC} %s\n" "$name"
+        else
+            # retry with rebase in case of diverged state
+            if git pull origin master --rebase > /dev/null 2>&1; then
+                ok=$(( ok + 1 ))
+                printf "  ${GREEN}✓${NC} %s (rebased)\n" "$name"
+            else
+                fail=$(( fail + 1 ))
+                printf "  ${RED}✗${NC} %s\n" "$name"
+            fi
+        fi
+        cd "$current_dir"
+    done
+
+    echo ""
+    if [[ $fail -eq 0 ]]; then
+        log "Sync complete: ${ok}/${total} repos up to date"
+    else
+        warn "Sync complete: ${ok} OK, ${fail} failed — run 'git pull' manually in failed repos"
+    fi
+}
+
 cmd_init() {
     ensure_dirs
     log "Initialized BNPRS session directories"
@@ -184,6 +251,10 @@ cmd_init() {
     log "Session ID format:  E<number>-aid.<NNN>   e.g. E1026-aid.001"
     log "GitLab base       : https://${GITLAB_HOST}/${GITLAB_GROUP}"
     log "Auth              : git will prompt in terminal when needed"
+    echo ""
+
+    # Fetch and pull all repos in REPOS_DIR
+    cmd_sync_all
     echo ""
     log "${BOLD}Usage:${NC}"
     echo "  ./bnprs-sessions.sh start E1026-aid.001"
@@ -435,13 +506,14 @@ cmd_save_memory() {
 # ── Main ────────────────────────────────────────────────────
 
 case "${1:-help}" in
-    init)           cmd_init ;;
-    start|s)        cmd_start "${2:-}" ;;
-    sync)           cmd_sync  "${2:-}" ;;
-    list|ls)        cmd_list ;;
-    status|st)      cmd_status    "${2:-}" ;;
-    delete|rm)      cmd_delete    "${2:-}" ;;
-    save-memory|sm) cmd_save_memory "${2:-}" ;;
+    init)              cmd_init ;;
+    sync-all|sa)       cmd_sync_all ;;
+    start|s)           cmd_start       "${2:-}" ;;
+    sync)              cmd_sync        "${2:-}" ;;
+    list|ls)           cmd_list ;;
+    status|st)         cmd_status      "${2:-}" ;;
+    delete|rm)         cmd_delete      "${2:-}" ;;
+    save-memory|sm)    cmd_save_memory "${2:-}" ;;
     help|*)
         echo ""
         echo -e "${BOLD}BNPRS Session Manager${NC} for Claude Code"
@@ -449,9 +521,10 @@ case "${1:-help}" in
         echo -e "Session ID format:  ${CYAN}E<number>-aid.<NNN>${NC}   e.g. E1026-aid.001"
         echo ""
         echo "Commands:"
-        echo "  init                       First-time setup"
+        echo "  init                       Setup dirs + fetch/pull ALL repos in REPOS_DIR"
+        echo "  sync-all                   Fetch and pull all repos in REPOS_DIR"
         echo "  start  <session-id>        Start or resume a session"
-        echo "  sync   <session-id>        Sync GitLab repo only"
+        echo "  sync   <session-id>        Sync one session's repo only"
         echo "  list                       List all sessions"
         echo "  status <session-id>        Show session details + repo memory"
         echo "  delete <session-id>        Delete local session meta"
@@ -459,17 +532,18 @@ case "${1:-help}" in
         echo ""
         echo "Examples:"
         echo "  ./bnprs-sessions.sh init"
+        echo "  ./bnprs-sessions.sh sync-all"
         echo "  ./bnprs-sessions.sh start E1026-aid.001"
         echo "  ./bnprs-sessions.sh save-memory E1026-aid.001"
         echo "  ./bnprs-sessions.sh list"
-        echo "  ./bnprs-sessions.sh status E1026-aid.001"
         echo ""
         echo "Env vars:"
         echo "  GITLAB_HOST       default: gitlab.bnprs.ai"
         echo "  GITLAB_GROUP      default: aim1001"
-        echo "  REPOS_DIR         default: ~/aim1001"
+        echo "  REPOS_DIR         macOS: ~/BPR/GitRepos2/AIM1001_Team"
+        echo "                    Linux: ~/aim1001"
         echo ""
-        echo "Auth: git prompts for username + token in the terminal when needed"
+        echo "Auth: git prompts for username + token in terminal when needed"
         echo ""
         ;;
 esac
