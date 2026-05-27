@@ -58,12 +58,6 @@ memory/private/                       ← git-ignored sensitive memory
 - Used for all aim.pat agents across groups na-001 to na-006
 - `create-agent.sh` scaffolds from this template
 
-### nagent-template-2 (external employee agents)
-- Simplified 4-component structure: `01-dand/`, `04-axon/`, `07-term/`, `08-memo/`
-- **NOT used inside the aim.pat repo** — for standalone per-employee agent repos on GitLab
-- `01-dand/context.yaml` — project name, tasks, repo URLs, general inputs
-- `07-term/` deliverables naming: `<employeeid>-<YYYY-MM-DD>-<sprinttaskid>.md`
-- `create-agent-real.sh` in na-008-bnprs-team scaffolds from this template
 
 ## Exceptional Groups
 
