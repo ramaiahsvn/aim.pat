@@ -14,7 +14,7 @@ each structured following the `nagent-template/` blueprint.
 | 004 | na-004-bnprs-biometrics  | Biometrics products and research            |
 | 005 | na-005-bnprs-fintech     | Fintech products and financial workflows    |
 | 006 | na-006-bnprs-deployments | Release management, CI/CD, environments     |
-| 007 | na-007-bnprs-team        | BNPRS employee agents — one agent per employee (AIDs)               |
+| 008 | na-008-bnprs-team        | BNPRS employee agents — one agent per employee (AIDs)               |
 
 ## Structure
 

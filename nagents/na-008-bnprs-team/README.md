@@ -1,4 +1,4 @@
-# na-007-bnprs-team — BNPRS Employee Agent IDs
+# na-008-bnprs-team — BNPRS Employee Agent IDs
 
 All BNPRS employees have a personal Agent ID (AID).
 Each AID maps to an individual agent folder inside this group.
@@ -27,7 +27,7 @@ EID: actual HR employee ID  e.g. E1001, E1005
 Run the script from this folder:
 
 ```bash
-cd nagents/na-007-bnprs-team
+cd nagents/na-008-bnprs-team
 ./create-agent-real.sh
 ```
 

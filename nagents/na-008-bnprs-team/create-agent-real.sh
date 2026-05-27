@@ -69,7 +69,7 @@ rm -f "$FOLDER_PATH/.git"
 sed -i '' \
   "s|<Agent Name>|${FOLDER_NAME}|g; \
    s|<code>|${AID}|g; \
-   s|<group>|na-007-bnprs-team|g; \
+   s|<group>|na-008-bnprs-team|g; \
    s|<What this agent does>|Employee agent for ${EMP_NAME} (${EMP_EID})|g; \
    s|<Your Name>|${EMP_NAME}|g; \
    s|<date>|$(date +%Y-%m-%d)|g" \
@@ -79,7 +79,7 @@ sed -i '' \
 sed -i '' \
   "s|<agent-name>|${FOLDER_NAME}|g; \
    s|<code>|AID-${AID}|g; \
-   s|<group>|na-007-bnprs-team|g; \
+   s|<group>|na-008-bnprs-team|g; \
    s|<one-line role>|${EMP_ROLE}|g; \
    s|<e.g. professional, concise, friendly>|professional, concise|g; \
    s|<e.g. lead with finding, then detail>|lead with finding, then detail|g; \
@@ -152,6 +152,6 @@ echo "  AID     : AID-${AID}  →  EID: ${EMP_EID}"
 echo "  GitLab  : ${GITLAB_URL}/${GITLAB_GROUP_PATH}/${FOLDER_NAME}"
 echo "============================================="
 echo ""
-echo "Next: add this employee to na-007-bnprs-team/README.md"
+echo "Next: add this employee to na-008-bnprs-team/README.md"
 echo "  | AID-${AID} | ${EMP_EID} | ${EMP_NAME} | ${EMP_ROLE} | active |"
 echo ""

@@ -63,11 +63,11 @@ memory/private/                       ← git-ignored sensitive memory
 - **NOT used inside the aim.pat repo** — for standalone per-employee agent repos on GitLab
 - `01-resources/context.yaml` — project name, tasks, repo URLs, general inputs
 - `03-outputs/` deliverables naming: `<employeeid>-<YYYY-MM-DD>-<sprinttaskid>.md`
-- `create-agent-real.sh` in na-007-bnprs-team scaffolds from this template
+- `create-agent-real.sh` in na-008-bnprs-team scaffolds from this template
 
 ## Exceptional Groups
 
-### na-007-bnprs-team
+### na-008-bnprs-team
 - Contains employee AID (Agent ID) ↔ EID (Employee ID) registry only
 - All contents git-ignored **except**: `README.md`, `create-agent-real.sh`, `.gitignore`
 - Agent folders (`aim1001.aid-XXX/`) are created locally and pushed to gitlab.bnprs.ai/aim1001
