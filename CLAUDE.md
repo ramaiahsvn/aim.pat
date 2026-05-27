@@ -57,7 +57,7 @@ Read all files in `memory/` (skip `memory/private/` unless relevant):
 | 100 | na-100-gne-esrever       | Miscellaneous tasks and ad-hoc agents                               |
 
 > **na-008-bnprs-team is exceptional** — agents here do not follow the nagent-template structure.
-> Only `README.md` is git-tracked; all agent folders are git-ignored.
+> Each employee agent is a standalone Git repo pushed to `gitlab.bnprs.ai/aim1001`.
 
 ## Agent code system
 

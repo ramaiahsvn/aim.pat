@@ -69,7 +69,6 @@ memory/private/                       ← git-ignored sensitive memory
 
 ### na-008-bnprs-team
 - Contains employee AID (Agent ID) ↔ EID (Employee ID) registry only
-- All contents git-ignored **except**: `README.md`, `create-agent-real.sh`, `.gitignore`
 - Agent folders (`aim1001.aid-XXX/`) are created locally and pushed to gitlab.bnprs.ai/aim1001
 - Does NOT follow nagent-template structure — each employee agent is a standalone Git repo
 

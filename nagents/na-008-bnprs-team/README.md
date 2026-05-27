@@ -19,7 +19,7 @@ EID: actual HR employee ID  e.g. E1001, E1005
 - AID is the agent sequence number (auto-assigned 001–999)
 - EID is the employee's actual HR ID — AID maps to EID
 - One AID per employee — permanent, never reassigned
-- Each AID has a corresponding agent folder in this group (git-ignored)
+- Each AID has a corresponding agent folder on GitLab (`gitlab.bnprs.ai/aim1001`)
 - Retired employees keep their AID with status: inactive
 
 ## Creating a New Employee Agent
@@ -47,7 +47,7 @@ After running, add the employee row to the table above.
 - **Group**: `aim1001` — AIM Team (`https://gitlab.bnprs.ai/aim1001`)
 - **Project naming**: `aim1001.aid-XXX`
 - **Default branch**: `master`
-- **Credentials**: stored in `create-agent-real.sh` (this folder, git-ignored)
+- **Credentials**: stored in `create-agent-real.sh`
 
 ## Agent Structure (nagent-template-2)
 
@@ -67,7 +67,7 @@ aim1001.aid-XXX/
 
 ## Notes
 
-- Agent folders (`aim1001.aid-*/`) are git-ignored in this repo — only this README is tracked
+- Each employee's agent repo lives independently on GitLab (`gitlab.bnprs.ai/aim1001/`)
 - Each employee's agent repo lives independently on GitLab (`gitlab.bnprs.ai/aim1001/`)
 - Deliverable naming: `<EID>-<YYYY-MM-DD>-<sprinttaskid>.md`
 - **Exception**: agents in this group do NOT follow the standard nagent-template structure
