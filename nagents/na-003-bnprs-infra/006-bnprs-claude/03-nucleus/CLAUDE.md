@@ -51,7 +51,7 @@ ssh devops@3.151.67.208
 
 ### VPN Access
 
-- **Config file**: `01-dendrite/secrets/bnprs-claude.ovpn` (git-ignored)
+- **Config file**: `01-dendrite/secrets/bnprs-claude.ovpn` (git-ignored; source: `OpenVPN-Config (Office v1.1).ovpn`)
 - **Connect**: `open "nagents/na-003-bnprs-infra/006-bnprs-claude/01-dendrite/secrets/bnprs-claude.ovpn"`
 - **Note**: Must be connected before SSH if not on office IP
 
