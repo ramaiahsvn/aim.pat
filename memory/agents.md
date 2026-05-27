@@ -63,6 +63,11 @@
 | 007  | na-006 | bpr1007-acs-prod | BPR ACS Production (Access Control System) | active | 2026-05-27 |
 | 001  | na-100 | rnd-mpos | mPOS R&D and Competitive Analysis (BPR1003 PatPOS, PhonePe ref) | active | 2026-05-27 |
 | 002  | na-100 | rnd-superapp | AandhiPe Super-App R&D (BPR2001, SuperQi/WeChat/ONDC ref) | active | 2026-05-27 |
+| 001  | na-007 | aid-ceo (Yudhisthira) | Chief Executive Officer — strategy, vision, governance | active | 2026-05-27 |
+| 002  | na-007 | aid-cto (Bhima)       | Chief Technology Officer — tech strategy, engineering, platform | active | 2026-05-27 |
+| 003  | na-007 | aid-cpo (Arjuna)      | Chief Product Officer — product strategy, roadmap, UX/CX | active | 2026-05-27 |
+| 004  | na-007 | aid-cfo (Nakula)      | Chief Financial Officer — finance, treasury, compliance | active | 2026-05-27 |
+| 005  | na-007 | aid-coo (Sahadeva)    | Chief Operating Officer — operations, delivery, process | active | 2026-05-27 |
 
 ## Group Slot Usage
 
@@ -74,7 +79,7 @@
 | na-004-bnprs-biometrics  | na-004 | 12 | 255 |
 | na-005-bnprs-fintech     | na-005 | 11 | 255 |
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
-| na-007-bnprs-cxo         | na-007 | 0  | 255 |
+| na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 0  | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
