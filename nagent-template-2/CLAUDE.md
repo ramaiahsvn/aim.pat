@@ -22,21 +22,21 @@
 
 ## Resources
 
-- Project context, tasks, repo URLs, general inputs: `01-resources/context.yaml`
+- Project context, tasks, repo URLs, general inputs: `01-dand/context.yaml`
 
 ## Workflows
 
-- All task workflows: `02-workflows/`
+- All task workflows: `04-axon/`
 - Read the relevant workflow file before starting a multi-step task
 
 ## Outputs
 
-- Deliver finished work to: `03-outputs/deliverables/`
+- Deliver finished work to: `07-term/deliverables/`
 
 ## Memory
 
-- Session notes: `04-memory/session/`
-- Persistent knowledge: `04-memory/long-term/`
+- Session notes: `08-memo/session/`
+- Persistent knowledge: `08-memo/long-term/`
 
 ## Guardrails
 

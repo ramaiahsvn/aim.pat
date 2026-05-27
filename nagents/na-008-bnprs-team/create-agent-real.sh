@@ -92,7 +92,7 @@ sed -i '' \
 sed -i '' \
   "s|<Project Name>|${EMP_NAME} — ${EMP_ROLE}|g; \
    s|<What this project is about.*>|Employee agent for ${EMP_NAME} (EID: ${EMP_EID}, AID: AID-${AID})|g" \
-  "$FOLDER_PATH/01-resources/context.yaml"
+  "$FOLDER_PATH/01-dand/context.yaml"
 
 echo -e "  ${GREEN}Done.${NC}"
 

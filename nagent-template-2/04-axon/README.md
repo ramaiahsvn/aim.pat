@@ -1,4 +1,4 @@
-# 02-workflows
+# 04-axon
 
 One file per task type. Claude reads the relevant file before starting a multi-step task.
 
@@ -28,5 +28,5 @@ steps:
   - id: step-2
     ...
 
-output: "<Where final output lands — usually 03-outputs/deliverables/>"
+output: "<Where final output lands — usually 07-term/deliverables/>"
 ```

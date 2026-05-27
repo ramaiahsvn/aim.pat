@@ -55,12 +55,12 @@ After running, add the employee row to the table above.
 aim1001.aid-XXX/
   agent.yaml              Agent manifest
   CLAUDE.md               Agent identity and directives
-  01-resources/
+  01-dand/
     context.yaml          Employee info, project context, git repos, inputs
-  02-workflows/           Task workflow definitions
-  03-outputs/
+  04-axon/                Task workflow definitions
+  07-term/
     deliverables/         <EID>-<YYYY-MM-DD>-<sprinttaskid>.md
-  04-memory/
+  08-memo/
     session/              Current task scratch
     long-term/            Persistent notes and preferences
 ```

@@ -5,16 +5,16 @@ A lightweight agent template. No neuron anatomy — just four plain folders.
 ## Structure
 
 ```
-01-resources/
+01-dand/
   context.yaml      Project description, tasks, git repo URLs, general inputs
   secrets/          Credentials (git-ignored)
 
-02-workflows/       Step-by-step task definitions (one file per workflow)
+04-axon/            Step-by-step task definitions (one file per workflow)
 
-03-outputs/         Finished work lands here
+07-term/            Finished work lands here
   deliverables/     Generated files, reports, exports
 
-04-memory/          What the agent remembers
+08-memo/            What the agent remembers
   session/          Scratch notes for the current task
   long-term/        Persistent facts and learned preferences
 ```
@@ -38,7 +38,7 @@ separate planning/execution layers.
 ## Quick Start
 
 1. Copy `CLAUDE.md` — fill in identity, role, and directives
-2. Add connectors to `01-resources/connectors/` — plug in your tools
-3. Write workflows in `02-workflows/` — one `.yaml` or `.md` per task type
-4. Deliver outputs to `03-outputs/deliverables/`
-5. Persist facts in `04-memory/long-term/`
+2. Add connectors to `01-dand/` — plug in your tools
+3. Write workflows in `04-axon/` — one `.yaml` or `.md` per task type
+4. Deliver outputs to `07-term/deliverables/`
+5. Persist facts in `08-memo/long-term/`
