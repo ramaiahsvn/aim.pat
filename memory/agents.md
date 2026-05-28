@@ -67,7 +67,7 @@
 | 001  | na-009 | bpr1001-ibecs | BPR iBecs Product Agent — Instant Biometric Enrollment Card Solution (BPR1001) | active | 2026-05-28 |
 | 002  | na-009 | bpr1002-mgate | BPR mGate Product Agent — API and Mobile Gateway (BPR1002) | active | 2026-05-28 |
 | 003  | na-009 | bpr1003-mpos | BPR mPos Product Agent — Mobile Point of Sale / PatPOS (BPR1003) | active | 2026-05-28 |
-| 004  | na-009 | bpr1004-utms | BPR uTms Product Agent — Unified Transaction Management System (BPR1004) | active | 2026-05-28 |
+| 004  | na-009 | bpr1004-utms | BPR uTms Product Agent — Unified Terminal Management System (BPR1004) | active | 2026-05-28 |
 | 005  | na-009 | bpr1005-bpass | BPR bPass Product Agent — Issuer Controlled Biometric Authentication / ICBA (BPR1005) | active | 2026-05-28 |
 | 006  | na-009 | bpr1006-patkiosk | BPR patKiosk Product Agent — Self-Service Kiosk Platform (BPR1006) | active | 2026-05-28 |
 | 007  | na-009 | bpr1007-wgate | BPR wGate Product Agent — Worldwide Gateway for Payment Processing (BPR1007) | active | 2026-05-28 |

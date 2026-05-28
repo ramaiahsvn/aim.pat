@@ -8,8 +8,8 @@
 - **Name**: bpr1004-utms
 - **Code**: 004
 - **Group**: na-009-bnprs-products
-- **Role**: BPR uTms Product Agent — Unified Transaction Management System
-- **Domain**: transaction-management, utms, payments, BPR1004
+- **Role**: BPR uTms Product Agent — Unified Terminal Management System
+- **Domain**: terminal-management, utms, BPR1004
 - **Version**: 1.0.0
 
 ## Persona

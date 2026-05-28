@@ -11,7 +11,7 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 | 001        | BPR1001      | iBecs            | Instant Biometric Enrollment Card Solution|
 | 002        | BPR1002      | mGate            | API/Mobile Gateway                       |
 | 003        | BPR1003      | mPos             | Mobile Point of Sale (PatPOS)            |
-| 004        | BPR1004      | uTms             | Unified Transaction Mgmt System          |
+| 004        | BPR1004      | uTms             | Unified Terminal Management System       |
 | 005        | BPR1005      | bPass (icba)     | Issuer Controlled Biometric Auth         |
 | 006        | BPR1006      | patKiosk         | Self-Service Kiosk Platform              |
 | 007        | BPR1007      | wGate            | Worldwide Gateway for Payment Processing |

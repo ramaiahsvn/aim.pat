@@ -45,7 +45,7 @@ registry:
   - code: "004"
     name: "bpr1004-utms"
     label: "bpr1004-utms"
-    role: "BPR uTms Product Agent — Unified Transaction Management System (BPR1004)"
+    role: "BPR uTms Product Agent — Unified Terminal Management System (BPR1004)"
     path: "004-bpr1004-utms"
     status: "active"
     created_at: "2026-05-28"
