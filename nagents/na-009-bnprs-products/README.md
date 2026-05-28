@@ -18,7 +18,7 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 | 007        | BPR1008      | bNet             | Biometric Network              |
 | 008        | BPR1009      | bCws             | Biometric Criminal Watch System|
 | 009        | BPR1010      | Misc-ITP         | Miscellaneous ITPCore Projects |
-| (pending)  | BPR1011      | mPoolRMS         |                                |
+| 010        | BPR1011      | DrishtIQ         | Reputation Management System   |
 | (pending)  | TRP1001      | SbioidS          | SBI Biometric IDS              |
 | (pending)  | TRP1002      | cPerso           | Central Personalisation        |
 | (pending)  | TRP1003      | pHsm             |                                |
@@ -50,3 +50,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `007-bpr1008-bnet/` — BPR1008 bNet Biometric Network product agent
 - `008-bpr1009-bcws/` — BPR1009 bCws Biometric Criminal Watch System product agent
 - `009-bpr1010-misc-itp/` — BPR1010 Misc-ITP Miscellaneous ITPCore Projects product agent
+- `010-bpr1011-drishtiq/` — BPR1011 DrishtIQ Reputation Management System product agent

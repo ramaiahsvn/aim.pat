@@ -94,6 +94,15 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  - code: "010"
+    name: "bpr1011-drishtiq"
+    label: "bpr1011-drishtiq"
+    role: "BPR DrishtIQ Product Agent — Reputation Management System (BPR1011)"
+    path: "010-bpr1011-drishtiq"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents
 # DE40–DE7F  (064–127)  Product R&D and prototypes

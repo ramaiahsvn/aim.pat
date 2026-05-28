@@ -1,0 +1,24 @@
+# Current Agent Status — Runtime State
+
+session:
+  id: null
+  started_at: null
+  user_id: null
+
+active_tasks: []
+# - task_id: "task-001"
+#   status: in_progress
+#   progress: 60%
+#   current_step: "Generating report"
+
+queue:
+  pending: 0
+  in_progress: 0
+  completed: 0
+  blocked: 0
+
+resources:
+  active_connectors: []
+  memory_usage: null
+  tokens_consumed: 0
+  tokens_remaining: null
