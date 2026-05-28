@@ -124,6 +124,17 @@ memories:
     confidence: 0.99
     tags: [runner, docker, cicd, setup, infrastructure]
 
+  - id: mem-012
+    type: migration_script
+    content: "GitHub→GitLab mirror migration script (2026-02-25). Migrates all repos prefixed 'bpr1010' from GitHub org 'bnprs' to GitLab group 'bpr1010' on gitlab.bnprs.ai. Uses gh CLI to list repos, GitLab API to create projects, git clone --mirror + git push --mirror. Handles already-existing repos gracefully. Token via $GITLAB_TOKEN env var (not hardcoded)."
+    created_at: "2026-05-28"
+    last_accessed: "2026-05-28"
+    access_count: 1
+    confidence: 0.99
+    source: "Downloads/20260225_GitHub_2_GitLab_Migration.sh"
+    tags: [migration, github, gitlab, bpr1010, mirror, bash, gh-cli]
+    detail_file: "github-to-gitlab-migration-20260225.sh"
+
 # Pruning rules
 pruning:
   max_entries: 500
