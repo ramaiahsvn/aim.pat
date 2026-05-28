@@ -14,6 +14,17 @@ memories:
     tags: [raspberry-pi, armhf, cross-compile, docker, cpp17, qiscript]
     detail_file: "raspi-armhf-crosscompile.md"
 
+  - id: mem-002
+    type: refactoring_log
+    content: "BprPcSc C++ refactoring (2026-02-22 / logged 2026-03-05): extended from Sunmi-only to multi-device single libBprPcSc.so supporting 8 Android POS families (DEVICE_PCSCLITE/SUNMI/PAX/FEITIAN/NEXGO/WIZAR/CIONTEK/FUTRONIC) via runtime dispatch. PAX switched from CloudPOS to NeptuneLite DAL. QI card read ops (qi_check_inserted, qi_read_card_number, qi_read_smart_id, qi_read_user_name, qi_read_fp_templates) added to Sunmi backend, eliminating BprQiEmv JNI dependency. New header: pcsc/qi_ops.h."
+    created_at: "2026-05-28"
+    last_accessed: "2026-05-28"
+    access_count: 1
+    confidence: 0.99
+    source: "ZohoWorkDrive/A_Claude/20260305/20260222_mPOS.lib.Cpp_Refactoring.md"
+    tags: [bprpcsc, cpp, android, multi-device, pax, feitian, nexgo, wizar, ciontek, futronic, sunmi, qi-ops, jni, refactoring]
+    detail_file: "bprpcsc-cpp-refactoring-20260222.md"
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
