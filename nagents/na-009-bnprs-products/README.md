@@ -26,9 +26,9 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 | 016        | TRP1003      | pHSM             | Payment Hardware Security Module         |
 | 017        | TRP1004      | BNAgent          | AI Agent Platform (aim.pat)              |
 | 018        | TRP1005      | eInvoice         | Electronic Invoice Management            |
-| (pending)  | BPR2001      | AandhiPe         | Super-App                                |
-| (pending)  | AIM1001      | AIM Team         |                                          |
-| (pending)  | AIM1002      | bIOI             |                                          |
+| 019        | BPR2001      | AandhiPe         | Super-App                                |
+| 020        | AIM1001      | AIM Team         | AI Agent Platform Team                   |
+| 021        | AIM1002      | bIOI             | Biometric Intelligence                   |
 
 ## Agent Naming Convention
 
@@ -60,3 +60,6 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `016-trp1003-phsm/` — TRP1003 pHSM Payment Hardware Security Module product agent
 - `017-trp1004-bnagent/` — TRP1004 BNAgent AI Agent Platform (aim.pat) product agent
 - `018-trp1005-einvoice/` — TRP1005 eInvoice Electronic Invoice Management product agent
+- `019-bpr2001-aandhipe/` — BPR2001 AandhiPe Super-App product agent
+- `020-aim1001-aim-team/` — AIM1001 AIM Team AI Agent Platform Team product agent
+- `021-aim1002-bioi/` — AIM1002 bIOI Biometric Intelligence product agent

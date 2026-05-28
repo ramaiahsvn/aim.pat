@@ -82,6 +82,9 @@
 | 016  | na-009 | trp1003-phsm | TRP pHSM Product Agent — Payment Hardware Security Module (TRP1003) | active | 2026-05-28 |
 | 017  | na-009 | trp1004-bnagent | TRP BNAgent Product Agent — AI Agent Platform aim.pat (TRP1004) | active | 2026-05-28 |
 | 018  | na-009 | trp1005-einvoice | TRP eInvoice Product Agent — Electronic Invoice Management (TRP1005) | active | 2026-05-28 |
+| 019  | na-009 | bpr2001-aandhipe | BPR AandhiPe Product Agent — Super-App (BPR2001) | active | 2026-05-28 |
+| 020  | na-009 | aim1001-aim-team | AIM Team Product Agent — AI Agent Platform Team (AIM1001) | active | 2026-05-28 |
+| 021  | na-009 | aim1002-bioi | AIM bIOI Product Agent — Biometric Intelligence (AIM1002) | active | 2026-05-28 |
 | 001  | na-007 | aid-ceo (Yudhisthira) | Chief Executive Officer — strategy, vision, governance | active | 2026-05-27 |
 | 002  | na-007 | aid-cto (Bhima)       | Chief Technology Officer — tech strategy, engineering, platform | active | 2026-05-27 |
 | 003  | na-007 | aid-cpo (Arjuna)      | Chief Product Officer — product strategy, roadmap, UX/CX | active | 2026-05-27 |
@@ -200,7 +203,7 @@
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
-| na-009-bnprs-products    | na-009 | 18 | 255 |
+| na-009-bnprs-products    | na-009 | 21 | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies

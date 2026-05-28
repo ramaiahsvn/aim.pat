@@ -177,6 +177,33 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  - code: "019"
+    name: "bpr2001-aandhipe"
+    label: "bpr2001-aandhipe"
+    role: "BPR AandhiPe Product Agent — Super-App (BPR2001)"
+    path: "019-bpr2001-aandhipe"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
+  - code: "020"
+    name: "aim1001-aim-team"
+    label: "aim1001-aim-team"
+    role: "AIM Team Product Agent — AI Agent Platform Team (AIM1001)"
+    path: "020-aim1001-aim-team"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
+  - code: "021"
+    name: "aim1002-bioi"
+    label: "aim1002-bioi"
+    role: "AIM bIOI Product Agent — Biometric Intelligence (AIM1002)"
+    path: "021-aim1002-bioi"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents (BPR100X aligns with 00X for 001–011)
 # DE40–DE7F  (064–127)  Product R&D and prototypes
