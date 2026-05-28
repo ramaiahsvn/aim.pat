@@ -4,50 +4,52 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 
 ## Product Catalogue
 
-| Agent Code | Product Code | Product Name     | Notes                          |
-|------------|--------------|------------------|--------------------------------|
-| (pending)  | BPR0000      | Bnprs Team       | Internal team tooling          |
-| (pending)  | BPR1000      | uTms-CRM         | CRM module of UTMS             |
-| (pending)  | BPR1001      | iBecs            |                                |
-| 001        | BPR1002      | mGate            | API/Mobile Gateway             |
-| 002        | BPR1003      | mPos             | Mobile Point of Sale (PatPOS)  |
-| 003        | BPR1004      | uTms             | Unified Transaction Mgmt System|
-| 004        | BPR1005      | bPass (icba)     | Issuer Controlled Biometric Auth|
-| 005        | BPR1006      | patKiosk         | Self-Service Kiosk Platform    |
-| 006        | BPR1007      | wGate            | Worldwide Gateway for Payment Processing |
-| 007        | BPR1008      | bNet             | Biometric Network              |
-| 008        | BPR1009      | bCws             | Biometric Criminal Watch System|
-| 009        | BPR1010      | Misc-ITP         | Miscellaneous ITPCore Projects |
-| 010        | BPR1011      | DrishtIQ         | Reputation Management System   |
-| (pending)  | TRP1001      | SbioidS          | SBI Biometric IDS              |
-| (pending)  | TRP1002      | cPerso           | Central Personalisation        |
-| (pending)  | TRP1003      | pHsm             |                                |
-| (pending)  | TRP1004      | BNAgent          | AI Agent Platform (aim.pat)    |
-| (pending)  | TRP1006      | eInvoice         |                                |
-| (pending)  | BPR2001      | AandhiPe         | Super-App                      |
-| (pending)  | AIM1001      | AIM Team         |                                |
-| (pending)  | AIM1002      | bIOI             |                                |
+Agent codes 001–011 align with product code suffix (BPR100X → 00X).
+
+| Agent Code | Product Code | Product Name     | Notes                                    |
+|------------|--------------|------------------|------------------------------------------|
+| 001        | BPR1001      | iBecs            |                                          |
+| 002        | BPR1002      | mGate            | API/Mobile Gateway                       |
+| 003        | BPR1003      | mPos             | Mobile Point of Sale (PatPOS)            |
+| 004        | BPR1004      | uTms             | Unified Transaction Mgmt System          |
+| 005        | BPR1005      | bPass (icba)     | Issuer Controlled Biometric Auth         |
+| 006        | BPR1006      | patKiosk         | Self-Service Kiosk Platform              |
+| 007        | BPR1007      | wGate            | Worldwide Gateway for Payment Processing |
+| 008        | BPR1008      | bNet             | Biometric Network                        |
+| 009        | BPR1009      | bCws             | Biometric Criminal Watch System          |
+| 010        | BPR1010      | Misc-ITP         | Miscellaneous ITPCore Projects           |
+| 011        | BPR1011      | DrishtIQ         | Reputation Management System             |
+| (pending)  | BPR0000      | Bnprs Team       | Internal team tooling                    |
+| (pending)  | BPR1000      | uTms-CRM         | CRM module of UTMS                       |
+| (pending)  | TRP1001      | SbioidS          | SBI Biometric IDS                        |
+| (pending)  | TRP1002      | cPerso           | Central Personalisation                  |
+| (pending)  | TRP1003      | pHsm             |                                          |
+| (pending)  | TRP1004      | BNAgent          | AI Agent Platform (aim.pat)              |
+| (pending)  | TRP1006      | eInvoice         |                                          |
+| (pending)  | BPR2001      | AandhiPe         | Super-App                                |
+| (pending)  | AIM1001      | AIM Team         |                                          |
+| (pending)  | AIM1002      | bIOI             |                                          |
 
 ## Agent Naming Convention
 
 Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 
 ```
-001-bpr1002-mgate/
-002-bpr1003-mpos/
-003-bpr1004-utms/
+001-bpr1001-ibecs/
+002-bpr1002-mgate/
+003-bpr1003-mpos/
 ```
 
 ## Agents Created
 
-<!-- Updated as agents are created -->
-- `001-bpr1002-mgate/` — BPR1002 mGate API/Mobile Gateway product agent
-- `002-bpr1003-mpos/` — BPR1003 mPos Mobile Point of Sale / PatPOS product agent
-- `003-bpr1004-utms/` — BPR1004 uTms Unified Transaction Management System product agent
-- `004-bpr1005-bpass/` — BPR1005 bPass Issuer Controlled Biometric Authentication (ICBA) product agent
-- `005-bpr1006-patkiosk/` — BPR1006 patKiosk Self-Service Kiosk Platform product agent
-- `006-bpr1007-wgate/` — BPR1007 wGate Worldwide Gateway for Payment Processing product agent
-- `007-bpr1008-bnet/` — BPR1008 bNet Biometric Network product agent
-- `008-bpr1009-bcws/` — BPR1009 bCws Biometric Criminal Watch System product agent
-- `009-bpr1010-misc-itp/` — BPR1010 Misc-ITP Miscellaneous ITPCore Projects product agent
-- `010-bpr1011-drishtiq/` — BPR1011 DrishtIQ Reputation Management System product agent
+- `001-bpr1001-ibecs/` — BPR1001 iBecs product agent
+- `002-bpr1002-mgate/` — BPR1002 mGate API/Mobile Gateway product agent
+- `003-bpr1003-mpos/` — BPR1003 mPos Mobile Point of Sale / PatPOS product agent
+- `004-bpr1004-utms/` — BPR1004 uTms Unified Transaction Management System product agent
+- `005-bpr1005-bpass/` — BPR1005 bPass Issuer Controlled Biometric Authentication (ICBA) product agent
+- `006-bpr1006-patkiosk/` — BPR1006 patKiosk Self-Service Kiosk Platform product agent
+- `007-bpr1007-wgate/` — BPR1007 wGate Worldwide Gateway for Payment Processing product agent
+- `008-bpr1008-bnet/` — BPR1008 bNet Biometric Network product agent
+- `009-bpr1009-bcws/` — BPR1009 bCws Biometric Criminal Watch System product agent
+- `010-bpr1010-misc-itp/` — BPR1010 Misc-ITP Miscellaneous ITPCore Projects product agent
+- `011-bpr1011-drishtiq/` — BPR1011 DrishtIQ Reputation Management System product agent

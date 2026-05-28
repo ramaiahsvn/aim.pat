@@ -64,16 +64,17 @@
 | 007  | na-006 | bpr1007-acs-prod | BPR ACS Production (Access Control System) | active | 2026-05-27 |
 | 001  | na-100 | rnd-mpos | mPOS R&D and Competitive Analysis (BPR1003 PatPOS, PhonePe ref) | active | 2026-05-27 |
 | 002  | na-100 | rnd-superapp | AandhiPe Super-App R&D (BPR2001, SuperQi/WeChat/ONDC ref) | active | 2026-05-27 |
-| 001  | na-009 | bpr1002-mgate | BPR mGate Product Agent — API and Mobile Gateway (BPR1002) | active | 2026-05-28 |
-| 002  | na-009 | bpr1003-mpos | BPR mPos Product Agent — Mobile Point of Sale / PatPOS (BPR1003) | active | 2026-05-28 |
-| 003  | na-009 | bpr1004-utms | BPR uTms Product Agent — Unified Transaction Management System (BPR1004) | active | 2026-05-28 |
-| 004  | na-009 | bpr1005-bpass | BPR bPass Product Agent — Issuer Controlled Biometric Authentication / ICBA (BPR1005) | active | 2026-05-28 |
-| 005  | na-009 | bpr1006-patkiosk | BPR patKiosk Product Agent — Self-Service Kiosk Platform (BPR1006) | active | 2026-05-28 |
-| 006  | na-009 | bpr1007-wgate | BPR wGate Product Agent — Worldwide Gateway for Payment Processing (BPR1007) | active | 2026-05-28 |
-| 007  | na-009 | bpr1008-bnet | BPR bNet Product Agent — Biometric Network (BPR1008) | active | 2026-05-28 |
-| 008  | na-009 | bpr1009-bcws | BPR bCws Product Agent — Biometric Criminal Watch System (BPR1009) | active | 2026-05-28 |
-| 009  | na-009 | bpr1010-misc-itp | BPR Misc-ITP Product Agent — Miscellaneous ITPCore Projects (BPR1010) | active | 2026-05-28 |
-| 010  | na-009 | bpr1011-drishtiq | BPR DrishtIQ Product Agent — Reputation Management System (BPR1011) | active | 2026-05-28 |
+| 001  | na-009 | bpr1001-ibecs | BPR iBecs Product Agent (BPR1001) | active | 2026-05-28 |
+| 002  | na-009 | bpr1002-mgate | BPR mGate Product Agent — API and Mobile Gateway (BPR1002) | active | 2026-05-28 |
+| 003  | na-009 | bpr1003-mpos | BPR mPos Product Agent — Mobile Point of Sale / PatPOS (BPR1003) | active | 2026-05-28 |
+| 004  | na-009 | bpr1004-utms | BPR uTms Product Agent — Unified Transaction Management System (BPR1004) | active | 2026-05-28 |
+| 005  | na-009 | bpr1005-bpass | BPR bPass Product Agent — Issuer Controlled Biometric Authentication / ICBA (BPR1005) | active | 2026-05-28 |
+| 006  | na-009 | bpr1006-patkiosk | BPR patKiosk Product Agent — Self-Service Kiosk Platform (BPR1006) | active | 2026-05-28 |
+| 007  | na-009 | bpr1007-wgate | BPR wGate Product Agent — Worldwide Gateway for Payment Processing (BPR1007) | active | 2026-05-28 |
+| 008  | na-009 | bpr1008-bnet | BPR bNet Product Agent — Biometric Network (BPR1008) | active | 2026-05-28 |
+| 009  | na-009 | bpr1009-bcws | BPR bCws Product Agent — Biometric Criminal Watch System (BPR1009) | active | 2026-05-28 |
+| 010  | na-009 | bpr1010-misc-itp | BPR Misc-ITP Product Agent — Miscellaneous ITPCore Projects (BPR1010) | active | 2026-05-28 |
+| 011  | na-009 | bpr1011-drishtiq | BPR DrishtIQ Product Agent — Reputation Management System (BPR1011) | active | 2026-05-28 |
 | 001  | na-007 | aid-ceo (Yudhisthira) | Chief Executive Officer — strategy, vision, governance | active | 2026-05-27 |
 | 002  | na-007 | aid-cto (Bhima)       | Chief Technology Officer — tech strategy, engineering, platform | active | 2026-05-27 |
 | 003  | na-007 | aid-cpo (Arjuna)      | Chief Product Officer — product strategy, roadmap, UX/CX | active | 2026-05-27 |
@@ -192,7 +193,7 @@
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
-| na-009-bnprs-products    | na-009 | 10 | 255 |
+| na-009-bnprs-products    | na-009 | 11 | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies
