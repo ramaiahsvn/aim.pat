@@ -22,10 +22,10 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 | 012        | BPR0000      | BNPRS Portal     | Web-Based Enterprise Portal (HR, Payroll, Sprints, Expenses, Codebase) |
 | 013        | BPR1000      | uTms-CRM         | License Management, Clients, Subscriptions|
 | 014        | TRP1001      | SbioidS          | SBI Biometric Identification System      |
-| (pending)  | TRP1002      | cPerso           | Central Personalisation                  |
-| (pending)  | TRP1003      | pHsm             |                                          |
-| (pending)  | TRP1004      | BNAgent          | AI Agent Platform (aim.pat)              |
-| (pending)  | TRP1006      | eInvoice         |                                          |
+| 015        | TRP1002      | cPerso           | Card Personalization (Instant and Central)|
+| 016        | TRP1003      | pHSM             | Payment Hardware Security Module         |
+| 017        | TRP1004      | BNAgent          | AI Agent Platform (aim.pat)              |
+| 018        | TRP1005      | eInvoice         | Electronic Invoice Management            |
 | (pending)  | BPR2001      | AandhiPe         | Super-App                                |
 | (pending)  | AIM1001      | AIM Team         |                                          |
 | (pending)  | AIM1002      | bIOI             |                                          |
@@ -56,3 +56,7 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `012-bpr0000-bnprs-portal/` — BPR0000 BNPRS Portal Web-Based Enterprise Portal product agent
 - `013-bpr1000-utms-crm/` — BPR1000 uTms-CRM License Management, Clients, Subscriptions product agent
 - `014-trp1001-sbioids/` — TRP1001 SbioidS SBI Biometric Identification System product agent
+- `015-trp1002-cperso/` — TRP1002 cPerso Card Personalization (Instant and Central) product agent
+- `016-trp1003-phsm/` — TRP1003 pHSM Payment Hardware Security Module product agent
+- `017-trp1004-bnagent/` — TRP1004 BNAgent AI Agent Platform (aim.pat) product agent
+- `018-trp1005-einvoice/` — TRP1005 eInvoice Electronic Invoice Management product agent

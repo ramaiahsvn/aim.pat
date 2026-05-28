@@ -141,6 +141,42 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  - code: "015"
+    name: "trp1002-cperso"
+    label: "trp1002-cperso"
+    role: "TRP cPerso Product Agent — Card Personalization (Instant and Central) (TRP1002)"
+    path: "015-trp1002-cperso"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
+  - code: "016"
+    name: "trp1003-phsm"
+    label: "trp1003-phsm"
+    role: "TRP pHSM Product Agent — Payment Hardware Security Module (TRP1003)"
+    path: "016-trp1003-phsm"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
+  - code: "017"
+    name: "trp1004-bnagent"
+    label: "trp1004-bnagent"
+    role: "TRP BNAgent Product Agent — AI Agent Platform (aim.pat) (TRP1004)"
+    path: "017-trp1004-bnagent"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
+  - code: "018"
+    name: "trp1005-einvoice"
+    label: "trp1005-einvoice"
+    role: "TRP eInvoice Product Agent — Electronic Invoice Management (TRP1005)"
+    path: "018-trp1005-einvoice"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents (BPR100X aligns with 00X for 001–011)
 # DE40–DE7F  (064–127)  Product R&D and prototypes
