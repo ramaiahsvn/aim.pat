@@ -66,6 +66,7 @@
 | 002  | na-100 | rnd-superapp | AandhiPe Super-App R&D (BPR2001, SuperQi/WeChat/ONDC ref) | active | 2026-05-27 |
 | 001  | na-009 | bpr1002-mgate | BPR mGate Product Agent — API and Mobile Gateway (BPR1002) | active | 2026-05-28 |
 | 002  | na-009 | bpr1003-mpos | BPR mPos Product Agent — Mobile Point of Sale / PatPOS (BPR1003) | active | 2026-05-28 |
+| 003  | na-009 | bpr1004-utms | BPR uTms Product Agent — Unified Transaction Management System (BPR1004) | active | 2026-05-28 |
 | 001  | na-007 | aid-ceo (Yudhisthira) | Chief Executive Officer — strategy, vision, governance | active | 2026-05-27 |
 | 002  | na-007 | aid-cto (Bhima)       | Chief Technology Officer — tech strategy, engineering, platform | active | 2026-05-27 |
 | 003  | na-007 | aid-cpo (Arjuna)      | Chief Product Officer — product strategy, roadmap, UX/CX | active | 2026-05-27 |
@@ -184,7 +185,7 @@
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
-| na-009-bnprs-products    | na-009 | 2  | 255 |
+| na-009-bnprs-products    | na-009 | 3  | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies
