@@ -9,7 +9,7 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 | (pending)  | BPR0000      | Bnprs Team       | Internal team tooling          |
 | (pending)  | BPR1000      | uTms-CRM         | CRM module of UTMS             |
 | (pending)  | BPR1001      | iBecs            |                                |
-| (pending)  | BPR1002      | mGate            | API/Mobile Gateway             |
+| 001        | BPR1002      | mGate            | API/Mobile Gateway             |
 | (pending)  | BPR1003      | mPos             | Mobile Point of Sale (PatPOS)  |
 | (pending)  | BPR1004      | uTms             | Unified Transaction Mgmt System|
 | (pending)  | BPR1005      | bPass (icba)     | Issuer Controlled Biometric Auth|
@@ -41,4 +41,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 ## Agents Created
 
 <!-- Updated as agents are created -->
-<!-- - `001-bpr1002-mgate/`  — mGate API/Mobile Gateway product agent -->
+- `001-bpr1002-mgate/` — BPR1002 mGate API/Mobile Gateway product agent

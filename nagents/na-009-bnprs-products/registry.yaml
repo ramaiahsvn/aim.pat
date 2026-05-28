@@ -12,7 +12,15 @@ group:
   description: "BNPRS product agents — one agent per product line"
   max_agents: 255
 
-registry: []
+registry:
+  - code: "001"
+    name: "bpr1002-mgate"
+    label: "bpr1002-mgate"
+    role: "BPR mGate Product Agent — API and Mobile Gateway (BPR1002)"
+    path: "001-bpr1002-mgate"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
 
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents
