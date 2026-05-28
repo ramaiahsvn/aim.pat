@@ -23,6 +23,7 @@ const SCOPES        = [
   'ZohoMail.messages.CREATE',
   'ZohoMail.folders.READ',
   'ZohoMail.accounts.READ',
+  'ZohoMail.tasks.ALL',
 ].join(',');
 
 if (!CLIENT_ID || !CLIENT_SECRET || !ACCOUNT_EMAIL) {

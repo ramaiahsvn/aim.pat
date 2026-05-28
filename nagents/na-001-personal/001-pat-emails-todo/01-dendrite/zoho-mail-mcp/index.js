@@ -151,6 +151,80 @@ const TOOLS = [
       },
     },
   },
+
+  // ── Zoho Mail Tasks (to-do) ──────────────────────────────────────────────
+  {
+    name: 'list_tasks',
+    description: `List personal to-do tasks for ${ACCOUNT_EMAIL}`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', description: "Optional filter: 'inprogress' or 'completed'" },
+        limit:  { type: 'number', description: 'Max results' },
+      },
+    },
+  },
+  {
+    name: 'get_task',
+    description: `Get a single task by id for ${ACCOUNT_EMAIL}`,
+    inputSchema: {
+      type: 'object',
+      required: ['task_id'],
+      properties: { task_id: { type: 'string' } },
+    },
+  },
+  {
+    name: 'create_task',
+    description: `Create a personal to-do task for ${ACCOUNT_EMAIL}. Set message_id to link the task to the email it came from.`,
+    inputSchema: {
+      type: 'object',
+      required: ['title'],
+      properties: {
+        title:       { type: 'string', description: 'Task name (required)' },
+        description: { type: 'string' },
+        priority:    { type: 'string', description: "high | medium | low" },
+        due_date:    { type: 'string', description: 'Due date, format DD/MM/YYYY' },
+        status:      { type: 'string', description: "inprogress | completed (default inprogress)" },
+        message_id:  { type: 'string', description: 'Source email id to link the task to' },
+        email_reminder: { type: 'boolean' },
+        reminder_date:  { type: 'string', description: 'ISO 8601 reminder time (requires a reminder type)' },
+      },
+    },
+  },
+  {
+    name: 'update_task',
+    description: `Update fields of an existing task for ${ACCOUNT_EMAIL}`,
+    inputSchema: {
+      type: 'object',
+      required: ['task_id'],
+      properties: {
+        task_id:     { type: 'string' },
+        title:       { type: 'string' },
+        description: { type: 'string' },
+        priority:    { type: 'string', description: "high | medium | low" },
+        due_date:    { type: 'string', description: 'DD/MM/YYYY' },
+        status:      { type: 'string', description: "inprogress | completed" },
+      },
+    },
+  },
+  {
+    name: 'complete_task',
+    description: `Mark a task as completed for ${ACCOUNT_EMAIL}`,
+    inputSchema: {
+      type: 'object',
+      required: ['task_id'],
+      properties: { task_id: { type: 'string' } },
+    },
+  },
+  {
+    name: 'delete_task',
+    description: `Delete a task for ${ACCOUNT_EMAIL} — destructive, confirm with the user first`,
+    inputSchema: {
+      type: 'object',
+      required: ['task_id'],
+      properties: { task_id: { type: 'string' } },
+    },
+  },
 ];
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
@@ -211,6 +285,54 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     else if (name === 'move_message') {
       const data = await api('PUT', `/accounts/${accountId}/messages/${args.message_id}/move`, {}, { folderId: args.folder_id });
       result = { status: 'moved', ...data };
+    }
+
+    // ── Tasks (to-do) — top-level /tasks/me, no accountId in path ──
+    else if (name === 'list_tasks') {
+      const params = {};
+      if (args.status) params.status = args.status;
+      if (args.limit)  params.limit = args.limit;
+      const data = await api('GET', '/tasks/me', params);
+      result = data.data || data;
+    }
+
+    else if (name === 'get_task') {
+      const data = await api('GET', `/tasks/me/${args.task_id}`);
+      result = data.data || data;
+    }
+
+    else if (name === 'create_task') {
+      const body = { title: args.title };
+      if (args.description) body.description = args.description;
+      if (args.priority)    body.priority = args.priority;
+      if (args.due_date)    body.dueDate = args.due_date;
+      body.status = args.status || 'inprogress';
+      if (args.message_id)  { body.messageId = args.message_id; body.accountId = accountId; }
+      if (args.reminder_date) { body.reminderDate = args.reminder_date; body.emailReminder = args.email_reminder !== false; }
+      else if (args.email_reminder) body.emailReminder = true;
+      const data = await api('POST', '/tasks/me', {}, body);
+      result = { status: 'created', id: data.data?.id || data.id, ...(data.data || data) };
+    }
+
+    else if (name === 'update_task') {
+      const body = {};
+      if (args.title)       body.title = args.title;
+      if (args.description) body.description = args.description;
+      if (args.priority)    body.priority = args.priority;
+      if (args.due_date)    body.dueDate = args.due_date;
+      if (args.status)      body.status = args.status;
+      const data = await api('PUT', `/tasks/me/${args.task_id}`, {}, body);
+      result = { status: 'updated', ...(data.data || data) };
+    }
+
+    else if (name === 'complete_task') {
+      const data = await api('PUT', `/tasks/me/${args.task_id}`, {}, { status: 'completed' });
+      result = { status: 'completed', ...(data.data || data) };
+    }
+
+    else if (name === 'delete_task') {
+      const data = await api('DELETE', `/tasks/me/${args.task_id}`);
+      result = { status: 'deleted', ...(data.data || data) };
     }
 
     else {

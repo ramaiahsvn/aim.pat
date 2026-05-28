@@ -28,6 +28,7 @@ connection:
       - ZohoMail.messages.CREATE
       - ZohoMail.messages.UPDATE
       - ZohoMail.folders.READ
+      - ZohoMail.tasks.ALL
 
 capabilities:
   - list_messages
@@ -36,11 +37,21 @@ capabilities:
   - create_draft
   - move_message
   - list_folders
+  # Tasks (to-do) — Zoho Mail Tasks API, /api/tasks/me
+  - list_tasks
+  - get_task
+  - create_task
+  - update_task
+  - complete_task
+  - delete_task
 
 priority: high
 rate_limit: 60/min
 
 notes: >
-  Custom MCP server wrapping Zoho Mail REST API.
+  Custom MCP server wrapping Zoho Mail REST API (incl. Tasks API /api/tasks/me).
   Auth: run `node auth.js` per account in zoho-mail-mcp/.
   Credentials stored in ~/.zoho-mail-mcp/<email>.json (git-ignored).
+  IMPORTANT: the ZohoMail.tasks.ALL scope was added after initial auth — each
+  account must be RE-AUTHORISED (re-run auth.js) so its refresh token carries the
+  tasks scope, otherwise task tools return an OAuth scope-mismatch error.
