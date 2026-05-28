@@ -67,6 +67,15 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  - code: "007"
+    name: "bpr1008-bnet"
+    label: "bpr1008-bnet"
+    role: "BPR bNet Product Agent — Biometric Network (BPR1008)"
+    path: "007-bpr1008-bnet"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents
 # DE40–DE7F  (064–127)  Product R&D and prototypes

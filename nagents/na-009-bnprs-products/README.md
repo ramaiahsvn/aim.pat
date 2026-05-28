@@ -15,7 +15,7 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 | 004        | BPR1005      | bPass (icba)     | Issuer Controlled Biometric Auth|
 | 005        | BPR1006      | patKiosk         | Self-Service Kiosk Platform    |
 | 006        | BPR1007      | wGate            | Worldwide Gateway for Payment Processing |
-| (pending)  | BPR1008      | bNet             |                                |
+| 007        | BPR1008      | bNet             | Biometric Network              |
 | (pending)  | BPR1009      | bCws             |                                |
 | (pending)  | BPR1010      | Misc-ITP         |                                |
 | (pending)  | BPR1011      | mPoolRMS         |                                |
@@ -47,3 +47,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `004-bpr1005-bpass/` — BPR1005 bPass Issuer Controlled Biometric Authentication (ICBA) product agent
 - `005-bpr1006-patkiosk/` — BPR1006 patKiosk Self-Service Kiosk Platform product agent
 - `006-bpr1007-wgate/` — BPR1007 wGate Worldwide Gateway for Payment Processing product agent
+- `007-bpr1008-bnet/` — BPR1008 bNet Biometric Network product agent
