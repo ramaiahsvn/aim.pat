@@ -113,10 +113,10 @@ registry:
     created_by: "bnprs"
 
   - code: "012"
-    name: "bpr1003-mpos-libs"
-    label: "bpr1003-mpos-libs"
+    name: "bpr1003-mpos-libs-usage"
+    label: "bpr1003-mpos-libs-usage"
     role: "BPR1003 mPOS C++ Libraries"
-    path: "012-bpr1003-mpos-libs"
+    path: "012-bpr1003-mpos-libs-usage"
     status: "active"
     created_at: "2026-05-28"
     created_by: "bnprs"

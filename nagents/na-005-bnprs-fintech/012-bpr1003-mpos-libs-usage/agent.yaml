@@ -6,7 +6,7 @@
 # ============================================================
 
 agent:
-  name: "bpr1003-mpos-libs"
+  name: "bpr1003-mpos-libs-usage"
   code: "012"
   group: "na-005-bnprs-fintech"
   version: "1.0.0"
