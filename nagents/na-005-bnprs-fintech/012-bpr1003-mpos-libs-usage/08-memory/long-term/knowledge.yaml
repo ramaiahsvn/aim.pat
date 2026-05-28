@@ -4,14 +4,15 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: migration_log
+    content: "mPos.Lib migration (2026-02-22): replaced old card-reading path (mPosXxxController → ContactCardImpl → qiemv/qiScript .so) with new path (PcscCardReader → BprPcSc.so). 6 device modules migrated: pax, feitian, wizar, nexGo, ciontek, futronic. Not in scope: hyf, idemia. Library changes complete for all 6. Test app: pax/MainActivity.java done; feitian, wizar, nexGo, ciontek, futronic test apps still pending."
+    created_at: "2026-05-28"
+    last_accessed: "2026-05-28"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.99
+    source: "ZohoWorkDrive/A_Claude/20260305/20260222_mPOS.Lib.Migration.md"
+    tags: [mpos, migration, pcsc, bprpcsc, contactcard, android, pax, feitian, wizar, nexgo, ciontek, futronic]
+    detail_file: "mpos-lib-migration-20260222.md"
 
   # Example entries:
   # - id: mem-002
