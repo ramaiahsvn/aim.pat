@@ -75,6 +75,7 @@
 | 009  | na-009 | bpr1009-bcws | BPR bCws Product Agent — Biometric Criminal Watch System (BPR1009) | active | 2026-05-28 |
 | 010  | na-009 | bpr1010-misc-itp | BPR Misc-ITP Product Agent — Miscellaneous ITPCore Projects (BPR1010) | active | 2026-05-28 |
 | 011  | na-009 | bpr1011-drishtiq | BPR DrishtIQ Product Agent — Reputation Management System (BPR1011) | active | 2026-05-28 |
+| 012  | na-009 | bpr0000-bnprs-portal | BPR BNPRS Portal Product Agent — Web-Based Enterprise Portal (BPR0000) | active | 2026-05-28 |
 | 001  | na-007 | aid-ceo (Yudhisthira) | Chief Executive Officer — strategy, vision, governance | active | 2026-05-27 |
 | 002  | na-007 | aid-cto (Bhima)       | Chief Technology Officer — tech strategy, engineering, platform | active | 2026-05-27 |
 | 003  | na-007 | aid-cpo (Arjuna)      | Chief Product Officer — product strategy, roadmap, UX/CX | active | 2026-05-27 |
@@ -193,7 +194,7 @@
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
-| na-009-bnprs-products    | na-009 | 11 | 255 |
+| na-009-bnprs-products    | na-009 | 12 | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies

@@ -19,7 +19,7 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 | 009        | BPR1009      | bCws             | Biometric Criminal Watch System          |
 | 010        | BPR1010      | Misc-ITP         | Miscellaneous ITPCore Projects           |
 | 011        | BPR1011      | DrishtIQ         | Reputation Management System             |
-| (pending)  | BPR0000      | Bnprs Team       | Internal team tooling                    |
+| 012        | BPR0000      | BNPRS Portal     | Web-Based Enterprise Portal (HR, Payroll, Sprints, Expenses, Codebase) |
 | (pending)  | BPR1000      | uTms-CRM         | CRM module of UTMS                       |
 | (pending)  | TRP1001      | SbioidS          | SBI Biometric IDS                        |
 | (pending)  | TRP1002      | cPerso           | Central Personalisation                  |
@@ -53,3 +53,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `009-bpr1009-bcws/` — BPR1009 bCws Biometric Criminal Watch System product agent
 - `010-bpr1010-misc-itp/` — BPR1010 Misc-ITP Miscellaneous ITPCore Projects product agent
 - `011-bpr1011-drishtiq/` — BPR1011 DrishtIQ Reputation Management System product agent
+- `012-bpr0000-bnprs-portal/` — BPR0000 BNPRS Portal Web-Based Enterprise Portal product agent

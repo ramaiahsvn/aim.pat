@@ -114,6 +114,15 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  - code: "012"
+    name: "bpr0000-bnprs-portal"
+    label: "bpr0000-bnprs-portal"
+    role: "BPR BNPRS Portal Product Agent — Web-Based Enterprise Portal (HR, Payroll, Sprints, Expenses, Codebase) (BPR0000)"
+    path: "012-bpr0000-bnprs-portal"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents (BPR100X aligns with 00X for 001–011)
 # DE40–DE7F  (064–127)  Product R&D and prototypes
