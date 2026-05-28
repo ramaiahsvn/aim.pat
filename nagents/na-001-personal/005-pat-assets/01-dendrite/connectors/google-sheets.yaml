@@ -1,0 +1,39 @@
+id: connector-google-sheets
+name: "Google Sheets"
+type: mcp-connector
+protocol: mcp
+version: "1.0"
+
+accounts:
+  - email: "ramaiah.iith@gmail.com"
+    mcp_server: "google-sheets-iith"
+    token_path: "~/.mcp-google-sheets-token-iith.json"
+
+connection:
+  server: "mcp-google-sheets"
+  auth:
+    type: oauth2
+    scopes:
+      - https://www.googleapis.com/auth/spreadsheets
+      - https://www.googleapis.com/auth/drive.file
+  credentials:
+    client_id_ref: "secrets.yaml::google_sheets.client_id"
+    client_secret_ref: "secrets.yaml::google_sheets.client_secret"
+
+capabilities:
+  - get_spreadsheet_info
+  - list_sheets
+  - read_range
+  - write_range
+  - batch_update
+  - append_rows
+  - clear_range
+  - create_spreadsheet
+
+priority: high
+
+notes: >
+  Google Sheets connector for fBMI tracking spreadsheet (ramaiah.iith@gmail.com).
+  Credentials reuse the GCP OAuth client from pat-emails-todo (same GCP project).
+  First-time auth: run `npx mcp-google-sheets` with env vars set, complete browser flow.
+  Token stored at ~/.mcp-google-sheets-token-iith.json.
