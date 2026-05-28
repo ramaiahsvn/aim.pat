@@ -20,7 +20,7 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 | 010        | BPR1010      | Misc-ITP         | Miscellaneous ITPCore Projects           |
 | 011        | BPR1011      | DrishtIQ         | Reputation Management System             |
 | 012        | BPR0000      | BNPRS Portal     | Web-Based Enterprise Portal (HR, Payroll, Sprints, Expenses, Codebase) |
-| (pending)  | BPR1000      | uTms-CRM         | CRM module of UTMS                       |
+| 013        | BPR1000      | uTms-CRM         | License Management, Clients, Subscriptions|
 | (pending)  | TRP1001      | SbioidS          | SBI Biometric IDS                        |
 | (pending)  | TRP1002      | cPerso           | Central Personalisation                  |
 | (pending)  | TRP1003      | pHsm             |                                          |
@@ -54,3 +54,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `010-bpr1010-misc-itp/` — BPR1010 Misc-ITP Miscellaneous ITPCore Projects product agent
 - `011-bpr1011-drishtiq/` — BPR1011 DrishtIQ Reputation Management System product agent
 - `012-bpr0000-bnprs-portal/` — BPR0000 BNPRS Portal Web-Based Enterprise Portal product agent
+- `013-bpr1000-utms-crm/` — BPR1000 uTms-CRM License Management, Clients, Subscriptions product agent
