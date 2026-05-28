@@ -13,7 +13,7 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 | 002        | BPR1003      | mPos             | Mobile Point of Sale (PatPOS)  |
 | 003        | BPR1004      | uTms             | Unified Transaction Mgmt System|
 | 004        | BPR1005      | bPass (icba)     | Issuer Controlled Biometric Auth|
-| (pending)  | BPR1006      | patKiosk         |                                |
+| 005        | BPR1006      | patKiosk         | Self-Service Kiosk Platform    |
 | (pending)  | BPR1007      | wGate            |                                |
 | (pending)  | BPR1008      | bNet             |                                |
 | (pending)  | BPR1009      | bCws             |                                |
@@ -45,3 +45,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `002-bpr1003-mpos/` — BPR1003 mPos Mobile Point of Sale / PatPOS product agent
 - `003-bpr1004-utms/` — BPR1004 uTms Unified Transaction Management System product agent
 - `004-bpr1005-bpass/` — BPR1005 bPass Issuer Controlled Biometric Authentication (ICBA) product agent
+- `005-bpr1006-patkiosk/` — BPR1006 patKiosk Self-Service Kiosk Platform product agent
