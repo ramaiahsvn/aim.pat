@@ -17,7 +17,7 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 | 006        | BPR1007      | wGate            | Worldwide Gateway for Payment Processing |
 | 007        | BPR1008      | bNet             | Biometric Network              |
 | 008        | BPR1009      | bCws             | Biometric Criminal Watch System|
-| (pending)  | BPR1010      | Misc-ITP         |                                |
+| 009        | BPR1010      | Misc-ITP         | Miscellaneous ITPCore Projects |
 | (pending)  | BPR1011      | mPoolRMS         |                                |
 | (pending)  | TRP1001      | SbioidS          | SBI Biometric IDS              |
 | (pending)  | TRP1002      | cPerso           | Central Personalisation        |
@@ -49,3 +49,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `006-bpr1007-wgate/` — BPR1007 wGate Worldwide Gateway for Payment Processing product agent
 - `007-bpr1008-bnet/` — BPR1008 bNet Biometric Network product agent
 - `008-bpr1009-bcws/` — BPR1009 bCws Biometric Criminal Watch System product agent
+- `009-bpr1010-misc-itp/` — BPR1010 Misc-ITP Miscellaneous ITPCore Projects product agent

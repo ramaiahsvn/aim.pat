@@ -85,6 +85,15 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  - code: "009"
+    name: "bpr1010-misc-itp"
+    label: "bpr1010-misc-itp"
+    role: "BPR Misc-ITP Product Agent — Miscellaneous ITPCore Projects (BPR1010)"
+    path: "009-bpr1010-misc-itp"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents
 # DE40–DE7F  (064–127)  Product R&D and prototypes
