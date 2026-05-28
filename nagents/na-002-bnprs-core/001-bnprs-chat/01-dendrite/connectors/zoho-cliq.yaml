@@ -1,0 +1,58 @@
+# ============================================================
+#  CONNECTOR — Zoho Cliq (OAuth2 REST API)
+# ============================================================
+#  Two-way messaging for bnprs-chat via the Zoho Cliq REST API.
+#  Data center: .com (global) — confirmed at token exchange
+#  (OAuth api_domain returned https://www.zohoapis.com)
+#
+#  NOTE: No secret values live in this file. Credentials are read
+#  from ../secrets/secrets.yaml (git-ignored) by the keys named in
+#  connection.auth.*_ref below.
+# ============================================================
+
+id: connector-zoho-cliq
+name: "Zoho Cliq"
+type: rest-api               # mcp-connector | rest-api | webhook | database
+protocol: http
+version: "1.0"
+
+connection:
+  # Region: global (.com) data center
+  api_base: "https://cliq.zoho.com/api/v2"
+  api_domain: "https://www.zohoapis.com"   # OAuth-issued base (unified gateway: /cliq/v2)
+  accounts_base: "https://accounts.zoho.com"
+  auth:
+    type: oauth2
+    grant: refresh_token     # self-client: long-lived refresh token -> access token
+    authorize_url: "https://accounts.zoho.com/oauth/v2/auth"
+    token_url: "https://accounts.zoho.com/oauth/v2/token"
+    # References into secrets.yaml (keys, NOT values)
+    client_id_ref: "zoho_cliq.client_id"
+    client_secret_ref: "zoho_cliq.client_secret"
+    refresh_token_ref: "zoho_cliq.refresh_token"
+    scopes:
+      - ZohoCliq.Channels.ALL       # list/read channels
+      - ZohoCliq.Messages.CREATE    # post messages
+      - ZohoCliq.Chats.READ         # read chats/messages
+      - ZohoCliq.Buddies.READ       # resolve users
+      - ZohoCliq.Attachments.CREATE # upload files
+      - ZohoCliq.Webhooks.CREATE    # trigger incoming webhooks
+
+capabilities:
+  - send_channel_message     # POST /channelsbyname/{name}/message
+  - send_chat_message        # POST /chats/{chat_id}/message
+  - send_bot_message         # POST /bots/{bot_unique_name}/message
+  - list_channels            # GET  /channels
+  - read_chat_messages       # GET  /chats/{chat_id}/messages
+  - get_user                 # GET  /buddies/{email}
+  - upload_attachment        # POST /chats/{chat_id}/files
+
+# Signal strength: how the soma prioritizes this input
+# high = always considered | medium = on-demand | low = background
+priority: high
+rate_limit: 60/min
+
+# Default target if a request does not specify one (filled per deployment)
+defaults:
+  channel: ""                # default channel unique-name to post into
+  bot: ""                    # default bot unique-name, if used
