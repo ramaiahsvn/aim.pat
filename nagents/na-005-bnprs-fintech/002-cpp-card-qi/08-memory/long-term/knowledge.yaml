@@ -4,14 +4,15 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: technical_knowledge
+    content: "armhf cross-compile toolbox for Raspberry Pi OS 32-bit (Debian armhf). Docker image bpr-cross/armhf:bookworm. Wrappers: armhf-g++, armhf-gcc, armhf-ar, armhf-strip at /Users/bnprs/BprTools/armhf. Worked example: QiScript/apdu_qi_write_central_perso_gnd.cpp compiles clean (2026-04-14). Lib prefix required on .a files for GNU ld -l linking."
+    created_at: "2026-05-28"
+    last_accessed: "2026-05-28"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.99
+    source: "ZohoWorkDrive/A_Claude/20260414/20260414_RasberryPi_DockerSetup.md"
+    tags: [raspberry-pi, armhf, cross-compile, docker, cpp17, qiscript]
+    detail_file: "raspi-armhf-crosscompile.md"
 
   # Example entries:
   # - id: mem-002
