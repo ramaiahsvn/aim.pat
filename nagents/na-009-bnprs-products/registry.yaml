@@ -18,7 +18,7 @@ registry:
   - code: "001"
     name: "bpr1001-ibecs"
     label: "bpr1001-ibecs"
-    role: "BPR iBecs Product Agent — (BPR1001)"
+    role: "BPR iBecs Product Agent — Instant Biometric Enrollment Card Solution (BPR1001)"
     path: "001-bpr1001-ibecs"
     status: "active"
     created_at: "2026-05-28"

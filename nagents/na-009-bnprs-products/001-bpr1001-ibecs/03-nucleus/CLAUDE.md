@@ -8,8 +8,8 @@
 - **Name**: bpr1001-ibecs
 - **Code**: 001
 - **Group**: na-009-bnprs-products
-- **Role**: BPR iBecs Product Agent
-- **Domain**: ibecs, BPR1001
+- **Role**: BPR iBecs Product Agent — Instant Biometric Enrollment Card Solution
+- **Domain**: instant-enrollment, biometric-card, ibecs, BPR1001
 - **Version**: 1.0.0
 
 ## Persona

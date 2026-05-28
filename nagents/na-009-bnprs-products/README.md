@@ -8,7 +8,7 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 
 | Agent Code | Product Code | Product Name     | Notes                                    |
 |------------|--------------|------------------|------------------------------------------|
-| 001        | BPR1001      | iBecs            |                                          |
+| 001        | BPR1001      | iBecs            | Instant Biometric Enrollment Card Solution|
 | 002        | BPR1002      | mGate            | API/Mobile Gateway                       |
 | 003        | BPR1003      | mPos             | Mobile Point of Sale (PatPOS)            |
 | 004        | BPR1004      | uTms             | Unified Transaction Mgmt System          |

@@ -64,7 +64,7 @@
 | 007  | na-006 | bpr1007-acs-prod | BPR ACS Production (Access Control System) | active | 2026-05-27 |
 | 001  | na-100 | rnd-mpos | mPOS R&D and Competitive Analysis (BPR1003 PatPOS, PhonePe ref) | active | 2026-05-27 |
 | 002  | na-100 | rnd-superapp | AandhiPe Super-App R&D (BPR2001, SuperQi/WeChat/ONDC ref) | active | 2026-05-27 |
-| 001  | na-009 | bpr1001-ibecs | BPR iBecs Product Agent (BPR1001) | active | 2026-05-28 |
+| 001  | na-009 | bpr1001-ibecs | BPR iBecs Product Agent — Instant Biometric Enrollment Card Solution (BPR1001) | active | 2026-05-28 |
 | 002  | na-009 | bpr1002-mgate | BPR mGate Product Agent — API and Mobile Gateway (BPR1002) | active | 2026-05-28 |
 | 003  | na-009 | bpr1003-mpos | BPR mPos Product Agent — Mobile Point of Sale / PatPOS (BPR1003) | active | 2026-05-28 |
 | 004  | na-009 | bpr1004-utms | BPR uTms Product Agent — Unified Transaction Management System (BPR1004) | active | 2026-05-28 |
