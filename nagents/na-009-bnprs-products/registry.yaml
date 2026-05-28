@@ -1,0 +1,21 @@
+# ============================================================
+#  AGENT REGISTRY — na-009-bnprs-products
+# ============================================================
+#  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
+#  IMMUTABLE: once a code is assigned it is NEVER reused,
+#  even if the agent is retired or deleted.
+# ============================================================
+
+group:
+  id: "na-009"
+  name: "bnprs-products"
+  description: "BNPRS product agents — one agent per product line"
+  max_agents: 255
+
+registry: []
+
+# ---- CODE ALLOCATION RULES ---- #
+# DE01–DE3F  (001–063)  Core product agents
+# DE40–DE7F  (064–127)  Product R&D and prototypes
+# DE80–DEBF  (128–191)  Product support and tooling
+# DEC0–DEFF  (192–255)  Reserved for future use

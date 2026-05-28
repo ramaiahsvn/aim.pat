@@ -54,6 +54,7 @@ Read all files in `memory/` (skip `memory/private/` unless relevant):
 | 006 | na-006-bnprs-deployments | Release management, CI/CD, environments                             |
 | 007 | na-007-bnprs-cxo         | CXO agents — CEO, CTO, CFO, COO and related                         |
 | 008 | na-008-bnprs-team        | BNPRS employee agents — one agent per employee (AIDs)               |
+| 009 | na-009-bnprs-products    | BNPRS product agents — one agent per product line                   |
 | 100 | na-100-gne-esrever       | Miscellaneous tasks and ad-hoc agents                               |
 
 > **na-008-bnprs-team is exceptional** — agents here do not follow the nagent-template structure.

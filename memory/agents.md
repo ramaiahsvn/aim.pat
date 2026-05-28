@@ -182,6 +182,7 @@
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
+| na-009-bnprs-products    | na-009 | 0  | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies
