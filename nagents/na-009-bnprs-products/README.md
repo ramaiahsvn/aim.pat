@@ -16,7 +16,7 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 | 005        | BPR1006      | patKiosk         | Self-Service Kiosk Platform    |
 | 006        | BPR1007      | wGate            | Worldwide Gateway for Payment Processing |
 | 007        | BPR1008      | bNet             | Biometric Network              |
-| (pending)  | BPR1009      | bCws             |                                |
+| 008        | BPR1009      | bCws             | Biometric Criminal Watch System|
 | (pending)  | BPR1010      | Misc-ITP         |                                |
 | (pending)  | BPR1011      | mPoolRMS         |                                |
 | (pending)  | TRP1001      | SbioidS          | SBI Biometric IDS              |
@@ -48,3 +48,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `005-bpr1006-patkiosk/` — BPR1006 patKiosk Self-Service Kiosk Platform product agent
 - `006-bpr1007-wgate/` — BPR1007 wGate Worldwide Gateway for Payment Processing product agent
 - `007-bpr1008-bnet/` — BPR1008 bNet Biometric Network product agent
+- `008-bpr1009-bcws/` — BPR1009 bCws Biometric Criminal Watch System product agent

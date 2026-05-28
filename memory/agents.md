@@ -71,6 +71,7 @@
 | 005  | na-009 | bpr1006-patkiosk | BPR patKiosk Product Agent — Self-Service Kiosk Platform (BPR1006) | active | 2026-05-28 |
 | 006  | na-009 | bpr1007-wgate | BPR wGate Product Agent — Worldwide Gateway for Payment Processing (BPR1007) | active | 2026-05-28 |
 | 007  | na-009 | bpr1008-bnet | BPR bNet Product Agent — Biometric Network (BPR1008) | active | 2026-05-28 |
+| 008  | na-009 | bpr1009-bcws | BPR bCws Product Agent — Biometric Criminal Watch System (BPR1009) | active | 2026-05-28 |
 | 001  | na-007 | aid-ceo (Yudhisthira) | Chief Executive Officer — strategy, vision, governance | active | 2026-05-27 |
 | 002  | na-007 | aid-cto (Bhima)       | Chief Technology Officer — tech strategy, engineering, platform | active | 2026-05-27 |
 | 003  | na-007 | aid-cpo (Arjuna)      | Chief Product Officer — product strategy, roadmap, UX/CX | active | 2026-05-27 |
@@ -189,7 +190,7 @@
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
-| na-009-bnprs-products    | na-009 | 7  | 255 |
+| na-009-bnprs-products    | na-009 | 8  | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies

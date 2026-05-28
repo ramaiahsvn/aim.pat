@@ -76,6 +76,15 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  - code: "008"
+    name: "bpr1009-bcws"
+    label: "bpr1009-bcws"
+    role: "BPR bCws Product Agent — Biometric Criminal Watch System (BPR1009)"
+    path: "008-bpr1009-bcws"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Core product agents
 # DE40–DE7F  (064–127)  Product R&D and prototypes
