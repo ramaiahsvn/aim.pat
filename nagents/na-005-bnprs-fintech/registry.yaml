@@ -112,6 +112,15 @@ registry:
     created_at: "2026-05-27"
     created_by: "bnprs"
 
+  - code: "012"
+    name: "bpr1003-mpos-libs"
+    label: "bpr1003-mpos-libs"
+    role: "BPR1003 mPOS C++ Libraries"
+    path: "012-bpr1003-mpos-libs"
+    status: "active"
+    created_at: "2026-05-28"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Transaction and payment agents
 # DE40–DE7F  (064–127)  Reporting and reconciliation
