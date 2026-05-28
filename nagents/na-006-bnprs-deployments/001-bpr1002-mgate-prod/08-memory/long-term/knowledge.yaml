@@ -4,14 +4,15 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: incident_report
+    content: "Full Terraform destroy of mGate AWS infrastructure on 2026-03-17. Account 819144294008 (itp), eu-central-1. ~270 resources across services/platform/bootstrap phases. ALB deletion protection disabled on 3 ALBs, RDS Aurora (mgate-db) protection disabled, 10 ECR repos force-deleted. 19 state files backed up to bpr1002.mgate.iaac/state-backup/ before bucket removal. Terraform downgraded to v1.5.7 — removed use_lockfile, relaxed required_version, removed cross-variable validations."
+    created_at: "2026-05-28"
+    last_accessed: "2026-05-28"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.99
+    source: "ZohoWorkDrive/A_Claude/20260317/20260317_terraform-destroy-report.md"
+    tags: [terraform, destroy, mgate, aws, eu-central-1, bpr1002, iaac]
+    detail_file: "terraform-destroy-report-20260317.md"
 
   # Example entries:
   # - id: mem-002
