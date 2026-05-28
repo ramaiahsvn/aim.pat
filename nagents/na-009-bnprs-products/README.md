@@ -14,7 +14,7 @@ One agent per product. Each agent defines the product's rules, workflows, connec
 | 003        | BPR1004      | uTms             | Unified Transaction Mgmt System|
 | 004        | BPR1005      | bPass (icba)     | Issuer Controlled Biometric Auth|
 | 005        | BPR1006      | patKiosk         | Self-Service Kiosk Platform    |
-| (pending)  | BPR1007      | wGate            |                                |
+| 006        | BPR1007      | wGate            | Web Gateway                    |
 | (pending)  | BPR1008      | bNet             |                                |
 | (pending)  | BPR1009      | bCws             |                                |
 | (pending)  | BPR1010      | Misc-ITP         |                                |
@@ -46,3 +46,4 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `003-bpr1004-utms/` — BPR1004 uTms Unified Transaction Management System product agent
 - `004-bpr1005-bpass/` — BPR1005 bPass Issuer Controlled Biometric Authentication (ICBA) product agent
 - `005-bpr1006-patkiosk/` — BPR1006 patKiosk Self-Service Kiosk Platform product agent
+- `006-bpr1007-wgate/` — BPR1007 wGate Web Gateway product agent
