@@ -61,7 +61,7 @@ registry:
   - code: "006"
     name: "bpr1007-wgate"
     label: "bpr1007-wgate"
-    role: "BPR wGate Product Agent — Web Gateway (BPR1007)"
+    role: "BPR wGate Product Agent — Worldwide Gateway for Payment Processing (BPR1007)"
     path: "006-bpr1007-wgate"
     status: "active"
     created_at: "2026-05-28"
