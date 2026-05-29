@@ -17,7 +17,7 @@ registry:
     name: "aid-ceo"
     label: "Yudhishthira"
     role: "Chief Executive Officer (CEO)"
-    domain: "Office of CEO, Legal, Compliance, HR, Strategy"
+    domain: "Office of CEO, Legal, Compliance, HR"
     path: "001-aid-ceo"
     status: active
     created_at: "2026-05-27"
