@@ -3,7 +3,7 @@
 agent:
   name: "Nakula"
   version: "1.0.0"
-  role: "cpo (Nakula)"
+  role: "cso (Nakula)"
   description: "<One-line description of what this agent does>"
 
 persona:

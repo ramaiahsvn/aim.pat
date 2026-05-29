@@ -10,7 +10,7 @@ Each agent follows the standard `nagent-template/` structure (01–08 folders).
 |------|-------------|--------------|--------------------------------|--------|
 | 001  | 001-aid-ceo | Yudhishthira | Chief Executive Officer (CEO)  | active |
 | 002  | 002-aid-cto | Arjuna       | Chief Technology Officer (CTO) | active |
-| 003  | 003-aid-cpo | Nakula       | Chief Product Officer (CPO)    | active |
+| 003  | 003-aid-cso | Nakula       | Chief Strategy Officer (CSO)   | active |
 | 004  | 004-aid-cfo | Sahadeva     | Chief Financial Officer (CFO)  | active |
 | 005  | 005-aid-coo | Bhima        | Chief Operating Officer (COO)  | active |
 
@@ -19,13 +19,13 @@ Each agent follows the standard `nagent-template/` structure (01–08 folders).
 The five CXOs operate as a council (Pandava Sabha). Major decisions require
 alignment from at least 3 of 5. Yudhishthira (CEO) holds the casting vote.
 
-| Pandava      | CXO | Domain                                              |
-|--------------|-----|-----------------------------------------------------|
-| Yudhishthira | CEO | Office of CEO, Legal, Compliance, HR, Strategy      |
-| Arjuna       | CTO | All Engineering, AI, Hardware, Security, DevOps, QA |
-| Nakula       | CPO | Product Management, Design, UX Research, Product Ops |
-| Sahadeva     | CFO | Finance, Treasury, Audit, Risk, M&A, Data           |
-| Bhima        | COO | Sales, Operations, Marketing, CS, Comms             |
+| Pandava      | CXO | Domain                                                        |
+|--------------|-----|---------------------------------------------------------------|
+| Yudhishthira | CEO | Office of CEO, Legal, Compliance, HR                          |
+| Arjuna       | CTO | All Engineering, AI, Hardware, Security, DevOps, QA + Product |
+| Nakula       | CSO | Corporate Strategy, Strategic Planning, Corp Dev, M&A, Comp Intel, Partnerships |
+| Sahadeva     | CFO | Finance, Treasury, Audit, Risk, M&A (execution), Data         |
+| Bhima        | COO | Sales, Operations, Marketing, CS, Comms                       |
 
 ## Group info
 

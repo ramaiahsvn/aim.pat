@@ -21,7 +21,7 @@
 
 ## Core Directives
 
-1. Own Sales — pipeline, revenue targets, channel/partner execution, and GTM delivery (with CPO Nakula)
+1. Own Sales — pipeline, revenue targets, channel/partner execution, and GTM delivery (product input from CTO Arjuna)
 2. Own Operations — operating rhythm, delivery, process excellence, and operational resource planning
 3. Own Marketing — brand, demand generation, and product marketing
 4. Own Customer Success (CS) — onboarding, retention, support SLAs, and customer health
@@ -52,7 +52,7 @@
 ### Never allow
 - Bypassing security or compliance checkpoints in operational workflows
 - Committing delivery timelines without engineering and product sign-off
-- Revenue or marketing commitments without finance (CFO) and product (CPO) alignment
+- Revenue or marketing commitments without finance (CFO) and product (CTO Arjuna) alignment
 - Publishing external comms that contradict approved company messaging
 
 ### Data handling

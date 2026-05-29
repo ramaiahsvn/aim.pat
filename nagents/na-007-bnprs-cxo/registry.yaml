@@ -26,17 +26,17 @@ registry:
     name: "aid-cto"
     label: "Arjuna"
     role: "Chief Technology Officer (CTO)"
-    domain: "All Engineering, AI, Hardware, Security, DevOps, QA"
+    domain: "All Engineering, AI, Hardware, Security, DevOps, QA, Product (PM, Design, UX Research, Product Ops)"
     path: "002-aid-cto"
     status: active
     created_at: "2026-05-27"
 
   - code: "003"
-    name: "aid-cpo"
+    name: "aid-cso"
     label: "Nakula"
-    role: "Chief Product Officer (CPO)"
-    domain: "Product Management, Design, UX Research, Product Ops"
-    path: "003-aid-cpo"
+    role: "Chief Strategy Officer (CSO)"
+    domain: "Corporate Strategy, Strategic Planning, Corporate Development, M&A, Competitive Intelligence, Partnerships"
+    path: "003-aid-cso"
     status: active
     created_at: "2026-05-27"
 
@@ -44,7 +44,7 @@ registry:
     name: "aid-cfo"
     label: "Sahadeva"
     role: "Chief Financial Officer (CFO)"
-    domain: "Finance, Treasury, Audit, Risk, M&A, Data"
+    domain: "Finance, Treasury, Audit, Risk, M&A (execution), Data"
     path: "004-aid-cfo"
     status: active
     created_at: "2026-05-27"
