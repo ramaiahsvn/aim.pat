@@ -10,12 +10,21 @@ group:
   description: "BNPRS team agents — 100 Kauravas (Kaurava warriors)"
   max_agents: 255
 
+  # Sub-group tiers (mirrors clone layout in GitRepos2/AIM1001_Team/)
+  tiers:
+    - { name: "01-principal-agents",   range: "001-010", count: 10 }
+    - { name: "02-senior-agents",      range: "011-025", count: 15 }
+    - { name: "03-engineering-agents", range: "026-075", count: 50 }
+    - { name: "04-support-agents",     range: "076-100", count: 25 }
+
 registry:
+  # ===== Tier 01 — principal-agents (001-010) =====
   - code: "001"
     name: "aid-duryodhana"
     label: "duryodhana"
     role: "BNPRS Team Member"
-    path: "001-aid-duryodhana"
+    path: "01-principal-agents/001-aid-duryodhana"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -23,7 +32,8 @@ registry:
     name: "aid-dushasana"
     label: "dushasana"
     role: "BNPRS Team Member"
-    path: "002-aid-dushasana"
+    path: "01-principal-agents/002-aid-dushasana"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -31,7 +41,8 @@ registry:
     name: "aid-dussaha"
     label: "dussaha"
     role: "BNPRS Team Member"
-    path: "003-aid-dussaha"
+    path: "01-principal-agents/003-aid-dussaha"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -39,7 +50,8 @@ registry:
     name: "aid-dussala"
     label: "dussala"
     role: "BNPRS Team Member"
-    path: "004-aid-dussala"
+    path: "01-principal-agents/004-aid-dussala"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -47,7 +59,8 @@ registry:
     name: "aid-jalasandha"
     label: "jalasandha"
     role: "BNPRS Team Member"
-    path: "005-aid-jalasandha"
+    path: "01-principal-agents/005-aid-jalasandha"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -55,7 +68,8 @@ registry:
     name: "aid-sama"
     label: "sama"
     role: "BNPRS Team Member"
-    path: "006-aid-sama"
+    path: "01-principal-agents/006-aid-sama"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -63,7 +77,8 @@ registry:
     name: "aid-saha"
     label: "saha"
     role: "BNPRS Team Member"
-    path: "007-aid-saha"
+    path: "01-principal-agents/007-aid-saha"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -71,7 +86,8 @@ registry:
     name: "aid-vinda"
     label: "vinda"
     role: "BNPRS Team Member"
-    path: "008-aid-vinda"
+    path: "01-principal-agents/008-aid-vinda"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -79,7 +95,8 @@ registry:
     name: "aid-anuvinda"
     label: "anuvinda"
     role: "BNPRS Team Member"
-    path: "009-aid-anuvinda"
+    path: "01-principal-agents/009-aid-anuvinda"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -87,15 +104,18 @@ registry:
     name: "aid-durdharsha"
     label: "durdharsha"
     role: "BNPRS Team Member"
-    path: "010-aid-durdharsha"
+    path: "01-principal-agents/010-aid-durdharsha"
+    tier: "01-principal-agents"
     status: active
     created_at: "2026-05-27"
 
+  # ===== Tier 02 — senior-agents (011-025) =====
   - code: "011"
     name: "aid-subahu"
     label: "subahu"
     role: "BNPRS Team Member"
-    path: "011-aid-subahu"
+    path: "02-senior-agents/011-aid-subahu"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -103,7 +123,8 @@ registry:
     name: "aid-dushpradharshana"
     label: "dushpradharshana"
     role: "BNPRS Team Member"
-    path: "012-aid-dushpradharshana"
+    path: "02-senior-agents/012-aid-dushpradharshana"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -111,7 +132,8 @@ registry:
     name: "aid-durmarshana"
     label: "durmarshana"
     role: "BNPRS Team Member"
-    path: "013-aid-durmarshana"
+    path: "02-senior-agents/013-aid-durmarshana"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -119,7 +141,8 @@ registry:
     name: "aid-durmukha"
     label: "durmukha"
     role: "BNPRS Team Member"
-    path: "014-aid-durmukha"
+    path: "02-senior-agents/014-aid-durmukha"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -127,7 +150,8 @@ registry:
     name: "aid-dushkarna"
     label: "dushkarna"
     role: "BNPRS Team Member"
-    path: "015-aid-dushkarna"
+    path: "02-senior-agents/015-aid-dushkarna"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -135,7 +159,8 @@ registry:
     name: "aid-karna"
     label: "karna"
     role: "BNPRS Team Member"
-    path: "016-aid-karna"
+    path: "02-senior-agents/016-aid-karna"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -143,7 +168,8 @@ registry:
     name: "aid-vivimsati"
     label: "vivimsati"
     role: "BNPRS Team Member"
-    path: "017-aid-vivimsati"
+    path: "02-senior-agents/017-aid-vivimsati"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -151,7 +177,8 @@ registry:
     name: "aid-vikarna"
     label: "vikarna"
     role: "BNPRS Team Member"
-    path: "018-aid-vikarna"
+    path: "02-senior-agents/018-aid-vikarna"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -159,7 +186,8 @@ registry:
     name: "aid-shala"
     label: "shala"
     role: "BNPRS Team Member"
-    path: "019-aid-shala"
+    path: "02-senior-agents/019-aid-shala"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -167,7 +195,8 @@ registry:
     name: "aid-satva"
     label: "satva"
     role: "BNPRS Team Member"
-    path: "020-aid-satva"
+    path: "02-senior-agents/020-aid-satva"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -175,7 +204,8 @@ registry:
     name: "aid-sulochana"
     label: "sulochana"
     role: "BNPRS Team Member"
-    path: "021-aid-sulochana"
+    path: "02-senior-agents/021-aid-sulochana"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -183,7 +213,8 @@ registry:
     name: "aid-chitra"
     label: "chitra"
     role: "BNPRS Team Member"
-    path: "022-aid-chitra"
+    path: "02-senior-agents/022-aid-chitra"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -191,7 +222,8 @@ registry:
     name: "aid-upachitra"
     label: "upachitra"
     role: "BNPRS Team Member"
-    path: "023-aid-upachitra"
+    path: "02-senior-agents/023-aid-upachitra"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -199,7 +231,8 @@ registry:
     name: "aid-chitraksha"
     label: "chitraksha"
     role: "BNPRS Team Member"
-    path: "024-aid-chitraksha"
+    path: "02-senior-agents/024-aid-chitraksha"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -207,15 +240,18 @@ registry:
     name: "aid-charuchitra"
     label: "charuchitra"
     role: "BNPRS Team Member"
-    path: "025-aid-charuchitra"
+    path: "02-senior-agents/025-aid-charuchitra"
+    tier: "02-senior-agents"
     status: active
     created_at: "2026-05-27"
 
+  # ===== Tier 03 — engineering-agents (026-075) =====
   - code: "026"
     name: "aid-sarasana"
     label: "sarasana"
     role: "BNPRS Team Member"
-    path: "026-aid-sarasana"
+    path: "03-engineering-agents/026-aid-sarasana"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -223,7 +259,8 @@ registry:
     name: "aid-durmada"
     label: "durmada"
     role: "BNPRS Team Member"
-    path: "027-aid-durmada"
+    path: "03-engineering-agents/027-aid-durmada"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -231,7 +268,8 @@ registry:
     name: "aid-durvigaha"
     label: "durvigaha"
     role: "BNPRS Team Member"
-    path: "028-aid-durvigaha"
+    path: "03-engineering-agents/028-aid-durvigaha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -239,7 +277,8 @@ registry:
     name: "aid-vivitsu"
     label: "vivitsu"
     role: "BNPRS Team Member"
-    path: "029-aid-vivitsu"
+    path: "03-engineering-agents/029-aid-vivitsu"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -247,7 +286,8 @@ registry:
     name: "aid-vikatanana"
     label: "vikatanana"
     role: "BNPRS Team Member"
-    path: "030-aid-vikatanana"
+    path: "03-engineering-agents/030-aid-vikatanana"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -255,7 +295,8 @@ registry:
     name: "aid-urnanabha"
     label: "urnanabha"
     role: "BNPRS Team Member"
-    path: "031-aid-urnanabha"
+    path: "03-engineering-agents/031-aid-urnanabha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -263,7 +304,8 @@ registry:
     name: "aid-sunabha"
     label: "sunabha"
     role: "BNPRS Team Member"
-    path: "032-aid-sunabha"
+    path: "03-engineering-agents/032-aid-sunabha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -271,7 +313,8 @@ registry:
     name: "aid-nanda"
     label: "nanda"
     role: "BNPRS Team Member"
-    path: "033-aid-nanda"
+    path: "03-engineering-agents/033-aid-nanda"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -279,7 +322,8 @@ registry:
     name: "aid-upananda"
     label: "upananda"
     role: "BNPRS Team Member"
-    path: "034-aid-upananda"
+    path: "03-engineering-agents/034-aid-upananda"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -287,7 +331,8 @@ registry:
     name: "aid-chitrabana"
     label: "chitrabana"
     role: "BNPRS Team Member"
-    path: "035-aid-chitrabana"
+    path: "03-engineering-agents/035-aid-chitrabana"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -295,7 +340,8 @@ registry:
     name: "aid-chitravarma"
     label: "chitravarma"
     role: "BNPRS Team Member"
-    path: "036-aid-chitravarma"
+    path: "03-engineering-agents/036-aid-chitravarma"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -303,7 +349,8 @@ registry:
     name: "aid-suvarma"
     label: "suvarma"
     role: "BNPRS Team Member"
-    path: "037-aid-suvarma"
+    path: "03-engineering-agents/037-aid-suvarma"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -311,7 +358,8 @@ registry:
     name: "aid-durvimochana"
     label: "durvimochana"
     role: "BNPRS Team Member"
-    path: "038-aid-durvimochana"
+    path: "03-engineering-agents/038-aid-durvimochana"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -319,7 +367,8 @@ registry:
     name: "aid-ayobahu"
     label: "ayobahu"
     role: "BNPRS Team Member"
-    path: "039-aid-ayobahu"
+    path: "03-engineering-agents/039-aid-ayobahu"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -327,7 +376,8 @@ registry:
     name: "aid-mahabahu"
     label: "mahabahu"
     role: "BNPRS Team Member"
-    path: "040-aid-mahabahu"
+    path: "03-engineering-agents/040-aid-mahabahu"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -335,7 +385,8 @@ registry:
     name: "aid-chitranga"
     label: "chitranga"
     role: "BNPRS Team Member"
-    path: "041-aid-chitranga"
+    path: "03-engineering-agents/041-aid-chitranga"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -343,7 +394,8 @@ registry:
     name: "aid-chitrakundala"
     label: "chitrakundala"
     role: "BNPRS Team Member"
-    path: "042-aid-chitrakundala"
+    path: "03-engineering-agents/042-aid-chitrakundala"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -351,7 +403,8 @@ registry:
     name: "aid-bhimavega"
     label: "bhimavega"
     role: "BNPRS Team Member"
-    path: "043-aid-bhimavega"
+    path: "03-engineering-agents/043-aid-bhimavega"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -359,7 +412,8 @@ registry:
     name: "aid-bhimabala"
     label: "bhimabala"
     role: "BNPRS Team Member"
-    path: "044-aid-bhimabala"
+    path: "03-engineering-agents/044-aid-bhimabala"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -367,7 +421,8 @@ registry:
     name: "aid-balaki"
     label: "balaki"
     role: "BNPRS Team Member"
-    path: "045-aid-balaki"
+    path: "03-engineering-agents/045-aid-balaki"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -375,7 +430,8 @@ registry:
     name: "aid-balavardhana"
     label: "balavardhana"
     role: "BNPRS Team Member"
-    path: "046-aid-balavardhana"
+    path: "03-engineering-agents/046-aid-balavardhana"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -383,7 +439,8 @@ registry:
     name: "aid-ugrayudha"
     label: "ugrayudha"
     role: "BNPRS Team Member"
-    path: "047-aid-ugrayudha"
+    path: "03-engineering-agents/047-aid-ugrayudha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -391,7 +448,8 @@ registry:
     name: "aid-sushena"
     label: "sushena"
     role: "BNPRS Team Member"
-    path: "048-aid-sushena"
+    path: "03-engineering-agents/048-aid-sushena"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -399,7 +457,8 @@ registry:
     name: "aid-kundadhara"
     label: "kundadhara"
     role: "BNPRS Team Member"
-    path: "049-aid-kundadhara"
+    path: "03-engineering-agents/049-aid-kundadhara"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -407,7 +466,8 @@ registry:
     name: "aid-mahodara"
     label: "mahodara"
     role: "BNPRS Team Member"
-    path: "050-aid-mahodara"
+    path: "03-engineering-agents/050-aid-mahodara"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -415,7 +475,8 @@ registry:
     name: "aid-chitrayudha"
     label: "chitrayudha"
     role: "BNPRS Team Member"
-    path: "051-aid-chitrayudha"
+    path: "03-engineering-agents/051-aid-chitrayudha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -423,7 +484,8 @@ registry:
     name: "aid-nishangi"
     label: "nishangi"
     role: "BNPRS Team Member"
-    path: "052-aid-nishangi"
+    path: "03-engineering-agents/052-aid-nishangi"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -431,7 +493,8 @@ registry:
     name: "aid-pashi"
     label: "pashi"
     role: "BNPRS Team Member"
-    path: "053-aid-pashi"
+    path: "03-engineering-agents/053-aid-pashi"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -439,7 +502,8 @@ registry:
     name: "aid-vrindaraka"
     label: "vrindaraka"
     role: "BNPRS Team Member"
-    path: "054-aid-vrindaraka"
+    path: "03-engineering-agents/054-aid-vrindaraka"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -447,7 +511,8 @@ registry:
     name: "aid-dridhavarma"
     label: "dridhavarma"
     role: "BNPRS Team Member"
-    path: "055-aid-dridhavarma"
+    path: "03-engineering-agents/055-aid-dridhavarma"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -455,7 +520,8 @@ registry:
     name: "aid-dridhakshatra"
     label: "dridhakshatra"
     role: "BNPRS Team Member"
-    path: "056-aid-dridhakshatra"
+    path: "03-engineering-agents/056-aid-dridhakshatra"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -463,7 +529,8 @@ registry:
     name: "aid-somakirti"
     label: "somakirti"
     role: "BNPRS Team Member"
-    path: "057-aid-somakirti"
+    path: "03-engineering-agents/057-aid-somakirti"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -471,7 +538,8 @@ registry:
     name: "aid-anudara"
     label: "anudara"
     role: "BNPRS Team Member"
-    path: "058-aid-anudara"
+    path: "03-engineering-agents/058-aid-anudara"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -479,7 +547,8 @@ registry:
     name: "aid-dridhasandha"
     label: "dridhasandha"
     role: "BNPRS Team Member"
-    path: "059-aid-dridhasandha"
+    path: "03-engineering-agents/059-aid-dridhasandha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -487,7 +556,8 @@ registry:
     name: "aid-jarasandha"
     label: "jarasandha"
     role: "BNPRS Team Member"
-    path: "060-aid-jarasandha"
+    path: "03-engineering-agents/060-aid-jarasandha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -495,7 +565,8 @@ registry:
     name: "aid-satyasandha"
     label: "satyasandha"
     role: "BNPRS Team Member"
-    path: "061-aid-satyasandha"
+    path: "03-engineering-agents/061-aid-satyasandha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -503,7 +574,8 @@ registry:
     name: "aid-sadasuvak"
     label: "sadasuvak"
     role: "BNPRS Team Member"
-    path: "062-aid-sadasuvak"
+    path: "03-engineering-agents/062-aid-sadasuvak"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -511,7 +583,8 @@ registry:
     name: "aid-ugrashravas"
     label: "ugrashravas"
     role: "BNPRS Team Member"
-    path: "063-aid-ugrashravas"
+    path: "03-engineering-agents/063-aid-ugrashravas"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -519,7 +592,8 @@ registry:
     name: "aid-ugrasena"
     label: "ugrasena"
     role: "BNPRS Team Member"
-    path: "064-aid-ugrasena"
+    path: "03-engineering-agents/064-aid-ugrasena"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -527,7 +601,8 @@ registry:
     name: "aid-senani"
     label: "senani"
     role: "BNPRS Team Member"
-    path: "065-aid-senani"
+    path: "03-engineering-agents/065-aid-senani"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -535,7 +610,8 @@ registry:
     name: "aid-dushparajaya"
     label: "dushparajaya"
     role: "BNPRS Team Member"
-    path: "066-aid-dushparajaya"
+    path: "03-engineering-agents/066-aid-dushparajaya"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -543,7 +619,8 @@ registry:
     name: "aid-aparajita"
     label: "aparajita"
     role: "BNPRS Team Member"
-    path: "067-aid-aparajita"
+    path: "03-engineering-agents/067-aid-aparajita"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -551,7 +628,8 @@ registry:
     name: "aid-kundashayi"
     label: "kundashayi"
     role: "BNPRS Team Member"
-    path: "068-aid-kundashayi"
+    path: "03-engineering-agents/068-aid-kundashayi"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -559,7 +637,8 @@ registry:
     name: "aid-vishalaksha"
     label: "vishalaksha"
     role: "BNPRS Team Member"
-    path: "069-aid-vishalaksha"
+    path: "03-engineering-agents/069-aid-vishalaksha"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -567,7 +646,8 @@ registry:
     name: "aid-duradhara"
     label: "duradhara"
     role: "BNPRS Team Member"
-    path: "070-aid-duradhara"
+    path: "03-engineering-agents/070-aid-duradhara"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -575,7 +655,8 @@ registry:
     name: "aid-dridhahasta"
     label: "dridhahasta"
     role: "BNPRS Team Member"
-    path: "071-aid-dridhahasta"
+    path: "03-engineering-agents/071-aid-dridhahasta"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -583,7 +664,8 @@ registry:
     name: "aid-suhasta"
     label: "suhasta"
     role: "BNPRS Team Member"
-    path: "072-aid-suhasta"
+    path: "03-engineering-agents/072-aid-suhasta"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -591,7 +673,8 @@ registry:
     name: "aid-vatavega"
     label: "vatavega"
     role: "BNPRS Team Member"
-    path: "073-aid-vatavega"
+    path: "03-engineering-agents/073-aid-vatavega"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -599,7 +682,8 @@ registry:
     name: "aid-suvarchas"
     label: "suvarchas"
     role: "BNPRS Team Member"
-    path: "074-aid-suvarchas"
+    path: "03-engineering-agents/074-aid-suvarchas"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -607,15 +691,18 @@ registry:
     name: "aid-adityaketu"
     label: "adityaketu"
     role: "BNPRS Team Member"
-    path: "075-aid-adityaketu"
+    path: "03-engineering-agents/075-aid-adityaketu"
+    tier: "03-engineering-agents"
     status: active
     created_at: "2026-05-27"
 
+  # ===== Tier 04 — support-agents (076-100) =====
   - code: "076"
     name: "aid-bahvashi"
     label: "bahvashi"
     role: "BNPRS Team Member"
-    path: "076-aid-bahvashi"
+    path: "04-support-agents/076-aid-bahvashi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -623,7 +710,8 @@ registry:
     name: "aid-nagadatta"
     label: "nagadatta"
     role: "BNPRS Team Member"
-    path: "077-aid-nagadatta"
+    path: "04-support-agents/077-aid-nagadatta"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -631,7 +719,8 @@ registry:
     name: "aid-anuyayi"
     label: "anuyayi"
     role: "BNPRS Team Member"
-    path: "078-aid-anuyayi"
+    path: "04-support-agents/078-aid-anuyayi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -639,7 +728,8 @@ registry:
     name: "aid-kavachi"
     label: "kavachi"
     role: "BNPRS Team Member"
-    path: "079-aid-kavachi"
+    path: "04-support-agents/079-aid-kavachi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -647,7 +737,8 @@ registry:
     name: "aid-nishangi"
     label: "nishangi"
     role: "BNPRS Team Member"
-    path: "080-aid-nishangi"
+    path: "04-support-agents/080-aid-nishangi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -655,7 +746,8 @@ registry:
     name: "aid-dandi"
     label: "dandi"
     role: "BNPRS Team Member"
-    path: "081-aid-dandi"
+    path: "04-support-agents/081-aid-dandi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -663,7 +755,8 @@ registry:
     name: "aid-dandadhara"
     label: "dandadhara"
     role: "BNPRS Team Member"
-    path: "082-aid-dandadhara"
+    path: "04-support-agents/082-aid-dandadhara"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -671,7 +764,8 @@ registry:
     name: "aid-dhanurgraha"
     label: "dhanurgraha"
     role: "BNPRS Team Member"
-    path: "083-aid-dhanurgraha"
+    path: "04-support-agents/083-aid-dhanurgraha"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -679,7 +773,8 @@ registry:
     name: "aid-ugra"
     label: "ugra"
     role: "BNPRS Team Member"
-    path: "084-aid-ugra"
+    path: "04-support-agents/084-aid-ugra"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -687,7 +782,8 @@ registry:
     name: "aid-bhimaratha"
     label: "bhimaratha"
     role: "BNPRS Team Member"
-    path: "085-aid-bhimaratha"
+    path: "04-support-agents/085-aid-bhimaratha"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -695,7 +791,8 @@ registry:
     name: "aid-vira"
     label: "vira"
     role: "BNPRS Team Member"
-    path: "086-aid-vira"
+    path: "04-support-agents/086-aid-vira"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -703,7 +800,8 @@ registry:
     name: "aid-virabahu"
     label: "virabahu"
     role: "BNPRS Team Member"
-    path: "087-aid-virabahu"
+    path: "04-support-agents/087-aid-virabahu"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -711,7 +809,8 @@ registry:
     name: "aid-alolupa"
     label: "alolupa"
     role: "BNPRS Team Member"
-    path: "088-aid-alolupa"
+    path: "04-support-agents/088-aid-alolupa"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -719,7 +818,8 @@ registry:
     name: "aid-abhaya"
     label: "abhaya"
     role: "BNPRS Team Member"
-    path: "089-aid-abhaya"
+    path: "04-support-agents/089-aid-abhaya"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -727,7 +827,8 @@ registry:
     name: "aid-raudrakarma"
     label: "raudrakarma"
     role: "BNPRS Team Member"
-    path: "090-aid-raudrakarma"
+    path: "04-support-agents/090-aid-raudrakarma"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -735,7 +836,8 @@ registry:
     name: "aid-dridharatha"
     label: "dridharatha"
     role: "BNPRS Team Member"
-    path: "091-aid-dridharatha"
+    path: "04-support-agents/091-aid-dridharatha"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -743,7 +845,8 @@ registry:
     name: "aid-anadhrishya"
     label: "anadhrishya"
     role: "BNPRS Team Member"
-    path: "092-aid-anadhrishya"
+    path: "04-support-agents/092-aid-anadhrishya"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -751,7 +854,8 @@ registry:
     name: "aid-kundabhedi"
     label: "kundabhedi"
     role: "BNPRS Team Member"
-    path: "093-aid-kundabhedi"
+    path: "04-support-agents/093-aid-kundabhedi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -759,7 +863,8 @@ registry:
     name: "aid-viravi"
     label: "viravi"
     role: "BNPRS Team Member"
-    path: "094-aid-viravi"
+    path: "04-support-agents/094-aid-viravi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -767,7 +872,8 @@ registry:
     name: "aid-dhirghalochana"
     label: "dhirghalochana"
     role: "BNPRS Team Member"
-    path: "095-aid-dhirghalochana"
+    path: "04-support-agents/095-aid-dhirghalochana"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -775,7 +881,8 @@ registry:
     name: "aid-pramatha"
     label: "pramatha"
     role: "BNPRS Team Member"
-    path: "096-aid-pramatha"
+    path: "04-support-agents/096-aid-pramatha"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -783,7 +890,8 @@ registry:
     name: "aid-pramathi"
     label: "pramathi"
     role: "BNPRS Team Member"
-    path: "097-aid-pramathi"
+    path: "04-support-agents/097-aid-pramathi"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -791,7 +899,8 @@ registry:
     name: "aid-dirghabahu"
     label: "dirghabahu"
     role: "BNPRS Team Member"
-    path: "098-aid-dirghabahu"
+    path: "04-support-agents/098-aid-dirghabahu"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -799,7 +908,8 @@ registry:
     name: "aid-suvirya"
     label: "suvirya"
     role: "BNPRS Team Member"
-    path: "099-aid-suvirya"
+    path: "04-support-agents/099-aid-suvirya"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
 
@@ -807,6 +917,7 @@ registry:
     name: "aid-dirghatama"
     label: "dirghatama"
     role: "BNPRS Team Member"
-    path: "100-aid-dirghatama"
+    path: "04-support-agents/100-aid-dirghatama"
+    tier: "04-support-agents"
     status: active
     created_at: "2026-05-27"
