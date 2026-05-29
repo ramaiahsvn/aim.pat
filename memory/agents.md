@@ -85,11 +85,11 @@
 | 019  | na-009 | bpr2001-aandhipe | BPR AandhiPe Product Agent — Super-App (BPR2001) | active | 2026-05-28 |
 | 020  | na-009 | aim1001-aim-team | AIM Team Product Agent — AI Agent Platform Team (AIM1001) | active | 2026-05-28 |
 | 021  | na-009 | aim1002-bioi | AIM bIOI Product Agent — Biometric Intelligence (AIM1002) | active | 2026-05-28 |
-| 001  | na-007 | aid-ceo (Yudhisthira) | Chief Executive Officer — strategy, vision, governance | active | 2026-05-27 |
-| 002  | na-007 | aid-cto (Bhima)       | Chief Technology Officer — tech strategy, engineering, platform | active | 2026-05-27 |
-| 003  | na-007 | aid-cpo (Arjuna)      | Chief Product Officer — product strategy, roadmap, UX/CX | active | 2026-05-27 |
-| 004  | na-007 | aid-cfo (Nakula)      | Chief Financial Officer — finance, treasury, compliance | active | 2026-05-27 |
-| 005  | na-007 | aid-coo (Sahadeva)    | Chief Operating Officer — operations, delivery, process | active | 2026-05-27 |
+| 001  | na-007 | aid-ceo (Yudhishthira) | Chief Executive Officer — Office of CEO, Legal, Compliance, HR, Strategy | active | 2026-05-27 |
+| 002  | na-007 | aid-cto (Arjuna)       | Chief Technology Officer — All Engineering, AI, Hardware, Security, DevOps, QA | active | 2026-05-27 |
+| 003  | na-007 | aid-cpo (Nakula)       | Chief Product Officer — Product Management, Design, UX Research, Product Ops | active | 2026-05-27 |
+| 004  | na-007 | aid-cfo (Sahadeva)     | Chief Financial Officer — Finance, Treasury, Audit, Risk, M&A, Data | active | 2026-05-27 |
+| 005  | na-007 | aid-coo (Bhima)        | Chief Operating Officer — Sales, Operations, Marketing, CS, Comms | active | 2026-05-27 |
 | 001  | na-008 | aid-duryodhana | BNPRS Team Member (Kaurava AID-001) | active | 2026-05-27 |
 | 002  | na-008 | aid-dushasana | BNPRS Team Member (Kaurava AID-002) | active | 2026-05-27 |
 | 003  | na-008 | aid-dussaha | BNPRS Team Member (Kaurava AID-003) | active | 2026-05-27 |
