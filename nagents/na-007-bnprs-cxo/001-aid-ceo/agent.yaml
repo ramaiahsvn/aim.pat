@@ -6,7 +6,7 @@
 # ============================================================
 
 agent:
-  name: "Yudhisthira"
+  name: "Yudhishthira"
   code: "001"
   group: "na-007-bnprs-cxo"
   version: "1.0.0"

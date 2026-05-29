@@ -15,40 +15,45 @@ group:
 registry:
   - code: "001"
     name: "aid-ceo"
-    label: "Yudhisthira"
+    label: "Yudhishthira"
     role: "Chief Executive Officer (CEO)"
+    domain: "Office of CEO, Legal, Compliance, HR, Strategy"
     path: "001-aid-ceo"
     status: active
     created_at: "2026-05-27"
 
   - code: "002"
     name: "aid-cto"
-    label: "Bhima"
+    label: "Arjuna"
     role: "Chief Technology Officer (CTO)"
+    domain: "All Engineering, AI, Hardware, Security, DevOps, QA"
     path: "002-aid-cto"
     status: active
     created_at: "2026-05-27"
 
   - code: "003"
     name: "aid-cpo"
-    label: "Arjuna"
+    label: "Nakula"
     role: "Chief Product Officer (CPO)"
+    domain: "Product Management, Design, UX Research, Product Ops"
     path: "003-aid-cpo"
     status: active
     created_at: "2026-05-27"
 
   - code: "004"
     name: "aid-cfo"
-    label: "Nakula"
+    label: "Sahadeva"
     role: "Chief Financial Officer (CFO)"
+    domain: "Finance, Treasury, Audit, Risk, M&A, Data"
     path: "004-aid-cfo"
     status: active
     created_at: "2026-05-27"
 
   - code: "005"
     name: "aid-coo"
-    label: "Sahadeva"
+    label: "Bhima"
     role: "Chief Operating Officer (COO)"
+    domain: "Sales, Operations, Marketing, CS, Comms"
     path: "005-aid-coo"
     status: active
     created_at: "2026-05-27"
