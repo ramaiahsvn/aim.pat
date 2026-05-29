@@ -1,0 +1,32 @@
+# ============================================================
+#  AGENT REGISTRY — na-010-bna-platform
+# ============================================================
+#  ISO 8583 DE-style codes. One byte = DE01 to DEFF (255 max).
+#  IMMUTABLE: once a code is assigned it is NEVER reused,
+#  even if the agent is retired or deleted.
+# ============================================================
+
+group:
+  id: "na-010"
+  name: "bna-platform"
+  description: "BNA — BNPRS Neura Agents Platform. Cross-group orchestration and auto-pilot coordination of the organisation."
+  max_agents: 255
+  # Default operating mode for agents in this group.
+  # propose-then-approve: plan + coordinate autonomously, but route
+  # consequential actions through human/CEO approval gates.
+  autonomy: "propose-then-approve"
+  # Groups this platform orchestrates.
+  coordinates:
+    - "na-006-bnprs-deployments"
+    - "na-007-bnprs-cxo"
+    - "na-008-bnprs-team"
+    - "na-009-bnprs-products"
+
+registry:
+  - code: "001"
+    name: "bna-orchestrator"
+    label: "BNA Orchestrator"
+    role: "Master Orchestration & Auto-Pilot Conductor"
+    path: "001-bna-orchestrator"
+    status: active
+    created_at: "2026-05-30"

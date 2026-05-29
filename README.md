@@ -31,6 +31,9 @@ aim.pat/
     na-006-bnprs-deployments/
     na-007-bnprs-cxo/
     na-008-bnprs-team/
+    na-009-bnprs-products/
+    na-010-bna-platform/      ← orchestration / org auto-pilot
+    na-100-gne-esrever/
   secrets/                  ← shared secrets (git-ignored)
   create-agent.sh           ← interactive scaffolding script
   nagent.svg                ← neuron anatomy diagram
@@ -69,6 +72,9 @@ Signal flow: `01 RECEIVE → 02 INTEGRATE ↔ 03 IDENTITY → 04 EXECUTE → 05 
 | 006  | na-006-bnprs-deployments | Release management, CI/CD pipelines, environments                         |
 | 007  | na-007-bnprs-cxo         | CXO agents — CEO, CTO, CFO, COO and related                               |
 | 008  | na-008-bnprs-team        | BNPRS employee agents — one agent per employee (AIDs)                     |
+| 009  | na-009-bnprs-products    | BNPRS product agents — one agent per product line                         |
+| 010  | na-010-bna-platform      | BNA — cross-group orchestration / org auto-pilot (propose-then-approve)   |
+| 100  | na-100-gne-esrever       | Miscellaneous tasks and ad-hoc agents                                     |
 
 ---
 

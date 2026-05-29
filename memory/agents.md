@@ -90,6 +90,7 @@
 | 003  | na-007 | aid-cso (Nakula)       | Chief Strategy Officer — Corporate Strategy, Strategic Planning, Corp Dev, M&A, Competitive Intel, Partnerships | active | 2026-05-27 |
 | 004  | na-007 | aid-cfo (Sahadeva)     | Chief Financial Officer — Finance, Treasury, Audit, Risk, M&A (execution), Data | active | 2026-05-27 |
 | 005  | na-007 | aid-coo (Bhima)        | Chief Operating Officer — Sales, Operations, Marketing, CS, Comms | active | 2026-05-27 |
+| 001  | na-010 | bna-orchestrator | BNA Orchestrator — cross-group orchestration / org auto-pilot (propose-then-approve) | active | 2026-05-30 |
 | 001  | na-008 | aid-duryodhana | BNPRS Team Member (Kaurava AID-001) | active | 2026-05-27 |
 | 002  | na-008 | aid-dushasana | BNPRS Team Member (Kaurava AID-002) | active | 2026-05-27 |
 | 003  | na-008 | aid-dussaha | BNPRS Team Member (Kaurava AID-003) | active | 2026-05-27 |
@@ -204,6 +205,7 @@
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
 | na-009-bnprs-products    | na-009 | 21 | 255 |
+| na-010-bna-platform      | na-010 | 1  | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies
