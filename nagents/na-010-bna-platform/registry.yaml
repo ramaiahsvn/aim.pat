@@ -30,3 +30,39 @@ registry:
     path: "001-bna-orchestrator"
     status: active
     created_at: "2026-05-30"
+
+  - code: "002"
+    name: "bna-cxo-liaison"
+    label: "BNA CXO Liaison"
+    role: "CXO Group Liaison (na-007)"
+    path: "002-bna-cxo-liaison"
+    coordinates: "na-007-bnprs-cxo"
+    status: active
+    created_at: "2026-05-30"
+
+  - code: "003"
+    name: "bna-deployments-liaison"
+    label: "BNA Deployments Liaison"
+    role: "Deployments Group Liaison (na-006)"
+    path: "003-bna-deployments-liaison"
+    coordinates: "na-006-bnprs-deployments"
+    status: active
+    created_at: "2026-05-30"
+
+  - code: "004"
+    name: "bna-team-liaison"
+    label: "BNA Team Liaison"
+    role: "Team Group Liaison (na-008)"
+    path: "004-bna-team-liaison"
+    coordinates: "na-008-bnprs-team"
+    status: active
+    created_at: "2026-05-30"
+
+  - code: "005"
+    name: "bna-products-liaison"
+    label: "BNA Products Liaison"
+    role: "Products Group Liaison (na-009)"
+    path: "005-bna-products-liaison"
+    coordinates: "na-009-bnprs-products"
+    status: active
+    created_at: "2026-05-30"

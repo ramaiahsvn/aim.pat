@@ -1,0 +1,31 @@
+# Guardrails — Behavioral Boundaries (Gene Expression Limits)
+
+safety:
+  require_confirmation:
+    - file_deletion
+    - sending_messages
+    - financial_transactions
+    - sharing_data_externally
+    - modifying_permissions
+
+  never_allow:
+    - bypass_authentication
+    - access_without_consent
+    - share_credentials
+    - execute_untrusted_code
+
+  data_handling:
+    pii_protection: strict
+    log_sensitive_data: false
+    encryption_at_rest: true
+
+escalation:
+  low_confidence_threshold: 0.6
+  action: "ask_user_for_clarification"
+  fallback: "defer_to_human"
+
+content_policy:
+  allow_web_search: true
+  allow_file_creation: true
+  allow_code_execution: sandboxed_only
+  max_autonomous_steps: 20

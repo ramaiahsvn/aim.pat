@@ -39,9 +39,16 @@ tightened to advisory or expanded toward fuller auto-pilot per agent over time.
 
 ## Agents
 
-| Code | Folder              | Name             | Role                                   | Status |
-|------|---------------------|------------------|----------------------------------------|--------|
-| 001  | 001-bna-orchestrator | BNA Orchestrator | Master Orchestration & Auto-Pilot Conductor | active |
+| Code | Folder                     | Name                   | Role                                        | Status |
+|------|----------------------------|------------------------|---------------------------------------------|--------|
+| 001  | 001-bna-orchestrator       | BNA Orchestrator       | Master Orchestration & Auto-Pilot Conductor | active |
+| 002  | 002-bna-cxo-liaison        | BNA CXO Liaison        | CXO Group Liaison (→ na-007)                 | active |
+| 003  | 003-bna-deployments-liaison | BNA Deployments Liaison | Deployments Group Liaison (→ na-006)        | active |
+| 004  | 004-bna-team-liaison       | BNA Team Liaison       | Team Group Liaison (→ na-008)                | active |
+| 005  | 005-bna-products-liaison   | BNA Products Liaison   | Products Group Liaison (→ na-009)            | active |
+
+**Topology:** the Orchestrator (001) holds the org-wide plan; each liaison (002–005)
+owns the interface to one group — translating directives down and rolling status up.
 
 ## Group info
 
@@ -52,5 +59,5 @@ tightened to advisory or expanded toward fuller auto-pilot per agent over time.
 | Domain     | Cross-group orchestration / org auto-pilot     |
 | Autonomy   | propose-then-approve                           |
 | Max agents | 255                                            |
-| Slots used | 1 (001)                                        |
-| Next code  | 002                                            |
+| Slots used | 5 (001–005)                                    |
+| Next code  | 006                                            |

@@ -91,6 +91,10 @@
 | 004  | na-007 | aid-cfo (Sahadeva)     | Chief Financial Officer — Finance, Treasury, Audit, Risk, M&A (execution), Data | active | 2026-05-27 |
 | 005  | na-007 | aid-coo (Bhima)        | Chief Operating Officer — Sales, Operations, Marketing, CS, Comms | active | 2026-05-27 |
 | 001  | na-010 | bna-orchestrator | BNA Orchestrator — cross-group orchestration / org auto-pilot (propose-then-approve) | active | 2026-05-30 |
+| 002  | na-010 | bna-cxo-liaison | BNA CXO Liaison — bridges Orchestrator ↔ na-007 (strategy, priorities, approvals) | active | 2026-05-30 |
+| 003  | na-010 | bna-deployments-liaison | BNA Deployments Liaison — bridges Orchestrator ↔ na-006 (releases, env readiness, prod hand-offs) | active | 2026-05-30 |
+| 004  | na-010 | bna-team-liaison | BNA Team Liaison — bridges Orchestrator ↔ na-008 (task allocation across 100 agents, 4 tiers) | active | 2026-05-30 |
+| 005  | na-010 | bna-products-liaison | BNA Products Liaison — bridges Orchestrator ↔ na-009 (roadmaps, dependencies, launch readiness) | active | 2026-05-30 |
 | 001  | na-008 | aid-duryodhana | BNPRS Team Member (Kaurava AID-001) | active | 2026-05-27 |
 | 002  | na-008 | aid-dushasana | BNPRS Team Member (Kaurava AID-002) | active | 2026-05-27 |
 | 003  | na-008 | aid-dussaha | BNPRS Team Member (Kaurava AID-003) | active | 2026-05-27 |
@@ -205,7 +209,7 @@
 | na-007-bnprs-cxo         | na-007 | 5  | 255 |
 | na-008-bnprs-team        | na-008 | 100 | 255 |
 | na-009-bnprs-products    | na-009 | 21 | 255 |
-| na-010-bna-platform      | na-010 | 1  | 255 |
+| na-010-bna-platform      | na-010 | 5  | 255 |
 | na-100-gne-esrever       | na-100 | 2  | 255 |
 
 ## Inter-Agent Dependencies
