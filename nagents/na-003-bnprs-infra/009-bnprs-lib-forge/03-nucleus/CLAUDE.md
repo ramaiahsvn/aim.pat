@@ -119,8 +119,13 @@ bpr1000/bnprs-libs   (one GitLab project)
 
 - **Publish**: `$GITLAB_PAT` env var (set in `~/.zshrc` on pat-m4p) — scope `api` /
   `write_package_registry`. Never inline the token value.
-- **Consume (in CI)**: prefer `CI_JOB_TOKEN`; for cross-project, a group **deploy token**
-  with `read_package_registry`.
+- **Consume**: the host project is **private** — every download needs auth + Reporter-level
+  membership (anonymous = 401, verified). **Primary method: the group deploy token**
+  `bnprs-libs-readonly` (group `BPR1000`, scope `read_package_registry`, id recorded in
+  `01-dendrite/secrets/secrets.yaml` — value never stored). Distribute it to consumers as a
+  CI variable. ⚠️ **`CI_JOB_TOKEN` does NOT work cross-project by default** on this server —
+  a consumer project must be added to project 230's CI/CD job-token allowlist first; until
+  then it 401s. Default consumers to the deploy token, not `CI_JOB_TOKEN`.
 - Store only **token IDs / names** in `01-dendrite/secrets/secrets.yaml` (git-ignored) — never values.
 - The publish host is **`pat-m4p`** (this MacBook), where the `build/bnprs-libs/` tree lives.
 
@@ -134,13 +139,18 @@ curl --fail --header "PRIVATE-TOKEN: $GITLAB_PAT" \
   "https://gitlab.bnprs.ai/api/v4/projects/230/packages/generic/BprCardQi/2.56.3/windows-64/libBprCardQi.dll"
 ```
 
-### Consume (in a consumer's .gitlab-ci.yml)
+### Consume (from any project / repo / machine — uses the read-only deploy token)
 
 ```bash
-curl --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+# $BNPRS_LIBS_DEPLOY_TOKEN = group BPR1000 deploy token "bnprs-libs-readonly"
+curl --fail --header "DEPLOY-TOKEN: $BNPRS_LIBS_DEPLOY_TOKEN" \
   --output "libBprCardQi.dll" \
   "https://gitlab.bnprs.ai/api/v4/projects/230/packages/generic/BprCardQi/2.56.3/windows-64/libBprCardQi.dll"
 ```
+
+The deploy token is **not tied to the caller's project** — any consumer (any repo, any CI,
+any machine) that presents it gets read access to project 230's registry. `CI_JOB_TOKEN`
+only works if the consumer project is on project 230's job-token allowlist.
 
 Document each library's consumption snippet in `07-axon-terminals/deliverables/`.
 
