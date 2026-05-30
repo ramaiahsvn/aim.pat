@@ -42,7 +42,7 @@ This fetches and pulls all 100 repos in `~/BPR/GitRepos2/AIM1001_Team/` so every
 | **VPC / Subnet** | BprCoreVpc / bpr1000-lic-public (10.0.1.0/24) |
 | **Region** | us-east-2 (ITP AWS, 819144294008) |
 | **Estimated cost** | ~$30/mo |
-| **SG** | bpr1000-ai-agent-sg (sg-0cf061a2c32667858) — port 22, office IPs only |
+| **SG** | bpr1000-ai-agent-sg (sg-0cf061a2c32667858) — port 22; as of 2026-05-30 only the office VPN IP `103.106.181.48/32` is allowed (all other IPs revoked) |
 
 ### SSH Access
 
@@ -100,7 +100,11 @@ ssh devops@3.151.67.208
 - [x] Install git and dev tools on the instance — done (verified 2026-05-30): git 2.43.0,
       Claude Code CLI 2.1.76, node 24.14.0 / npm 11.9.0, python3 3.12.3, curl 8.5.0, jq 1.7.
       No C toolchain (gcc/make) — not needed; this is the session-manager host, not a build host.
-- [ ] Review and remove mutawa1-bnprs temp IP once VPN is confirmed working
+- [x] Review and remove mutawa1-bnprs temp IP once VPN is confirmed working — done 2026-05-30.
+      VPN confirmed; revoked 94.202.83.38/32 (mutawa1-bnprs "bnprs temp access") plus
+      5.107.232.224/32, 152.57.168.249/32 (TRP Office), 152.57.167.180/32. SG now allows
+      only the VPN IP 103.106.181.48/32. ⚠️ If the VPN exit IP changes, re-add it (or
+      reconnect VPN) before SSH — there is no longer a fallback office IP.
 - [ ] Copy BprAiAgent.pem to WorkDrive backup (AWS/itp/us-east-2/key-pairs/)
 
 ## Inter-Agent Dependencies
