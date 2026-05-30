@@ -1,0 +1,45 @@
+# AID ↔ employee/contractor ID map for bnprs-sessions.sh (new AID.NNN notation)
+# Columns: aid <TAB> eid <TAB> old_session <TAB> ec2_history
+#   aid          : 3-digit AID (repo = aim1001.aid.<aid>; tier derived by range)
+#   eid          : employee/contractor HR id
+#   old_session  : legacy bnprs-sessions.sh session id on EC2 (devops), '-' if none
+#   ec2_history  : yes = legacy session memory to migrate into 08-memory/long-term/
+# Source: user-supplied mapping (2026-05-30), with corrections:
+#   C1039 dropped (ignored); E1039→035; E1013→039; E1022→040.
+# Tier ranges: 001-010 principal | 011-025 senior | 026-075 engineering | 076-100 support
+#
+# aid   eid     old_session   ec2_history
+001	C1001	-	no
+002	E1017	E1017	yes
+003	E1026	E1026	yes
+004	E1040	-	no
+011	E1004	E1004	yes
+012	E1005	E1005	yes
+013	E1006	E1006	yes
+014	E1010	E1010	yes
+015	E1012	E1012	yes
+016	E1018	E1018	yes
+017	E1019	E1019	yes
+018	E1020	E1020	yes
+019	E1023	E1023	yes
+020	E1033	E1033	yes
+026	E1011	E1011	yes
+027	E1024	E1024	yes
+028	E1031	E1031	yes
+029	E1032	E1032	yes
+030	E1034	E1034	yes
+031	E1035	E1035	yes
+032	E1036	-	no
+033	E1037	E1037	yes
+034	E1038	E1038	yes
+035	E1039	E1039	yes
+036	C1038	C1038	yes
+037	C1037	C1037	yes
+038	C1036	C1036	yes
+039	E1013	E1013	yes
+040	E1022	E1022	yes
+076	E1001	E1001	yes
+077	E1014	-	no
+078	E1016	E1016	yes
+079	C1035	C1035	yes
+080	C1034	-	no

@@ -5,14 +5,19 @@
 
 ## Session Startup
 
-> **Run this every time this agent is loaded on the local machine (macOS).**
+**On the EC2 host (where agent sessions actually run, as `devops`):**
+```bash
+sudo su - devops          # or: ssh devops@3.151.67.208
+/srv/aim1001/bin/bnprs-sessions.sh sync-all
+```
+Fetches + pulls all 100 repos under `/srv/aim1001/<tier>/aim1001.aid.<NNN>/` so every
+agent's `08-memory/` is current before any session work.
 
+**On this Mac (pat-m4p) the canonical copy lives in the repo:**
 ```bash
 nagents/na-003-bnprs-infra/006-bnprs-claude/03-nucleus/bnprs-sessions.sh sync-all
 ```
-
-This fetches and pulls all 100 repos in `~/BPR/GitRepos2/AIM1001_Team/` so every employee's
-`08-memory/` is up to date before any session work begins.
+(syncs the local mirror under `~/BPR/GitRepos2/AIM1001_Team/`).
 
 ## Identity
 
@@ -80,19 +85,30 @@ ssh devops@3.151.67.208
 
 ## Session Manager
 
-- **Script**: `03-nucleus/bnprs-sessions.sh`
-- **Session ID format**: `E<number>-aid.<NNN>`  e.g. `E1026-aid.001`
-  - `E1026` = employee HR ID
-  - `aid.001` = AID from na-008-bnprs-team
-- **GitLab repo per session**: `aim1001.aid.<NNN>` on `gitlab.bnprs.ai/aim1001`
-  - On `start`: checks if repo exists → clones (new) or fetch+pulls (existing)
-  - Memory stored in repo `08-memory/` as `aid.<NNN>.YYYY.MM.DD.HH.MM.SS`
-  - `save-memory` syncs repo, writes timestamped file, commits, pushes
-- **Local clone base**: `~/aim1001/aim1001.aid.<NNN>/`
-- **Local meta**: `~/.claude/bnprs-sessions/<id>.meta`
-- **Auth**: git prompts in the terminal (username + personal access token)
-- **Commands**: `init`, `start`, `sync`, `list`, `status`, `delete`, `save-memory`
-- **Deploy to EC2**: `scp -i ~/BprAiAgent.pem nagents/na-003-bnprs-infra/006-bnprs-claude/03-nucleus/bnprs-sessions.sh ubuntu@3.151.67.208:/home/ubuntu/bnprs-sessions.sh`
+- **Canonical script**: `03-nucleus/bnprs-sessions.sh`  ·  **AID map**: `03-nucleus/aid-eid-map.tsv`
+- **Notation (since 2026-05-30)** — sessions are keyed by **AID**, not employee id:
+  `AID.<NNN>` (also accepts `aid.001` | `001`). One repo per AID; EID is looked up from
+  `aid-eid-map.tsv` for display only.
+- **GitLab repo per AID**: `aim1001/<tier>/aim1001.aid.<NNN>` — note the tier **SUBGROUPS**:
+  001-010 `01-principal-agents` · 011-025 `02-senior-agents` ·
+  026-075 `03-engineering-agents` · 076-100 `04-support-agents`
+- **Clone base**: EC2 `/srv/aim1001` (owner `devops:aim1001`, setgid `2770`, shared group
+  `aim1001` = devops+ubuntu); Mac mirror `~/BPR/GitRepos2/AIM1001_Team`. Tiered subfolders.
+- **Memory**: saved to `<repo>/08-memory/long-term/aid.<NNN>.YYYY.MM.DD.HH.MM.SS`;
+  commit + push to origin `master` run in the **BACKGROUND, no terminal prompt**.
+- **Auth**: git credential helper (devops) holds **info_bnprs** for clone + push.
+  ⚠️ `info_bnprs` must be **Maintainer on group `aim1001`** to push to the protected
+  `master` branch (Developer is rejected by the pre-receive hook).
+- **Local meta**: `~/.claude/bnprs-sessions/aid.<NNN>.meta`
+- **Commands**: `init`, `sync-all`, `start AID.NNN`, `sync AID.NNN`, `list`, `status`,
+  `delete AID.NNN`, `save-memory AID.NNN ["notes"]`
+- **EC2 location**: `/srv/aim1001/bin/{bnprs-sessions.sh, aid-eid-map.tsv}`. Deploy via the
+  SSH-stdin method (scp is disabled — see SSH section):
+  `base64 < bnprs-sessions.sh | ssh bnprs-claude 'base64 -d | sudo -u devops tee /srv/aim1001/bin/bnprs-sessions.sh >/dev/null'`
+- **Legacy migration (2026-05-30)**: 30 old `E####`/`C####` devops sessions mapped to AIDs
+  (`aid-eid-map.tsv`); 25 AI-summarized + 4 stubs written to each repo's
+  `08-memory/long-term/aid.<NNN>.legacy-summary.md`. `C1039` was intentionally dropped
+  (its AID.035 slot reassigned to E1039).
 
 ## Pending Actions
 

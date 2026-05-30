@@ -1,57 +1,75 @@
 #!/bin/bash
 # ============================================================
 #  BNPRS Session Manager for Claude Code CLI
-#  Session ID format:  E1026-aid.001
+#  Session ID format (NEW):  AID.NNN     e.g.  AID.001  (also: aid.001 | 001)
 # ============================================================
 #
 #  Usage:
 #    ./bnprs-sessions.sh init
-#    ./bnprs-sessions.sh start E1026-aid.001    # Start or resume
-#    ./bnprs-sessions.sh sync  E1026-aid.001    # Sync repo only
-#    ./bnprs-sessions.sh list                   # List all sessions
-#    ./bnprs-sessions.sh status E1026-aid.001   # Session details
-#    ./bnprs-sessions.sh delete E1026-aid.001   # Delete local session
-#    ./bnprs-sessions.sh save-memory E1026-aid.001
+#    ./bnprs-sessions.sh start AID.001          # Start or resume (employee agent aid.001)
+#    ./bnprs-sessions.sh sync  AID.001          # Sync repo only
+#    ./bnprs-sessions.sh list                   # List all local sessions
+#    ./bnprs-sessions.sh status AID.001         # Session details
+#    ./bnprs-sessions.sh delete AID.001         # Delete local session meta
+#    ./bnprs-sessions.sh save-memory AID.001 ["notes"]   # Save memory (non-interactive, bg push)
 #
-#  Session ID breakdown:
-#    E1026      — employee HR ID
-#    aid.001    — agent ID (AID-001 from na-008-bnprs-team)
+#  Notation (NEW — 2026-05-30):
+#    Sessions are keyed by AGENT ID (AID), not employee id. One repo per AID:
+#      aim1001.aid.<NNN>  under GitLab subgroup  aim1001/<tier>/
+#    Tier by AID range: 001-010 principal | 011-025 senior |
+#                       026-075 engineering | 076-100 support
+#    Employee/contractor id (EID) is looked up from aid-eid-map.tsv (display only).
+#
+#  Memory:
+#    Saved per session into  <repo>/08-memory/long-term/aid.<NNN>.YYYY.MM.DD.HH.MM.SS
+#    Commit + push to origin happen in the BACKGROUND, with NO terminal prompt.
 #
 #  Env vars (override defaults):
 #    GITLAB_HOST       default: gitlab.bnprs.ai
 #    GITLAB_GROUP      default: aim1001
-#    REPOS_DIR         local clone base dir
-#                        macOS  default: ~/BPR/GitRepos2/AIM1001_Team
-#                        Linux  default: ~/aim1001
+#    BNPRS_GIT_USER    git remote user for new clones (default: info_bnprs on Linux)
+#    BNPRS_REPOS_DIR   local clone base dir
+#                        macOS default: ~/BPR/GitRepos2/AIM1001_Team
+#                        Linux default: /srv/aim1001
+#    BNPRS_AID_MAP     path to aid-eid-map.tsv (default: alongside this script)
 #    CLAUDE_CMD        claude binary  default: claude
 #
-#  Authentication: git will prompt in the terminal when needed
-#    (username + personal access token, or SSH key if remote uses git@)
+#  Authentication: git uses the stored credential helper (info_bnprs on EC2).
 #
-#  On agent load (macOS): run sync-all to pull all AIM1001_Team repos
-#
+#  On agent load: run sync-all to pull all cloned repos.
 # ============================================================
 
-set -euo pipefail
+set -uo pipefail
 
 # ── Config ──────────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SESSIONS_DIR="$HOME/.claude/bnprs-sessions"
 MEMORY_DIR="$HOME/.claude/bnprs-memory"
 GITLAB_HOST="${GITLAB_HOST:-gitlab.bnprs.ai}"
 GITLAB_GROUP="${GITLAB_GROUP:-aim1001}"
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"
-PROJECT_ROOT="${BNPRS_PROJECT_ROOT:-$(pwd)}"
+AID_MAP="${BNPRS_AID_MAP:-$SCRIPT_DIR/aid-eid-map.tsv}"
 
 # REPOS_DIR: OS-aware default
-# macOS (local dev)  → ~/BPR/GitRepos2/AIM1001_Team
-# Linux  (EC2)       → ~/aim1001
 if [[ -n "${BNPRS_REPOS_DIR:-}" ]]; then
     REPOS_DIR="$BNPRS_REPOS_DIR"
 elif [[ "$(uname)" == "Darwin" ]]; then
     REPOS_DIR="$HOME/BPR/GitRepos2/AIM1001_Team"
 else
-    REPOS_DIR="$HOME/aim1001"
+    REPOS_DIR="/srv/aim1001"
 fi
+
+# Git remote user embedded in NEW clone URLs (so the right stored credential
+# is selected). Empty on macOS (use whatever credential helper is configured).
+if [[ -n "${BNPRS_GIT_USER:-}" ]]; then
+    GIT_REMOTE_USER="$BNPRS_GIT_USER"
+elif [[ "$(uname)" == "Darwin" ]]; then
+    GIT_REMOTE_USER=""
+else
+    GIT_REMOTE_USER="info_bnprs"
+fi
+
+PUSH_LOG="${REPOS_DIR}/.push.log"
 
 # macOS/Linux-compatible sed -i
 if [[ "$(uname)" == "Darwin" ]]; then
@@ -61,506 +79,369 @@ else
 fi
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-BOLD='\033[1m'
-NC='\033[0m'
+RED='\033[0;31m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'
+YELLOW='\033[1;33m'; BOLD='\033[1m'; NC='\033[0m'
 
 # ── Helpers ─────────────────────────────────────────────────
 log()  { echo -e "${GREEN}[bnprs]${NC} $*"; }
 warn() { echo -e "${YELLOW}[bnprs]${NC} $*"; }
 err()  { echo -e "${RED}[bnprs]${NC} $*" >&2; }
 
-ensure_dirs() {
-    mkdir -p "$SESSIONS_DIR" "$MEMORY_DIR" "$REPOS_DIR"
-}
+ensure_dirs() { mkdir -p "$SESSIONS_DIR" "$MEMORY_DIR" "$REPOS_DIR" 2>/dev/null || true; }
 
 generate_uuid() {
     python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null \
         || cat /proc/sys/kernel/random/uuid 2>/dev/null \
-        || uuidgen 2>/dev/null \
-        || echo "$(od -x /dev/urandom | head -1 | awk '{print $2$3"-"$4"-4"substr($5,2)"-"substr($6,1,1)substr($6,2)"-"$7$8$9}')"
+        || uuidgen 2>/dev/null
 }
 
-session_meta_file()   { echo "$SESSIONS_DIR/${1//\//_}.meta"; }
-session_memory_file() { echo "$MEMORY_DIR/${1//\//_}.md"; }
+session_meta_file() { echo "$SESSIONS_DIR/${1//\//_}.meta"; }
+
+# Tier subgroup for an AID number (matches GitLab subgroups)
+tier_for() {
+    local n=$((10#$1))
+    if   [[ $n -ge 1   && $n -le 10  ]]; then echo "01-principal-agents"
+    elif [[ $n -ge 11  && $n -le 25  ]]; then echo "02-senior-agents"
+    elif [[ $n -ge 26  && $n -le 75  ]]; then echo "03-engineering-agents"
+    elif [[ $n -ge 76  && $n -le 100 ]]; then echo "04-support-agents"
+    else echo ""; fi
+}
+
+# Look up EID for an AID number from the map file ('' if unknown)
+lookup_eid() {
+    local nnn="$1"
+    [[ -f "$AID_MAP" ]] || { echo ""; return; }
+    awk -v a="$nnn" '!/^#/ && $1==a {print $2; found=1} END{if(!found) print ""}' "$AID_MAP" | head -1
+}
 
 # ── Session ID Parsing ───────────────────────────────────────
-# Input:   E1026-aid.001
-# Exports: SESSION_EID, SESSION_AID, SESSION_AID_NUM,
-#          SESSION_REPO_NAME, SESSION_REPO_URL, SESSION_LOCAL_PATH
-
+# Accepts: AID.001 | aid.001 | 001   →  normalizes to aid.NNN
+# Exports: SESSION_AID_NUM, SESSION_AID, SESSION_EID, SESSION_TIER,
+#          SESSION_REPO_NAME, SESSION_REPO_URL, SESSION_LOCAL_PATH, SESSION_ID
 parse_session_id() {
-    local full_sid="$1"
-
-    # Validate format: E<digits>-aid.<3digits>
-    if ! echo "$full_sid" | grep -qE '^E[0-9]+-aid\.[0-9]{3}$'; then
-        err "Invalid session ID: '${full_sid}'"
-        err "Expected format:  E<number>-aid.<NNN>   e.g.  E1026-aid.001"
+    local raw="$1" nnn=""
+    raw="${raw#[Aa][Ii][Dd].}"          # strip leading AID. / aid.
+    if [[ "$raw" =~ ^[0-9]{1,3}$ ]]; then
+        nnn=$(printf '%03d' "$((10#$raw))")
+    else
+        err "Invalid session ID: '$1'"
+        err "Expected:  AID.<NNN>   e.g.  AID.001   (also accepts aid.001 or 001)"
         exit 1
     fi
+    local n=$((10#$nnn))
+    if [[ $n -lt 1 || $n -gt 100 ]]; then
+        err "AID out of range (001-100): '$1'"; exit 1
+    fi
 
-    SESSION_EID="${full_sid%%-*}"                         # E1026
-    SESSION_AID="${full_sid#*-}"                          # aid.001
-    SESSION_AID_NUM="${SESSION_AID#*.}"                   # 001
-    SESSION_REPO_NAME="${GITLAB_GROUP}.${SESSION_AID}"    # aim1001.aid.001
-    SESSION_REPO_URL="https://${GITLAB_HOST}/${GITLAB_GROUP}/${SESSION_REPO_NAME}"
-    # Resolve actual clone location under the tiered tree (or flat default if new).
+    SESSION_AID_NUM="$nnn"
+    SESSION_AID="aid.$nnn"
+    SESSION_ID="aid.$nnn"
+    SESSION_EID="$(lookup_eid "$nnn")"
+    SESSION_TIER="$(tier_for "$nnn")"
+    SESSION_REPO_NAME="${GITLAB_GROUP}.aid.$nnn"          # aim1001.aid.001
+    local userpart=""
+    [[ -n "$GIT_REMOTE_USER" ]] && userpart="${GIT_REMOTE_USER}@"
+    SESSION_REPO_URL="https://${userpart}${GITLAB_HOST}/${GITLAB_GROUP}/${SESSION_TIER}/${SESSION_REPO_NAME}"
     SESSION_LOCAL_PATH="$(resolve_repo_path "$SESSION_REPO_NAME")"
 }
 
 # ── GitLab Repo Operations ───────────────────────────────────
 
-# Resolve a repo's local clone path. The AIM1001_Team tree is organized into
-# tier subfolders (01-principal-agents, 02-senior-agents, …), so a clone may
-# live at any depth under REPOS_DIR. Search for an existing clone first; if
-# none exists, fall back to the flat default (used for a first-time clone).
+# Resolve a repo's local clone path. Repos live under tier subfolders, so search
+# for an existing clone at any depth; else fall back to the tier path for a fresh clone.
 resolve_repo_path() {
-    local repo_name="$1"
-    local found
+    local repo_name="$1" found
     found=$(find "$REPOS_DIR" -type d -name "$repo_name" -prune 2>/dev/null | head -1)
     if [[ -n "$found" && -d "${found}/.git" ]]; then
         echo "$found"
     else
-        echo "${REPOS_DIR}/${repo_name}"
+        echo "${REPOS_DIR}/${SESSION_TIER}/${repo_name}"
     fi
 }
 
-# Returns 0 if GitLab repo exists and is accessible.
-# git ls-remote will prompt for credentials in the terminal if needed.
 check_gitlab_repo() {
-    local repo_name="$1"
-    local repo_url="https://${GITLAB_HOST}/${GITLAB_GROUP}/${repo_name}.git"
-    git ls-remote --exit-code "$repo_url" HEAD > /dev/null
+    GIT_TERMINAL_PROMPT=0 git ls-remote --exit-code "${SESSION_REPO_URL}.git" HEAD >/dev/null 2>&1
 }
 
-# Clone if not local; fetch+pull if already cloned.
-# git prompts for credentials in the terminal when needed.
+# Clone if not local; fetch+pull (master) if already cloned.
 sync_repo() {
-    local repo_name="$1"
-    local local_path="$2"
-    local current_dir="$PWD"
-    local repo_url="https://${GITLAB_HOST}/${GITLAB_GROUP}/${repo_name}.git"
-
+    local local_path="$1" current_dir="$PWD"
     if [[ -d "${local_path}/.git" ]]; then
-        log "Repo exists locally — fetching and pulling: ${repo_name}"
+        log "Repo exists — fetch + pull: ${SESSION_REPO_NAME}"
         cd "$local_path"
-        git fetch origin
-        git pull origin master --ff-only 2>/dev/null \
-            || git pull origin master --rebase
+        GIT_TERMINAL_PROMPT=0 git fetch origin >/dev/null 2>&1
+        GIT_TERMINAL_PROMPT=0 git pull origin master --ff-only >/dev/null 2>&1 \
+            || GIT_TERMINAL_PROMPT=0 git pull origin master --rebase >/dev/null 2>&1 || true
         cd "$current_dir"
     else
-        log "Cloning repo: ${repo_name} → ${local_path}"
+        log "Cloning: ${SESSION_REPO_NAME} → ${local_path}"
         mkdir -p "$(dirname "$local_path")"
-        git clone --branch master "$repo_url" "$local_path"
+        ( umask 002; GIT_TERMINAL_PROMPT=0 git clone --branch master "${SESSION_REPO_URL}.git" "$local_path" )
         cd "$current_dir"
     fi
 }
 
-# ── Write memory file to repo and push ──────────────────────
+# ── Background, NON-INTERACTIVE commit + push ────────────────
+# Stages 08-memory/, commits, pushes to origin master — detached, no prompt.
+bg_commit_push() {
+    local repo="$1" msg="$2"
+    (
+        cd "$repo" 2>/dev/null || exit 0
+        umask 002
+        git add -A 08-memory/ 2>/dev/null
+        if git diff --cached --quiet 2>/dev/null; then
+            echo "$(date '+%F %T') [$repo] nothing to commit"; exit 0
+        fi
+        git commit -m "$msg" >/dev/null 2>&1
+        if GIT_TERMINAL_PROMPT=0 git push origin master >/dev/null 2>&1; then
+            echo "$(date '+%F %T') [$repo] pushed: $msg"
+        else
+            echo "$(date '+%F %T') [$repo] PUSH FAILED: $msg"
+        fi
+    ) >>"$PUSH_LOG" 2>&1 &
+    disown 2>/dev/null || true
+}
 
-write_memory_to_repo() {
-    local full_sid="$1"
-    local content="$2"
-    parse_session_id "$full_sid"
-
-    local memory_dir="${SESSION_LOCAL_PATH}/08-memory"
-    mkdir -p "$memory_dir"
-
-    # Filename: aid.001.2026.05.28.15.30.45
-    local ts
-    ts=$(date '+%Y.%m.%d.%H.%M.%S')
-    local filename="${SESSION_AID}.${ts}"
-    local filepath="${memory_dir}/${filename}"
-
-    cat > "$filepath" << EOF
-# Memory: ${full_sid}
-# Saved : $(date '+%Y-%m-%d %H:%M:%S')
-# EID   : ${SESSION_EID}
-# AID   : ${SESSION_AID}
-
-${content}
-EOF
-
-    log "Memory file: ${filepath}"
-
-    local current_dir="$PWD"
-    cd "$SESSION_LOCAL_PATH"
-
-    git add "08-memory/${filename}"
-    git commit -m "memory(${SESSION_AID}): session notes ${ts}
-
-Employee : ${SESSION_EID}
-Session  : ${full_sid}"
-
-    # git will prompt for credentials in the terminal if needed
-    git push origin master
-
-    cd "$current_dir"
-    log "Pushed → ${SESSION_REPO_URL}/-/blob/master/08-memory/${filename}"
+# Write a session memory file into 08-memory/long-term/ and trigger bg push.
+# $1 = repo path, $2 = optional notes text
+save_session_memory() {
+    local repo="$1" notes="${2:-}"
+    local mdir="${repo}/08-memory/long-term"
+    mkdir -p "$mdir" 2>/dev/null
+    local ts; ts=$(date '+%Y.%m.%d.%H.%M.%S')
+    local file="${mdir}/${SESSION_AID}.${ts}"
+    {
+        echo "# Memory: ${SESSION_ID}"
+        echo "# Saved : $(date '+%Y-%m-%d %H:%M:%S')"
+        echo "# AID   : ${SESSION_AID}"
+        echo "# EID   : ${SESSION_EID:-unknown}"
+        echo ""
+        if [[ -n "$notes" ]]; then echo "$notes"; else echo "(session marker — no inline notes; see other 08-memory files for agent-written memory)"; fi
+    } > "$file"
+    log "Memory file: $file"
+    bg_commit_push "$repo" "memory(${SESSION_AID}): session notes ${ts}"
+    log "Commit + push queued in background (see $PUSH_LOG)"
 }
 
 # ── Commands ────────────────────────────────────────────────
 
 cmd_sync_all() {
     ensure_dirs
-
-    if [[ ! -d "$REPOS_DIR" ]]; then
-        warn "REPOS_DIR not found: $REPOS_DIR"
-        warn "Nothing to sync — repos will be cloned on first 'start'"
-        return 0
-    fi
-
+    [[ -d "$REPOS_DIR" ]] || { warn "REPOS_DIR not found: $REPOS_DIR"; return 0; }
     # Discover git repos at ANY depth (tier subfolders → repo → .git).
     local repos=()
-    while IFS= read -r gitdir; do
-        repos+=("$(dirname "$gitdir")")
-    done < <(find "$REPOS_DIR" -type d -name .git -prune 2>/dev/null | sort)
-
+    while IFS= read -r gitdir; do repos+=("$(dirname "$gitdir")"); done \
+        < <(find "$REPOS_DIR" -type d -name .git -prune 2>/dev/null | sort)
     local total=${#repos[@]}
-    if [[ $total -eq 0 ]]; then
-        warn "No git repos found in: $REPOS_DIR"
-        return 0
-    fi
-
-    log "Syncing ${total} repos in: $REPOS_DIR"
-    echo ""
-
+    [[ $total -gt 0 ]] || { warn "No git repos found in: $REPOS_DIR"; return 0; }
+    log "Syncing ${total} repos in: $REPOS_DIR"; echo ""
     local ok=0 fail=0 current_dir="$PWD"
     for repo_path in "${repos[@]}"; do
-        local name
-        name=$(basename "$repo_path")
+        local name; name=$(basename "$repo_path")
         cd "$repo_path"
-        # stdout suppressed; stderr (including auth prompts) stays visible
-        if git fetch origin > /dev/null && git pull origin master --ff-only > /dev/null 2>&1; then
-            ok=$(( ok + 1 ))
-            printf "  ${GREEN}✓${NC} %s\n" "$name"
+        if GIT_TERMINAL_PROMPT=0 git fetch origin >/dev/null 2>&1 \
+           && GIT_TERMINAL_PROMPT=0 git pull origin master --ff-only >/dev/null 2>&1; then
+            ok=$((ok+1)); printf "  ${GREEN}✓${NC} %s\n" "$name"
+        elif GIT_TERMINAL_PROMPT=0 git pull origin master --rebase >/dev/null 2>&1; then
+            ok=$((ok+1)); printf "  ${GREEN}✓${NC} %s (rebased)\n" "$name"
         else
-            # retry with rebase in case of diverged state
-            if git pull origin master --rebase > /dev/null 2>&1; then
-                ok=$(( ok + 1 ))
-                printf "  ${GREEN}✓${NC} %s (rebased)\n" "$name"
-            else
-                fail=$(( fail + 1 ))
-                printf "  ${RED}✗${NC} %s\n" "$name"
-            fi
+            fail=$((fail+1)); printf "  ${RED}✗${NC} %s\n" "$name"
         fi
         cd "$current_dir"
     done
-
     echo ""
-    if [[ $fail -eq 0 ]]; then
-        log "Sync complete: ${ok}/${total} repos up to date"
-    else
-        warn "Sync complete: ${ok} OK, ${fail} failed — run 'git pull' manually in failed repos"
-    fi
+    if [[ $fail -eq 0 ]]; then log "Sync complete: ${ok}/${total} up to date"
+    else warn "Sync complete: ${ok} OK, ${fail} failed"; fi
 }
 
 cmd_init() {
     ensure_dirs
-    log "Initialized BNPRS session directories"
+    log "Initialized BNPRS session dirs"
     log "  Sessions : $SESSIONS_DIR"
-    log "  Memory   : $MEMORY_DIR"
     log "  Repos    : $REPOS_DIR"
+    log "  AID map  : $AID_MAP"
+    log "Session ID format: AID.<NNN>  e.g. AID.001"
     echo ""
-    log "Session ID format:  E<number>-aid.<NNN>   e.g. E1026-aid.001"
-    log "GitLab base       : https://${GITLAB_HOST}/${GITLAB_GROUP}"
-    log "Auth              : git will prompt in terminal when needed"
-    echo ""
-
-    # Fetch and pull all repos in REPOS_DIR
     cmd_sync_all
-    echo ""
-    log "${BOLD}Usage:${NC}"
-    echo "  ./bnprs-sessions.sh start E1026-aid.001"
-    echo "  ./bnprs-sessions.sh save-memory E1026-aid.001"
 }
 
 cmd_sync() {
-    local full_sid="${1:?Session ID required (e.g., E1026-aid.001)}"
-    parse_session_id "$full_sid"
-    ensure_dirs
-
+    local sid="${1:?Session ID required (e.g., AID.001)}"
+    parse_session_id "$sid"; ensure_dirs
     log "Checking GitLab: ${SESSION_REPO_URL}"
-    if check_gitlab_repo "$SESSION_REPO_NAME"; then
-        log "Repo found — syncing..."
-        sync_repo "$SESSION_REPO_NAME" "$SESSION_LOCAL_PATH"
-        log "Sync complete: ${SESSION_LOCAL_PATH}"
+    if check_gitlab_repo; then
+        sync_repo "$SESSION_LOCAL_PATH"; log "Sync complete: ${SESSION_LOCAL_PATH}"
     else
-        err "Repo not found: ${SESSION_REPO_URL}"
-        err "Ask admin to create '${SESSION_REPO_NAME}' in group '${GITLAB_GROUP}'"
-        exit 1
+        err "Repo not found/inaccessible: ${SESSION_REPO_URL}"; exit 1
     fi
 }
 
 cmd_start() {
-    local full_sid="${1:?Session ID required (e.g., E1026-aid.001)}"
-    parse_session_id "$full_sid"
-    ensure_dirs
-
+    local sid="${1:?Session ID required (e.g., AID.001)}"
+    parse_session_id "$sid"; ensure_dirs
     echo ""
-    log "Session  : ${full_sid}"
-    log "Employee : ${SESSION_EID}   AID: ${SESSION_AID}"
+    log "Session  : ${SESSION_ID}   (EID: ${SESSION_EID:-unknown})"
     log "Repo     : ${SESSION_REPO_URL}"
+    log "Local    : ${SESSION_LOCAL_PATH}"
     echo ""
 
-    # ── Check GitLab repo, sync local clone ─────────────────
-    log "Checking GitLab repo..."
-    if check_gitlab_repo "$SESSION_REPO_NAME"; then
-        sync_repo "$SESSION_REPO_NAME" "$SESSION_LOCAL_PATH"
-    else
-        err "Repo not found: ${SESSION_REPO_URL}"
-        err "Ask admin to create '${SESSION_REPO_NAME}' in group '${GITLAB_GROUP}'"
-        exit 1
-    fi
+    if check_gitlab_repo; then sync_repo "$SESSION_LOCAL_PATH"
+    else err "Repo not found/inaccessible: ${SESSION_REPO_URL}"; exit 1; fi
 
-    # ── Load latest memory from repo ────────────────────────
-    local repo_memory=""
-    local memory_dir="${SESSION_LOCAL_PATH}/08-memory"
-    if [[ -d "$memory_dir" ]]; then
-        local latest_mem
-        latest_mem=$(ls -t "${memory_dir}/${SESSION_AID}."* 2>/dev/null | head -1 || true)
-        if [[ -n "$latest_mem" && -f "$latest_mem" ]]; then
-            repo_memory=$(cat "$latest_mem")
-            log "Loaded memory: $(basename "$latest_mem")"
-        fi
+    # Load latest long-term memory (most recent file) for context
+    local repo_memory="" mdir="${SESSION_LOCAL_PATH}/08-memory/long-term"
+    if [[ -d "$mdir" ]]; then
+        local latest; latest=$(ls -t "${mdir}/${SESSION_AID}."* 2>/dev/null | head -1 || true)
+        [[ -n "$latest" && -f "$latest" ]] && { repo_memory=$(cat "$latest"); log "Loaded memory: $(basename "$latest")"; }
     fi
     echo ""
 
-    # ── Session meta ─────────────────────────────────────────
-    local meta_file
-    meta_file=$(session_meta_file "$full_sid")
-    local is_new=false
-
+    # Session meta
+    local meta_file; meta_file=$(session_meta_file "$SESSION_ID"); local is_new=false
     if [[ ! -f "$meta_file" ]]; then
         is_new=true
-        local claude_uuid
-        claude_uuid=$(generate_uuid)
-        cat > "$meta_file" << EOF
-session_id=${full_sid}
-eid=${SESSION_EID}
+        cat > "$meta_file" <<EOF
+session_id=${SESSION_ID}
 aid=${SESSION_AID}
+eid=${SESSION_EID}
 repo_name=${SESSION_REPO_NAME}
 repo_local=${SESSION_LOCAL_PATH}
-claude_uuid=${claude_uuid}
+claude_uuid=$(generate_uuid)
 created=$(date '+%Y-%m-%d %H:%M:%S')
 last_used=$(date '+%Y-%m-%d %H:%M:%S')
 resume_count=0
 EOF
     fi
+    local claude_uuid resume_count
+    claude_uuid=$(grep "^claude_uuid=" "$meta_file" | cut -d= -f2)
+    resume_count=$(grep "^resume_count=" "$meta_file" | cut -d= -f2)
 
-    local claude_uuid last_used resume_count
-    claude_uuid=$(grep   "^claude_uuid="   "$meta_file" | cut -d= -f2)
-    last_used=$(grep     "^last_used="     "$meta_file" | cut -d= -f2-)
-    resume_count=$(grep  "^resume_count="  "$meta_file" | cut -d= -f2)
-
-    # ── Banner ───────────────────────────────────────────────
     if $is_new; then
-        echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-        echo -e "${CYAN}║${NC}  ${BOLD}New Session: ${full_sid}${NC}"
-        echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
+        echo -e "${CYAN}New Session: ${SESSION_ID}${NC} (EID ${SESSION_EID:-unknown})"
     else
-        echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-        echo -e "${CYAN}║${NC}  ${BOLD}Resuming: ${full_sid}  (resume #${resume_count})${NC}"
-        echo -e "${CYAN}║${NC}  Last active: ${last_used:-unknown}"
-        echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
+        echo -e "${CYAN}Resuming: ${SESSION_ID}  (resume #${resume_count})${NC}"
         SED_I "s/^last_used=.*/last_used=$(date '+%Y-%m-%d %H:%M:%S')/" "$meta_file"
-        local new_count=$(( resume_count + 1 ))
-        SED_I "s/^resume_count=.*/resume_count=${new_count}/" "$meta_file"
-        resume_count="$new_count"
+        resume_count=$((resume_count+1))
+        SED_I "s/^resume_count=.*/resume_count=${resume_count}/" "$meta_file"
     fi
     echo ""
 
-    # ── Build system prompt ──────────────────────────────────
     local resume_prompt
     if [[ -n "$repo_memory" ]]; then
-        resume_prompt="You are resuming session ${full_sid} (resume #${resume_count}).
-Employee: ${SESSION_EID} | Agent ID: ${SESSION_AID}
-Repo    : ${SESSION_REPO_URL}
-Local   : ${SESSION_LOCAL_PATH}
+        resume_prompt="You are resuming agent session ${SESSION_ID} (resume #${resume_count}).
+AID: ${SESSION_AID} | EID: ${SESSION_EID:-unknown}
+Repo : ${SESSION_REPO_URL}
 
---- LATEST SESSION MEMORY ---
+--- LATEST LONG-TERM MEMORY ---
 ${repo_memory}
 --- END MEMORY ---
 
-Acknowledge the context and ask what to work on next."
+Acknowledge context and ask what to work on next."
     else
-        resume_prompt="Starting session ${full_sid}.
-Employee: ${SESSION_EID} | Agent ID: ${SESSION_AID}
-Repo    : ${SESSION_REPO_URL}
-No prior memory found. What would you like to work on?"
+        resume_prompt="Starting agent session ${SESSION_ID}.
+AID: ${SESSION_AID} | EID: ${SESSION_EID:-unknown}
+Repo : ${SESSION_REPO_URL}
+No prior long-term memory found. What would you like to work on?"
     fi
 
-    # ── Launch Claude ────────────────────────────────────────
+    # Launch Claude from inside the repo so agent memory writes land in 08-memory/
+    local current_dir="$PWD"
+    cd "$SESSION_LOCAL_PATH"
     if ! $is_new && [[ -n "$claude_uuid" ]]; then
-        log "Attempting to resume Claude session: ${claude_uuid}"
-        $CLAUDE_CMD --resume "$claude_uuid" 2>/dev/null \
-            || {
-                warn "Previous Claude session expired — starting fresh with memory..."
-                local new_uuid
-                new_uuid=$(generate_uuid)
-                SED_I "s/^claude_uuid=.*/claude_uuid=${new_uuid}/" "$meta_file"
-                $CLAUDE_CMD --session-id "$new_uuid" \
-                    --name "bnprs-${full_sid}" \
-                    --append-system-prompt "$resume_prompt"
-            }
+        $CLAUDE_CMD --resume "$claude_uuid" 2>/dev/null || {
+            warn "Previous Claude session expired — starting fresh with memory..."
+            local new_uuid; new_uuid=$(generate_uuid)
+            SED_I "s/^claude_uuid=.*/claude_uuid=${new_uuid}/" "$meta_file"
+            $CLAUDE_CMD --session-id "$new_uuid" --name "bnprs-${SESSION_ID}" --append-system-prompt "$resume_prompt"
+        }
     else
-        $CLAUDE_CMD --session-id "$claude_uuid" --name "bnprs-${full_sid}"
+        $CLAUDE_CMD --session-id "$claude_uuid" --name "bnprs-${SESSION_ID}" --append-system-prompt "$resume_prompt"
     fi
+    cd "$current_dir"
 
-    # ── Post-session: offer to save memory ───────────────────
-    echo ""
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Session ${full_sid} ended.${NC}"
-    echo ""
-    read -rp "Save session notes to repo? (y/n): " save_notes
-    if [[ "$save_notes" == "y" ]]; then
-        echo ""
-        echo "Enter session notes (Ctrl+D when done):"
-        echo "──────────────────────────────────────────"
-        local notes
-        notes=$(cat)
-        write_memory_to_repo "$full_sid" "$notes"
-    fi
+    # Post-session: auto-save memory + background push. NO PROMPT.
+    save_session_memory "$SESSION_LOCAL_PATH" ""
+    log "Session ${SESSION_ID} ended; memory saved and pushed in background."
+}
+
+cmd_save_memory() {
+    local sid="${1:?Session ID required (e.g., AID.001)}"; shift || true
+    parse_session_id "$sid"; ensure_dirs
+    # Notes: from remaining args, or piped stdin if available; never blocks.
+    local notes="$*"
+    if [[ -z "$notes" && ! -t 0 ]]; then notes="$(cat)"; fi
+    [[ -d "${SESSION_LOCAL_PATH}/.git" ]] || { check_gitlab_repo && sync_repo "$SESSION_LOCAL_PATH"; }
+    save_session_memory "$SESSION_LOCAL_PATH" "$notes"
 }
 
 cmd_list() {
     ensure_dirs
-    echo ""
-    echo -e "${BOLD}BNPRS Sessions${NC}"
-    echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    printf "  ${BOLD}%-22s %-10s %-10s %-22s %s${NC}\n" "Session ID" "EID" "AID" "Last Used" "Resumes"
-    echo -e "  ──────────────────────────────────────────────────────────────────"
-
+    echo ""; echo -e "${BOLD}BNPRS Sessions${NC}"
+    printf "  ${BOLD}%-10s %-8s %-22s %s${NC}\n" "AID" "EID" "Last Used" "Resumes"
     local found=0
     for meta in "$SESSIONS_DIR"/*.meta; do
-        [[ -f "$meta" ]] || continue
-        found=1
-        local sid eid aid last_used resume_count
-        sid=$(grep          "^session_id="   "$meta" | cut -d= -f2)
-        eid=$(grep          "^eid="          "$meta" | cut -d= -f2)
-        aid=$(grep          "^aid="          "$meta" | cut -d= -f2)
-        last_used=$(grep    "^last_used="    "$meta" | cut -d= -f2-)
-        resume_count=$(grep "^resume_count=" "$meta" | cut -d= -f2)
-        printf "  ${GREEN}%-22s${NC} %-10s %-10s %-22s %s\n" \
-            "$sid" "$eid" "$aid" "$last_used" "$resume_count"
+        [[ -f "$meta" ]] || continue; found=1
+        local aid eid lu rc
+        aid=$(grep "^aid=" "$meta" | cut -d= -f2)
+        eid=$(grep "^eid=" "$meta" | cut -d= -f2)
+        lu=$(grep  "^last_used=" "$meta" | cut -d= -f2-)
+        rc=$(grep  "^resume_count=" "$meta" | cut -d= -f2)
+        printf "  ${GREEN}%-10s${NC} %-8s %-22s %s\n" "$aid" "${eid:-—}" "$lu" "$rc"
     done
-
     [[ $found -eq 0 ]] && echo "  No sessions found."
     echo ""
 }
 
 cmd_status() {
-    local full_sid="${1:?Session ID required (e.g., E1026-aid.001)}"
-    parse_session_id "$full_sid"
-    local meta_file
-    meta_file=$(session_meta_file "$full_sid")
-
-    [[ -f "$meta_file" ]] || { err "Session '${full_sid}' not found"; exit 1; }
-
-    echo ""
-    echo -e "${BOLD}Session: ${full_sid}${NC}"
-    echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    sed 's/^/  /' "$meta_file"
-    echo ""
-
-    # List repo memory files for this AID
-    local memory_dir="${SESSION_LOCAL_PATH}/08-memory"
-    if [[ -d "$memory_dir" ]]; then
-        echo -e "${BOLD}Repo memory files (${SESSION_AID}):${NC}"
-        ls -lt "${memory_dir}/${SESSION_AID}."* 2>/dev/null \
-            | awk '{print "  " $NF}' \
-            | head -10 \
-            || echo "  None"
-    else
-        echo -e "${YELLOW}  Repo not cloned yet. Run: sync ${full_sid}${NC}"
+    local sid="${1:?Session ID required (e.g., AID.001)}"
+    parse_session_id "$sid"
+    local meta_file; meta_file=$(session_meta_file "$SESSION_ID")
+    [[ -f "$meta_file" ]] || { err "Session '${SESSION_ID}' not found"; exit 1; }
+    echo ""; echo -e "${BOLD}Session: ${SESSION_ID}${NC}"; sed 's/^/  /' "$meta_file"; echo ""
+    local mdir="${SESSION_LOCAL_PATH}/08-memory/long-term"
+    if [[ -d "$mdir" ]]; then
+        echo -e "${BOLD}Long-term memory files (${SESSION_AID}):${NC}"
+        ls -lt "${mdir}/${SESSION_AID}."* 2>/dev/null | awk '{print "  "$NF}' | head -10 || echo "  None"
     fi
     echo ""
 }
 
 cmd_delete() {
-    local full_sid="${1:?Session ID required (e.g., E1026-aid.001)}"
-    local meta_file
-    meta_file=$(session_meta_file "$full_sid")
-    local mem_file
-    mem_file=$(session_memory_file "$full_sid")
-
-    [[ -f "$meta_file" ]] || { err "Session '${full_sid}' not found"; exit 1; }
-
-    read -rp "Delete local session meta for ${full_sid}? (y/n): " confirm
-    if [[ "$confirm" == "y" ]]; then
-        rm -f "$meta_file" "$mem_file"
-        log "Local session data deleted for ${full_sid}"
-        log "Note: repo memory at ${SESSION_LOCAL_PATH}/08-memory/ is preserved on GitLab"
-    fi
-}
-
-cmd_save_memory() {
-    local full_sid="${1:?Session ID required (e.g., E1026-aid.001)}"
-    parse_session_id "$full_sid"
-    ensure_dirs
-
-    # Sync repo first so we push on top of latest
-    log "Syncing repo before saving..."
-    if check_gitlab_repo "$SESSION_REPO_NAME"; then
-        sync_repo "$SESSION_REPO_NAME" "$SESSION_LOCAL_PATH"
-    else
-        err "Repo not found: ${SESSION_REPO_URL}"
-        exit 1
-    fi
-
-    echo ""
-    echo "Enter memory content (Ctrl+D when done):"
-    echo "──────────────────────────────────────────"
-    local content
-    content=$(cat)
-
-    write_memory_to_repo "$full_sid" "$content"
+    local sid="${1:?Session ID required (e.g., AID.001)}"
+    parse_session_id "$sid"
+    local meta_file; meta_file=$(session_meta_file "$SESSION_ID")
+    [[ -f "$meta_file" ]] || { err "Session '${SESSION_ID}' not found"; exit 1; }
+    read -rp "Delete LOCAL session meta for ${SESSION_ID}? (y/n): " c
+    [[ "$c" == "y" ]] && { rm -f "$meta_file"; log "Deleted local meta for ${SESSION_ID} (repo memory on GitLab preserved)"; }
 }
 
 # ── Main ────────────────────────────────────────────────────
-
 case "${1:-help}" in
-    init)              cmd_init ;;
-    sync-all|sa)       cmd_sync_all ;;
-    start|s)           cmd_start       "${2:-}" ;;
-    sync)              cmd_sync        "${2:-}" ;;
-    list|ls)           cmd_list ;;
-    status|st)         cmd_status      "${2:-}" ;;
-    delete|rm)         cmd_delete      "${2:-}" ;;
-    save-memory|sm)    cmd_save_memory "${2:-}" ;;
+    init)             cmd_init ;;
+    sync-all|sa)      cmd_sync_all ;;
+    start|s)          cmd_start       "${2:-}" ;;
+    sync)             cmd_sync        "${2:-}" ;;
+    list|ls)          cmd_list ;;
+    status|st)        cmd_status      "${2:-}" ;;
+    delete|rm)        cmd_delete      "${2:-}" ;;
+    save-memory|sm)   shift; cmd_save_memory "$@" ;;
     help|*)
         echo ""
         echo -e "${BOLD}BNPRS Session Manager${NC} for Claude Code"
-        echo ""
-        echo -e "Session ID format:  ${CYAN}E<number>-aid.<NNN>${NC}   e.g. E1026-aid.001"
+        echo -e "Session ID:  ${CYAN}AID.<NNN>${NC}  e.g. AID.001  (also aid.001 | 001)"
         echo ""
         echo "Commands:"
-        echo "  init                       Setup dirs + fetch/pull ALL repos in REPOS_DIR"
-        echo "  sync-all                   Fetch and pull all repos in REPOS_DIR"
-        echo "  start  <session-id>        Start or resume a session"
-        echo "  sync   <session-id>        Sync one session's repo only"
-        echo "  list                       List all sessions"
-        echo "  status <session-id>        Show session details + repo memory"
-        echo "  delete <session-id>        Delete local session meta"
-        echo "  save-memory <session-id>   Save notes → repo 08-memory/ + push"
+        echo "  init                       Setup + sync-all"
+        echo "  sync-all                   Fetch + pull all repos in REPOS_DIR"
+        echo "  start  AID.NNN             Start or resume an agent session"
+        echo "  sync   AID.NNN             Sync one repo"
+        echo "  list                       List local sessions"
+        echo "  status AID.NNN             Session details + memory files"
+        echo "  delete AID.NNN             Delete local session meta"
+        echo "  save-memory AID.NNN [text] Save memory (non-interactive) + bg push"
         echo ""
-        echo "Examples:"
-        echo "  ./bnprs-sessions.sh init"
-        echo "  ./bnprs-sessions.sh sync-all"
-        echo "  ./bnprs-sessions.sh start E1026-aid.001"
-        echo "  ./bnprs-sessions.sh save-memory E1026-aid.001"
-        echo "  ./bnprs-sessions.sh list"
-        echo ""
-        echo "Env vars:"
-        echo "  GITLAB_HOST       default: gitlab.bnprs.ai"
-        echo "  GITLAB_GROUP      default: aim1001"
-        echo "  REPOS_DIR         macOS: ~/BPR/GitRepos2/AIM1001_Team"
-        echo "                    Linux: ~/aim1001"
-        echo ""
-        echo "Auth: git prompts for username + token in terminal when needed"
+        echo "Repos dir : $REPOS_DIR"
+        echo "AID map   : $AID_MAP"
         echo ""
         ;;
 esac
