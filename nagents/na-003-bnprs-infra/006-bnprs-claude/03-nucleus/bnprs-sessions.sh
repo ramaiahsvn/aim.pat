@@ -69,6 +69,17 @@ else
     GIT_REMOTE_USER="info_bnprs"
 fi
 
+# Working-dir base — where the agent actually RUNS (separate from the memory repo).
+# Each agent's home holds its CLAUDE.md + the product repos it works on.
+#   Linux (EC2): /home/devops/aid.NNN   ·   macOS: the memory repo itself.
+if [[ -n "${BNPRS_WORK_BASE:-}" ]]; then
+    WORK_BASE="$BNPRS_WORK_BASE"
+elif [[ "$(uname)" == "Darwin" ]]; then
+    WORK_BASE=""        # on the Mac, run inside the repo (no separate work home)
+else
+    WORK_BASE="/home/devops"
+fi
+
 PUSH_LOG="${REPOS_DIR}/.push.log"
 
 # macOS/Linux-compatible sed -i
@@ -142,7 +153,12 @@ parse_session_id() {
     local userpart=""
     [[ -n "$GIT_REMOTE_USER" ]] && userpart="${GIT_REMOTE_USER}@"
     SESSION_REPO_URL="https://${userpart}${GITLAB_HOST}/${GITLAB_GROUP}/${SESSION_TIER}/${SESSION_REPO_NAME}"
-    SESSION_LOCAL_PATH="$(resolve_repo_path "$SESSION_REPO_NAME")"
+    SESSION_LOCAL_PATH="$(resolve_repo_path "$SESSION_REPO_NAME")"   # memory repo
+    if [[ -n "$WORK_BASE" ]]; then
+        SESSION_WORK_DIR="$WORK_BASE/$SESSION_AID"                   # /home/devops/aid.NNN
+    else
+        SESSION_WORK_DIR="$SESSION_LOCAL_PATH"
+    fi
 }
 
 # ── GitLab Repo Operations ───────────────────────────────────
@@ -281,12 +297,24 @@ cmd_start() {
     parse_session_id "$sid"; ensure_dirs
     echo ""
     log "Session  : ${SESSION_ID}   (EID: ${SESSION_EID:-unknown})"
-    log "Repo     : ${SESSION_REPO_URL}"
-    log "Local    : ${SESSION_LOCAL_PATH}"
+    log "Work dir : ${SESSION_WORK_DIR}"
+    log "Mem repo : ${SESSION_LOCAL_PATH}"
     echo ""
 
     if check_gitlab_repo; then sync_repo "$SESSION_LOCAL_PATH"
     else err "Repo not found/inaccessible: ${SESSION_REPO_URL}"; exit 1; fi
+
+    # Ensure the agent's working home exists; seed identity from the repo if fresh,
+    # and link its 08-memory to the memory repo so agent memory writes are pushable.
+    if [[ ! -d "$SESSION_WORK_DIR" ]]; then
+        log "Creating work home: $SESSION_WORK_DIR"
+        mkdir -p "$SESSION_WORK_DIR"
+        [[ -f "$SESSION_LOCAL_PATH/CLAUDE.md" ]] && cp "$SESSION_LOCAL_PATH/CLAUDE.md" "$SESSION_WORK_DIR/" 2>/dev/null || true
+        [[ -f "$SESSION_LOCAL_PATH/agent.yaml" ]] && cp "$SESSION_LOCAL_PATH/agent.yaml" "$SESSION_WORK_DIR/" 2>/dev/null || true
+    fi
+    if [[ "$SESSION_WORK_DIR" != "$SESSION_LOCAL_PATH" && ! -e "$SESSION_WORK_DIR/08-memory" ]]; then
+        ln -s "$SESSION_LOCAL_PATH/08-memory" "$SESSION_WORK_DIR/08-memory" 2>/dev/null || true
+    fi
 
     # Load latest long-term memory (most recent file) for context
     local repo_memory="" mdir="${SESSION_LOCAL_PATH}/08-memory/long-term"
@@ -306,6 +334,7 @@ aid=${SESSION_AID}
 eid=${SESSION_EID}
 repo_name=${SESSION_REPO_NAME}
 repo_local=${SESSION_LOCAL_PATH}
+work_dir=${SESSION_WORK_DIR}
 claude_uuid=$(generate_uuid)
 created=$(date '+%Y-%m-%d %H:%M:%S')
 last_used=$(date '+%Y-%m-%d %H:%M:%S')
@@ -344,9 +373,10 @@ Repo : ${SESSION_REPO_URL}
 No prior long-term memory found. What would you like to work on?"
     fi
 
-    # Launch Claude from inside the repo so agent memory writes land in 08-memory/
+    # Launch Claude from inside the agent's WORK HOME (resumes the old conversation,
+    # whose Claude history is keyed to this path). Memory writes go via the 08-memory symlink.
     local current_dir="$PWD"
-    cd "$SESSION_LOCAL_PATH"
+    cd "$SESSION_WORK_DIR"
     if ! $is_new && [[ -n "$claude_uuid" ]]; then
         $CLAUDE_CMD --resume "$claude_uuid" 2>/dev/null || {
             warn "Previous Claude session expired — starting fresh with memory..."

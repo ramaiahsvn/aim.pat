@@ -92,10 +92,19 @@ ssh devops@3.151.67.208
 - **GitLab repo per AID**: `aim1001/<tier>/aim1001.aid.<NNN>` — note the tier **SUBGROUPS**:
   001-010 `01-principal-agents` · 011-025 `02-senior-agents` ·
   026-075 `03-engineering-agents` · 076-100 `04-support-agents`
-- **Clone base**: EC2 `/srv/aim1001` (owner `devops:aim1001`, setgid `2770`, shared group
-  `aim1001` = devops+ubuntu); Mac mirror `~/BPR/GitRepos2/AIM1001_Team`. Tiered subfolders.
-- **Memory**: saved to `<repo>/08-memory/long-term/aid.<NNN>.YYYY.MM.DD.HH.MM.SS`;
-  commit + push to origin `master` run in the **BACKGROUND, no terminal prompt**.
+- **Memory repo (push target)**: EC2 `/srv/aim1001/<tier>/aim1001.aid.<NNN>`
+  (owner `devops:aim1001`, setgid `2770`, shared group `aim1001` = devops+ubuntu);
+  Mac mirror `~/BPR/GitRepos2/AIM1001_Team`. Tiered subfolders.
+- **Work home (where the agent RUNS)**: EC2 `/home/devops/aid.<NNN>` — holds the agent's
+  `CLAUDE.md` + the product repos it works on. Separate from the memory repo. `start` `cd`s
+  here, and symlinks `08-memory` → the memory repo so agent memory writes are pushable.
+  (On the Mac there is no separate work home — it runs inside the repo.)
+- **Resume**: `start AID.NNN` resumes the agent's **prior Claude conversation** via the
+  `claude_uuid` in its meta. Claude history is keyed to the work-home path, so the history
+  project dir was remapped (`-home-devops-E#### → -home-devops-aid-NNN`). If the old session
+  is gone/expired it falls back to a fresh session seeded with the latest long-term memory.
+- **Memory**: saved to `08-memory/long-term/aid.<NNN>.YYYY.MM.DD.HH.MM.SS` (via the symlink,
+  in the memory repo); commit + push to origin `master` run in the **BACKGROUND, no prompt**.
 - **Auth**: git credential helper (devops) holds **info_bnprs** for clone + push.
   ⚠️ `info_bnprs` must be **Maintainer on group `aim1001`** to push to the protected
   `master` branch (Developer is rejected by the pre-receive hook).
@@ -108,7 +117,10 @@ ssh devops@3.151.67.208
 - **Legacy migration (2026-05-30)**: 30 old `E####`/`C####` devops sessions mapped to AIDs
   (`aid-eid-map.tsv`); 25 AI-summarized + 4 stubs written to each repo's
   `08-memory/long-term/aid.<NNN>.legacy-summary.md`. `C1039` was intentionally dropped
-  (its AID.035 slot reassigned to E1039).
+  (its AID.035 slot reassigned to E1039). Then the 29 work homes were **renamed**
+  `/home/devops/E#### → /home/devops/aid.NNN`, their Claude history project dirs remapped,
+  and new `aid.NNN.meta` written carrying the old `claude_uuid` + resume count — so
+  `start AID.NNN` resumes each agent's exact prior conversation.
 
 ## Pending Actions
 
