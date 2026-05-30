@@ -105,7 +105,8 @@ ssh devops@3.151.67.208
       5.107.232.224/32, 152.57.168.249/32 (TRP Office), 152.57.167.180/32. SG now allows
       only the VPN IP 103.106.181.48/32. ⚠️ If the VPN exit IP changes, re-add it (or
       reconnect VPN) before SSH — there is no longer a fallback office IP.
-- [ ] Copy BprAiAgent.pem to WorkDrive backup (AWS/itp/us-east-2/key-pairs/)
+- [x] Copy BprAiAgent.pem to WorkDrive backup — done. Location:
+      WorkDrive `A_Work/03_AWS_Infrastructure/ITP/us-east-2/key-pairs/`.
 
 ## Inter-Agent Dependencies
 
