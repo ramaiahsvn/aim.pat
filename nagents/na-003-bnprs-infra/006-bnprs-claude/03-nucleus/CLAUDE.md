@@ -8,7 +8,7 @@
 **On the EC2 host (where agent sessions actually run, as `devops`):**
 ```bash
 sudo su - devops          # or: ssh devops@3.151.67.208
-/srv/aim1001/bin/bnprs-sessions.sh sync-all
+~/bnprs-sessions.sh sync-all
 ```
 Fetches + pulls all 100 repos under `/srv/aim1001/<tier>/aim1001.aid.<NNN>/` so every
 agent's `08-memory/` is current before any session work.
@@ -111,9 +111,10 @@ ssh devops@3.151.67.208
 - **Local meta**: `~/.claude/bnprs-sessions/aid.<NNN>.meta`
 - **Commands**: `init`, `sync-all`, `start AID.NNN`, `sync AID.NNN`, `list`, `status`,
   `delete AID.NNN`, `save-memory AID.NNN ["notes"]`
-- **EC2 location**: `/srv/aim1001/bin/{bnprs-sessions.sh, aid-eid-map.tsv}`. Deploy via the
-  SSH-stdin method (scp is disabled — see SSH section):
-  `base64 < bnprs-sessions.sh | ssh bnprs-claude 'base64 -d | sudo -u devops tee /srv/aim1001/bin/bnprs-sessions.sh >/dev/null'`
+- **EC2 location**: `/home/devops/{bnprs-sessions.sh, aid-eid-map.tsv}` (devops home, beside
+  the `aid.NNN` work homes; run as `~/bnprs-sessions.sh start AID.NNN`). A copy also exists
+  at `/srv/aim1001/bin/`. Deploy via the SSH-stdin method (scp is disabled — see SSH section):
+  `base64 < bnprs-sessions.sh | ssh bnprs-claude 'base64 -d | sudo -u devops tee /home/devops/bnprs-sessions.sh >/dev/null'`
 - **Legacy migration (2026-05-30)**: 30 old `E####`/`C####` devops sessions mapped to AIDs
   (`aid-eid-map.tsv`); 25 AI-summarized + 4 stubs written to each repo's
   `08-memory/long-term/aid.<NNN>.legacy-summary.md`. `C1039` was intentionally dropped
