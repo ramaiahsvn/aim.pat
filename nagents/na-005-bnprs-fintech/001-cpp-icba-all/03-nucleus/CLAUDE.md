@@ -22,6 +22,20 @@
     `BprIDEngine` (na-004), `BprScripts` (Qi/Pure APDU scripts), `AprCommon`.
 - **Status**: **Minimal / Windows placeholder** — `BprICBA.h` is Windows COM includes; `BprICBA.cpp` minimal; full ICBA orchestration pending.
 
+## On session load — recollect knowledge base (do this first)
+
+Read these so you don't re-analyse the spreadsheet/source each session:
+- `08-memory/long-term/bpass/bpass-bitmap-v1-spec.md` — current bPass TLV-bitmap spec
+  (from bPass-TLV-Bitmap.xlsx) + analysis of the v1 parser (`BprQR::patParseDecodedQRCode`)
+- `08-memory/long-term/bpass/bpass-icba-framework-v2-design.md` — the new ICBA framework
+  design (clean redesign; DRAFT awaiting review)
+- `08-memory/long-term/knowledge.yaml` — indexed key facts
+- `02-cell-body/planning/todo/task-001-bpass-framework.yaml` — active task + subtasks
+
+> Active work: **task-001** — turn bPass TLV-bitmap into a data-driven ICBA framework
+> (new code in `src/BprICBA/`, clean wire-format redesign). Design doc drafted; awaiting
+> user sign-off + answers to 6 open design questions before any C++.
+
 ## What ICBA Is
 
 **Issuer Controlled Biometric Authentication** — a smart card authentication model where:

@@ -1,0 +1,61 @@
+# Task — bPass-ICBA TLV-Bitmap Framework
+
+task:
+  id: "task-001"
+  subject: "Enhance bPass TLV-bitmap into a new ICBA framework (clean redesign)"
+  description: >
+    Evolve the bPass TLV-bitmap from the v1 QR-specific hardcoded parser
+    (BprQR::patParseDecodedQRCode) into a general, data-driven, bounds-safe
+    encode/decode framework for ICBA — NEW code under src/BprICBA/. Clean
+    redesign of the wire format (BER-TLV lengths, chained extensible bitmap,
+    modality versions in header, structured Record object). v1 spec + analysis:
+    08-memory/long-term/bpass/bpass-bitmap-v1-spec.md. v2 design:
+    08-memory/long-term/bpass/bpass-icba-framework-v2-design.md.
+  status: in_progress      # pending | in_progress | completed | blocked | on_hold
+  status_note: "v2 design doc drafted 2026-05-30; awaiting user review before any C++ (subtask 001.1)."
+  priority: high
+  created_at: "2026-05-30"
+  assigned_to: null
+  estimated_steps: 12
+  tags: [bpass, tlv, bitmap, icba, codec, emv, biometrics, cpp17]
+
+scope:
+  path: "/Users/bnprs/BPR/GitRepos1/bpr.cpp/src/BprICBA/"
+  repo: "github.com/ramaiahsvn/bpr.cpp (branch main)"
+  decisions_locked_2026_05_30:
+    location: "New code in src/BprICBA/ (reuse BprQR for QR/crypto)"
+    compatibility: "Clean redesign — free to define a better wire format"
+    first_step: "Design doc first (review before implementation)"
+
+subtasks:
+  - id: "task-001.1"
+    subject: "Review & sign off v2 framework design"
+    detail: "User reviews bpass-icba-framework-v2-design.md; resolve the 6 open design questions (magic/version, bitmap style, BER-TLV, biometric handle vs raw, raw-bytes vs hex, migration)."
+    status: in_progress
+    blocked_by: []
+    needs_from_user: "Design review + answers to the 6 open questions"
+    estimated_steps: 1
+
+  - id: "task-001.2"
+    subject: "Implement the data-driven codec + tests"
+    detail: "bpass_schema, bpass_bitmap (chained), bpass_cursor (bounds-safe), bpass_codec (decode/encode), bpass_record, bpass_legacy; unit tests (round-trip, spec vectors, malformed/fuzz)."
+    status: blocked
+    blocked_by: ["task-001.1"]
+    estimated_steps: 7
+
+  - id: "task-001.3"
+    subject: "Wire codec into BprICBA encode/decode entry points"
+    detail: "Replace v1 parse path; keep C-ABI (errorCode ints) and legacy delimited-string output via bpass_legacy. Crypto stays in BprQR."
+    status: blocked
+    blocked_by: ["task-001.2"]
+    estimated_steps: 4
+
+deliverables:
+  - "Signed-off v2 design (this task's design doc)"
+  - "src/BprICBA/bpass/* codec + tests"
+  - "BprICBA encode/decode wired to v2 codec; legacy output preserved"
+
+guardrails:
+  - "Biometric templates must remain on-card — codec should prefer opaque handles/refs over raw template bytes (open question 4)."
+  - "Codec core must be cross-platform C++17 (no Windows/COM/glog in the codec; those stay in the BprICBA shell)."
+  - "Only edit src/BprICBA/ — sibling modules (BprQR, BprCardQi, ...) are read-only deps."

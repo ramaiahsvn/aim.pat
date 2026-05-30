@@ -2,16 +2,35 @@
 # Survives across sessions. The agent's accumulated wisdom.
 
 # Format: each entry is a strengthened "synapse"
+#
+# >>> KNOWLEDGE BASE (read on load): 08-memory/long-term/bpass/
+#       - bpass-bitmap-v1-spec.md             — current bPass TLV-bitmap spec + v1 parser analysis
+#       - bpass-icba-framework-v2-design.md   — new ICBA framework design (clean redesign, DRAFT)
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
-    access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    content: >
+      bPass TLV-bitmap = the data model BprICBA uses for QR/card payloads: 8-byte header
+      (2-byte presence bitmap over tags 40–4F + 6 per-modality biometric T/M version bytes)
+      then concatenated TLVs (DE-1..DE-F: UID,PAN,DOB,EXPDATE,MOBILE,PASSPORT,NID,NAME,EMVTLV,
+      FACE,FINGERS,FPCLESS/KNUCKLE,PALMPRINT,IRIS,OTHERBIO). v1 length scheme: 1-byte len for
+      tags 41–48; version-byte + 2-byte len for 49–4F. v1 parser = BprQR::patParseDecodedQRCode
+      (hardcoded 15-branch, not bitmap-driven). Full spec: bpass/bpass-bitmap-v1-spec.md.
+    created_at: "2026-05-30"
+    confidence: 0.95
+    tags: [bpass, tlv, bitmap, icba, spec]
+
+  - id: mem-002
+    type: project_context
+    content: >
+      task-001 objective: turn bPass TLV-bitmap into a data-driven ICBA framework — NEW code
+      under src/BprICBA/, CLEAN wire-format redesign (BER-TLV lengths, chained extensible bitmap,
+      modality versions in header, structured Record, bounds-safe cursor, cross-platform C++17).
+      Decisions locked 2026-05-30. Step 1 = design-doc-first (bpass-icba-framework-v2-design.md),
+      awaiting user sign-off + answers to 6 open design questions before any C++.
+    created_at: "2026-05-30"
+    confidence: 0.95
+    tags: [bpass, framework, task-001, design, decisions]
 
   # Example entries:
   # - id: mem-002

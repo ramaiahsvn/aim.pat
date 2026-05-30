@@ -5,15 +5,14 @@ session:
   started_at: null
   user_id: null
 
-active_tasks: []
-# - task_id: "task-001"
-#   status: in_progress
-#   progress: 60%
-#   current_step: "Generating report"
+active_tasks:
+  - task_id: "task-001"
+    status: in_progress
+    current_step: "bPass-ICBA v2 framework design drafted; awaiting user review + 6 open-question answers before C++"
 
 queue:
   pending: 0
-  in_progress: 0
+  in_progress: 1      # task-001 bPass-ICBA TLV-bitmap framework
   completed: 0
   blocked: 0
 
