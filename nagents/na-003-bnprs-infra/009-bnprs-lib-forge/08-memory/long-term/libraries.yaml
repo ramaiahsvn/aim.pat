@@ -45,4 +45,17 @@ source_versions:
 #       - "windows-64/libBprCardQi.dll.sha256"
 #       - "android-arm64/libBprCardQi.so"
 #       - "manifest.json"
-published: []
+published:
+  - package: "BprICBA"
+    version: "2.58.1"
+    package_id: 15
+    project_id: 230
+    source_repo: "bpr.cpp"
+    source_commit: "f1cf1e3"
+    built_by: "na-005-bnprs-fintech (BprICBA, bpr.cpp)"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-05-30T11:16:29Z"
+    files:
+      - "windows-64/libBprICBA.dll"
+      - "windows-64/libBprICBA.dll.sha256"
+      - "manifest.json"

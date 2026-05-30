@@ -1,0 +1,75 @@
+# Workflow: Publish Library to GitLab Package Registry
+
+id: wf-publish-library
+name: Publish Library
+description: "Publish a pre-built BPR shared library (collect → checksum → manifest → upload → verify) to the GitLab Generic Package Registry. This agent does NOT build."
+version: "1.0"
+executable: ./publish-library.sh        # the runnable implementation of this workflow
+
+inputs:
+  lib:        "Library name, e.g. BprICBA (required)"
+  version:    "SemVer X.Y.Z, no 'v' prefix (required) — read from source, never invented"
+  platform:   "Optional: limit to one platform; default = all under the artifact dir"
+  project_id: "GitLab project id (default 230 = BPR1000/bpr1000.bnprs-libs)"
+  built_by:   "Provenance note recorded in manifest.json"
+
+source:
+  host: "pat-m4p"
+  artifact_dir: "<bpr-root>/build/bnprs-libs/<lib>/v<version>/<platform>/"
+  note: "Artifacts are produced by builder agents; this workflow only reads them."
+
+steps:
+  - id: collect
+    name: "Collect artifacts + checksums"
+    action: terminals.read_files
+    inputs: [lib, version, platform]
+    outputs: [file_index]            # platform → files, each with sha256 sidecar
+    checkpoint: false
+
+  - id: manifest
+    name: "Build manifest.json (provenance)"
+    action: soma.compose
+    inputs: [file_index, source_commit, built_by]
+    outputs: [manifest]              # source repo+commit, builder, files→sha256
+    checkpoint: false
+
+  - id: guard
+    name: "Immutability guard"
+    action: soma.verify
+    inputs: [lib, version]
+    outputs: [is_new_version]
+    checkpoint: true                 # Node of Ranvier: abort if version already published (unless --force)
+    checkpoint_message: "Version exists in registry — refusing to overwrite. Bump PATCH or pass --force."
+
+  - id: upload
+    name: "Upload to GitLab Generic Registry"
+    action: terminals.http_put
+    inputs: [file_index, manifest, project_id]
+    outputs: [uploaded_paths]        # generic/<lib>/<version>/<platform>/<file> (+ .sha256) + manifest.json
+    checkpoint: false
+
+  - id: verify
+    name: "Download-back + checksum verify"
+    action: soma.verify
+    inputs: [uploaded_paths, file_index]
+    outputs: [verification_result]   # each file GET 200 and sha256 matches
+    checkpoint: true                 # Node of Ranvier: confirm integrity before declaring success
+    checkpoint_message: "Verifying each uploaded artifact downloads and matches its checksum..."
+
+  - id: record
+    name: "Write report + index"
+    action: terminals.deliver
+    inputs: [verification_result, manifest]
+    outputs: [publish_report]        # 07-axon-terminals/deliverables/publish-reports/<lib>-<version>.md
+    checkpoint: false
+    note: "Also append the published entry to 08-memory/long-term/libraries.yaml"
+
+guardrails:
+  - "Never build — fail if the artifact dir is absent and ask the builder agent."
+  - "Refuse to publish BprQiEmv (deprecated)."
+  - "Published (package, version, file) tuples are immutable — no overwrite without --force."
+  - "Only publish (lib, platform) pairs the source repo supports."
+
+on_failure:
+  retry: 0                           # publishing is not auto-retried — fail loud, fix, re-run
+  fallback: "report partial state and stop"
