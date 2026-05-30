@@ -88,7 +88,7 @@ registry:
   - code: "009"
     name: "bnprs-lib-forge"
     label: "bnprs-lib-forge"
-    role: "Shared Library Build & Package Registry Forge"
+    role: "Shared Library Package Registry & Distribution Manager"
     path: "009-bnprs-lib-forge"
     status: "active"
     created_at: "2026-05-30"

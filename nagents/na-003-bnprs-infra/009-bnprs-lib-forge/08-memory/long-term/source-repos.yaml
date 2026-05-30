@@ -1,0 +1,62 @@
+# =============================================================================
+#  SOURCE REPOSITORY REGISTRY — bnprs-lib-forge (na-003 / 009)
+# =============================================================================
+#  Repos whose pre-built artifacts this agent publishes to the GitLab registry.
+#  Building is done by OTHER (domain/product) agents — recorded here as `built_by`.
+#  This agent only collects build/bnprs-libs/ output and publishes it.
+# =============================================================================
+
+source_repos:
+  - name: "bpr.cpp"
+    role: "primary"
+    local_clone: "~/BPR/GitRepos1/bpr.cpp"
+    github: "github.com/ramaiahsvn/bpr.cpp"
+    branch: "main"
+    description: >
+      Cross-platform C++ — EMV/smart-card scripting, GlobalPlatform card mgmt,
+      QR generation, software licensing, and biometrics (finger/iris/face).
+    build_system: "CMake + unified root Makefile (make <Lib>-<platform>)"
+    built_by: "domain/product agents (e.g. na-004 biometrics, na-005 fintech) — NOT bnprs-lib-forge"
+    artifact_output: "build/bnprs-libs/<Lib>/v<MAJOR.MINOR.PATCH>/<platform>/"  # git-ignored
+    version_source_of_truth:
+      - "src/AprCommon/BprVersions/bpr_versions.h"
+      - "src/AprCommon/BprVersions/bpr_versions.cmake"
+      - "Makefile (VERSION_<lib>)"
+    versioning: "SemVer; MAJOR=2, MINOR fixed per library line, PATCH increments per release"
+
+    platforms:
+      - windows-32
+      - windows-64
+      - windows-arm64   # rule exists; not built on current host
+      - linux-arm64
+      - raspberry       # arm32; rule exists; not built on current host
+      - android-arm64
+      - android-armv7
+      - android-x86
+      - android-x86_64
+      - macos
+      - ios             # rule exists; not built on current host
+
+    libraries:
+      - name: "BprLicBase"
+        availability: "portable"      # all platforms
+      - name: "BprFace"
+        availability: "portable"
+        notes: "bundles libBprFaceDeps + opencv ffmpeg dll + bpr.model.onnx per platform leaf"
+      - name: "BprCardQi"
+        availability: "portable"
+      - name: "BprICBA"
+        availability: "windows-only-plus-android"
+        notes: "Windows-only APIs (glog, CoTaskMemAlloc, afx.h); also builds for Android"
+      - name: "BprCardEmv"
+        availability: "windows-only"
+        notes: "Windows-only APIs (glog, CoTaskMemAlloc, afx.h)"
+      - name: "BprFinger"
+        availability: "excluded-cross-platform"
+        notes: "requires proprietary biometric SDK"
+      - name: "BprIris"
+        availability: "excluded-cross-platform"
+        notes: "requires proprietary biometric SDK"
+      - name: "BprQiEmv"
+        availability: "deprecated"
+        notes: "DO NOT PUBLISH — superseded by BprCardQi / BprCardEmv / BprICBA"

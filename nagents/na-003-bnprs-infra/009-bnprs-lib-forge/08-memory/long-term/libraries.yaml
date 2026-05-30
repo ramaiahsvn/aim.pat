@@ -1,0 +1,46 @@
+# =============================================================================
+#  PUBLISHED-LIBRARY INDEX — bnprs-lib-forge (na-003 / 009)
+# =============================================================================
+#  Tracks what has actually been PUBLISHED to the GitLab Package Registry.
+#  Registry host project: bpr1000/bnprs-libs (Generic Packages).
+#  Identifier scheme:  package=<Lib>  version=<SemVer>  file=<platform>/<file>
+#  Update this after every successful publish (immutable — never edit past entries).
+# =============================================================================
+
+registry:
+  gitlab_url: "https://gitlab.bnprs.ai"
+  api_base: "https://gitlab.bnprs.ai/api/v4"
+  host_group: "bpr1000"
+  host_project_path: "bpr1000/bnprs-libs"
+  host_project_id: null        # TODO: set once the project is created (coordinate with bnprs-gitlab)
+  format: "generic"
+
+# Latest declared source versions (per src/AprCommon/BprVersions/bpr_versions.h, 2026-05-30)
+# These are the versions to publish once builders hand off artifacts.
+source_versions:
+  BprLicBase: "2.27.4"
+  BprFace:    "2.24.115"
+  BprCardQi:  "2.56.3"
+  BprCardEmv: "2.57.1"
+  BprICBA:    "2.58.1"
+  BprFinger:  "2.24.203"
+  BprIris:    "2.24.500"
+  # BprQiEmv 2.50.11 — DEPRECATED, do not publish
+
+# Published packages — append one entry per (package, version) after publishing.
+# Example shape (none published yet):
+#
+# published:
+#   - package: "BprCardQi"
+#     version: "2.56.3"
+#     project_id: <id>
+#     source_repo: "bpr.cpp"
+#     source_commit: "<git sha>"
+#     built_by: "<builder agent>"
+#     published_at: "YYYY-MM-DD"
+#     files:
+#       - "windows-64/libBprCardQi.dll"
+#       - "windows-64/libBprCardQi.dll.sha256"
+#       - "android-arm64/libBprCardQi.so"
+#       - "manifest.json"
+published: []
