@@ -8,7 +8,7 @@ session:
 active_tasks:
   - task_id: "task-001"
     status: in_progress
-    current_step: "bPass-ICBA v2 framework design drafted; awaiting user review + 6 open-question answers before C++"
+    current_step: "v2 codec implemented in bpr.cpp/src/BprICBA/bpass/ (tests 26/26). Next: legacy serializer + wire into BprICBA (001.3)"
 
 queue:
   pending: 0

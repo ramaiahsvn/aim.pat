@@ -26,8 +26,10 @@ memories:
       task-001 objective: turn bPass TLV-bitmap into a data-driven ICBA framework — NEW code
       under src/BprICBA/, CLEAN wire-format redesign (BER-TLV lengths, chained extensible bitmap,
       modality versions in header, structured Record, bounds-safe cursor, cross-platform C++17).
-      Decisions locked 2026-05-30. Step 1 = design-doc-first (bpass-icba-framework-v2-design.md),
-      awaiting user sign-off + answers to 6 open design questions before any C++.
+      Decisions locked + signed off 2026-05-30. CODEC IMPLEMENTED in bpr.cpp/src/BprICBA/bpass/
+      (bpass_types/schema/reader/bitmap/record/codec + bpass_src.cmake + README + tests) — 26/26
+      tests pass, -Wall -Wextra clean. Remaining: legacy v1-string serializer + wire into BprICBA
+      entry points (task-001.3). v2 is greenfield (does not parse v1 records).
     created_at: "2026-05-30"
     confidence: 0.95
     tags: [bpass, framework, task-001, design, decisions]

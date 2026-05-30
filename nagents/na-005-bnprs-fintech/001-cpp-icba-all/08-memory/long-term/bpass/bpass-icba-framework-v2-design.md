@@ -3,7 +3,8 @@
 > Drafted 2026-05-30 for agent na-005/001 cpp-icba-all.
 > Decisions locked with user (2026-05-30): location = NEW code in `src/BprICBA/`;
 > compatibility = CLEAN REDESIGN (free to define a better wire format); step = design doc first.
-> Status: **awaiting review — no C++ written yet.**
+> Status: **signed off 2026-05-30 (proposed defaults adopted); codec implemented + tested.**
+> Implementation lives in `bpr.cpp/src/BprICBA/bpass/` (tests 26/26 pass). See that module's README.md.
 > Builds on [bpass-bitmap-v1-spec.md]. v2 is the basis for the new ICBA framework.
 
 ## 1. Goals

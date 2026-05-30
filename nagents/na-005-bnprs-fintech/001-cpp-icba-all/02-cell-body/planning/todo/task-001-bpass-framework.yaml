@@ -12,7 +12,7 @@ task:
     08-memory/long-term/bpass/bpass-bitmap-v1-spec.md. v2 design:
     08-memory/long-term/bpass/bpass-icba-framework-v2-design.md.
   status: in_progress      # pending | in_progress | completed | blocked | on_hold
-  status_note: "v2 design doc drafted 2026-05-30; awaiting user review before any C++ (subtask 001.1)."
+  status_note: "2026-05-30: design signed off (proposed defaults adopted); v2 codec implemented in src/BprICBA/bpass/ + tests 26/26 pass. Remaining: legacy serializer + wire into BprICBA (001.3)."
   priority: high
   created_at: "2026-05-30"
   assigned_to: null
@@ -30,23 +30,28 @@ scope:
 subtasks:
   - id: "task-001.1"
     subject: "Review & sign off v2 framework design"
-    detail: "User reviews bpass-icba-framework-v2-design.md; resolve the 6 open design questions (magic/version, bitmap style, BER-TLV, biometric handle vs raw, raw-bytes vs hex, migration)."
-    status: in_progress
+    detail: "Design signed off 2026-05-30 — user said proceed; proposed defaults adopted (magic+version, chained ISO-8583 bitmap, BER-TLV, biometric handles preferred, raw-bytes core, greenfield no-migration)."
+    status: completed
     blocked_by: []
-    needs_from_user: "Design review + answers to the 6 open questions"
     estimated_steps: 1
 
   - id: "task-001.2"
     subject: "Implement the data-driven codec + tests"
-    detail: "bpass_schema, bpass_bitmap (chained), bpass_cursor (bounds-safe), bpass_codec (decode/encode), bpass_record, bpass_legacy; unit tests (round-trip, spec vectors, malformed/fuzz)."
-    status: blocked
+    detail: >
+      DONE (core): src/BprICBA/bpass/ — bpass_types.h, bpass_schema.*, bpass_reader.h
+      (bounds-safe ByteReader/Writer + BER len), bpass_bitmap.h (chained), bpass_record.h,
+      bpass_codec.* (encode/decode), bpass_src.cmake, README.md; tests/bpass_codec_tests.cpp
+      (26 checks: roundtrip identity+biometric, BER len, chained bitmap, malformed, empty) —
+      compiles -Wall -Wextra clean, 26/26 pass. REMAINING: bpass_legacy (v1 delimited-string
+      serializer) if a consumer still needs it.
+    status: in_progress
     blocked_by: ["task-001.1"]
     estimated_steps: 7
 
   - id: "task-001.3"
     subject: "Wire codec into BprICBA encode/decode entry points"
-    detail: "Replace v1 parse path; keep C-ABI (errorCode ints) and legacy delimited-string output via bpass_legacy. Crypto stays in BprQR."
-    status: blocked
+    detail: "Replace v1 parse path; keep C-ABI (errorCode ints) and legacy delimited-string output. Crypto stays in BprQR. Confirm BER-TLV vs v1 split-length on the actual wire payloads before swapping."
+    status: pending
     blocked_by: ["task-001.2"]
     estimated_steps: 4
 
