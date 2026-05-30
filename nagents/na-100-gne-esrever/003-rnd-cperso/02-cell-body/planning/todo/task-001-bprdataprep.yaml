@@ -6,30 +6,137 @@ task:
   description: >
     Develop / maintain the EMV central personalization data-prep module for
     Tri-Badge PURE cards (MasterCard + PURE + QiCard) on the Mühlbauer MCES2
-    perso station. DataPrep.exe parses the embossing file from PRIME CMS
-    (75 fields per Tri-Badge PURE spec V3.0) and produces:
-      - QI cards:  CodingData hex (52 '+'-separated segments) -> Bpr.QiScript.dll
-      - MC cards:  Coding_Standard key=value pairs -> SPI4MLB2.dll
-    Specific deliverables to be supplied by the user per work item.
+    perso station. DataPrep.exe (C# console app, .NET Framework 4.8) parses the
+    embossing file from PRIME CMS (75 fixed-length fields per Tri-Badge PURE
+    spec V3.0, ~21,157 chars/record, LF-delimited) and emits two perso paths:
+      - QI cards: CodingData hex (52 '+'-separated segments) -> Bpr.QiScript.dll
+                  -> GetQiScript_Instant_Perso() -> APDU scripts -> card
+      - MC cards: Coding_Standard key=value -> SPI4MLB2.dll -> INTERPRETER.DLL
+                  -> MC_EMV_Perso.spi -> OP_Perso / OP_GenericCrypto / OP_VISB
+    Co-badge MC+PR+QI records are grouped by shared LinkId (UUID).
   status: pending          # pending | in_progress | completed | blocked
   priority: high           # critical | high | medium | low
   created_at: "2026-05-30"
   assigned_to: null
   blocked_by: []
   blocks: []
-  estimated_steps: 5
-  tags: [perso, data-prep, emv, qicard, mastercard, mces2]
+  estimated_steps: 18
+  tags: [perso, data-prep, emv, qicard, mastercard, mces2, spi4mlb2, operas]
 
 # ---- Scope / working path (allowlisted in 03-nucleus/CLAUDE.md) ---- #
 scope:
   path: "/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.mces2/BprDataPrep"
-  key_files:
-    - "DataPrep/EmbossingFileParser.cs   — parse embossing input (75 fields)"
-    - "DataPrep/CodingDataBuilder.cs      — QI CodingData hex builder"
-    - "DataPrep/McEmvDataBuilder.cs       — MC EMV data builder"
-    - "DataPrep/Spi4Mlb2DataBuilder.cs    — SPI4MLB2 Coding_Standard builder"
-    - "PersoScripts/MC_EMV_Perso.spi      — MC perso script"
-    - "Tri-Badge PURE Embossing File specifications V3.0.docx"
-  guardrails:
-    - "Embossing sample (R06_..._Enriched_Pat.txt) may contain cardholder data — treat as sensitive, do not commit real PANs/PINs."
-    - "Record only key IDs/labels — never key values."
+  language: "C# (.NET Framework 4.8); build x86 via msbuild"
+  components:
+    DataPrep/:
+      - "Program.cs                — CLI entry (file [out_dir] [--format codingdata|spi4mlb2|both])"
+      - "EmbossingFileParser.cs    — fixed-length parser, UTF-8/UTF-16 auto-detect"
+      - "EmbossingRecord.cs        — model for 75 embossing fields"
+      - "CodingDataBuilder.cs      — QI: build 52-segment CodingData hex"
+      - "McEmvDataBuilder.cs       — MC: build EMV TLV + Coding_Standard"
+      - "Spi4Mlb2DataBuilder.cs    — generic Coding_Standard builder"
+    PersoScripts/:
+      - "SPI4MLB2.INI              — machine config (deploy to C:\\SPI4MLB2\\)"
+      - "MC_EMV_Perso.spi          — MC EMV perso script (12 steps; pseudocode syntax)"
+      - "MC_KMS_Macros.ini         — KMS crypto macros (append to GenericCrypto.ini)"
+    specs:
+      - "Tri-Badge PURE Embossing File specifications V3.0.docx"
+      - "R06_..._Enriched_Pat.txt  — sample embossing file (3 records) [SENSITIVE]"
+
+# ---- Objective ---- #
+objective: >
+  Bring the MC data-prep + perso path to a testable end-to-end state without
+  requiring real HSM hardware, by (a) building a software HSM simulator, and
+  (b) wiring a parse -> data-prep -> simulated-crypto -> test-card pipeline.
+  QI path largely delegates to Bpr.QiScript.dll (separate repo) and is treated
+  as reference here. Convert MC_EMV_Perso.spi pseudocode to production
+  INTERPRETER syntax once the Thales reference manual is available.
+
+# ---- Subtasks (sourced from README "Pending Tasks") ---- #
+subtasks:
+  - id: "task-001.1"
+    subject: "Build software HSM simulator"
+    detail: >
+      Implement a .NET System.Security.Cryptography-backed simulator exposing the
+      KMS macros used by MC_KMS_Macros.ini: DeriveMK (EMV Option A UDK derivation),
+      EncryptKeyUnderDEK, ComputeHostCryptogram (SCP02), GenerateRSAKeyPair (ICC
+      1024-bit), GetIssuerPKCertificate, GenerateICCPKCertificate, GenerateSDAD
+      (tag 93), TranslatePinBlock. Must match SLBCRYPTOAPI* call signatures so
+      OP_GenericCrypto can be swapped for the sim via config.
+    status: pending
+    priority: high
+    blocked_by: []          # actionable now (test keys needed for realistic vectors)
+    estimated_steps: 6
+    acceptance:
+      - "Sim produces UDK_AC/SMI/SMC/IDN matching a known EMV Option A test vector"
+      - "SCP02 host cryptogram verifies against a reference session"
+      - "ICC RSA keygen + SDAD/ICC PK cert chain validates"
+
+  - id: "task-001.2"
+    subject: "Obtain & apply card profile spec (DGI layout)"
+    detail: "Exact DGI block layout, key versions, GP config per issuer profile."
+    status: blocked
+    priority: high
+    blocked_by: []
+    needs_from_user: "Card profile spec (DGI 0101/0201/0301/0401/8000/A001/8010/8201 contents, key versions)"
+    estimated_steps: 2
+
+  - id: "task-001.3"
+    subject: "Load test keys"
+    detail: "ISD keys (ENC/MAC/DEK), Issuer Master Keys, CA RSA key pair for the test card batch."
+    status: blocked
+    priority: high
+    blocked_by: []
+    needs_from_user: "Test key components / KCVs from the test card batch (IDs/labels recorded here, values handled per guardrails — never stored in repo)"
+    estimated_steps: 2
+
+  - id: "task-001.4"
+    subject: "Convert MC_EMV_Perso.spi pseudocode -> production INTERPRETER syntax"
+    detail: "PERSO/TRANS operator calls are currently pseudocode; KMS macro names are real."
+    status: blocked
+    priority: medium
+    blocked_by: []
+    needs_from_user: "Thales INTERPRETER reference manual"
+    estimated_steps: 4
+
+  - id: "task-001.5"
+    subject: "Confirm GP secure-channel version (SCP02 vs SCP03)"
+    detail: "Determines session-key derivation + STORE DATA encryption in steps 4/7/9."
+    status: blocked
+    priority: medium
+    blocked_by: []
+    needs_from_user: "SCP version for the test cards"
+    estimated_steps: 1
+
+  - id: "task-001.6"
+    subject: "End-to-end test: parse -> data prep -> simulated crypto -> write test card"
+    detail: "Run sample embossing file through DataPrep, feed CodingData/Coding_Standard into the sim-backed perso flow, verify on physical test card."
+    status: pending
+    priority: high
+    blocked_by: ["task-001.1", "task-001.2", "task-001.3", "task-001.5"]
+    estimated_steps: 3
+    acceptance:
+      - "Sample 3-record file parses with zero validation warnings"
+      - "MC card personalizes against sim crypto; chip reads back expected EMV tags (5A/57/5F24/82/94/8C/8D...)"
+      - "PIN verifies after transport->card key translation"
+
+# ---- Deliverables ---- #
+deliverables:
+  - "HSM simulator library + config switch (OP_GenericCrypto <-> sim)"
+  - "Production-syntax MC_EMV_Perso.spi (after 001.4)"
+  - "End-to-end test report (parse warnings, perso result, card read-back)"
+  - "Updated README pending-tasks section as items close"
+
+# ---- Inputs still needed from user (gating) ---- #
+open_inputs:
+  - "Card profile spec / DGI layout (task-001.2)"
+  - "Test keys: ISD ENC/MAC/DEK, IMKs, CA RSA pair (task-001.3)"
+  - "Thales INTERPRETER reference manual (task-001.4)"
+  - "GP SCP version: SCP02 or SCP03 (task-001.5)"
+
+# ---- Guardrails ---- #
+guardrails:
+  - "Sample embossing file contains PAN/PIN/biometric data — SENSITIVE; never commit real PANs/PINs/biometrics; use only for local test."
+  - "Record only key IDs/labels/KCVs references — never key values (IMK, UDK, ISD keys, RSA private keys)."
+  - "HSM endpoint (172.17.0.11:3500) may be referenced; credentials/keys must not be stored."
+  - "Bpr.QiScript.dll and Thales/Operas DLLs are external/licensed — do not redistribute."
