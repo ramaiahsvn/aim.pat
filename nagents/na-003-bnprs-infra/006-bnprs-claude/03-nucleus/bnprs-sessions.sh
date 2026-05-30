@@ -294,19 +294,14 @@ cmd_sync() {
 cmd_start() {
     local sid="${1:?Session ID required (e.g., AID.001)}"
     parse_session_id "$sid"; ensure_dirs
-    echo ""
-    log "Session  : ${SESSION_ID}   (EID: ${SESSION_EID:-unknown})"
-    log "Work dir : ${SESSION_WORK_DIR}"
-    log "Mem repo : ${SESSION_LOCAL_PATH}"
-    echo ""
+    echo "$(date '+%F %T') start ${SESSION_ID} (EID ${SESSION_EID:-unknown}) work=${SESSION_WORK_DIR}" >> "$PUSH_LOG" 2>/dev/null
 
-    if check_gitlab_repo; then sync_repo "$SESSION_LOCAL_PATH"
+    if check_gitlab_repo; then sync_repo "$SESSION_LOCAL_PATH" >>"$PUSH_LOG" 2>&1
     else err "Repo not found/inaccessible: ${SESSION_REPO_URL}"; exit 1; fi
 
     # Ensure the agent's working home exists; seed identity from the repo if fresh,
     # and link its 08-memory to the memory repo so agent memory writes are pushable.
     if [[ ! -d "$SESSION_WORK_DIR" ]]; then
-        log "Creating work home: $SESSION_WORK_DIR"
         mkdir -p "$SESSION_WORK_DIR"
         [[ -f "$SESSION_LOCAL_PATH/CLAUDE.md" ]] && cp "$SESSION_LOCAL_PATH/CLAUDE.md" "$SESSION_WORK_DIR/" 2>/dev/null || true
         [[ -f "$SESSION_LOCAL_PATH/agent.yaml" ]] && cp "$SESSION_LOCAL_PATH/agent.yaml" "$SESSION_WORK_DIR/" 2>/dev/null || true
@@ -319,9 +314,8 @@ cmd_start() {
     local repo_memory="" mdir="${SESSION_LOCAL_PATH}/08-memory/long-term"
     if [[ -d "$mdir" ]]; then
         local latest; latest=$(ls -t "${mdir}/${SESSION_AID}."* 2>/dev/null | head -1 || true)
-        [[ -n "$latest" && -f "$latest" ]] && { repo_memory=$(cat "$latest"); log "Loaded memory: $(basename "$latest")"; }
+        [[ -n "$latest" && -f "$latest" ]] && repo_memory=$(cat "$latest")
     fi
-    echo ""
 
     # Session meta
     local meta_file; meta_file=$(session_meta_file "$SESSION_ID"); local is_new=false
@@ -344,15 +338,11 @@ EOF
     claude_uuid=$(grep "^claude_uuid=" "$meta_file" | cut -d= -f2)
     resume_count=$(grep "^resume_count=" "$meta_file" | cut -d= -f2)
 
-    if $is_new; then
-        echo -e "${CYAN}New Session: ${SESSION_ID}${NC} (EID ${SESSION_EID:-unknown})"
-    else
-        echo -e "${CYAN}Resuming: ${SESSION_ID}  (resume #${resume_count})${NC}"
+    if ! $is_new; then
         SED_I "s/^last_used=.*/last_used=$(date '+%Y-%m-%d %H:%M:%S')/" "$meta_file"
         resume_count=$((resume_count+1))
         SED_I "s/^resume_count=.*/resume_count=${resume_count}/" "$meta_file"
     fi
-    echo ""
 
     local resume_prompt
     if [[ -n "$repo_memory" ]]; then
@@ -378,7 +368,7 @@ No prior long-term memory found. What would you like to work on?"
     cd "$SESSION_WORK_DIR"
     if ! $is_new && [[ -n "$claude_uuid" ]]; then
         $CLAUDE_CMD --resume "$claude_uuid" 2>/dev/null || {
-            warn "Previous Claude session expired — starting fresh with memory..."
+            echo "$(date '+%F %T') resume $claude_uuid expired; fresh session ${SESSION_ID}" >> "$PUSH_LOG" 2>/dev/null
             local new_uuid; new_uuid=$(generate_uuid)
             SED_I "s/^claude_uuid=.*/claude_uuid=${new_uuid}/" "$meta_file"
             $CLAUDE_CMD --session-id "$new_uuid" --name "bnprs-${SESSION_ID}" --append-system-prompt "$resume_prompt"
