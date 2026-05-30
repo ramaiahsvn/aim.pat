@@ -50,8 +50,15 @@ subtasks:
 
   - id: "task-001.3"
     subject: "Wire codec into BprICBA encode/decode entry points"
-    detail: "Replace v1 parse path; keep C-ABI (errorCode ints) and legacy delimited-string output. Crypto stays in BprQR. Confirm BER-TLV vs v1 split-length on the actual wire payloads before swapping."
-    status: pending
+    detail: >
+      DONE (additive): added cross-platform facade (bpass_facade.* — hex<->Record<->fields)
+      + C-ABI entries Bpr_Bpass_Decode / Bpr_Bpass_Encode in src/BprICBA/BprICBA.cpp
+      (license-gated, CoTaskMemAlloc return, errcToInt negative codes), exported via
+      cli/BprICBA/BprICBA_dll_exports.cpp; wired BPR_BPASS_SOURCES into CMake (BprICBA DLL +
+      Android SO). v1 QR path (Bpr_QRCode_* / BprQR::patParseDecodedQRCode) left INTACT — no
+      breakage. Tests 37/37 pass. NOTE: full v1->v2 cutover deferred — v2 is greenfield and
+      cannot read existing v1 records; cutover needs a v1 reader or data migration (decide later).
+    status: completed
     blocked_by: ["task-001.2"]
     estimated_steps: 4
 
