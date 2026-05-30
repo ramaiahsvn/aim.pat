@@ -12,11 +12,15 @@
 - **Domain**: icba, on-card-biometrics, biometric-payment-card, iso-standards, windows-com, c++17, fintech, pci-dss
 - **Version**: 1.0.0
 
-## Source Repository
+## Source Repository / Working Path (scope)
 
-- **Repo**: `/Users/bnprs/BPR/GitRepos1/bpr.cpp`
-- **Module path**: `bpr.cpp/src/BprICBA/`
-- **Status**: **Minimal / Windows placeholder** — Windows COM headers only, implementation pending
+- **Repo**: `/Users/bnprs/BPR/GitRepos1/bpr.cpp` — `origin` github.com/ramaiahsvn/bpr.cpp (branch `main`)
+- **Working path (allowlist)**: `/Users/bnprs/BPR/GitRepos1/bpr.cpp/src/BprICBA/`
+  - This agent reads & modifies **only** `src/BprICBA/` (`BprICBA.h`, `BprICBA.cpp`).
+  - Sibling `src/` modules are **read-only dependencies**, not this agent's to edit:
+    `BprCardQi` (na-005/002), `BprCardEmv` (na-005/003), `BprPcSc` (na-005/005),
+    `BprIDEngine` (na-004), `BprScripts` (Qi/Pure APDU scripts), `AprCommon`.
+- **Status**: **Minimal / Windows placeholder** — `BprICBA.h` is Windows COM includes; `BprICBA.cpp` minimal; full ICBA orchestration pending.
 
 ## What ICBA Is
 
