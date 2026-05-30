@@ -37,12 +37,29 @@ Data Prep  →  Key Management (HSM)  →  Personalization (perso machine / GP p
   scripts; applet instantiation & data load (EMV payment applets, BIX/BRUID applets)
 - **Output / QA:** perso QA checks, verification scripts, output file formats
 
-## Reference / Source Material
+## Working Paths (scope — allowlist)
 
-> Populate as competitive analysis and source repos are added. Likely cross-refs:
+This agent may read and modify **only** the paths below. Treat this as a strict
+allowlist: do not touch other directories under `TRP1002_cPerso/` (e.g.
+`trp1002.cperso.api`, `trp1002.cperso.mces2/BprMces2`, `trp1002.cperso.qiscript.jni`,
+`trp1002.cperso.testbed`) or any other repo unless the user explicitly adds it here.
+
+1. `/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.mces2/BprDataPrep`
+   — Perso **data preparation**: embossing input files, DataPrep, PersoScripts
+     (Tri-Badge PURE embossing file specs; enriched embossing data)
+2. `/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.thales`
+   — **Thales/Gemalto perso** integration: ISPI4MLB2, Operas, HSM integration
+     analysis, and the planned C++ EMV perso engine (`project_emv_perso_engine.md`)
+
+> **Source repo:** `TRP1002_cPerso` — financial card personalization system
+> ("cPerso") for Qi and EMV smart cards using MCES2 (Multi-Card Encoding System).
+> Additional paths will be added here as the user grants them.
+
+## Reference / Cross-Refs (read-only context)
+
 - BNPRS smart-card / applet work in **na-005-bnprs-fintech** (Qi/EMV smart card,
   APDU scripts, PC/SC, BIX/BRUID applets)
-- Reverse-engineering artifacts from sibling R&D agents where perso-relevant
+- HSM/KMS work in `TRP1003_pHsm` (Thales KMS) — related but **not in scope** until granted
 
 ## Inter-Agent Dependencies
 
