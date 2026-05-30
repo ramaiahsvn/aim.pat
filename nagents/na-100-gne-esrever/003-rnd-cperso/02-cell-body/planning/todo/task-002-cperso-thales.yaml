@@ -1,0 +1,36 @@
+# Task — cperso.thales (Thales Operas HSM perso integration)
+
+task:
+  id: "task-002"
+  subject: "Work on trp1002.cperso.thales — Thales Operas HSM perso integration"
+  description: >
+    Develop / maintain the Thales Operas HSM integration with the MCES2
+    (Mühlbauer) perso machine. The ISPI4MLB2 bridge (C# .NET 4.6) connects the
+    MCES2 host to the Operas crypto/perso stack via P/Invoke (DLL_RegisterCB,
+    DLL_Initialize, DLL_Execute). Covers OP_Perso (card APDUs), OP_GenericCrypto
+    (KMS/HSM crypto), OP_VISB (TLV build), key management, and the planned C++
+    EMV perso engine. Specific deliverables to be supplied by the user per work item.
+  status: pending          # pending | in_progress | completed | blocked
+  priority: high           # critical | high | medium | low
+  created_at: "2026-05-30"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 5
+  tags: [perso, thales, operas, hsm, mces2, emv, globalplatform]
+
+# ---- Scope / working path (allowlisted in 03-nucleus/CLAUDE.md) ---- #
+scope:
+  path: "/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.thales"
+  key_files:
+    - "HSM_INTEGRATION_ANALYSIS.md        — architecture + P/Invoke bridge analysis"
+    - "project_emv_perso_engine.md        — planned C++ EMV perso engine (awaiting specs)"
+    - "ISPI4MLB2/                         — C# .NET bridge (MCES2 <-> Operas)"
+    - "Operas/OP_Perso.dll                — card APDU perso"
+    - "Operas/OP_GenericCrypto.dll        — KMS/HSM crypto"
+    - "Operas/OP_VISB/                    — TLV build"
+    - "Operas/KeyManager.dll              — key management"
+  guardrails:
+    - "Record only key IDs/labels/aliases — never cryptographic key values (master keys, UDKs, KCVs, PIN keys)."
+    - "HSM endpoints/IPs may be documented; key material must not."
+    - "Vendor DLLs (Thales/Operas) are licensed binaries — do not redistribute."

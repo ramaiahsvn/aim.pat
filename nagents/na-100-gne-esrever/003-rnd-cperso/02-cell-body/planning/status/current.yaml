@@ -12,7 +12,7 @@ active_tasks: []
 #   current_step: "Generating report"
 
 queue:
-  pending: 0
+  pending: 2          # task-001 BprDataPrep, task-002 cperso.thales
   in_progress: 0
   completed: 0
   blocked: 0

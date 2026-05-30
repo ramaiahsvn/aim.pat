@@ -1,0 +1,35 @@
+# Task — BprDataPrep (Perso data preparation)
+
+task:
+  id: "task-001"
+  subject: "Work on BprDataPrep — Tri-Badge PURE perso data preparation"
+  description: >
+    Develop / maintain the EMV central personalization data-prep module for
+    Tri-Badge PURE cards (MasterCard + PURE + QiCard) on the Mühlbauer MCES2
+    perso station. DataPrep.exe parses the embossing file from PRIME CMS
+    (75 fields per Tri-Badge PURE spec V3.0) and produces:
+      - QI cards:  CodingData hex (52 '+'-separated segments) -> Bpr.QiScript.dll
+      - MC cards:  Coding_Standard key=value pairs -> SPI4MLB2.dll
+    Specific deliverables to be supplied by the user per work item.
+  status: pending          # pending | in_progress | completed | blocked
+  priority: high           # critical | high | medium | low
+  created_at: "2026-05-30"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 5
+  tags: [perso, data-prep, emv, qicard, mastercard, mces2]
+
+# ---- Scope / working path (allowlisted in 03-nucleus/CLAUDE.md) ---- #
+scope:
+  path: "/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.mces2/BprDataPrep"
+  key_files:
+    - "DataPrep/EmbossingFileParser.cs   — parse embossing input (75 fields)"
+    - "DataPrep/CodingDataBuilder.cs      — QI CodingData hex builder"
+    - "DataPrep/McEmvDataBuilder.cs       — MC EMV data builder"
+    - "DataPrep/Spi4Mlb2DataBuilder.cs    — SPI4MLB2 Coding_Standard builder"
+    - "PersoScripts/MC_EMV_Perso.spi      — MC perso script"
+    - "Tri-Badge PURE Embossing File specifications V3.0.docx"
+  guardrails:
+    - "Embossing sample (R06_..._Enriched_Pat.txt) may contain cardholder data — treat as sensitive, do not commit real PANs/PINs."
+    - "Record only key IDs/labels — never key values."
