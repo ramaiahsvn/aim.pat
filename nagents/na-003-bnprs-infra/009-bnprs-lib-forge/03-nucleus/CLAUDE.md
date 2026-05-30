@@ -70,11 +70,11 @@ lib→version→platform→file index lives in `08-memory/long-term/libraries.ya
 ## GitLab Package Registry — organization
 
 - **GitLab**: https://gitlab.bnprs.ai (CE 18.9.0)  ·  **API base**: https://gitlab.bnprs.ai/api/v4
-- **Host project**: **`bpr1000/bnprs-libs`** — one dedicated project holding *all* shared
-  libraries (mirrors the local `build/bnprs-libs/` name). Group `bpr1000` and this project
-  may need creating — coordinate with `bnprs-gitlab` (na-003 / 003); confirm the numeric
-  project id and record it in `08-memory/long-term/libraries.yaml`.
-- **Format**: Generic Packages.
+- **Host project**: **`BPR1000/bpr1000.bnprs-libs`** (project **id 230**, private, packages
+  enabled) — one dedicated project holding *all* shared libraries, under group `BPR1000`
+  (id 118). Created 2026-05-30. Full index in `08-memory/long-term/libraries.yaml`.
+- **Format**: Generic Packages. The `<platform>/<file>` filename scheme (slash in
+  `:file_name`) is **verified working** on this CE 18.9 server — no flattening needed.
 
 ### Identifier scheme (the agreed design)
 
@@ -104,8 +104,8 @@ bpr1000/bnprs-libs   (one GitLab project)
 
 > The platform **must** be encoded into `file_name` — raw names collide across platforms
 > (`windows-32/libBprCardQi.dll` and `windows-64/libBprCardQi.dll` are both `libBprCardQi.dll`).
-> ⚠️ **Verify** GitLab CE 18.9 accepts `/` in `:file_name`; if not, flatten to
-> `<platform>-<file>` (e.g. `windows-64-libBprCardQi.dll`) and record the decision.
+> The `<platform>/<file>` path scheme is **verified working** on this CE 18.9 server
+> (self-tested 2026-05-30), so no flattening is required.
 
 ## Versioning Rules
 
@@ -131,7 +131,7 @@ bpr1000/bnprs-libs   (one GitLab project)
 ```bash
 curl --fail --header "PRIVATE-TOKEN: $GITLAB_PAT" \
   --upload-file "build/bnprs-libs/BprCardQi/v2.56.3/windows-64/libBprCardQi.dll" \
-  "https://gitlab.bnprs.ai/api/v4/projects/<BNPRS_LIBS_PROJECT_ID>/packages/generic/BprCardQi/2.56.3/windows-64/libBprCardQi.dll"
+  "https://gitlab.bnprs.ai/api/v4/projects/230/packages/generic/BprCardQi/2.56.3/windows-64/libBprCardQi.dll"
 ```
 
 ### Consume (in a consumer's .gitlab-ci.yml)
@@ -139,7 +139,7 @@ curl --fail --header "PRIVATE-TOKEN: $GITLAB_PAT" \
 ```bash
 curl --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" \
   --output "libBprCardQi.dll" \
-  "https://gitlab.bnprs.ai/api/v4/projects/<BNPRS_LIBS_PROJECT_ID>/packages/generic/BprCardQi/2.56.3/windows-64/libBprCardQi.dll"
+  "https://gitlab.bnprs.ai/api/v4/projects/230/packages/generic/BprCardQi/2.56.3/windows-64/libBprCardQi.dll"
 ```
 
 Document each library's consumption snippet in `07-axon-terminals/deliverables/`.

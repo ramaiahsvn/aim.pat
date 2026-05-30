@@ -10,10 +10,12 @@
 registry:
   gitlab_url: "https://gitlab.bnprs.ai"
   api_base: "https://gitlab.bnprs.ai/api/v4"
-  host_group: "bpr1000"
-  host_project_path: "bpr1000/bnprs-libs"
-  host_project_id: null        # TODO: set once the project is created (coordinate with bnprs-gitlab)
+  host_group: "BPR1000"              # GitLab group id 118 ("BPR1000 - License")
+  host_project_path: "BPR1000/bpr1000.bnprs-libs"
+  host_project_id: 230               # created 2026-05-30, private, packages enabled
+  http_url: "https://gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs.git"
   format: "generic"
+  filename_slash_supported: true     # verified 2026-05-30 on CE 18.9 — <platform>/<file> works (no flattening needed)
 
 # Latest declared source versions (per src/AprCommon/BprVersions/bpr_versions.h, 2026-05-30)
 # These are the versions to publish once builders hand off artifacts.
