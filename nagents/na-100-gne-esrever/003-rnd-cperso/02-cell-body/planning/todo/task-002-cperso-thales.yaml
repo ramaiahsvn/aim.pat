@@ -4,33 +4,129 @@ task:
   id: "task-002"
   subject: "Work on trp1002.cperso.thales — Thales Operas HSM perso integration"
   description: >
-    Develop / maintain the Thales Operas HSM integration with the MCES2
-    (Mühlbauer) perso machine. The ISPI4MLB2 bridge (C# .NET 4.6) connects the
-    MCES2 host to the Operas crypto/perso stack via P/Invoke (DLL_RegisterCB,
-    DLL_Initialize, DLL_Execute). Covers OP_Perso (card APDUs), OP_GenericCrypto
-    (KMS/HSM crypto), OP_VISB (TLV build), key management, and the planned C++
-    EMV perso engine. Specific deliverables to be supplied by the user per work item.
-  status: pending          # pending | in_progress | completed | blocked
+    Maintain/extend the Thales Operas HSM integration with the MCES2 (Mühlbauer)
+    perso machine, and build a from-scratch C++ EMV personalization engine.
+    Current system is a Calypso/ticketing (TRANSLINK) perso line: the C# bridge
+    ISPI4MLB2.dll registers 22 SCPM callbacks into the proprietary SPI4MLB2.dll
+    (P/Invoke: DLL_RegisterCB/Initialize/Execute/Terminate/GetAuditFields);
+    Interpreter.dll runs .per bytecode that calls Operas macros (GenericCrypto.ini)
+    -> KMS (kmsapipc.dll @ 172.17.0.11:3500) -> HSM. The planned C++ EMV engine
+    (project_emv_perso_engine.md) aims to replace proprietary .per bytecode with
+    an open EMV perso implementation.
+  status: in_progress      # pending | in_progress | completed | blocked | on_hold
+  status_note: "Activated 2026-05-30 (user moved focus here from task-001)."
   priority: high           # critical | high | medium | low
   created_at: "2026-05-30"
   assigned_to: null
   blocked_by: []
   blocks: []
-  estimated_steps: 5
-  tags: [perso, thales, operas, hsm, mces2, emv, globalplatform]
+  estimated_steps: 20
+  tags: [perso, thales, operas, hsm, mces2, emv, calypso, ispi4mlb2, cpp]
 
 # ---- Scope / working path (allowlisted in 03-nucleus/CLAUDE.md) ---- #
 scope:
   path: "/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.thales"
-  key_files:
-    - "HSM_INTEGRATION_ANALYSIS.md        — architecture + P/Invoke bridge analysis"
-    - "project_emv_perso_engine.md        — planned C++ EMV perso engine (awaiting specs)"
-    - "ISPI4MLB2/                         — C# .NET bridge (MCES2 <-> Operas)"
-    - "Operas/OP_Perso.dll                — card APDU perso"
-    - "Operas/OP_GenericCrypto.dll        — KMS/HSM crypto"
-    - "Operas/OP_VISB/                    — TLV build"
-    - "Operas/KeyManager.dll              — key management"
-  guardrails:
-    - "Record only key IDs/labels/aliases — never cryptographic key values (master keys, UDKs, KCVs, PIN keys)."
-    - "HSM endpoints/IPs may be documented; key material must not."
-    - "Vendor DLLs (Thales/Operas) are licensed binaries — do not redistribute."
+  git:
+    branch: "main"
+    remote: "git@github.com:ITPCQI/trp1002.cperso.thales.git"   # GitHub (ITPCQI) — NOT the mces2 GitLab
+  components:
+    custom_code:
+      - "ISPI4MLB2/ISPI4MLB2/ChipCoding.cs              — base: 22 SCPM callbacks + P/Invoke"
+      - "ISPI4MLB2/ISPI4MLB2/ChipCodingStartProcess.cs   — per-card exec (DLL_Execute)"
+      - "ISPI4MLB2/ISPI4MLB2/ChipCodingPrepareProcess.cs — job init (DLL_Initialize)"
+      - "Operas/GenericCrypto.ini                        — HSM crypto macro definitions"
+    thales_proprietary_readonly:
+      - "SPI4MLB2.dll (1.0.0.1), Interpreter.dll (7.22.3.9), XOtm.exe, OP_*.dll"
+      - "SLBCryptoAPI.dll, UPSIaccess.dll, kmsapipc.dll"
+    analysis:
+      - "HSM_INTEGRATION_ANALYSIS.md       — full architecture + key hierarchy + callback map"
+      - "ISPI4MLB2/Dlls/REVERSE_ENGINEERING.md"
+      - "ISPI4MLB2/Dlls/SPI4MLB2_decompiled.c, Interpreter_decompiled.c"
+      - "project_emv_perso_engine.md       — planned C++ EMV engine (6 open questions)"
+
+# ---- Objective ---- #
+objective: >
+  Two tracks: (A) keep the existing ISPI4MLB2 <-> Operas/KMS ticketing pipeline
+  documented and working (complete partial callbacks where needed); (B) design
+  and build the planned standalone C++ EMV personalization engine once the 6
+  open questions in project_emv_perso_engine.md are answered.
+
+# ---- Subtasks ---- #
+subtasks:
+  - id: "task-002.1"
+    subject: "Resolve the 6 open questions for the C++ EMV engine"
+    detail: >
+      project_emv_perso_engine.md is blocked on: (1) target platform Win/Linux,
+      (2) HSM type (same Thales KMS vs payShield/Luna/SoftHSM), (3) card type
+      (EMV payment vs Calypso vs both), (4) integration target (plug into MCES2
+      pipeline / standalone PC/SC+HSM / emit .per bytecode), (5) card profile
+      spec (EMV tag list + sources), (6) embossing file format.
+    status: blocked
+    priority: high
+    blocked_by: []
+    needs_from_user: "Answers to the 6 open questions (see open_questions below)"
+    estimated_steps: 1
+
+  - id: "task-002.2"
+    subject: "Architect the C++ EMV perso engine (module design)"
+    detail: >
+      Design the 6 planned modules: TLV/DGI encoder (BER-TLV), APDU engine
+      (ISO 7816), HSM client (derive/MAC/encrypt), embossing parser, perso
+      sequencer, GlobalPlatform SCP. Define interfaces + build system.
+    status: blocked
+    priority: high
+    blocked_by: ["task-002.1"]
+    estimated_steps: 4
+
+  - id: "task-002.3"
+    subject: "Implement C++ EMV engine module-by-module"
+    detail: "Build TLV/DGI -> APDU -> HSM client -> embossing parser -> sequencer -> GP SCP, with tests."
+    status: blocked
+    priority: high
+    blocked_by: ["task-002.2"]
+    estimated_steps: 8
+
+  - id: "task-002.4"
+    subject: "Document/maintain the existing ISPI4MLB2 <-> Operas pipeline"
+    detail: >
+      Keep HSM_INTEGRATION_ANALYSIS.md current; consolidate reverse-engineering
+      notes. Actionable now (analysis only, no proprietary DLL changes).
+    status: pending
+    priority: medium
+    blocked_by: []
+    estimated_steps: 3
+
+  - id: "task-002.5"
+    subject: "Complete partial / unimplemented SCPM callbacks (if in scope)"
+    detail: >
+      Callbacks 11/12 CLPowerOn/Off (partial, MCES2 limitation) and 13-15 MIFARE
+      SetKeys/Authenticate/GetLastError (not implemented). Only if MIFARE/CL
+      power control is required by a target card.
+    status: blocked
+    priority: low
+    blocked_by: []
+    needs_from_user: "Confirm whether MIFARE / contactless RF power control is required"
+    estimated_steps: 3
+
+# ---- Open questions gating the C++ engine (task-002.1) ---- #
+open_questions:
+  1_target_platform: "Windows (MSVC) / Linux (GCC) / cross-platform? (existing stack is MSVC6/MFC)"
+  2_hsm_type: "Same Thales KMS @172.17.0.11:3500 via kmsapipc.dll, or different HSM (payShield 10K / Luna / SoftHSM)?"
+  3_card_type: "EMV payment (Visa/MC) / Calypso ticketing (TRANSLINK) / both?"
+  4_integration_target: "(a) plug into existing MCES2/Thales pipeline, (b) standalone PC/SC + HSM, or (c) emit .per bytecode?"
+  5_card_profile_spec: "EMV tag list with sources/values"
+  6_embossing_format: "Field layout, delimiters, encoding, sample record"
+
+# ---- Deliverables ---- #
+deliverables:
+  - "Answered open-questions doc -> updated project_emv_perso_engine.md"
+  - "C++ EMV engine architecture/design doc"
+  - "C++ EMV engine implementation + unit tests"
+  - "Refreshed HSM_INTEGRATION_ANALYSIS.md / reverse-engineering notes"
+
+# ---- Guardrails ---- #
+guardrails:
+  - "Record only key IDs/labels (hex labels OK) — never key VALUES. NOTE: HSM_INTEGRATION_ANALYSIS.md contains diversification-data hex (e.g. KAB/KTR/CI) — treat as sensitive; do not propagate to new files unnecessarily."
+  - "Thales proprietary binaries (SPI4MLB2.dll, Interpreter.dll, Operas OP_*.dll, SLBCryptoAPI.dll, kmsapipc.dll, UPSIaccess.dll) are licensed — read/analyze only, never modify or redistribute."
+  - "HSM endpoint (172.17.0.11:3500) may be referenced; credentials/keys must not be stored."
+  - "Repo remote is GitHub ITPCQI (not the mces2 GitLab) — confirm branch/push flow before any push."

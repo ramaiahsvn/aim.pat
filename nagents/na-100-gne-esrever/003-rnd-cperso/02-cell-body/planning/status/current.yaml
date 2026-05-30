@@ -5,15 +5,15 @@ session:
   started_at: null
   user_id: null
 
-active_tasks: []
-# - task_id: "task-001"
-#   status: in_progress
-#   progress: 60%
-#   current_step: "Generating report"
+active_tasks:
+  - task_id: "task-002"
+    status: in_progress
+    current_step: "Detailed breakdown; awaiting answers to 6 open questions for the C++ EMV engine"
 
 queue:
-  pending: 2          # task-001 BprDataPrep, task-002 cperso.thales
-  in_progress: 0
+  pending: 0
+  in_progress: 1      # task-002 cperso.thales
+  on_hold: 1          # task-001 BprDataPrep
   completed: 0
   blocked: 0
 

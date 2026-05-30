@@ -14,7 +14,8 @@ task:
       - MC cards: Coding_Standard key=value -> SPI4MLB2.dll -> INTERPRETER.DLL
                   -> MC_EMV_Perso.spi -> OP_Perso / OP_GenericCrypto / OP_VISB
     Co-badge MC+PR+QI records are grouped by shared LinkId (UUID).
-  status: pending          # pending | in_progress | completed | blocked
+  status: on_hold          # pending | in_progress | completed | blocked | on_hold
+  status_note: "On hold as of 2026-05-30 (user request) — code committed & merged to all branches; resume at subtask 001.1 (HSM simulator)."
   priority: high           # critical | high | medium | low
   created_at: "2026-05-30"
   assigned_to: null
