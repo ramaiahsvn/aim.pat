@@ -97,7 +97,9 @@ ssh devops@3.151.67.208
 ## Pending Actions
 
 - [ ] Add second office branch public IP to security group
-- [ ] Install git and dev tools on the instance
+- [x] Install git and dev tools on the instance — done (verified 2026-05-30): git 2.43.0,
+      Claude Code CLI 2.1.76, node 24.14.0 / npm 11.9.0, python3 3.12.3, curl 8.5.0, jq 1.7.
+      No C toolchain (gcc/make) — not needed; this is the session-manager host, not a build host.
 - [ ] Review and remove mutawa1-bnprs temp IP once VPN is confirmed working
 - [ ] Copy BprAiAgent.pem to WorkDrive backup (AWS/itp/us-east-2/key-pairs/)
 
