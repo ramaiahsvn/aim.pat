@@ -8,7 +8,7 @@
 - Root: `~/BPR/GitRepos1/aim.pat`
 - Remote: `github.com/ramaiahsvn/aim.pat`
 - Branch: `main`
-- Machine: `bnprss-mbp-lan` (Darwin 25.5.0, arm64)
+- Machine: `bnprss-mbp-lan` (Darwin 25.5.0, arm64) — aliased **`pat-m4p`** (sole local build host, e.g. for `bnprs-lib-forge`)
 
 ## Agent Code System
 
