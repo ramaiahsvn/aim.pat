@@ -12,7 +12,13 @@ task:
     08-memory/long-term/bpass/bpass-bitmap-v1-spec.md. v2 design:
     08-memory/long-term/bpass/bpass-icba-framework-v2-design.md.
   status: in_progress      # pending | in_progress | completed | blocked | on_hold
-  status_note: "2026-05-30: design signed off (proposed defaults adopted); v2 codec implemented in src/BprICBA/bpass/ + tests 26/26 pass. Remaining: legacy serializer + wire into BprICBA (001.3)."
+  status_note: >
+    2026-05-30: 001.1-001.3 complete. v2 codec + facade + C-ABI (Bpr_Bpass_Decode/Encode)
+    implemented in src/BprICBA/bpass/ and wired into BprICBA. Host tests 37/37 pass.
+    VERIFIED Windows-64 DLL build (make BprICBA-windows-64 via mingw-w64): libBprICBA.dll
+    builds clean; Bpr_Bpass_Decode/Encode confirmed in DLL export table. v1 QR path intact.
+    Remaining (lower priority): optional legacy v1-string serializer; v1->v2 cutover decision
+    (needs v1 reader or migration since v2 is greenfield).
   priority: high
   created_at: "2026-05-30"
   assigned_to: null
