@@ -60,6 +60,18 @@ ssh devops@3.151.67.208
 > If SSH fails: connect via OpenVPN first (see VPN section below),
 > or add your IP to sg-0cf061a2c32667858 via 002-bnprs-aws-itp agent.
 
+> **⚠️ scp / sftp is intentionally DISABLED on this instance (security hardening).**
+> Modern OpenSSH (≥9) routes `scp` through the SFTP subsystem, so `scp` fails with
+> `Connection closed`. Do **not** re-enable the SFTP subsystem. Transfer files over the
+> plain SSH channel instead:
+> ```bash
+> # push  (backup + atomic swap)
+> ssh bnprs-claude 'cp -p ~/file ~/file.bak.$(date +%Y%m%d-%H%M%S); cat > ~/file.new && mv ~/file.new ~/file' < localfile
+> # pull
+> ssh bnprs-claude 'cat ~/file' > localfile
+> ```
+> Verify byte-perfect with a sha256 compare (`shasum -a 256` local vs `sha256sum` remote).
+
 ### VPN Access
 
 - **Config file**: `01-dendrite/secrets/bnprs-claude.ovpn` (git-ignored; source: `OpenVPN-Config (Office v1.1).ovpn`)
