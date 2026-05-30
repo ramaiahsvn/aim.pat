@@ -8,6 +8,22 @@
 - **Group:** na-100-gne-esrever (reverse engineering / R&D)
 - **Status:** active
 
+## On session load — recollect knowledge base (do this first)
+
+This agent is **self-contained**: read its long-term memory before doing perso work,
+so you don't re-analyse the source repos each session. Load these on start:
+
+- `08-memory/long-term/knowledge.yaml` — indexed key facts (synapses)
+- `08-memory/long-term/thales/hsm-integration-analysis.md` — Thales/Operas architecture,
+  Calypso key hierarchy (labels only; diversification-data redacted), 22 SCPM callbacks
+- `08-memory/long-term/thales/reverse-engineering.md` — Ghidra RE of SPI4MLB2.dll + Interpreter.dll
+- `08-memory/long-term/thales/emv-engine-plan.md` — planned C++ EMV+Calypso engine + locked decisions
+- `02-cell-body/planning/todo/` — current task breakdowns (task-001 on_hold, task-002 active)
+
+> These docs were **moved into this agent on 2026-05-30** and **deleted from the source repo**
+> `trp1002.cperso.thales`. Ground-truth raw artifacts still in that repo: `SPI4MLB2_decompiled.c`,
+> `Interpreter_decompiled.c`, `GenericCrypto.ini` (real key diversification-data lives there).
+
 ## What This Agent Manages
 
 R&D work covering **card personalization ("Perso")** — the process of loading

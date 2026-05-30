@@ -2,29 +2,57 @@
 # Survives across sessions. The agent's accumulated wisdom.
 
 # Format: each entry is a strengthened "synapse"
+#
+# >>> KNOWLEDGE BASE — read these on session load (so the agent recollects without
+# >>> re-analysing the source repo). Files live in 08-memory/long-term/thales/:
+#       - thales/hsm-integration-analysis.md  — full architecture, component inventory,
+#           HSM comms flow, Calypso key hierarchy (labels only; div-data redacted),
+#           22 SCPM callback map, config reference, production environment
+#       - thales/reverse-engineering.md        — Ghidra RE of SPI4MLB2.dll + Interpreter.dll
+#           (exports/RVAs, call stack, Operas TCP protocol, script encryption, checksum, TLV)
+#       - thales/emv-engine-plan.md            — planned C++ EMV+Calypso perso engine
+#           (decisions locked 2026-05-30; card profile spec + embossing format still needed)
+#     These were MOVED from trp1002.cperso.thales on 2026-05-30 (deleted there) per user request.
+#     Ground-truth raw artifacts that REMAIN in the source repo: SPI4MLB2_decompiled.c,
+#     Interpreter_decompiled.c, GenericCrypto.ini (real key div-data lives here).
+
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
-    access_count: 1
+    content: >
+      trp1002.cperso.thales = Thales Operas HSM integration with a Mühlbauer MCES2 perso
+      machine. Production use is Calypso/ticketing (TRANSLINK) perso, NOT EMV payment.
+      Only modifiable code is the C# bridge ISPI4MLB2.dll (registers 22 SCPM callbacks
+      into proprietary SPI4MLB2.dll via P/Invoke); Interpreter.dll runs .per bytecode that
+      calls Operas macros (GenericCrypto.ini) -> KMS (kmsapipc.dll @172.17.0.11:3500) -> HSM.
+      Repo: github.com/ITPCQI/trp1002.cperso.thales (main). Thales license expired 04/2023.
+    created_at: "2026-05-30"
+    confidence: 0.95
+    tags: [thales, operas, mces2, calypso, ispi4mlb2, architecture]
+
+  - id: mem-002
+    type: project_context
+    content: >
+      task-002 headline deliverable = a from-scratch C++ EMV+Calypso perso engine
+      (TLV/DGI encoder, APDU engine, HSM client, embossing parser, perso sequencer, GP SCP).
+      Decisions (2026-05-30): HSM=SoftHSM(dev/test), card type=BOTH, integration=standalone
+      PC/SC + HSM (decoupled from Windows/MSVC6 Thales stack), platform=PENDING (recommend
+      cross-platform CMake). Still needed from user: card profile spec + embossing file format.
+    created_at: "2026-05-30"
+    confidence: 0.95
+    tags: [emv, cpp, engine, plan, task-002, decisions]
+
+  - id: mem-003
+    type: technical_knowledge
+    content: >
+      Reverse engineering already done (Ghidra 12.0.4, 2026-03-16): SPI4MLB2.dll (26 exports,
+      DLL_* API + SCPM_* contact/contactless/MIFARE) and Interpreter.dll (358 exports:
+      56 CR_*, 144 SPI_*, 158 IT_*). Decompiled .c files remain in source repo. SCPM callback
+      status: APDU/reset/PPS/info implemented; CLPowerOn/Off partial (MCES2 limitation);
+      MIFARE SetKeys/Authenticate/GetLastError NOT implemented.
+    created_at: "2026-05-30"
     confidence: 0.9
-    source: "session-<id>"
-    tags: []
-
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
-
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+    tags: [reverse-engineering, ghidra, spi4mlb2, interpreter, scpm-callbacks]
 
 # Pruning rules
 pruning:
