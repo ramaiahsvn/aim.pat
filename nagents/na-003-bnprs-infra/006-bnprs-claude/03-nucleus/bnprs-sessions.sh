@@ -107,10 +107,26 @@ parse_session_id() {
     SESSION_AID_NUM="${SESSION_AID#*.}"                   # 001
     SESSION_REPO_NAME="${GITLAB_GROUP}.${SESSION_AID}"    # aim1001.aid.001
     SESSION_REPO_URL="https://${GITLAB_HOST}/${GITLAB_GROUP}/${SESSION_REPO_NAME}"
-    SESSION_LOCAL_PATH="${REPOS_DIR}/${SESSION_REPO_NAME}"
+    # Resolve actual clone location under the tiered tree (or flat default if new).
+    SESSION_LOCAL_PATH="$(resolve_repo_path "$SESSION_REPO_NAME")"
 }
 
 # ── GitLab Repo Operations ───────────────────────────────────
+
+# Resolve a repo's local clone path. The AIM1001_Team tree is organized into
+# tier subfolders (01-principal-agents, 02-senior-agents, …), so a clone may
+# live at any depth under REPOS_DIR. Search for an existing clone first; if
+# none exists, fall back to the flat default (used for a first-time clone).
+resolve_repo_path() {
+    local repo_name="$1"
+    local found
+    found=$(find "$REPOS_DIR" -type d -name "$repo_name" -prune 2>/dev/null | head -1)
+    if [[ -n "$found" && -d "${found}/.git" ]]; then
+        echo "$found"
+    else
+        echo "${REPOS_DIR}/${repo_name}"
+    fi
+}
 
 # Returns 0 if GitLab repo exists and is accessible.
 # git ls-remote will prompt for credentials in the terminal if needed.
@@ -197,10 +213,11 @@ cmd_sync_all() {
         return 0
     fi
 
+    # Discover git repos at ANY depth (tier subfolders → repo → .git).
     local repos=()
-    for d in "$REPOS_DIR"/*/; do
-        [[ -d "${d}.git" ]] && repos+=("$d")
-    done
+    while IFS= read -r gitdir; do
+        repos+=("$(dirname "$gitdir")")
+    done < <(find "$REPOS_DIR" -type d -name .git -prune 2>/dev/null | sort)
 
     local total=${#repos[@]}
     if [[ $total -eq 0 ]]; then
