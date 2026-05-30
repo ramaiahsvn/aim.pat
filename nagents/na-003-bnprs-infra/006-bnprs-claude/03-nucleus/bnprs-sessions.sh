@@ -234,9 +234,8 @@ save_session_memory() {
         echo ""
         if [[ -n "$notes" ]]; then echo "$notes"; else echo "(session marker — no inline notes; see other 08-memory files for agent-written memory)"; fi
     } > "$file"
-    log "Memory file: $file"
+    echo "$(date '+%F %T') [$repo] memory file: $file" >> "$PUSH_LOG" 2>/dev/null
     bg_commit_push "$repo" "memory(${SESSION_AID}): session notes ${ts}"
-    log "Commit + push queued in background (see $PUSH_LOG)"
 }
 
 # ── Commands ────────────────────────────────────────────────
@@ -389,9 +388,8 @@ No prior long-term memory found. What would you like to work on?"
     fi
     cd "$current_dir"
 
-    # Post-session: auto-save memory + background push. NO PROMPT.
-    save_session_memory "$SESSION_LOCAL_PATH" ""
-    log "Session ${SESSION_ID} ended; memory saved and pushed in background."
+    # Post-session: auto-save memory + background push. SILENT — no terminal output.
+    save_session_memory "$SESSION_LOCAL_PATH" "" >/dev/null 2>&1
 }
 
 cmd_save_memory() {
@@ -402,6 +400,7 @@ cmd_save_memory() {
     if [[ -z "$notes" && ! -t 0 ]]; then notes="$(cat)"; fi
     [[ -d "${SESSION_LOCAL_PATH}/.git" ]] || { check_gitlab_repo && sync_repo "$SESSION_LOCAL_PATH"; }
     save_session_memory "$SESSION_LOCAL_PATH" "$notes"
+    log "Saved memory for ${SESSION_ID}; committing + pushing in background (see $PUSH_LOG)."
 }
 
 cmd_list() {
