@@ -366,6 +366,31 @@ save_session_memory() {
     bg_commit_push "$repo" "memory(${SESSION_AID}): session notes ${ts}"
 }
 
+# Ask the just-ended conversation to summarize ONLY what it actually did this
+# session, non-interactively (claude -p --resume), and echo that text. This is
+# what turns the post-session memory from a bare marker into a real work log so
+# `status` / liaison rollups have substance. Echoes nothing on any failure (the
+# caller then falls back to the marker). Disable with BNPRS_SESSION_SUMMARY=0.
+#   $1 = conversation uuid (the one actually used to launch)   $2 = work dir
+generate_session_summary() {
+    local uuid="$1" workdir="$2"
+    [[ "${BNPRS_SESSION_SUMMARY:-1}" != 0 ]] || return 0
+    [[ -n "$uuid" && -n "$CLAUDE_CMD" ]] || return 0
+    local prompt="Your session is ending. In 3-8 concise bullet points, summarize ONLY what was actually accomplished in THIS session: tasks worked on, repos/files changed, decisions made, and any pending or next steps. No preamble, no restating these instructions. If nothing substantive happened, reply with exactly: (no substantive work this session)"
+    local out
+    if command -v timeout >/dev/null 2>&1; then
+        out=$( cd "$workdir" 2>/dev/null && timeout "${BNPRS_SUMMARY_TIMEOUT:-150}" \
+               "$CLAUDE_CMD" --resume "$uuid" -p "$prompt" 2>/dev/null )
+    else
+        out=$( cd "$workdir" 2>/dev/null && \
+               "$CLAUDE_CMD" --resume "$uuid" -p "$prompt" 2>/dev/null )
+    fi
+    # trim, cap size, drop if effectively empty
+    out=$(printf '%s' "$out" | sed -e 's/[[:space:]]*$//' | head -c 8000)
+    [[ -n "$(printf '%s' "$out" | tr -d '[:space:]')" ]] || return 0
+    printf '%s' "$out"
+}
+
 # ── Commands ────────────────────────────────────────────────
 
 cmd_sync_all() {
@@ -500,13 +525,15 @@ No prior long-term memory found. What would you like to work on?"
 
     # Launch Claude from inside the agent's WORK HOME (resumes the old conversation,
     # whose Claude history is keyed to this path). Memory writes go via the 08-memory symlink.
-    local current_dir="$PWD"
+    # Track the conversation uuid actually used, so the post-session summary resumes it.
+    local current_dir="$PWD" effective_uuid="$claude_uuid"
     cd "$SESSION_WORK_DIR"
     if ! $is_new && [[ -n "$claude_uuid" ]]; then
         $CLAUDE_CMD --resume "$claude_uuid" --append-system-prompt "$id_reminder" 2>/dev/null || {
             echo "$(date '+%F %T') resume $claude_uuid expired; fresh session ${SESSION_ID}" >> "$PUSH_LOG" 2>/dev/null
             local new_uuid; new_uuid=$(generate_uuid)
             SED_I "s/^claude_uuid=.*/claude_uuid=${new_uuid}/" "$meta_file"
+            effective_uuid="$new_uuid"
             $CLAUDE_CMD --session-id "$new_uuid" --name "bnprs-${SESSION_ID}" --append-system-prompt "$resume_prompt"
         }
     else
@@ -514,8 +541,11 @@ No prior long-term memory found. What would you like to work on?"
     fi
     cd "$current_dir"
 
-    # Post-session: auto-save memory + background push. SILENT — no terminal output.
-    save_session_memory "$SESSION_LOCAL_PATH" "" >/dev/null 2>&1
+    # Post-session: ask the conversation to summarize what it did, then save that
+    # as the memory body (falls back to a marker if summary unavailable) + bg push.
+    # SILENT — no terminal output.
+    local session_summary; session_summary=$(generate_session_summary "$effective_uuid" "$SESSION_WORK_DIR")
+    save_session_memory "$SESSION_LOCAL_PATH" "$session_summary" >/dev/null 2>&1
 }
 
 cmd_save_memory() {
