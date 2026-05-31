@@ -121,34 +121,58 @@ err()  { echo -e "${RED}[bnprs]${NC} $*" >&2; }
 
 ensure_dirs() { mkdir -p "$SESSIONS_DIR" "$MEMORY_DIR" "$REPOS_DIR" 2>/dev/null || true; }
 
-# Ensure a PERSISTENT git credential helper exists (Linux/EC2). Without this, a
-# wiped devops gitconfig leaves info_bnprs with nothing backing it and every
-# non-interactive clone/pull/push 401s → GitLab reports the private repo as
-# "not found". Idempotent and self-healing; NEVER hardcodes a secret. If
-# BNPRS_GIT_PASSWORD is set AND nothing is stored yet, it primes the store once
-# (the value is read from the env, never written into this script or any repo).
+# Ensure the git credential for the aim1001 group repos is present AND ISOLATED
+# (Linux/EC2). Without this, the session manager's non-interactive clone/pull/push
+# 401s → GitLab reports the private repo as "not found".
+#
+# WHY ISOLATION: the agent work homes also contain *product* repos
+# (https://gitlab.bnprs.ai/bpr10xx/...) owned by other users. When a session does
+# a git op on one of those (no username in the URL), git's shared `store` returns
+# info_bnprs, the product repo 401s, and git's `reject` then ERASES the info_bnprs
+# entry from the shared store. Next aim1001 op → no credential → 404. (Made worse
+# by credential.useHttpPath=false, which makes the host match path-blind.)
+#
+# FIX: give the aim1001 group URL its OWN credential store file, selected by a
+# path-scoped config section with the inherited helper reset — so product-repo ops
+# (which don't match the aim1001 path) can never read or erase it. The generic
+# store still serves everything else. Idempotent, self-healing; NEVER hardcodes a
+# secret (primes from $BNPRS_GIT_PASSWORD only, env-only, never written to a repo).
 #   $1 = "quiet" to suppress info/warn output (used on the hot sync/start paths).
 ensure_git_auth() {
     local quiet="${1:-}"
     [[ "$(uname)" == "Darwin" ]] && return 0          # macOS: use system keychain helper
     [[ -n "$GIT_REMOTE_USER" ]] || return 0
-    # 1) make sure a persistent 'store' helper is configured (additive, idempotent)
+
+    local aurl="https://${GITLAB_HOST}/${GITLAB_GROUP}"   # e.g. https://gitlab.bnprs.ai/aim1001
+    local ded="$HOME/.git-credentials-${GITLAB_GROUP}"    # dedicated, isolated store
+
+    # 1) generic persistent store for everything else (additive, idempotent)
     if ! git config --global --get-all credential.helper 2>/dev/null | grep -qx store; then
         git config --global --add credential.helper store
         [[ "$quiet" == quiet ]] || log "Configured persistent git credential helper: store"
     fi
-    # 2) if nothing is stored for the host yet, optionally prime from env (one-time)
-    local cred_file="$HOME/.git-credentials"
-    if ! grep -q "//${GIT_REMOTE_USER}:.*@${GITLAB_HOST}" "$cred_file" 2>/dev/null; then
+
+    # 2) path-scoped isolation for the aim1001 group URL: reset inherited helpers
+    #    (so the shared store is NOT consulted/erasable for these URLs), then point
+    #    at the dedicated file and pin the username. Re-assert every run (cheap).
+    if [[ "$(git config --global --get-all "credential.${aurl}.helper" 2>/dev/null | tr '\n' '|')" != "|store --file=${ded}|" ]]; then
+        git config --global "credential.${aurl}.helper" ""               # reset inherited
+        git config --global --add "credential.${aurl}.helper" "store --file=${ded}"
+        [[ "$quiet" == quiet ]] || log "Isolated ${GITLAB_GROUP} credentials → ${ded}"
+    fi
+    git config --global "credential.${aurl}.username" "$GIT_REMOTE_USER"
+
+    # 3) if the dedicated file lacks the info_bnprs entry, prime it from env (once)
+    if ! grep -q "//${GIT_REMOTE_USER}:.*@${GITLAB_HOST}" "$ded" 2>/dev/null; then
         if [[ -n "${BNPRS_GIT_PASSWORD:-}" ]]; then
-            printf 'protocol=https\nhost=%s\nusername=%s\npassword=%s\n\n' \
-                "$GITLAB_HOST" "$GIT_REMOTE_USER" "$BNPRS_GIT_PASSWORD" | git credential approve
-            [[ -f "$cred_file" ]] && chmod 600 "$cred_file"
-            [[ "$quiet" == quiet ]] || log "Primed git credential for ${GIT_REMOTE_USER}@${GITLAB_HOST} (store)"
+            ( umask 077; printf 'https://%s:%s@%s\n' \
+                "$GIT_REMOTE_USER" "$BNPRS_GIT_PASSWORD" "$GITLAB_HOST" > "$ded" )
+            chmod 600 "$ded"
+            [[ "$quiet" == quiet ]] || log "Primed ${GIT_REMOTE_USER} credential → ${ded}"
         elif [[ "$quiet" != quiet ]]; then
-            warn "No stored git credential for ${GIT_REMOTE_USER}@${GITLAB_HOST}."
+            warn "No stored credential for ${GIT_REMOTE_USER}@${GITLAB_HOST} in ${ded}."
             warn "Prime it once:  set BNPRS_GIT_PASSWORD and re-run 'init', or run:"
-            warn "  printf 'protocol=https\\nhost=${GITLAB_HOST}\\nusername=${GIT_REMOTE_USER}\\npassword=<PW>\\n\\n' | git credential approve"
+            warn "  printf 'https://${GIT_REMOTE_USER}:<PW>@${GITLAB_HOST}\\n' > ${ded} && chmod 600 ${ded}"
         fi
     fi
 }
