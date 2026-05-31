@@ -175,12 +175,11 @@ ensure_aliases() {
     local block; block="$ALIAS_BEGIN"$'\n'
     block+="alias rs='${self}'"$'\n'
     block+="alias rsl='${self} list'"$'\n'
-    local dir aid nnn eid
+    local dir aid nnn
     for dir in "$WORK_BASE"/aid.[0-9]*; do
         [[ -d "$dir" ]] || continue
         aid="$(basename "$dir")"; nnn="${aid#aid.}"
-        eid="$(lookup_eid "$nnn")"
-        block+="alias a${nnn}='cd ${WORK_BASE}/${aid} && ${self} start AID.${nnn}'   # ${eid:-fresh}"$'\n'
+        block+="alias a${nnn}='cd ${WORK_BASE}/${aid} && ${self} start AID.${nnn}'"$'\n'
     done
     block+="$ALIAS_END"
 
