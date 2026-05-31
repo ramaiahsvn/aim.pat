@@ -153,6 +153,58 @@ ensure_git_auth() {
     fi
 }
 
+# Keep the per-AID shell aliases (aNNN → cd ~/aid.NNN && start AID.NNN) current,
+# so a freshly-created work home is usable by alias immediately and stale entries
+# self-heal — same "just works" guarantee as PATH/credential. Linux/EC2 only
+# (macOS runs inside the repo, no work homes). Idempotent: rewrites only the
+# managed block between markers in the rc file, and ALSO removes any legacy
+# hand-written e####/c#### aliases left from the pre-AID scheme. Quiet by default;
+# pass "loud" to print a one-line summary.
+ALIAS_BEGIN="# >>> BNPRS session aliases >>>"
+ALIAS_END="# <<< BNPRS session aliases <<<"
+ensure_aliases() {
+    local loud="${1:-}"
+    [[ "$(uname)" == "Darwin" ]] && return 0
+    [[ -n "$WORK_BASE" && -d "$WORK_BASE" ]] || return 0
+    local self="${BASH_SOURCE[0]}"
+    case "$self" in /*) : ;; *) self="$(cd "$(dirname "$self")" && pwd)/$(basename "$self")";; esac
+    local rc="$HOME/.bashrc"; [[ -f "$HOME/.zshrc" ]] && rc="$HOME/.zshrc"
+    [[ -f "$rc" ]] || return 0
+
+    # Build the fresh managed block from the work homes that actually exist.
+    local block; block="$ALIAS_BEGIN"$'\n'
+    block+="alias rs='${self}'"$'\n'
+    block+="alias rsl='${self} list'"$'\n'
+    local dir aid nnn eid
+    for dir in "$WORK_BASE"/aid.[0-9]*; do
+        [[ -d "$dir" ]] || continue
+        aid="$(basename "$dir")"; nnn="${aid#aid.}"
+        eid="$(lookup_eid "$nnn")"
+        block+="alias a${nnn}='cd ${WORK_BASE}/${aid} && ${self} start AID.${nnn}'   # ${eid:-fresh}"$'\n'
+    done
+    block+="$ALIAS_END"
+
+    # If the rc already contains an identical managed block and no legacy lines, skip.
+    local cur; cur="$(awk "/$ALIAS_BEGIN/,/$ALIAS_END/" "$rc" 2>/dev/null)"
+    local has_legacy; has_legacy="$(grep -cE "^alias [ec][0-9]{4}=" "$rc" 2>/dev/null)"
+    if [[ "$cur" == "$block" && "${has_legacy:-0}" -eq 0 ]]; then
+        [[ "$loud" == loud ]] && log "Aliases already current ($(grep -c "^alias a[0-9]\{3\}=" "$rc") agents)"
+        return 0
+    fi
+
+    cp -p "$rc" "$rc.bak.$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
+    # Drop the old managed block, the legacy header, and legacy e####/c#### aliases.
+    SED_I "/$ALIAS_BEGIN/,/$ALIAS_END/d" "$rc"
+    SED_I '/^# ── BNPRS Session Aliases ──$/d' "$rc"
+    SED_I "\#^alias [ec][0-9]\{4\}='cd ~/[EC][0-9]\{4\} #d" "$rc"
+    # Collapse 3+ blank lines to one.
+    awk 'BEGIN{b=0} /^$/{b++; if(b<=1) print; next} {b=0; print}' "$rc" > "$rc.tmp" 2>/dev/null \
+        && mv "$rc.tmp" "$rc"
+    { echo ""; printf '%s\n' "$block"; } >> "$rc"
+    [[ "$loud" == loud ]] && log "Refreshed shell aliases in $rc ($(grep -c "^alias a[0-9]\{3\}=" "$rc") agents) — run: source $rc"
+    return 0
+}
+
 generate_uuid() {
     python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null \
         || cat /proc/sys/kernel/random/uuid 2>/dev/null \
@@ -294,7 +346,7 @@ save_session_memory() {
 # ── Commands ────────────────────────────────────────────────
 
 cmd_sync_all() {
-    ensure_dirs; ensure_git_auth quiet
+    ensure_dirs; ensure_git_auth quiet; ensure_aliases
     [[ -d "$REPOS_DIR" ]] || { warn "REPOS_DIR not found: $REPOS_DIR"; return 0; }
     # Discover git repos at ANY depth (tier subfolders → repo → .git).
     local repos=()
@@ -325,6 +377,7 @@ cmd_sync_all() {
 cmd_init() {
     ensure_dirs
     ensure_git_auth
+    ensure_aliases loud
     log "Initialized BNPRS session dirs"
     log "  Sessions : $SESSIONS_DIR"
     log "  Repos    : $REPOS_DIR"
@@ -347,7 +400,7 @@ cmd_sync() {
 
 cmd_start() {
     local sid="${1:?Session ID required (e.g., AID.001)}"
-    parse_session_id "$sid"; ensure_dirs; ensure_git_auth quiet
+    parse_session_id "$sid"; ensure_dirs; ensure_git_auth quiet; ensure_aliases
     echo "$(date '+%F %T') start ${SESSION_ID} (EID ${SESSION_EID:-unknown}) work=${SESSION_WORK_DIR}" >> "$PUSH_LOG" 2>/dev/null
 
     if check_gitlab_repo; then sync_repo "$SESSION_LOCAL_PATH" >>"$PUSH_LOG" 2>&1
