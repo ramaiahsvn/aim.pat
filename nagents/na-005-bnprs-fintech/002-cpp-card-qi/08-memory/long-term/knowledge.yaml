@@ -25,6 +25,17 @@ memories:
     tags: [bprpcsc, cpp, android, multi-device, pax, feitian, nexgo, wizar, ciontek, futronic, sunmi, qi-ops, jni, refactoring]
     detail_file: "bprpcsc-cpp-refactoring-20260222.md"
 
+  - id: mem-003
+    type: debugging_log
+    content: "QiVerifyChallengeK3Api returned empty string -> perso 6982. Root cause was DEVICE-SIDE WinHTTP, not the KMS (KMS proven healthy by grc-kms). WinHTTP got a PFX chain cert without a usable private key: WinHttpSendRequest gle=12185 (CLIENT_CERT_NO_PRIVATE_KEY), CryptAcquireCertificatePrivateKey gle=0x8009200B (CRYPT_E_NO_KEY_PROPERTY). Fix in LoadFleetCertContext: enumerate EVERY cert in the imported PFX store (CertEnumCertificatesInStore) and pick the one whose key is actually acquirable, CertDuplicateCertificateContext it; import MACHINE keyset first then USER fallback; link ncrypt. Lessons: WinHTTP re-opens the key from a named container (no ephemeral/no-persist key); a PFX is a SET of certs - select by acquirable key, not position; perso stations are locked-down so prefer MACHINE keyset. Fixed+verified on station 2026-06-01 (HTTP 200, supervisor APDU 9000)."
+    created_at: "2026-06-01"
+    last_accessed: "2026-06-01"
+    access_count: 1
+    confidence: 0.99
+    source: "live perso-station debug session 2026-06-01 (with na-003/007 grc-kms)"
+    tags: [bprcardqi, winhttp, mtls, pfx, client-cert, k3, supervisor-key, 12185, perso, 6982, fleet-cert]
+    detail_file: "k3-supervisor-key-empty-string-fix-2026-06-01.md"
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
