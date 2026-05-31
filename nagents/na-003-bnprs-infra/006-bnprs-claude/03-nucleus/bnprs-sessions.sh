@@ -638,6 +638,62 @@ cmd_delete() {
     [[ "$c" == "y" ]] && { rm -f "$meta_file"; log "Deleted local meta for ${SESSION_ID} (repo memory on GitLab preserved)"; }
 }
 
+# Report session efficiency ratings from the per-agent ledgers
+#   08-memory/long-term/efficiency.<aid>.csv  (date,time,aid,eid,rating,resume_count,rationale)
+# Usage:
+#   efficiency             → today's ratings across all agents + team average
+#   efficiency all         → same as above
+#   efficiency AID.NNN     → that agent's full rating history + its average
+#   efficiency YYYY-MM-DD  → that day's ratings across all agents + team average
+# CSV-safe: rationale is taken as everything after the 6th comma (commas in the
+# text never truncate it). Reads ledgers under REPOS_DIR (memory-repo clones).
+cmd_efficiency() {
+    ensure_dirs
+    local arg="${1:-}" want_aid="" want_date=""
+    if [[ "$arg" =~ ^[Aa][Ii][Dd]\.?[0-9]{1,3}$ || "$arg" =~ ^[0-9]{1,3}$ ]]; then
+        parse_session_id "$arg"; want_aid="$SESSION_AID"
+    elif [[ "$arg" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+        want_date="$arg"
+    elif [[ -n "$arg" && "$arg" != "all" ]]; then
+        err "Usage: efficiency [AID.NNN | YYYY-MM-DD | all]"; exit 1
+    fi
+    [[ -n "$want_aid" || -n "$want_date" ]] || want_date="$(date '+%Y-%m-%d')"
+
+    # collect matching rows from all ledgers via awk (CSV field 7+ = rationale)
+    local rows
+    rows=$(find "$REPOS_DIR" -type f -name 'efficiency.aid.*.csv' 2>/dev/null -print0 \
+      | xargs -0 awk -F, -v wa="$want_aid" -v wd="$want_date" '
+          FNR==1 { next }                                  # skip header
+          NF<7 { next }
+          { aid=$3; date=$1; rate=$5;
+            reason=$7; for(i=8;i<=NF;i++) reason=reason","$i;
+            if (wa!="" && aid!=wa) next;
+            if (wd!="" && date!=wd) next;
+            printf "%s\t%s\t%s\t%s\n", rate, aid, date, reason }' 2>/dev/null)
+
+    if [[ -z "$rows" ]]; then
+        warn "No efficiency data for ${want_aid:-$want_date}."; return 0
+    fi
+
+    echo ""
+    if [[ -n "$want_aid" ]]; then
+        echo -e "${BOLD}Efficiency history — ${want_aid}${NC}"
+        printf "  ${BOLD}%-5s %-12s %s${NC}\n" "Rate" "Date" "Rationale"
+        printf '%s\n' "$rows" | sort -t$'\t' -k3,3 \
+          | awk -F'\t' '{printf "  %-5s %-12s %s\n",$1"/10",$3,$4}'
+    else
+        echo -e "${BOLD}Team efficiency — ${want_date}${NC}"
+        printf "  ${BOLD}%-5s %-10s %s${NC}\n" "Rate" "AID" "Rationale"
+        printf '%s\n' "$rows" | sort -t$'\t' -k1,1nr -k2,2 \
+          | awk -F'\t' '{printf "  %-5s %-10s %s\n",$1"/10",$2,$4}'
+    fi
+    # average over numeric ratings
+    printf '%s\n' "$rows" | awk -F'\t' '
+        $1 ~ /^[0-9]+$/ { s+=$1; n++ }
+        END { if(n) printf "\n  Sessions: %d   Average: %.2f/10\n\n", n, s/n;
+              else  printf "\n  No numeric ratings.\n\n" }'
+}
+
 # ── Main ────────────────────────────────────────────────────
 case "${1:-help}" in
     init)             cmd_init ;;
@@ -648,6 +704,7 @@ case "${1:-help}" in
     status|st)        cmd_status      "${2:-}" ;;
     delete|rm)        cmd_delete      "${2:-}" ;;
     save-memory|sm)   shift; cmd_save_memory "$@" ;;
+    efficiency|eff)   cmd_efficiency  "${2:-}" ;;
     help|*)
         echo ""
         echo -e "${BOLD}BNPRS Session Manager${NC} for Claude Code"
@@ -662,6 +719,7 @@ case "${1:-help}" in
         echo "  status AID.NNN             Session details + memory files"
         echo "  delete AID.NNN             Delete local session meta"
         echo "  save-memory AID.NNN [text] Save memory (non-interactive) + bg push"
+        echo "  efficiency [AID|DATE|all]  Efficiency ratings (default: today, all agents) + average"
         echo ""
         echo "Repos dir : $REPOS_DIR"
         echo "AID map   : $AID_MAP"
