@@ -122,6 +122,18 @@ ssh devops@3.151.67.208
   `/home/devops/E#### → /home/devops/aid.NNN`, their Claude history project dirs remapped,
   and new `aid.NNN.meta` written carrying the old `claude_uuid` + resume count — so
   `start AID.NNN` resumes each agent's exact prior conversation.
+- **Slot remap (2026-05-31)**: shift-down — aid.033→**032** (E1037), aid.034→**033** (E1038),
+  aid.035→**034** (E1039); **C1039 revived** into aid.035 (reversing the 2026-05-30 drop).
+  E1036 reservation (paper-only) dropped. All surfaces moved per agent: work homes
+  (`/home/devops/aid.NNN`, 08-memory symlinks repointed), Claude history project dirs
+  (uuids ride along — dir rename only; resume keys on dir name, not internal cwd), and
+  `aid.NNN.meta` (uuid + resume count preserved). GitLab memory repos migrated by
+  **forward-commit** (no force-push) for 032/033/034; **aid.035 reset to a clean single
+  `init: C1039` commit** — temporarily lifted master protection via the root `GITLAB_PAT`
+  (admin API, run from the Mac), force-pushed an orphan history, then restored protection
+  (Maintainers push/merge, force_push=false). Legacy `E####`/`C####` session metas in
+  `~/.claude/bnprs-sessions/` were cleaned (they caused blank-AID rows in `list`).
+  Net AID→EID: 032=E1037, 033=E1038, 034=E1039, 035=C1039.
 
 ## Pending Actions
 
