@@ -13,6 +13,8 @@ memory/private/
 
 # Claude Code — local overrides only (settings.json is committed)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/*.lock
 .mcp.json
 
 # Zoho Mail MCP — per-account credentials
