@@ -492,12 +492,18 @@ Repo : ${SESSION_REPO_URL}
 No prior long-term memory found. What would you like to work on?"
     fi
 
+    # Identity reminder — injected on EVERY launch (incl. --resume). A resumed
+    # transcript may pre-date a slot remap and still call itself by the OLD AID
+    # (e.g. an agent remapped aid.034→aid.033 keeps saying "I am aid.034"). This
+    # one line re-anchors the agent to its CURRENT slot so it doesn't mis-identify.
+    local id_reminder="IDENTITY: your current session is ${SESSION_ID} (EID ${SESSION_EID:-unknown}), memory repo ${SESSION_REPO_NAME}. If earlier turns in this conversation refer to a different aid.NNN, that is pre-remap history — use ${SESSION_ID} from now on."
+
     # Launch Claude from inside the agent's WORK HOME (resumes the old conversation,
     # whose Claude history is keyed to this path). Memory writes go via the 08-memory symlink.
     local current_dir="$PWD"
     cd "$SESSION_WORK_DIR"
     if ! $is_new && [[ -n "$claude_uuid" ]]; then
-        $CLAUDE_CMD --resume "$claude_uuid" 2>/dev/null || {
+        $CLAUDE_CMD --resume "$claude_uuid" --append-system-prompt "$id_reminder" 2>/dev/null || {
             echo "$(date '+%F %T') resume $claude_uuid expired; fresh session ${SESSION_ID}" >> "$PUSH_LOG" 2>/dev/null
             local new_uuid; new_uuid=$(generate_uuid)
             SED_I "s/^claude_uuid=.*/claude_uuid=${new_uuid}/" "$meta_file"
