@@ -32,9 +32,13 @@
 #                        macOS default: ~/BPR/GitRepos2/AIM1001_Team
 #                        Linux default: /srv/aim1001
 #    BNPRS_AID_MAP     path to aid-eid-map.tsv (default: alongside this script)
-#    CLAUDE_CMD        claude binary  default: claude
+#    CLAUDE_CMD        claude binary  default: auto-resolved (PATH, then ~/.local/bin, ...)
+#    BNPRS_GIT_PASSWORD one-time: prime info_bnprs into the credential store (used by init)
 #
-#  Authentication: git uses the stored credential helper (info_bnprs on EC2).
+#  Authentication: git uses a persistent 'store' credential helper (info_bnprs on EC2).
+#    'init' ensures the helper exists and (if BNPRS_GIT_PASSWORD is set) primes the
+#    stored credential once; sync/start re-ensure the helper, so a wiped devops
+#    gitconfig self-heals as long as ~/.git-credentials survives.
 #
 #  On agent load: run sync-all to pull all cloned repos.
 # ============================================================
@@ -47,8 +51,25 @@ SESSIONS_DIR="$HOME/.claude/bnprs-sessions"
 MEMORY_DIR="$HOME/.claude/bnprs-memory"
 GITLAB_HOST="${GITLAB_HOST:-gitlab.bnprs.ai}"
 GITLAB_GROUP="${GITLAB_GROUP:-aim1001}"
-CLAUDE_CMD="${CLAUDE_CMD:-claude}"
 AID_MAP="${BNPRS_AID_MAP:-$SCRIPT_DIR/aid-eid-map.tsv}"
+
+# Ensure ~/.local/bin is on PATH — non-login / non-interactive invocations
+# (e.g. `sudo -u devops ...`) do NOT source ~/.profile, where it is normally added,
+# so `claude` would otherwise be "command not found".
+[[ -d "$HOME/.local/bin" && ":$PATH:" != *":$HOME/.local/bin:"* ]] && PATH="$HOME/.local/bin:$PATH"
+
+# Resolve the claude binary robustly (bare `claude` fails with "command not found"
+# under shells that never sourced ~/.profile). Honor an explicit CLAUDE_CMD override.
+if [[ -z "${CLAUDE_CMD:-}" ]]; then
+    if command -v claude >/dev/null 2>&1; then
+        CLAUDE_CMD="$(command -v claude)"
+    else
+        for _c in "$HOME/.local/bin/claude" /usr/local/bin/claude /usr/bin/claude /snap/bin/claude; do
+            [[ -x "$_c" ]] && { CLAUDE_CMD="$_c"; break; }
+        done
+        CLAUDE_CMD="${CLAUDE_CMD:-claude}"
+    fi
+fi
 
 # REPOS_DIR: OS-aware default
 if [[ -n "${BNPRS_REPOS_DIR:-}" ]]; then
@@ -99,6 +120,38 @@ warn() { echo -e "${YELLOW}[bnprs]${NC} $*"; }
 err()  { echo -e "${RED}[bnprs]${NC} $*" >&2; }
 
 ensure_dirs() { mkdir -p "$SESSIONS_DIR" "$MEMORY_DIR" "$REPOS_DIR" 2>/dev/null || true; }
+
+# Ensure a PERSISTENT git credential helper exists (Linux/EC2). Without this, a
+# wiped devops gitconfig leaves info_bnprs with nothing backing it and every
+# non-interactive clone/pull/push 401s → GitLab reports the private repo as
+# "not found". Idempotent and self-healing; NEVER hardcodes a secret. If
+# BNPRS_GIT_PASSWORD is set AND nothing is stored yet, it primes the store once
+# (the value is read from the env, never written into this script or any repo).
+#   $1 = "quiet" to suppress info/warn output (used on the hot sync/start paths).
+ensure_git_auth() {
+    local quiet="${1:-}"
+    [[ "$(uname)" == "Darwin" ]] && return 0          # macOS: use system keychain helper
+    [[ -n "$GIT_REMOTE_USER" ]] || return 0
+    # 1) make sure a persistent 'store' helper is configured (additive, idempotent)
+    if ! git config --global --get-all credential.helper 2>/dev/null | grep -qx store; then
+        git config --global --add credential.helper store
+        [[ "$quiet" == quiet ]] || log "Configured persistent git credential helper: store"
+    fi
+    # 2) if nothing is stored for the host yet, optionally prime from env (one-time)
+    local cred_file="$HOME/.git-credentials"
+    if ! grep -q "//${GIT_REMOTE_USER}:.*@${GITLAB_HOST}" "$cred_file" 2>/dev/null; then
+        if [[ -n "${BNPRS_GIT_PASSWORD:-}" ]]; then
+            printf 'protocol=https\nhost=%s\nusername=%s\npassword=%s\n\n' \
+                "$GITLAB_HOST" "$GIT_REMOTE_USER" "$BNPRS_GIT_PASSWORD" | git credential approve
+            [[ -f "$cred_file" ]] && chmod 600 "$cred_file"
+            [[ "$quiet" == quiet ]] || log "Primed git credential for ${GIT_REMOTE_USER}@${GITLAB_HOST} (store)"
+        elif [[ "$quiet" != quiet ]]; then
+            warn "No stored git credential for ${GIT_REMOTE_USER}@${GITLAB_HOST}."
+            warn "Prime it once:  set BNPRS_GIT_PASSWORD and re-run 'init', or run:"
+            warn "  printf 'protocol=https\\nhost=${GITLAB_HOST}\\nusername=${GIT_REMOTE_USER}\\npassword=<PW>\\n\\n' | git credential approve"
+        fi
+    fi
+}
 
 generate_uuid() {
     python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null \
@@ -241,7 +294,7 @@ save_session_memory() {
 # ── Commands ────────────────────────────────────────────────
 
 cmd_sync_all() {
-    ensure_dirs
+    ensure_dirs; ensure_git_auth quiet
     [[ -d "$REPOS_DIR" ]] || { warn "REPOS_DIR not found: $REPOS_DIR"; return 0; }
     # Discover git repos at ANY depth (tier subfolders → repo → .git).
     local repos=()
@@ -271,6 +324,7 @@ cmd_sync_all() {
 
 cmd_init() {
     ensure_dirs
+    ensure_git_auth
     log "Initialized BNPRS session dirs"
     log "  Sessions : $SESSIONS_DIR"
     log "  Repos    : $REPOS_DIR"
@@ -282,7 +336,7 @@ cmd_init() {
 
 cmd_sync() {
     local sid="${1:?Session ID required (e.g., AID.001)}"
-    parse_session_id "$sid"; ensure_dirs
+    parse_session_id "$sid"; ensure_dirs; ensure_git_auth quiet
     log "Checking GitLab: ${SESSION_REPO_URL}"
     if check_gitlab_repo; then
         sync_repo "$SESSION_LOCAL_PATH"; log "Sync complete: ${SESSION_LOCAL_PATH}"
@@ -293,7 +347,7 @@ cmd_sync() {
 
 cmd_start() {
     local sid="${1:?Session ID required (e.g., AID.001)}"
-    parse_session_id "$sid"; ensure_dirs
+    parse_session_id "$sid"; ensure_dirs; ensure_git_auth quiet
     echo "$(date '+%F %T') start ${SESSION_ID} (EID ${SESSION_EID:-unknown}) work=${SESSION_WORK_DIR}" >> "$PUSH_LOG" 2>/dev/null
 
     if check_gitlab_repo; then sync_repo "$SESSION_LOCAL_PATH" >>"$PUSH_LOG" 2>&1
