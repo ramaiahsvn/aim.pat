@@ -366,17 +366,25 @@ save_session_memory() {
     bg_commit_push "$repo" "memory(${SESSION_AID}): session notes ${ts}"
 }
 
-# Ask the just-ended conversation to summarize ONLY what it actually did this
-# session, non-interactively (claude -p --resume), and echo that text. This is
-# what turns the post-session memory from a bare marker into a real work log so
-# `status` / liaison rollups have substance. Echoes nothing on any failure (the
-# caller then falls back to the marker). Disable with BNPRS_SESSION_SUMMARY=0.
+# Ask the just-ended conversation to (a) summarize ONLY what it did this session
+# and (b) self-rate the session's EFFICIENCY 1-10 from the prompts + problem
+# difficulty — non-interactively (claude -p --resume). Echoes the full text
+# (bullets + a final `EFFICIENCY: N/10 — reason` line). This turns post-session
+# memory from a bare marker into a real work log + an efficiency signal that
+# `status`/liaison rollups can read. Echoes nothing on any failure (caller falls
+# back to the marker). Disable with BNPRS_SESSION_SUMMARY=0.
 #   $1 = conversation uuid (the one actually used to launch)   $2 = work dir
 generate_session_summary() {
     local uuid="$1" workdir="$2"
     [[ "${BNPRS_SESSION_SUMMARY:-1}" != 0 ]] || return 0
     [[ -n "$uuid" && -n "$CLAUDE_CMD" ]] || return 0
-    local prompt="Your session is ending. In 3-8 concise bullet points, summarize ONLY what was actually accomplished in THIS session: tasks worked on, repos/files changed, decisions made, and any pending or next steps. No preamble, no restating these instructions. If nothing substantive happened, reply with exactly: (no substantive work this session)"
+    local prompt="Your session is ending. Respond in exactly two parts, no preamble, no restating these instructions:
+
+1) SUMMARY: 3-8 concise bullet points covering ONLY what was actually accomplished in THIS session — tasks worked on, repos/files changed, decisions made, pending/next steps. If nothing substantive happened, write a single bullet: (no substantive work this session)
+
+2) A final line, by itself, in EXACTLY this format:
+EFFICIENCY: N/10 — <≤12-word rationale>
+where N is an integer 1-10 rating how efficiently this session solved its problems, judged from the user's prompts and the difficulty/type of problems tackled. Rubric: 1-3 = stuck/thrashing or trivial churn; 4-6 = steady progress with rework; 7-8 = solved the problem cleanly; 9-10 = hard problem solved fast and correctly. Be honest and calibrated; do not inflate."
     local out
     if command -v timeout >/dev/null 2>&1; then
         out=$( cd "$workdir" 2>/dev/null && timeout "${BNPRS_SUMMARY_TIMEOUT:-150}" \
@@ -389,6 +397,31 @@ generate_session_summary() {
     out=$(printf '%s' "$out" | sed -e 's/[[:space:]]*$//' | head -c 8000)
     [[ -n "$(printf '%s' "$out" | tr -d '[:space:]')" ]] || return 0
     printf '%s' "$out"
+}
+
+# Pull the integer 1-10 efficiency rating out of a summary blob ('' if none).
+parse_efficiency() {
+    printf '%s' "$1" \
+      | grep -oiE 'EFFICIENCY:[[:space:]]*([0-9]|10)/10' \
+      | head -1 | grep -oE '([0-9]|10)/10' | cut -d/ -f1
+}
+
+# Append one row to the agent's daily efficiency ledger (CSV, one line per
+# session) so per-day ratings are queryable. Columns:
+#   date,time,aid,eid,rating,resume_count,rationale
+#   $1 = repo path   $2 = rating (1-10)   $3 = rationale text
+record_efficiency() {
+    local repo="$1" rating="$2" rationale="$3" rcount="${4:-}"
+    [[ -n "$rating" ]] || return 0
+    local mdir="${repo}/08-memory/long-term"; mkdir -p "$mdir" 2>/dev/null
+    local ledger="${mdir}/efficiency.${SESSION_AID}.csv"
+    [[ -f "$ledger" ]] || echo "date,time,aid,eid,rating,resume_count,rationale" > "$ledger"
+    # sanitize rationale for CSV (strip commas/quotes/newlines)
+    rationale=$(printf '%s' "$rationale" | tr '\n' ' ' | tr -d '",' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | cut -c1-120)
+    printf '%s,%s,%s,%s,%s,%s,%s\n' \
+        "$(date '+%Y-%m-%d')" "$(date '+%H:%M:%S')" "$SESSION_AID" "${SESSION_EID:-unknown}" \
+        "$rating" "$rcount" "$rationale" >> "$ledger" 2>/dev/null
+    echo "$(date '+%F %T') [$repo] efficiency ${rating}/10" >> "$PUSH_LOG" 2>/dev/null
 }
 
 # ── Commands ────────────────────────────────────────────────
@@ -541,10 +574,15 @@ No prior long-term memory found. What would you like to work on?"
     fi
     cd "$current_dir"
 
-    # Post-session: ask the conversation to summarize what it did, then save that
-    # as the memory body (falls back to a marker if summary unavailable) + bg push.
-    # SILENT — no terminal output.
-    local session_summary; session_summary=$(generate_session_summary "$effective_uuid" "$SESSION_WORK_DIR")
+    # Post-session: ask the conversation to summarize what it did + self-rate
+    # efficiency (1-10). Save the summary as the memory body (falls back to a
+    # marker if unavailable), append the rating to the per-agent daily ledger,
+    # then bg push. SILENT — no terminal output.
+    local session_summary eff_rating eff_reason
+    session_summary=$(generate_session_summary "$effective_uuid" "$SESSION_WORK_DIR")
+    eff_rating=$(parse_efficiency "$session_summary")
+    eff_reason=$(printf '%s' "$session_summary" | grep -iE 'EFFICIENCY:' | head -1 | sed -E 's/.*[0-9]+\/10[[:space:]—-]*//')
+    [[ -n "$eff_rating" ]] && record_efficiency "$SESSION_LOCAL_PATH" "$eff_rating" "$eff_reason" "${resume_count:-}" >/dev/null 2>&1
     save_session_memory "$SESSION_LOCAL_PATH" "$session_summary" >/dev/null 2>&1
 }
 
