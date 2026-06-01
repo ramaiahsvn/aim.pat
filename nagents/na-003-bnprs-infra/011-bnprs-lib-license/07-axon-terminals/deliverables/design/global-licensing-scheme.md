@@ -12,10 +12,10 @@
 **BGL** is an **offline-verifiable, asymmetrically-signed license token** bound to a
 **hardware id (desktop/server/Pi)** or **application id (mobile)**, scoped to a **product**
 (from the product-code registry), a **platform set**, **features**, and an **expiry**.
-Licenses are **signed by a private key the issuer holds (ideally in the HSM at
-kms.bnprs.ai)** and verified by a **public key compiled into each library** — so the
-distributed binary can *verify but never forge*, fixing the core weakness of the legacy
-symmetric scheme (where the same key both signs and verifies).
+Licenses are **signed by a private key this agent holds** (encrypted at rest on the issuer
+host, value never committed) and verified by a **public key compiled into each library** —
+so the distributed binary can *verify but never forge*, fixing the core weakness of the
+legacy symmetric scheme (where the same key both signs and verifies).
 
 Verification is a tiny, dependency-light **C function (`bgl_verify`)** that links into every
 lib and wraps cleanly for Java/.NET/Go via na-003/010. No network is required at runtime;
@@ -91,13 +91,18 @@ JSON view (debug only; on-the-wire is CBOR):
 - **Algorithm**: **Ed25519** (fast, deterministic, tiny keys/sigs, trivially portable in C
   via a TweetNaCl-style single file — no OpenSSL dependency in the libs).
 - **Hashing**: SHA-256 for hwid/appid binding values.
-- **Key custody**:
-  - **Private signing key** → held by the issuer; production key **in the HSM at
-    kms.bnprs.ai** (coordinate with **na-003/007 bnprs-grc-kms**). Issuance calls the HSM to
-    sign. Never on disk in the clear; never in any shipped artifact.
+- **Key custody (self-managed by this agent — no external HSM dependency)**:
+  - **Private signing key** → generated and held by this agent on the issuer host;
+    **encrypted at rest** (e.g. age/passphrase-wrapped keystore), **never on disk in the
+    clear, never in any shipped artifact, never committed**. Referenced in agent files by
+    **alias/key-id only** (per the platform key-material rule). Issuance loads it only in
+    memory to sign, ideally on a dedicated/offline issuer machine.
   - **Public verification key(s)** → compiled into each library (and/or shipped beside it),
     selected by `kid`. Multiple keys embeddable → **rotation without breaking old tokens**.
-- Per the platform key-material rule: store only **key IDs / aliases**, never key values.
+  - **Rotation/compromise plan**: on suspected key compromise, mint a new `kid`, ship libs
+    with the new public key, re-issue active licenses, and revoke the old `kid`.
+  - *(Optional future hardening — a hardware token / offline signer — can be added later
+    without changing the token format; explicitly NOT a dependency for v1.)*
 
 ## 5. Binding — hardware id vs application id, per platform
 
@@ -184,10 +189,11 @@ const char* bgl_reason_str(int reason);
 
 | Agent | Role in BGL |
 |-------|-------------|
-| **na-003/007 bnprs-grc-kms** | Holds the Ed25519 **signing key in the HSM** (kms.bnprs.ai); signs at issuance |
 | **na-003/009 bnprs-lib-forge** | Publishes **BprLicBase v3** (and the public-key bundle) |
 | **na-003/010 bnprs-lib-multisdk** | Wraps `bgl_*` for **Java/.NET/Go** consumers |
 | **na-004 / na-005** | Migrate their libs' license call sites to `bgl_verify` |
+
+> Signing-key custody is **self-managed by this agent** (no na-003/007 HSM dependency).
 
 ## 11. Phased roadmap
 
@@ -195,14 +201,14 @@ const char* bgl_reason_str(int reason);
 |-------|-------------|
 | **0** (done) | This design + product-code registry |
 | **1** | Freeze BGL token spec; generate **test** Ed25519 keypair; implement `bgl_verify` + `bgl_hwid` for **desktop (win/mac/linux)** in BprLicBase v3; unit + KAT tests |
-| **2** | Mobile **appid** binding (iOS/Android) + Raspberry hwid; `bgl-issue` + `bgl-probe` CLIs; issuance log; **move signing key to HSM** (na-003/007) |
+| **2** | Mobile **appid** binding (iOS/Android) + Raspberry hwid; `bgl-issue` + `bgl-probe` CLIs; issuance log; **harden signing-key custody** (encrypted keystore on a dedicated issuer host) |
 | **3** | Online **activation** + **CRL/revocation** service; seat counting |
 | **4** | Migrate lib call sites (dual-accept) → deprecate legacy |
 
 ## 12. Decisions for the product owner (flagged, not blocking)
 
 1. **Offline-first** verification — assumed (embedded/air-gapped reality). Confirm.
-2. **Asymmetric Ed25519** with HSM-held signing key — recommended over legacy symmetric.
+2. **Asymmetric Ed25519** with a **self-managed, encrypted-at-rest signing key** (no HSM dependency) — recommended over legacy symmetric.
 3. **Mobile = appid, desktop = hwid** default binding — confirm acceptable.
 4. **Expiry policy** — subscription (always set `exp`) vs perpetual-with-support-window? Default: always set `exp`.
 5. **Revocation** — ship the CRL/online service in Phase 3, or defer (expiry-only) for v1?

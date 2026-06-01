@@ -12,9 +12,12 @@ symmetric `patIsValidLicense`. Full design:
 
 **Core architecture (decided as product-architect plan, pending owner sign-off):**
 - **Offline-verifiable** signed token: `BGL1.<b64url(cbor payload)>.<b64url(ed25519 sig)>`.
-- **Asymmetric Ed25519**: issuer's **private key signs** (ideally in the HSM at kms.bnprs.ai,
-  via na-003/007); **public key compiled into each lib** verifies. Binary can verify, never
-  forge — fixes the legacy symmetric weakness. `kid` claim enables key rotation.
+- **Asymmetric Ed25519**: issuer's **private key signs**, **self-managed by this agent**
+  (encrypted at rest on the issuer host, value never committed, referenced by alias/kid —
+  **no grc-kms/HSM dependency**); **public key compiled into each lib** verifies. Binary can
+  verify, never forge — fixes the legacy symmetric weakness. `kid` claim enables key rotation
+  (and is the compromise-recovery path). Optional hardware-token hardening is a future,
+  non-blocking add.
 - **Binding**: hwid (desktop/server/Pi) or appid (mobile — iOS/Android have no stable hwid).
   `bid = SHA-256(normalized id)`; raw id never stored. `bind` claim records which.
 - **Claims**: product_id(s) from [[product-codes]], platform set, feature bitmask, iat/nbf/exp,
@@ -23,8 +26,9 @@ symmetric `patIsValidLicense`. Full design:
   OpenSSL); wraps via na-003/010 for Java/.NET/Go. Legacy `patIsValidLicense` kept as a
   migration bridge (dual-accept).
 
-**Cross-agent:** signing key ↔ na-003/007 grc-kms (HSM); publish BprLicBase v3 ↔ na-003/009
-lib-forge; language wrappers ↔ na-003/010 multisdk; call-site migration ↔ na-004/na-005.
+**Cross-agent:** publish BprLicBase v3 ↔ na-003/009 lib-forge; language wrappers ↔ na-003/010
+multisdk; call-site migration ↔ na-004/na-005. **Signing-key custody is self-managed by this
+agent — no grc-kms/HSM dependency.**
 
 **Open owner decisions:** offline-first (assumed), expiry-always vs perpetual, revocation in
 v1 vs Phase-3, exact-hwid vs M-of-N tolerance. **Why:** user granted freedom to replace the
