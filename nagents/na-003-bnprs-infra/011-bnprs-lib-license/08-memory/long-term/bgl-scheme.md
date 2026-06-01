@@ -79,8 +79,15 @@ BGL is now part of **BprLicBase, bumped 2.27.4 → 2.27.5** (in bpr_versions.h, 
   **`bgl-kid2-signing-key`** (retrieve: `security find-generic-password -s bgl-kid2-signing-key -w`).
   Round-trip verified. Per the key-material rule only these **references** are recorded here —
   never the key or passphrase value.
-- **TODO (offsite)**: copy `bgl-kid2.key.enc` to offline media + the passphrase to a password
-  manager — pat-m4p is currently the single point of failure for both halves.
+- **Offsite backup (DONE 2026-06-02)** — the two halves are stored separately, off pat-m4p:
+  - Encrypted blob `bgl-kid2.key.enc` → **Zoho WorkDrive**:
+    `https://workdrive.zoho.com/file/50ypbc9b2fa246c5a4927b5d178e0a677b874`
+  - Passphrase → **Zoho Vault** (entry for `bgl-kid2-signing-key`).
+  - Local copies of the blob also at `~/BPR/.keys-backup/bgl/` and `~/Desktop/bgl-kid2.key.enc`
+    (working copies); passphrase also in macOS Keychain `bgl-kid2-signing-key`.
+  - To recover: download the blob, get the passphrase from Zoho Vault, then
+    `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in bgl-kid2.key.enc -out bgl.key`.
+  - Blob and passphrase are kept in **separate** stores (WorkDrive vs Vault) — never together.
 - **Rotation procedure** (if compromised/lost): `bgl-keygen <newkid> bgl.key bgl_pubkeys.h` →
   rebuild → re-embed → re-issue active licenses → ship libs with the new public key.
 
