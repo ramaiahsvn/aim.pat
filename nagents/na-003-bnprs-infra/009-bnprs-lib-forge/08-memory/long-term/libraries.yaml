@@ -16,10 +16,15 @@ registry:
   http_url: "https://gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs.git"
   format: "generic"
   filename_slash_supported: true     # verified 2026-05-30 on CE 18.9 — <platform>/<file> works (no flattening needed)
-  # Multi-SDK endpoints on the SAME project 230 (verified 2026-06-01): maven, nuget, go.
-  # AUTH NOTE: Generic accepts the `PRIVATE-TOKEN` header; the NuGet endpoint does NOT —
-  # it requires HTTP Basic auth (--user <username>:<token>, e.g. root:$GITLAB_PAT). 201 on Basic, 401 on header.
+  # Multi-SDK endpoints on the SAME project 230 (all verified 2026-06-01): maven, nuget, go.
+  # PUBLISH AUTH (differs per format!):
+  #   generic → PRIVATE-TOKEN header
+  #   nuget   → HTTP Basic ONLY (--user <user>:<token>); PRIVATE-TOKEN header → 401
+  #   maven   → Private-Token header (HTTP 200)
+  #   go      → NO upload endpoint; tag-based (Go proxy serves SemVer git tags from a repo)
   nuget_push_endpoint: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/nuget/"
+  maven_endpoint: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/maven"
+  go_proxy: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/go"  # consume-only; publish via git tag
 
 # Latest declared source versions (per src/AprCommon/BprVersions/bpr_versions.h, 2026-05-30)
 # These are the versions to publish once builders hand off artifacts.
@@ -103,3 +108,26 @@ published:
       - "runtimes/osx-arm64/native/libBprFace.dylib"
       - "runtimes/win-x64/native/{libBprFace.dll,libBprFaceDeps.dll,opencv_videoio_ffmpeg4100_64.dll}"
       - "contentFiles/any/any/models/bpr.model.onnx (placeholder)"
+
+  - package: "ai/bnprs/nativesdk-bprface"
+    package_type: "maven"
+    version: "2.24.114"            # wrapper version == native BprFace SemVer
+    package_id: 18
+    project_id: 230
+    native_lib: "BprFace"
+    source_repo: "bpr.cpp"
+    source_commit: "16077f5"
+    built_by: "na-004-bnprs-biometrics (BprFace native)"
+    wrapped_by: "na-003/010 bnprs-lib-multi-sdk-wrapper"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-06-01"
+    interop: "JNA (Native.load); resource-prefix dirs in the JAR"
+    coordinate: "ai.bnprs:nativesdk-bprface:2.24.114"
+    note: "PILOT (plumbing). JNA prefixes: darwin-aarch64, win32-x86-64 (win32-x86/linux omitted for size). Runtime load deferred (na-004 self-contained build)."
+    files:
+      - "nativesdk-bprface-2.24.114.jar  (darwin-aarch64/libBprFace.dylib, win32-x86-64/{BprFace.dll,libBprFaceDeps.dll,opencv_videoio_ffmpeg4100_64.dll}, BprFaceLibrary.class)"
+      - "nativesdk-bprface-2.24.114.pom"
+
+  # Go: gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs/go/bprface — purego + go:embed.
+  # Build+embed+consume validated locally (replace dir); NOT published (Go registry is
+  # tag-based — needs the module committed to a GitLab repo + SemVer git tag).
