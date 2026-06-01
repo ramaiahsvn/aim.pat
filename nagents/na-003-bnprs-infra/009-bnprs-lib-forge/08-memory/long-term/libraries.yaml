@@ -91,6 +91,7 @@ published:
   # --- NuGet (multi-SDK wrapper pilot, built by na-003/010) ---
   - package: "Bnprs.NativeSdk.BprFace"
     package_type: "nuget"
+    status: "yanked"               # deleted from registry 2026-06-01 (pilot artifact; was package_id 17)
     version: "2.24.114"            # wrapper version == native BprFace SemVer
     package_id: 17
     project_id: 230
@@ -111,6 +112,7 @@ published:
 
   - package: "ai/bnprs/nativesdk-bprface"
     package_type: "maven"
+    status: "yanked"               # deleted from registry 2026-06-01 (pilot artifact; was package_id 18)
     version: "2.24.114"            # wrapper version == native BprFace SemVer
     package_id: 18
     project_id: 230
