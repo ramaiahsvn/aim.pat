@@ -24,7 +24,7 @@ symmetric `patIsValidLicense`. Full design:
 - **Binding**: hwid (desktop/server/Pi) or appid (mobile — iOS/Android have no stable hwid).
   `bid = SHA-256(normalized id)`; raw id never stored. `bind` claim records which.
 - **Claims**: product_id(s) from [[product-codes]], platform set, feature bitmask, iat/nbf/exp,
-  lid (UUID), kid, optional seat count.
+  lid (UUID), kid. (No seat/activation claim — offline-only.)
 - **Verifier** = tiny pure-C `bgl_verify()` in BprLicBase v3 (bundled Ed25519+SHA-256, no
   OpenSSL); wraps via na-003/010 for Java/.NET/Go. Legacy `patIsValidLicense` kept as a
   migration bridge (dual-accept).
