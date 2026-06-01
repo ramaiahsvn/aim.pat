@@ -6,7 +6,7 @@
 # ============================================================
 
 agent:
-  name: "bnprs-lib-multi-sdk-wrapper"
+  name: "bnprs-lib-multisdk"
   code: "010"
   group: "na-003-bnprs-infra"
   version: "1.0.0"

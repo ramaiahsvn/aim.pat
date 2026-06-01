@@ -1,6 +1,6 @@
 # ============================================================
 #  WORKFLOW — wrap-and-handoff (master pipeline)
-#  bnprs-lib-multi-sdk-wrapper (na-003/010)
+#  bnprs-lib-multisdk (na-003/010)
 # ============================================================
 #  Turn one already-built native lib into Maven/NuGet/Go packages
 #  and drop a publish-ready tree for lib-forge (na-003/009).

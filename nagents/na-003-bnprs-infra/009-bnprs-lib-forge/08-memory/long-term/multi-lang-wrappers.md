@@ -23,7 +23,7 @@ repos will, providing all platforms is the point.
 
 **Architecture — lib-forge still does NOT build.** Wrapping (SWIG/JNA/P-Invoke/purego
 codegen + JAR/nupkg/module assembly) is a *build* step → owned by the wrapper-builder agent
-**bnprs-lib-multi-sdk-wrapper (na-003/010)**, created 2026-06-01 (approved). It drops
+**bnprs-lib-multisdk (na-003/010)**, created 2026-06-01 (approved). It drops
 publish-ready packages at `build/bnprs-wrappers/<Lib>/v<ver>/{maven,nuget,go}/` +
 `native-manifest.json`; lib-forge stays the binary source-of-truth on the Generic registry
 and **publishes** those packages to GitLab's **Maven + NuGet + Go** registries on the same

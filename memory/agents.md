@@ -32,7 +32,7 @@
 | 007  | na-003 | bnprs-grc-kms | HSM Key Management System (kms.bnprs.ai, alias/qi-supervisor-key) | active | 2026-05-26 |
 | 008  | na-003 | bnprs-grc | Governance, Risk, and Compliance (bpr.grc: bpr.usb, bpr.pci, bpr.kms) | active | 2026-05-27 |
 | 009  | na-003 | bnprs-lib-forge | Shared Library Package Registry & Distribution Manager (GitLab Generic, proj 230) | active | 2026-05-30 |
-| 010  | na-003 | bnprs-lib-multi-sdk-wrapper | Native SDK Multi-Language Wrapper Builder (Maven/JNA, NuGet/P-Invoke, Go/purego) | active | 2026-06-01 |
+| 010  | na-003 | bnprs-lib-multisdk | Native SDK Multi-Language Wrapper Builder (Maven/JNA, NuGet/P-Invoke, Go/purego) | active | 2026-06-01 |
 | 001  | na-004 | cpp-face | BprFace C++ Module (face detection, recognition, expression, action) | active | 2026-05-27 |
 | 002  | na-004 | cpp-finger | BprFinger C++ Module (Fjfx, Forg, M3gl, Nbis, Nfiq2, Nnmq) | active | 2026-05-27 |
 | 003  | na-004 | cpp-finger-cless | BprFingerCless C++ Module (contactless fingerprint preprocessing) | active | 2026-05-27 |
@@ -222,8 +222,8 @@
 | na-003/006 bnprs-claude | na-003/002 bnprs-aws-itp | Escalate instance-level issues (restart, resize, SG, billing) to ITP AWS agent |
 | na-003/008 bnprs-grc | na-003/007 bnprs-grc-kms | Key rotation, cert renewals, Lambda IAM policy for bpr.kms/k3-verifychallenge |
 | na-003/008 bnprs-grc | na-003/001 bnprs-aws | AWS account context for bpr.kms infrastructure (ap-south-2) |
-| na-003/010 bnprs-lib-multi-sdk-wrapper | na-003/009 bnprs-lib-forge | Source of native binaries (Generic registry proj 230); lib-forge publishes the wrapper packages it builds |
-| na-003/010 bnprs-lib-multi-sdk-wrapper | na-004 / na-005 domain agents | They build the native lib and own its version / source commit |
+| na-003/010 bnprs-lib-multisdk | na-003/009 bnprs-lib-forge | Source of native binaries (Generic registry proj 230); lib-forge publishes the wrapper packages it builds |
+| na-003/010 bnprs-lib-multisdk | na-004 / na-005 domain agents | They build the native lib and own its version / source commit |
 
 ## Notes
 

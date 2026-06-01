@@ -1,6 +1,6 @@
 # ============================================================
 #  CHECKPOINTS — wrap-and-handoff quality gates
-#  bnprs-lib-multi-sdk-wrapper (na-003/010)
+#  bnprs-lib-multisdk (na-003/010)
 # ============================================================
 #  All gates must PASS before the hand-off tree goes to lib-forge.
 #  A failed gate blocks hand-off; never publish on a failed gate.
