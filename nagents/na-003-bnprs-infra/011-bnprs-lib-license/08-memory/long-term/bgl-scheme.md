@@ -66,6 +66,24 @@ BGL is now part of **BprLicBase, bumped 2.27.4 → 2.27.5** (in bpr_versions.h, 
   `bgl-issue` verifies OK through `bpr_bgl_verify` (prod 2=OK, prod 9=WRONG_PRODUCT), `bpr_bgl_hwid`
   returns this machine's id, and legacy `bpr_is_valid_license` still links/works in the same lib.
 
+## Signing-key custody (rotated 2026-06-02)
+
+- **Active key id: kid=2.** kid=1 was the Phase-1 test key — **retired** (removed from
+  `bgl_pubkeys.h`; old kid=1 tokens no longer verify; none were issued for real).
+- **Working private key** (issuer): `bpr.cpp/src/AprCommon/BprLicense/bgl/bgl.key` — 64-byte
+  Ed25519 secret, perms `600`, **git-ignored** (never committed; `*.key` in bgl/.gitignore).
+  Used by `bgl-issue`.
+- **Public key (kid=2)** is committed in `bgl/bgl_pubkeys.h` and shipped in BprLicBase — safe.
+- **Encrypted backup**: `~/BPR/.keys-backup/bgl/bgl-kid2.key.enc` (AES-256-CBC, PBKDF2 200k,
+  perms 600, **outside both git repos**). Passphrase stored in macOS **Keychain** service
+  **`bgl-kid2-signing-key`** (retrieve: `security find-generic-password -s bgl-kid2-signing-key -w`).
+  Round-trip verified. Per the key-material rule only these **references** are recorded here —
+  never the key or passphrase value.
+- **TODO (offsite)**: copy `bgl-kid2.key.enc` to offline media + the passphrase to a password
+  manager — pat-m4p is currently the single point of failure for both halves.
+- **Rotation procedure** (if compromised/lost): `bgl-keygen <newkid> bgl.key bgl_pubkeys.h` →
+  rebuild → re-embed → re-issue active licenses → ship libs with the new public key.
+
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
 blocklist + anti-rollback high-water mark; harden signing-key storage. **Why:** user granted freedom to replace the
