@@ -1,0 +1,100 @@
+# =============================================================================
+#  PRODUCT-CODE REGISTRY — bnprs-lib-license (na-003 / 011)
+# =============================================================================
+#  Authoritative, permanent identity for every licensable library exposed from
+#  bpr.cpp. A license is scoped to a product via these identifiers. Platforms are
+#  an ORTHOGONAL axis (a license may also be scoped to one or more platforms) —
+#  product code answers "which library", not "which OS".
+#
+#  IMMUTABLE: once assigned, a product_id and code4 are NEVER reused or repurposed
+#  (same discipline as agent DE codes). Adding a library = next free product_id +
+#  a new unique code4. Changing an existing entry requires explicit approval and a
+#  versioned migration (shipped licenses embed these values).
+# =============================================================================
+
+meta:
+  owner: "na-003/011 bnprs-lib-license"
+  source_repo: "bpr.cpp"
+  license_engine: "BprLicBase (src/AprCommon/BprLicense)"
+  updated: "2026-06-01"
+
+# ---- Identifier scheme -------------------------------------------------------
+#  product_id : stable integer, zero-padded 2-digit (01..). Compact key for new
+#               cross-platform token formats. Immutable.
+#  code4      : 4-char lowercase ASCII. Back-compat with the legacy
+#               BprLicense::patIsValidLicense(hexStr, productCode) check, which
+#               embeds 4 ASCII bytes (offset 8) of the decrypted blob. Immutable.
+#  product_key: canonical library name (matches bpr_versions.h / lib-forge index).
+#
+#  An EMPTY product code ("") means "no product gating" — the legacy default still
+#  used by most current callers. New licenses SHOULD carry a real code.
+# ------------------------------------------------------------------------------
+
+products:
+  - product_id: "01"
+    product_key: "BprLicBase"
+    code4: "licb"
+    role: "licensing engine itself (does not normally gate on its own code)"
+    status: "active"
+
+  - product_id: "02"
+    product_key: "BprFace"
+    code4: "face"
+    role: "face detection / recognition / expression / action"
+    status: "active"
+
+  - product_id: "03"
+    product_key: "BprCardQi"
+    code4: "qcrd"
+    role: "Qi smart-card I/O, biometric data read"
+    status: "active"
+
+  - product_id: "04"
+    product_key: "BprCardEmv"
+    code4: "ecrd"
+    role: "EMV smart-card, AID selection, PureScript APDU"
+    status: "active"
+
+  - product_id: "05"
+    product_key: "BprICBA"
+    code4: "icba"
+    role: "Issuer Controlled Biometric Authentication"
+    status: "active"
+
+  - product_id: "06"
+    product_key: "BprFinger"
+    code4: "fngr"
+    role: "fingerprint (proprietary SDK)"
+    status: "active"
+
+  - product_id: "07"
+    product_key: "BprIris"
+    code4: "iris"
+    role: "iris recognition (proprietary SDK)"
+    status: "active"
+
+# ---- Reserved / deprecated (never reuse) -------------------------------------
+reserved:
+  - code4: "qemv"
+    product_key: "BprQiEmv"
+    status: "deprecated"
+    note: >
+      The ONLY product code found in shipped code (cli/BprQiEmv_deprecated/* passes
+      "qemv" to patIsValidLicense). BprQiEmv is superseded by BprCardQi/BprCardEmv/
+      BprICBA and must never be published — but its code stays permanently reserved
+      so no future product can collide with already-issued qemv licenses.
+
+# ---- Rules -------------------------------------------------------------------
+rules:
+  - "product_id and code4 are permanent; never reuse, repurpose, or renumber."
+  - "code4 is exactly 4 ASCII chars (legacy patIsValidLicense embeds 4 bytes)."
+  - "qemv is reserved-deprecated — do not assign to any new product."
+  - "adding a library: take the next free product_id + a new unique 4-char code4; confirm before touching existing entries."
+  - "platforms (win/mac/ios/android/linux/raspberry) are scoped separately from the product code."
+  - "current callers mostly pass '' (no gating); enforcing a code per lib is a separate rollout that flips '' → the assigned code4 and requires a versioned migration."
+
+# ---- Notes for the planned cross-platform scheme -----------------------------
+# A new global licensing approach (to replace/augment the legacy hwid+qiCode format)
+# should carry product_id as its product field and treat platform + binding
+# (hwid|appid) + expiry as independent fields. The legacy code4 remains the bridge
+# for libraries still calling patIsValidLicense until they migrate.
