@@ -39,7 +39,15 @@ labeled. `BprFinger`/`BprIris` (proprietary SDK) likely not wrappable. Wrapper v
 **== native SemVer** (no drift); embed binary sha256 + source-commit in the package
 manifest to preserve provenance/immutability.
 
+**Registry gate — CLEARED 2026-06-01 (API-verified, CE 18.9.0):** GitLab Package Registry
+is a single feature with **no per-format toggle** — `packages_enabled=true` on proj 230 +
+working Generic means the **Maven / NuGet / Go** endpoints
+(`…/projects/230/packages/{maven,nuget,go}`) are already live. Deploy token
+**`bnprs-libs-readonly`** (id 1, group 118, `read_package_registry`, not revoked, no expiry)
+grants pull across **all** formats — no new token/enable needed. (2nd read token
+`bnprs-libs-ro-charan` id 3 also exists.) Proj 230 private; anonymous pull off (401), so
+consumers auth with the deploy token.
+
 **Why:** one-dependency / zero-binary consumption across the org's polyglot stack.
 **How to apply:** never add the wrapper build to lib-forge; consume the wrapper-builder's
-output like `build/bnprs-libs/`. Confirm Maven/NuGet/Go registries enabled on proj 230 via
-bnprs-gitlab (na-003/003) before first publish.
+output like `build/bnprs-libs/`. Registry is publish-ready — next is the BprCardQi pilot.
