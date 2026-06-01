@@ -18,8 +18,10 @@ so the distributed binary can *verify but never forge*, fixing the core weakness
 legacy symmetric scheme (where the same key both signs and verifies).
 
 Verification is a tiny, dependency-light **C function (`bgl_verify`)** that links into every
-lib and wraps cleanly for Java/.NET/Go via na-003/010. No network is required at runtime;
-online is optional, only for activation and revocation.
+lib and wraps cleanly for Java/.NET/Go via na-003/010. **Verification is fully offline** —
+no network at any point: no online activation, no phone-home, no CRL fetch. Revocation, when
+needed, is handled offline (short expiry + re-issue, or a signed blocklist bundled with
+library/public-key updates).
 
 ## 1. Requirements
 
@@ -28,11 +30,11 @@ online is optional, only for activation and revocation.
 | R1 | One scheme, all libs (product-scoped via the registry's `product_id`) |
 | R2 | All platforms: Windows, macOS, iOS, Android, Linux, Raspberry |
 | R3 | Bind a license to a **hardware id** OR an **application id**, chosen per license |
-| R4 | **Offline** verification — embedded/air-gapped/POS/kiosk/card hosts have no guaranteed network |
+| R4 | **Offline-only** verification — never any network call; embedded/air-gapped/POS/kiosk/card hosts must work disconnected |
 | R5 | Tamper-evident — expiry/product/features/binding cannot be edited without detection |
 | R6 | **No signing secret in the distributed binary** (asymmetric) |
 | R7 | Expiry + optional features (tiered licensing) + platform scoping |
-| R8 | Revocable (CRL / optional online check) and renewable |
+| R8 | Renewable; revocation is **offline** (short expiry + re-issue, optional signed bundled blocklist) — no online check |
 | R9 | Small, portable verifier (pure C, ~1-file crypto) linkable into every lib |
 | R10 | Backward bridge to legacy `patIsValidLicense` during migration |
 
@@ -43,11 +45,11 @@ online is optional, only for activation and revocation.
 | Copy a valid license to another machine | License signed over the **hwid hash**; other machine's hwid differs → fails |
 | Edit expiry / product / features | Ed25519 **signature over the whole payload** → any edit breaks it |
 | Extract a symmetric key from the binary | N/A — only the **public** key is in the binary |
-| Forge a license | Requires the **private signing key** (held offline / in HSM) |
-| Replay after expiry | `exp` check + optional **anti-rollback high-water mark** (store last-seen time locally) |
-| Clock set backwards | Optional monotonic high-water mark; optional online time check when available |
-| VM/image cloning to copy hwid | Multi-component hwid + optional **online activation seat count** |
-| Use a revoked license offline | Honored until CRL reaches the client or the license expires (documented limitation) |
+| Forge a license | Requires the **private signing key** (held offline by the issuer) |
+| Replay after expiry | `exp` check + **anti-rollback high-water mark** (store last-seen time locally) |
+| Clock set backwards | Monotonic high-water mark (last-seen time stored locally) — no online time check |
+| VM/image cloning to copy hwid | Multi-component hwid; a perfect clone shares hwid (residual risk — mitigate with a volatile component and/or short expiry) |
+| Revocation without network | No online CRL; rely on **short expiry + re-issue**, or a **signed blocklist bundled** with library/public-key updates (documented latency) |
 
 ## 3. Token format — `BGL1`
 
@@ -77,7 +79,6 @@ BGL1.<base64url(payload)>.<base64url(ed25519_signature)>
 | `exp` | uint | expiry (unix); **absent ⇒ perpetual (requires explicit approval)** |
 | `kid` | str | signing key id (enables rotation) |
 | `iss` | str | issuer id (e.g. `na-003/011`) |
-| `seat`| uint | optional activation seat count (online policy) |
 
 JSON view (debug only; on-the-wire is CBOR):
 ```json
@@ -137,7 +138,7 @@ bgl_verify(token, product_id, &result):
   5. current platform ∈ payload.plat (or any)? → no  ⇒ WRONG_PLATFORM
   6. nbf ≤ now ≤ exp (+ anti-rollback check)   → no  ⇒ EXPIRED / NOT_YET / CLOCK
   7. recompute bid for this host/app == payload.bid? → no ⇒ WRONG_BINDING
-  8. (optional) lid ∉ local CRL cache          → in  ⇒ REVOKED
+  8. (optional) lid ∉ bundled signed blocklist → in  ⇒ REVOKED   (offline; no network)
   9. OK ⇒ return {valid, exp, feat}
 ```
 
@@ -147,18 +148,18 @@ EXPIRED, NOT_YET, CLOCK_ROLLBACK, WRONG_BINDING, REVOKED, MALFORMED, UNKNOWN_KID
 ## 7. Lifecycle
 
 ```
-ISSUE → (ACTIVATE) → VERIFY (repeat, offline) → RENEW → REVOKE
+ISSUE → VERIFY (repeat, fully offline) → RENEW        [revoke = offline re-issue / blocklist]
 ```
 
-- **Issue**: `bgl-issue` CLI/service: inputs (product(s), bind type+value, platforms,
-  features, expiry) → HSM signs → BGL token. Appends to the **issuance log** (lid, product,
-  binding, expiry, requester, kid).
-- **Activate** (optional, online): first run posts `lid + bid` to a license server →
-  records activation, enforces `seat` count, returns ack. Offline installs skip this.
-- **Verify**: offline, every run or on an interval.
-- **Renew**: issue a fresh token with a later `exp`, same `lid` lineage; client swaps it.
-- **Revoke**: add `lid` to the CRL; online clients refresh the CRL; offline clients honor
-  until CRL arrives or `exp` (documented).
+- **Issue**: `bgl-issue` CLI: inputs (product(s), bind type+value, platforms, features,
+  expiry) → **sign (Ed25519)** → BGL token. Appends to the **issuance log** (lid, product,
+  binding, expiry, requester, kid). Token is delivered to the customer out-of-band.
+- **Verify**: **offline**, every run or on an interval — never contacts a server.
+- **Renew**: issue a fresh token with a later `exp`, same `lid` lineage; the client swaps the
+  file. (Done out-of-band, same as issuance — no online renewal.)
+- **Revoke** (offline): there is no online CRL. Options: let the short `exp` lapse and
+  decline to re-issue, or publish a **signed blocklist** of `lid`s bundled with the next
+  library/public-key update — clients honor it once that update reaches them (documented latency).
 
 ## 8. SDK / API surface (BprLicBase v3 — the verifier)
 
@@ -202,14 +203,13 @@ const char* bgl_reason_str(int reason);
 | **0** (done) | This design + product-code registry |
 | **1** | Freeze BGL token spec; generate **test** Ed25519 keypair; implement `bgl_verify` + `bgl_hwid` for **desktop (win/mac/linux)** in BprLicBase v3; unit + KAT tests |
 | **2** | Mobile **appid** binding (iOS/Android) + Raspberry hwid; `bgl-issue` + `bgl-probe` CLIs; issuance log; **harden signing-key custody** (encrypted keystore on a dedicated issuer host) |
-| **3** | Online **activation** + **CRL/revocation** service; seat counting |
+| **3** | **Offline revocation** (signed blocklist bundled with lib/public-key updates); anti-rollback high-water mark; hardware-change tolerance (M-of-N) |
 | **4** | Migrate lib call sites (dual-accept) → deprecate legacy |
 
 ## 12. Decisions for the product owner (flagged, not blocking)
 
-1. **Offline-first** verification — assumed (embedded/air-gapped reality). Confirm.
+1. **Offline-only** verification — **confirmed** (no network at any point; revocation via expiry/re-issue or bundled signed blocklist).
 2. **Asymmetric Ed25519** with a **self-managed, encrypted-at-rest signing key** (no HSM dependency) — recommended over legacy symmetric.
 3. **Mobile = appid, desktop = hwid** default binding — confirm acceptable.
-4. **Expiry policy** — subscription (always set `exp`) vs perpetual-with-support-window? Default: always set `exp`.
-5. **Revocation** — ship the CRL/online service in Phase 3, or defer (expiry-only) for v1?
-6. **Hardware-change tolerance** — exact hwid match in v1 (re-issue on change), M-of-N later? Confirm.
+4. **Expiry policy** — subscription (always set `exp`) vs perpetual-with-support-window? Default: always set `exp` (shorter expiry is the main revocation lever in an offline model).
+5. **Hardware-change tolerance** — exact hwid match in v1 (re-issue on change), M-of-N later? Confirm.

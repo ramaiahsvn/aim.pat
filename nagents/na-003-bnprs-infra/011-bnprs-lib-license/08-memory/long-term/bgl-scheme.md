@@ -11,7 +11,10 @@ symmetric `patIsValidLicense`. Full design:
 `07-axon-terminals/deliverables/design/global-licensing-scheme.md`.
 
 **Core architecture (decided as product-architect plan, pending owner sign-off):**
-- **Offline-verifiable** signed token: `BGL1.<b64url(cbor payload)>.<b64url(ed25519 sig)>`.
+- **Offline-ONLY** signed token: `BGL1.<b64url(cbor payload)>.<b64url(ed25519 sig)>`. No
+  network at any point — no online activation, phone-home, or CRL fetch. Revocation is
+  offline: short expiry + re-issue, or a signed blocklist of `lid`s bundled with lib/public-key
+  updates.
 - **Asymmetric Ed25519**: issuer's **private key signs**, **self-managed by this agent**
   (encrypted at rest on the issuer host, value never committed, referenced by alias/kid —
   **no grc-kms/HSM dependency**); **public key compiled into each lib** verifies. Binary can
@@ -30,8 +33,8 @@ symmetric `patIsValidLicense`. Full design:
 multisdk; call-site migration ↔ na-004/na-005. **Signing-key custody is self-managed by this
 agent — no grc-kms/HSM dependency.**
 
-**Open owner decisions:** offline-first (assumed), expiry-always vs perpetual, revocation in
-v1 vs Phase-3, exact-hwid vs M-of-N tolerance. **Why:** user granted freedom to replace the
+**Open owner decisions:** offline-only (confirmed), expiry-always vs perpetual, exact-hwid vs
+M-of-N tolerance. **Why:** user granted freedom to replace the
 legacy scheme; this is the chosen direction. **How to apply:** build Phase 1 (desktop
 bgl_verify + bgl_hwid + test keypair) first; never put the signing key in a shipped artifact;
 preserve product_id/code4 immutability from [[product-codes]].
