@@ -33,6 +33,7 @@
 | 008  | na-003 | bnprs-grc | Governance, Risk, and Compliance (bpr.grc: bpr.usb, bpr.pci, bpr.kms) | active | 2026-05-27 |
 | 009  | na-003 | bnprs-lib-forge | Shared Library Package Registry & Distribution Manager (GitLab Generic, proj 230) | active | 2026-05-30 |
 | 010  | na-003 | bnprs-lib-multisdk | Native SDK Multi-Language Wrapper Builder (Maven/JNA, NuGet/P-Invoke, Go/purego) | active | 2026-06-01 |
+| 011  | na-003 | bnprs-lib-license | Shared Library Licensing & Activation Manager (hwid/appid, per-product, BprLicBase) | active | 2026-06-01 |
 | 001  | na-004 | cpp-face | BprFace C++ Module (face detection, recognition, expression, action) | active | 2026-05-27 |
 | 002  | na-004 | cpp-finger | BprFinger C++ Module (Fjfx, Forg, M3gl, Nbis, Nfiq2, Nnmq) | active | 2026-05-27 |
 | 003  | na-004 | cpp-finger-cless | BprFingerCless C++ Module (contactless fingerprint preprocessing) | active | 2026-05-27 |
@@ -204,7 +205,7 @@
 |-------|----|------|-----|
 | na-001-personal          | na-001 | 6  | 255 |
 | na-002-bnprs-core        | na-002 | 10 | 255 |
-| na-003-bnprs-infra       | na-003 | 10 | 255 |
+| na-003-bnprs-infra       | na-003 | 11 | 255 |
 | na-004-bnprs-biometrics  | na-004 | 12 | 255 |
 | na-005-bnprs-fintech     | na-005 | 12 | 255 |
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
@@ -224,6 +225,9 @@
 | na-003/008 bnprs-grc | na-003/001 bnprs-aws | AWS account context for bpr.kms infrastructure (ap-south-2) |
 | na-003/010 bnprs-lib-multisdk | na-003/009 bnprs-lib-forge | Source of native binaries (Generic registry proj 230); lib-forge publishes the wrapper packages it builds |
 | na-003/010 bnprs-lib-multisdk | na-004 / na-005 domain agents | They build the native lib and own its version / source commit |
+| na-003/011 bnprs-lib-license | bpr.cpp BprCrypt / BprUtils | Crypto + hex/string primitives the BprLicense code calls |
+| na-003/011 bnprs-lib-license | na-004 / na-005 domain agents | They build the libs that link BprLicBase and gate on its verification |
+| na-003/011 bnprs-lib-license | na-003/009 bnprs-lib-forge | Publishes BprLicBase to the registry like any other lib |
 
 ## Notes
 
@@ -245,3 +249,4 @@
 - na-003/010 bnprs-multisdk pilot (2026-06-01): wrapped **BprFace 2.24.114** for all 3 SDKs — NuGet (P/Invoke) + Maven (JNA) published to GitLab project 230 & consumed end-to-end; Go (purego + go:embed) built+consumed locally (GitLab Go registry is tag-based, no upload). Validated "one dependency, zero binary copy". Per-format publish auth differs: generic=PRIVATE-TOKEN header, nuget=HTTP Basic only, maven=Private-Token header, go=git-tag. Agent internals (04 workflows / 05 skills / 06 checkpoints) encode the proven recipes.
 - na-003/010 pilot packages **yanked 2026-06-01** — nuget (was pkg 17) + maven (was pkg 18) deleted from project 230; marked `status: yanked` in lib-forge `libraries.yaml` (kept as record). Registry now holds only the real generic packages (BprICBA 15, BprCardQi 16).
 - na-003/010 **blocked items**: live runtime smoke-tests need na-004 to ship a self-contained macOS/Linux BprFace (current dylib links system Homebrew opencv); Go publish needs a tagged module repo.
+- na-003/011 bnprs-lib-license created (2026-06-01): owns the licensing layer for all bpr.cpp libs. Works in `bpr.cpp/src/AprCommon/BprLicense/` (library **BprLicBase** 2.27.x). Existing scheme: license string `enc(hwid0)+enc(qiCode)+enc(hwid1)`, qiCode hex encodes **YYYYMMDD expiry + 4-char product code**, symmetric crypto via `BprCrypt::patEncryptDecrypt`; API `patGlobalLicGenerator` / `patGlobalLicVerification` / `patIsValidLicense`. To build out: **application-id binding** (alongside hwid), per-platform hwid fingerprinting, a product-code registry per lib, and auditable issuance tooling. Format/crypto changes require a versioned migration (shipped licenses depend on them).
