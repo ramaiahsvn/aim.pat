@@ -1,0 +1,30 @@
+# ============================================================
+#  WORKFLOW — build-go  (purego + go:embed, pilot-proven 2026-06-01)
+# ============================================================
+name: build-go
+version: 1.0.0
+interop: "purego (github.com/ebitengine/purego) + go:embed"
+module_path: "gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs/go/<lib-lower>"
+
+layout:
+  binding:   "<lib>.go            # purego.Dlopen + RegisterLibFunc(&fn, h, \"<Symbol>\")"
+  embed:     "embed_<goos>_<goarch>.go   # //go:build tag + //go:embed <native-file>"
+  native:    "<native-file>        # dylib/dll/so beside the build-tagged embed file"
+  goosarch_map: "windows_amd64, windows_386, linux_amd64, linux_arm64, darwin_amd64, darwin_arm64"
+
+steps:
+  - "Stage the native lib into the module dir; one build-tagged embed_*.go per GOOS/GOARCH."
+  - "Write the common binding: extract embedded bytes to temp, purego.Dlopen, RegisterLibFunc per symbol."
+  - "go mod tidy   (fetch purego, online once)"
+  - "go build ./... && go vet ./...   (embed compiles the native into the archive)"
+
+verify:
+  - "consumer module with require + replace → ../<lib>; go build succeeds"
+
+# ---- PUBLISH: GitLab Go registry is TAG-BASED, not an upload endpoint ----
+publish_ref:
+  mechanism: "Go proxy serves SemVer git tags from a repo — NO package upload API"
+  todo: "host the module in a GitLab repo and create tag v<ver>; then it resolves via GOPROXY"
+consume_ref:
+  goproxy: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/go"
+  auth: "~/.netrc for gitlab.bnprs.ai with the bnprs-libs-readonly deploy token; set GONOSUMCHECK/GONOSUMDB as needed"

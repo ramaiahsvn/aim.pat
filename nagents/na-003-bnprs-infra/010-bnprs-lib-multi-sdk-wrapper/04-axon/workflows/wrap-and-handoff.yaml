@@ -1,0 +1,63 @@
+# ============================================================
+#  WORKFLOW — wrap-and-handoff (master pipeline)
+#  bnprs-lib-multi-sdk-wrapper (na-003/010)
+# ============================================================
+#  Turn one already-built native lib into Maven/NuGet/Go packages
+#  and drop a publish-ready tree for lib-forge (na-003/009).
+#  This agent BUILDS bindings; it does NOT compile the native lib
+#  and does NOT publish to the registry.
+# ============================================================
+
+name: wrap-and-handoff
+version: 1.0.0
+inputs:
+  lib:        "native library name, e.g. BprFace"
+  version:    "native SemVer, read from src/AprCommon/BprVersions/bpr_versions.h — never invented"
+  ecosystems: "subset of [nuget, maven, go]"
+  platforms:  "subset the source actually supports (respect win-only / proprietary-SDK rules)"
+
+stages:
+  - id: 01-collect
+    desc: >
+      Gather native binaries from lib-forge's Generic registry (project 230) OR the local
+      build/bnprs-libs/<Lib>/v<ver>/<platform>/ tree. NEVER build/recompile. For BprFace,
+      collect the WHOLE leaf (lib + libBprFaceDeps + opencv ffmpeg + bpr.model.onnx).
+    guard: "abort if any requested (lib,platform) leaf is missing → ask the builder agent (na-004/na-005)"
+
+  - id: 02-assess-abi
+    desc: >
+      Read the header (bpr.cpp src/<Lib>/<Lib>.h). Case A = clean extern "C" surface → bind directly.
+      Case B = C++/mangled or windows.h-bound → write an extern "C" C shim (nsshim.c) first,
+      compiled per-platform by the domain agent (this agent does not compile native code).
+    note: "BprFace=Case A (extern \"C\"). BprCardQi/BprICBA=C++/Windows → shim required."
+
+  - id: 03-bind-and-build
+    desc: "Run the matching per-ecosystem build workflow for each requested ecosystem."
+    calls:
+      nuget: build-nuget.yaml
+      maven: build-maven.yaml
+      go:    build-go.yaml
+
+  - id: 04-provenance
+    desc: >
+      Emit native-manifest.json: per embedded binary record source repo+commit, builder agent,
+      build date, the Generic-registry coordinate, and sha256. sha256 MUST match the registry's
+      .sha256 (verified again by lib-forge at publish).
+
+  - id: 05-checkpoints
+    desc: "Run 06-node-of-ranvier/wrap-checkpoints.yaml. All gates must pass before hand-off."
+
+  - id: 06-handoff
+    desc: >
+      Place the publish-ready tree at build/bnprs-wrappers/<Lib>/v<ver>/{maven,nuget,go}/ +
+      native-manifest.json. Notify lib-forge (na-003/009) to publish. STOP — do not publish here.
+
+outputs:
+  handoff_tree: "build/bnprs-wrappers/<Lib>/v<ver>/"
+  report:       "07-axon-terminals/deliverables/pilot-reports/<Lib>-<eco>-<ver>.md"
+  index_update: "lib-forge appends to 08-memory/long-term/libraries.yaml on publish"
+
+rules:
+  - "version == native SemVer (no drift); published tuples immutable"
+  - "only wrap (lib,platform) pairs the source supports; never BprQiEmv / BprFinger / BprIris"
+  - "max 20 autonomous steps before checking in"

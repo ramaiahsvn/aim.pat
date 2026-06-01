@@ -1,0 +1,49 @@
+# ============================================================
+#  CHECKPOINTS — wrap-and-handoff quality gates
+#  bnprs-lib-multi-sdk-wrapper (na-003/010)
+# ============================================================
+#  All gates must PASS before the hand-off tree goes to lib-forge.
+#  A failed gate blocks hand-off; never publish on a failed gate.
+# ============================================================
+
+name: wrap-checkpoints
+version: 1.0.0
+
+gates:
+  - id: version-matches-source
+    check: "wrapper version == native SemVer read from bpr_versions.h"
+    fail: "BLOCK — never invent/bump; ask the domain builder to set the version"
+
+  - id: scope-allowed
+    check: "lib is not deprecated/proprietary (NOT BprQiEmv / BprFinger / BprIris); platform supported by source"
+    fail: "BLOCK — out-of-scope wrap"
+
+  - id: whole-leaf-bundled
+    check: "every file in the platform leaf is embedded (e.g. BprFace: lib + libBprFaceDeps + opencv ffmpeg + onnx) — not just the primary binary"
+    fail: "BLOCK — partial bundle will fail to load"
+
+  - id: sha256-matches-registry
+    check: "sha256 of each embedded binary == the Generic-registry .sha256 (or build/bnprs-libs source)"
+    fail: "BLOCK — provenance mismatch; re-collect from the authoritative artifact"
+
+  - id: binding-compiles
+    check: "managed/binding build is clean — dotnet build (LibraryImport gen) / mvn package / go build+vet"
+    fail: "BLOCK — fix the binding signatures"
+
+  - id: manifest-present
+    check: "native-manifest.json exists with source repo+commit, builder agent, build date, registry coordinate, sha256 per binary"
+    fail: "BLOCK — provenance required"
+
+  - id: package-structure
+    check: "nuget: lib/<tfm>/ + runtimes/<rid>/native/ ; maven: <jna-prefix>/ dirs + binding class ; go: build-tagged embeds present"
+    fail: "BLOCK — wrong layout, asset won't resolve at consume time"
+
+  - id: binding-loads        # human-in-the-loop / deferred when no self-contained binary
+    check: "smoke-test: binding loads the native lib on a matching host (run Bpr_GLog_Init or equiv)"
+    fail: "WARN+DEFER — if native binary is not self-contained (e.g. links system opencv), record as deferred and flag the builder (na-004); do NOT block hand-off but mark the release 'runtime-unverified'"
+    note: "Cross-platform load needs the matching OS (a Mac cannot verify Windows/Linux binaries) → CI runners or Windows host"
+
+on_all_pass:
+  - "proceed to 06-handoff: write build/bnprs-wrappers/<Lib>/v<ver>/ and notify lib-forge"
+on_any_block:
+  - "halt; report the failing gate; do not hand off or publish"

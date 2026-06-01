@@ -1,0 +1,36 @@
+# ============================================================
+#  WORKFLOW — build-maven  (JNA, pilot-proven 2026-06-01)
+# ============================================================
+name: build-maven
+version: 1.0.0
+interop: "JNA (com.sun.jna.Native.load)"
+coordinate_scheme: "ai.bnprs:nativesdk-<lib-lower>:<ver>"   # e.g. ai.bnprs:nativesdk-bprface:2.24.114
+compiler_release: 8
+
+layout:
+  binding: "src/main/java/ai/bnprs/nativesdk/<lib>/<Lib>Library.java"
+  native:  "src/main/resources/<jna-prefix>/<file>"   # JNA resource prefixes
+
+jna_prefix_map:
+  windows-64: "win32-x86-64"     # file MUST be <Name>.dll  (JNA adds NO 'lib' prefix on Windows)
+  windows-32: "win32-x86"
+  linux-x64:  "linux-x86-64"     # lib<Name>.so
+  linux-arm64:"linux-aarch64"
+  macos-arm64:"darwin-aarch64"   # lib<Name>.dylib
+  macos-x64:  "darwin-x86-64"
+
+steps:
+  - "Stage native libs into resources/<prefix>/ (Windows: rename libX.dll → X.dll to match Native.load(\"X\"))."
+  - "Write the JNA Library interface (Native.load(\"<Name>\", ...)) with the extern \"C\" method signatures."
+  - "pom.xml: packaging jar, dependency net.java.dev.jna:jna."
+  - "mvn package   (online once to fetch plugins + JNA)"
+
+verify:
+  - "unzip -Z1 target/<artifact>-<ver>.jar → confirm <jna-prefix>/ dirs + <Lib>Library.class"
+
+publish_ref:
+  endpoint: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/maven/<group-path>/<artifact>/<ver>/"
+  auth: "Private-Token: $GITLAB_PAT header  (PUT jar + pom → HTTP 200)"
+consume_ref:
+  repo: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/maven"
+  auth: "settings.xml <server> httpHeaders Private-Token = bnprs-libs-readonly deploy token"

@@ -1,0 +1,32 @@
+# ============================================================
+#  WORKFLOW — build-nuget  (P/Invoke, pilot-proven 2026-06-01)
+# ============================================================
+name: build-nuget
+version: 1.0.0
+interop: "P/Invoke [LibraryImport] + NativeLibrary.SetDllImportResolver"
+package_id_scheme: "Bnprs.NativeSdk.<Lib>"      # e.g. Bnprs.NativeSdk.BprFace
+target_framework: "net8.0 (productionize: multi-target netstandard2.0;net8.0)"
+
+layout:
+  managed: "lib/<tfm>/Bnprs.NativeSdk.<Lib>.dll"
+  native:  "runtimes/<rid>/native/<files>"       # win-x64, win-x86, linux-x64, linux-arm64, osx-x64, osx-arm64
+  model:   "contentFiles/any/any/models/<model>" # for BprFace; real ~159MB onnx
+
+steps:
+  - "Copy native leaf into runtimes/<rid>/native/ (macOS dylib renamed libBprFace.dylib)."
+  - "Write the [LibraryImport] partial-class binding + DllImportResolver mapping import name → lib{Name}.{dll,dylib,so}."
+  - "csproj: <None Include=\"runtimes/**/*\"> with PackagePath=runtimes/%(RecursiveDir)…; NoWarn NU5100;NU5128."
+  - "dotnet build -c Release   (LibraryImport source-gen must compile clean)"
+  - "dotnet pack  -c Release -o <out>"
+
+verify:
+  - "unzip -Z1 the .nupkg → confirm lib/<tfm>/ + runtimes/<rid>/native/ present"
+
+# ---- PUBLISH is lib-forge's job. Reference only (auth trap): ----
+publish_ref:
+  endpoint: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/nuget/"
+  auth: "HTTP BASIC ONLY — curl --user <user>:$GITLAB_PAT  (PRIVATE-TOKEN header → 401)"
+  example: 'curl --request PUT --user root:$GITLAB_PAT --form package=@<pkg>.nupkg "<endpoint>"  → 201'
+consume_ref:
+  source: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/nuget/index.json"
+  auth: "nuget.config: Username + ClearTextPassword = bnprs-libs-readonly deploy token"
