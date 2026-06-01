@@ -34,7 +34,28 @@ multisdk; call-site migration ↔ na-004/na-005. **Signing-key custody is self-m
 agent — no grc-kms/HSM dependency.**
 
 **Open owner decisions:** offline-only (confirmed), expiry-always vs perpetual, exact-hwid vs
-M-of-N tolerance. **Why:** user granted freedom to replace the
+M-of-N tolerance.
+
+## Phase 1 — DONE (2026-06-02), builds & 18/18 tests pass
+
+Implemented in **`bpr.cpp/src/AprCommon/BprLicense/bgl/`** (separate repo; not in aim.pat):
+- Wire spec FROZEN → `bgl/BGL-TOKEN-SPEC.md`. v1 uses a **fixed big-endian binary claim
+  block** (86B + product list), not CBOR — keeps the verifier tiny. `BGL1.<b64url block>.<b64url sig>`.
+- Crypto: vendored **TweetNaCl** (`bgl/vendor/`) — Ed25519 + SHA-512; bid = SHA-512(id)[:32].
+  One crypto file, no OpenSSL. `randombytes` = /dev/urandom (keygen only).
+- Verifier core (`bgl_token.c`, `bgl_verify.c`, `bgl_hwid.c`, `bgl_keys.c`) + public API `bgl.h`
+  (`bgl_verify`, `bgl_hwid`, `bgl_appid`, `bgl_platform_bit`, reason codes).
+- hwid: **macOS = IOPlatformUUID+hw.model (IOKit)** [tested], Linux = machine-id+DMI,
+  Windows = MachineGuid+volserial (#ifdef, untested), Raspberry detect. appid = lowercased id.
+- Tools: `bgl-keygen`, `bgl-issue`, `bgl-inspect`. Test keypair generated; **public key embedded
+  in `bgl/bgl_pubkeys.h` (kid=1, committed); private `bgl.key` is git-ignored (never commit)**.
+- CMake builds lib+tools+test; `bgl-test` = KAT (b64url, claims round-trip) + e2e issue→verify
+  + negatives (tamper, wrong product/platform, expired, not-yet, wrong/missing binding, unknown kid).
+  **18/18 pass on macOS arm64.** Verified `bgl-issue --hwid-here` → `bgl-inspect` = signature VALID.
+
+**Next (Phase 2+):** Linux/Windows hwid real-device testing; build BprLicBase v3 integration
+(expose `bgl_verify` beside legacy `patIsValidLicense`); wrap via na-003/010 for Java/.NET/Go;
+harden signing-key storage; offline blocklist + anti-rollback (Phase 3). **Why:** user granted freedom to replace the
 legacy scheme; this is the chosen direction. **How to apply:** build Phase 1 (desktop
 bgl_verify + bgl_hwid + test keypair) first; never put the signing key in a shipped artifact;
 preserve product_id/code4 immutability from [[product-codes]].
