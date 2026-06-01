@@ -91,6 +91,24 @@ BGL is now part of **BprLicBase, bumped 2.27.4 → 2.27.5** (in bpr_versions.h, 
 - **Rotation procedure** (if compromised/lost): `bgl-keygen <newkid> bgl.key bgl_pubkeys.h` →
   rebuild → re-embed → re-issue active licenses → ship libs with the new public key.
 
+## Global library-license gate + first lib (BprCardQi) — DONE 2026-06-02
+
+- **Global gate added to the BGL core** (`bgl_gate.c`, API in `bgl.h`): `bgl_activate(token,
+  product_id, appid)` remembers a valid token as the library's global license;
+  `bgl_is_licensed()` is the cheap guard entry points consult and **re-verifies live** (so
+  expiry/clock-rollback revoke access without re-activation). `bgl_deactivate()` clears it.
+  Facade: `BprBgl::activate/isLicensed/deactivate`. Tests: **23/23** on macOS arm64.
+- **Applied to BprCardQi** (product_id 3): linked BGL into all 3 BprCardQi targets; added C ABI
+  exports `bpr_cardqi_activate / bpr_cardqi_is_licensed / bpr_cardqi_hwid`; gated at the
+  **single chokepoint `BprPcSc_Context_Init`** — no global license → returns NULL + ec=-900,
+  so the library is inert. **`patIsValidLicense` left completely untouched** (per user).
+- **Verified on the real library**: built `libBprCardQi.2.56.4.dylib` (SO_Linux/macOS via
+  PCSC.framework). Before activate: Context_Init → NULL/-900. After activating a kid=2 token
+  bound to this machine for product 3: licensed=1, Context_Init → valid context. ✅
+- Model confirmed: "if the lib holds the global license, then its functions work."
+- Registry reconciled: `mpos` (mPOS solution code BprCardQi gates on) recorded as
+  legacy-in-use in [[product-codes]]; BGL global gate uses the lib product_id (3).
+
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
 blocklist + anti-rollback high-water mark; harden signing-key storage. **Why:** user granted freedom to replace the

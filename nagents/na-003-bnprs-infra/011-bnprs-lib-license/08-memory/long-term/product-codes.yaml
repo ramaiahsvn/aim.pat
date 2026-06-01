@@ -73,16 +73,26 @@ products:
     role: "iris recognition (proprietary SDK)"
     status: "active"
 
-# ---- Reserved / deprecated (never reuse) -------------------------------------
+# ---- Reserved / legacy in-use codes (never reuse) ----------------------------
 reserved:
   - code4: "qemv"
     product_key: "BprQiEmv"
     status: "deprecated"
     note: >
-      The ONLY product code found in shipped code (cli/BprQiEmv_deprecated/* passes
-      "qemv" to patIsValidLicense). BprQiEmv is superseded by BprCardQi/BprCardEmv/
-      BprICBA and must never be published — but its code stays permanently reserved
-      so no future product can collide with already-issued qemv licenses.
+      Shipped code passes "qemv" to patIsValidLicense (cli/BprQiEmv_deprecated/* and
+      one BprCardQi JNI call). BprQiEmv is superseded by BprCardQi/BprCardEmv/BprICBA
+      and must never be published — code permanently reserved so nothing collides with
+      already-issued qemv licenses.
+
+  - code4: "mpos"
+    product_key: "mPOS-solution (BPR1003 / PatPOS)"
+    status: "legacy-in-use"
+    note: >
+      Found 2026-06-02: BprCardQi's Android/JNI path gates with patIsValidLicense(qiCode,
+      "mpos") (5 call sites) — the mPOS solution license code, NOT a per-library code.
+      Permanently reserved. The legacy patIsValidLicense("mpos") checks are LEFT UNTOUCHED.
+      The new BGL *global* gate for the BprCardQi library uses product_id 3 (see below),
+      layered around the lib independently of the per-call "mpos" check.
 
 # ---- Rules -------------------------------------------------------------------
 rules:
