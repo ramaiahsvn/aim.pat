@@ -53,9 +53,22 @@ Implemented in **`bpr.cpp/src/AprCommon/BprLicense/bgl/`** (separate repo; not i
   + negatives (tamper, wrong product/platform, expired, not-yet, wrong/missing binding, unknown kid).
   **18/18 pass on macOS arm64.** Verified `bgl-issue --hwid-here` → `bgl-inspect` = signature VALID.
 
-**Next (Phase 2+):** Linux/Windows hwid real-device testing; build BprLicBase v3 integration
-(expose `bgl_verify` beside legacy `patIsValidLicense`); wrap via na-003/010 for Java/.NET/Go;
-harden signing-key storage; offline blocklist + anti-rollback (Phase 3). **Why:** user granted freedom to replace the
+## Phase 2 — DONE (2026-06-02): BprLicBase v3 integration
+
+BGL is now part of **BprLicBase, bumped 2.27.4 → 2.27.5** (in bpr_versions.h, .cmake, Makefile).
+- C++ facade `src/AprCommon/BprLicense/bpr_bgl.{h,cpp}` → `BprBgl::verify/verifyReason/hwid/appidHash/reasonStr` over the C bgl API.
+- New C ABI exports in `cli/BprLicense/BprLicense_dll_exports.cpp`: `bpr_bgl_verify`,
+  `bpr_bgl_hwid`, `bpr_bgl_reason_str` — **alongside** the untouched legacy
+  `bpr_is_valid_license`/`patIsValidLicense` = **dual-accept**.
+- CMake: bgl sources + bpr_bgl.cpp wired into the **BprLicBase target only** (zero blast
+  radius on other libs); include dir + IOKit/CoreFoundation linked on Apple.
+- **Verified** on macOS arm64: built `libBprLicBase.2.27.5.dylib`; a machine-bound token from
+  `bgl-issue` verifies OK through `bpr_bgl_verify` (prod 2=OK, prod 9=WRONG_PRODUCT), `bpr_bgl_hwid`
+  returns this machine's id, and legacy `bpr_is_valid_license` still links/works in the same lib.
+
+**Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
+Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
+blocklist + anti-rollback high-water mark; harden signing-key storage. **Why:** user granted freedom to replace the
 legacy scheme; this is the chosen direction. **How to apply:** build Phase 1 (desktop
 bgl_verify + bgl_hwid + test keypair) first; never put the signing key in a shipped artifact;
 preserve product_id/code4 immutability from [[product-codes]].
