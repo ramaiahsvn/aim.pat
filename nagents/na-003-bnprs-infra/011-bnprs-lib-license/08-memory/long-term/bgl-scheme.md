@@ -102,9 +102,16 @@ BGL is now part of **BprLicBase, bumped 2.27.4 → 2.27.5** (in bpr_versions.h, 
   exports `bpr_cardqi_activate / bpr_cardqi_is_licensed / bpr_cardqi_hwid`; gated at the
   **single chokepoint `BprPcSc_Context_Init`** — no global license → returns NULL + ec=-900,
   so the library is inert. **`patIsValidLicense` left completely untouched** (per user).
-- **Verified on the real library**: built `libBprCardQi.2.56.4.dylib` (SO_Linux/macOS via
-  PCSC.framework). Before activate: Context_Init → NULL/-900. After activating a kid=2 token
-  bound to this machine for product 3: licensed=1, Context_Init → valid context. ✅
+- **Gated on all 3 platform paths** (chokepoint = the context-init entry; legacy `mpos`
+  checks untouched everywhere):
+  - **macOS** (SO_Linux, PCSC.framework): `libBprCardQi.2.56.4.dylib` — **runtime-verified**:
+    Context_Init → NULL/-900 before activate; valid context after activating a kid=2 token
+    bound to this machine (product 3). ✅
+  - **Windows 32/64** (MinGW cross-build): `libBprCardQi.dll` (PE32+) — gate + exports
+    `bpr_cardqi_activate/_is_licensed/_hwid` present in the export table (build-verified).
+  - **Android arm64** (NDK r27.2 cross-build): `libBprCardQi.so` — `Java_com_bpr_pcsc_contextInit`
+    gated; JNI exports `Java_com_bpr_pcsc_bglActivate/bglIsLicensed/bglHwid` (build-verified).
+  - All cross-builds done on pat-m4p; macOS is the only runtime-verified one (can't run PE/ELF here).
 - Model confirmed: "if the lib holds the global license, then its functions work."
 - Registry reconciled: `mpos` (mPOS solution code BprCardQi gates on) recorded as
   legacy-in-use in [[product-codes]]; BGL global gate uses the lib product_id (3).
