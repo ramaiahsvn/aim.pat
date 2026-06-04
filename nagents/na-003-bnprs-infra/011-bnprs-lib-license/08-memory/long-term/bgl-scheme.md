@@ -116,6 +116,40 @@ BGL is now part of **BprLicBase, bumped 2.27.4 → 2.27.5** (in bpr_versions.h, 
 - Registry reconciled: `mpos` (mPOS solution code BprCardQi gates on) recorded as
   legacy-in-use in [[product-codes]]; BGL global gate uses the lib product_id (3).
 
+## Issuance-model change — DECIDED 2026-06-04 (reverses two earlier pillars)
+
+For the **fleet auto-licensing** of existing BprCardQi workstations, the owner chose:
+- **Issuance via API, backed by `na-003/007 bnprs-grc-kms`** — the BGL Ed25519 signing key
+  moves into grc-kms (KMS/HSM custody), exposed as a signing endpoint. The workstation enrollment
+  exe sends a `.req` (hwid + claims) and receives the signed `.lic` token as the API response.
+  **This reverses the original "no grc-kms/HSM dependency, key self-managed by this agent" pillar.**
+  Runtime **verification stays fully offline** (token verifies against the embedded public key with
+  no network) — only *issuance* becomes online, which is compatible with the offline-only verifier.
+- **Perpetual licenses (exp=0) — explicitly approved** by owner for this fleet. Verifier already
+  supports it (`if (c.exp && now > c.exp)` skips when exp==0). Tradeoff acknowledged: no
+  time-based revocation → the offline signed **blocklist (by `lid`)** becomes the primary
+  revocation path and is now higher priority.
+- **New forge surface:** the grc-kms signing API must be authN/authZ-gated (only authorized
+  enrollment can request a signature) — owned by grc-kms. hwid-binding limits a leaked token to one
+  machine; perpetual means it never self-expires, so blocklist + API access control carry the risk.
+
+**Component ownership:** grc-kms (na-003/007) = key custody + signing API; this agent (na-003/011)
+= .req/.lic format, claim contract, file-based load/activate in the lib facade, enrollment-exe
+source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. See [[build-ownership]].
+
+**Source DONE 2026-06-04 (uncommitted in bpr.cpp; build via cpp-card-qi):**
+- Spec/contract: `07-axon-terminals/deliverables/design/fleet-enrollment-and-issuance-api.md`.
+- Facade `bpr_bgl.{h,cpp}`: `activateFromFile` / `activateFromStore(<storeDir>/<hwid>.lic)` +
+  codes kFileNotFound(-101)/kFileEmpty(-102)/kHwidUnavailable(-103). Syntax-checked.
+- C ABI exports in `cli/BprCardQi/BprCardQi_dll_exports.cpp`: `bpr_cardqi_activate_from_store`,
+  `bpr_cardqi_license_path`; default store `C:\ProgramData\BprCardQi`.
+- **Lazy auto-load APPLIED at the DLL chokepoint** `BprPcSc_Context_Init` (verification-preserving;
+  Android JNI left unchanged). So existing host apps pick up a dropped `.lic` with no code change.
+- Enrollment exe `cli/BprCardQi/enroll/bgl_enroll.c` — Windows/WinHTTP, runtime-loads BprCardQi.dll,
+  idempotent, no key; compile-verified PE32+ (build with `-lwinhttp`, NOT `-municode`).
+- **Still pending:** grc-kms builds `POST /bgl/v1/issue` (+ auth + lid log); cpp-card-qi builds the
+  DLL & exe; no real-device Windows hwid test yet.
+
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
 blocklist + anti-rollback high-water mark; harden signing-key storage. **Why:** user granted freedom to replace the
