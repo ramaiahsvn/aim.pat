@@ -214,17 +214,24 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
 - **Shipped lib:** BprCardQi **2.56.5** (gate-only). Exports `bpr_cardqi_activate / _is_licensed /
   _hwid / _activate_from_store / _license_path`; gate at `BprPcSc_Context_Init` (+ JNI `contextInit`)
   lazy-loads `C:\ProgramData\BprCardQi\<hwid>.lic`. NO issuance/networking in the DLL.
-- **Enrollment tool:** `bpr.cpp/cli/BprCardQi/enroll/bgl_enroll.c` (+ CMakeLists). Keyless. Online →
-  POST `.req` to the API (bearer) + install `.lic`; `--offline` → write `<hwid>.req`.
+- **Enrollment tools** (one source `bpr.cpp/cli/BprCardQi/enroll/bgl_enroll.c`, `BGL_ENROLL_MANUAL` macro):
+  * **`bgl-enroll-auto.exe`** — online auto-licensing (WinHTTP + bearer baked at build via
+    `-DBGL_ENROLL_AUTH`); hwid→API→install `.lic`. "just run it" on a station.
+  * **`bgl-enroll-manual.exe`** — request-only: hwid → write `<hwid>.req`; NO networking/bearer/WinHTTP.
+  * **Mac issuer tool** `bgl/tools/bgl-issue-from-req.sh` (issuer host only) — `<hwid>.req` → signed
+    `<hwid>.lic` via custodied kid=3 key + `bgl-issue`. The manual/admin issuance path.
+  All keyless on the station; bearer is build-time only (never in source). Verified .req→issuer→.lic→VALID.
 - **Issuance API (LIVE):** `POST https://8nlf3cfyd9.execute-api.ap-south-2.amazonaws.com/bgl/v1/issue`,
   bearer auth (Secrets Manager `bgl-enroll-token`), Lambda `bgl-issue` (python3.12/arm64, pure-Python
   Ed25519), issuance log DynamoDB `bgl-issuance-log`. Full ARNs in grc-kms `key-registry.yaml`.
 
 **How to license a station:**
-- *Online (auto):* on the station set `BGL_ENROLL_AUTH=Bearer <token>` then run `bgl-enroll.exe` → fetch+install.
-- *Offline/manual (long-term):* `bgl-enroll.exe --offline` writes `<hwid>.req`; issue with
-  `bgl-issue --key <kid3> --kid 3 --product 3 --bind hwid --bid <hwid> --plat 1 --exp-days 0`
-  (or the portal); drop the `<hwid>.lic` into `C:\ProgramData\BprCardQi\`. Verify with `bgl-inspect`.
+- *Online (auto):* run **`bgl-enroll-auto.exe`** (bearer baked in) → fetch+install, no setup. Verified
+  on real Windows from scratch 2026-06-04.
+- *Manual (admin/portal):* run **`bgl-enroll-manual.exe`** → writes `C:\ProgramData\BprCardQi\<hwid>.req`;
+  bring the `.req` to the issuer Mac → **`bgl/tools/bgl-issue-from-req.sh <req>`** → `<hwid>.lic`; drop the
+  `.lic` back into `C:\ProgramData\BprCardQi\`. (Equivalent raw: `bgl-issue --key <kid3> --kid 3
+  --product 3 --bind hwid --bid <hwid> --plat 1 --exp-days 0`.) Verify with `bgl-inspect`.
 
 **Operational notes / Phase 3+ (remaining):**
 - **Bearer rotation:** the bearer is the API's sole gate — rotate `bgl-enroll-token` periodically; WAF rate-limit applies.
