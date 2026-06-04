@@ -235,6 +235,14 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   `.lic` back into `C:\ProgramData\BprCardQi\`. (Equivalent raw: `bgl-issue --key <kid3> --kid 3
   --product 3 --bind hwid --bid <hwid> --plat 1 --exp-days 0`.) Verify with `bgl-inspect`.
 
+**Downstream handoffs SENT 2026-06-04:**
+- **lib-forge (na-003/009):** register/publish BprCardQi **2.56.5** (clean drop-in) + bump
+  libraries.yaml. → its `01-dendrite/inputs/handoff-na003-011-register-bprcardqi-2.56.5.md`.
+- **lib-multisdk (na-003/010):** wrap the BGL license/activation API for Java/.NET/Go (version 2.56.5),
+  consuming the native binary from lib-forge. → its
+  `01-dendrite/inputs/handoff-na003-011-wrap-bgl-license-api.md`.
+  (Both only have windows-64 2.56.5 today; other platforms → request from cpp-card-qi.)
+
 **Operational notes / Phase 3+ (remaining):**
 - **Bearer rotation:** the bearer is the API's sole gate — rotate `bgl-enroll-token` periodically; WAF rate-limit applies.
 - **Revocation (perpetual licenses):** the ONLY path is the offline signed **blocklist by `lid`**; every
