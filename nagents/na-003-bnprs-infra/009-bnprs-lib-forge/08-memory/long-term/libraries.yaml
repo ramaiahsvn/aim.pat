@@ -153,3 +153,36 @@ published:
   # Go: gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs/go/bprface — purego + go:embed.
   # Build+embed+consume validated locally (replace dir); NOT published (Go registry is
   # tag-based — needs the module committed to a GitLab repo + SemVer git tag).
+
+  # ---- BprCardQi 2.56.5 BGL-license wrappers (na-003/010 multisdk → published 2026-06-04) ----
+  - package: "Bnprs.NativeSdk.BprCardQi"
+    package_type: "nuget"
+    version: "2.56.5"
+    package_id: 20
+    project_id: 230
+    native_lib: "BprCardQi"
+    source_repo: "bpr.cpp"
+    source_commit: "6108979"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-06-04"
+    interop: "P/Invoke; runtimes/win-x64/native/ + build/.targets (deploys native on .NET FW 4.6.1-4.8)"
+    coordinate: "Bnprs.NativeSdk.BprCardQi 2.56.5"
+    note: "BGL license API (win-x64). Consumer must run x64. Bindings provisional (load-test pending on Windows)."
+  - package: "ai/bnprs/nativesdk-bprcardqi"
+    package_type: "maven"
+    version: "2.56.5"
+    package_id: 21
+    project_id: 230
+    native_lib: "BprCardQi"
+    source_repo: "bpr.cpp"
+    source_commit: "6108979"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-06-04"
+    interop: "JNA (Native.load); win32-x86-64/BprCardQi.dll in the JAR"
+    coordinate: "ai.bnprs:nativesdk-bprcardqi:2.56.5"
+    note: "BGL license API (win-x64). Bindings provisional (load-test pending on Windows)."
+  # Go: gitlab.bnprs.ai/.../go/bprcardqi v2.56.5 — built+cross-compiled OK, NOT published
+  #   (GitLab Go registry is tag-based: GET @v/list→404, PUT→415; needs module committed to a
+  #    repo + SemVer git tag). Open item — same limitation as bprface.
