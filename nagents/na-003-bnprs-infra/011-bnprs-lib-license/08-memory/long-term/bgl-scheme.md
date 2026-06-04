@@ -181,15 +181,17 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   station — **DLL loaded, hwid derived OK** (`0018d9e6…adad8`) → the standing Windows-hwid gap is
   CLEARED. Issued that station a kid=3 perpetual `.lic` offline via `bgl-issue` (in
   `bpr.cpp/build/win-test/`).
-- **Online auto-licensing wired (owner: "use the API, no key in exe") 2026-06-04:** the station
-  fetches its license over the **existing fleet mTLS channel** — DLL `BglFetchLicenseToken` reuses
-  the k3-verifychallenge cert path (`BprCardQi.cpp`), new export **`bpr_cardqi_fetch_license`**
-  POSTs the .req to `kms.bnprs.ai/bgl/v1/issue`, writes+activates `<hwid>.lic`. **`bgl-enroll.exe`
-  is now keyless AND httpless** (no WinHTTP; just calls the DLL). Signing stays server-side in
-  grc-kms; the only client credential is the existing fleet mTLS cert (auth, not signing).
-  grc-kms signing **Lambda code written** (`007/.../deliverables/bgl-issue-lambda/`, Rust + deploy.sh)
-  — **AWS deploy HELD pending owner approval**. Until deployed, the exe's online path fails over to
-  writing `<hwid>.req` (offline issuance still works).
+- **Architecture (owner-decided 2026-06-04, supersedes the DLL-fetch idea):** keep the shipped
+  **DLL gate-only** — exports `bpr_cardqi_activate/_is_licensed/_hwid/_activate_from_store/_license_path`
+  + the Context_Init lazy-load. **NO issuance/networking in the DLL** (`bpr_cardqi_fetch_license` +
+  `BglFetchLicenseToken` were added then **removed**). Issuance lives in the **temporary**
+  `bgl-enroll.exe`, which POSTs the `.req` to the API itself (its own WinHTTP) with **bearer/enrollment
+  token auth** (`--auth`/`BGL_ENROLL_AUTH`, NOT the fleet mTLS cert) and installs the returned `.lic`;
+  offline/fallback → writes `<hwid>.req`.
+  **Long-term plan:** drop auto-fetch — exe just generates `<hwid>.req`; an admin system/portal issues
+  the signed `<hwid>.lic` and distributes it back; DLL only loads+verifies it. The exe is disposable.
+  grc-kms signing **Lambda code written** (`007/.../deliverables/bgl-issue-lambda/`, Rust; authz =
+  bearer token, not mTLS) — **AWS deploy HELD pending owner approval**.
 
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed

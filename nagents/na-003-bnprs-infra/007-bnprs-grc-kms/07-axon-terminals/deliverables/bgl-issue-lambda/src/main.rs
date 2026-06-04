@@ -1,7 +1,10 @@
 // bgl-issue — AWS Lambda (Rust, arm64) signing endpoint for BGL license tokens.
 // na-003/007 grc-kms.  STATUS: code only — NOT deployed (owner approval pending).
 //
-// POST /bgl/v1/issue  (behind API GW 8nlf3cfyd9, kms.bnprs.ai, mTLS fleet cert + WAF)
+// POST /bgl/v1/issue  (behind API GW 8nlf3cfyd9, kms.bnprs.ai, WAF rate-limit)
+//   auth  = bearer / enrollment token in the Authorization header (the bgl-enroll exe
+//           sends it; validate via a Lambda authorizer or here). NOT the fleet mTLS cert —
+//           that stays out of the exe. (If you prefer mTLS later, gate the route at the GW.)
 //   body  = enrollment .req JSON (see fleet-enrollment-and-issuance-api.md §3)
 //   reply = { "bgl_lic":1, "token":"BGL1.<b64url block>.<b64url sig>", "kid":3, "lid":"<uuid>" }
 //
@@ -72,8 +75,9 @@ async fn log_issuance(lid: &str, bid: &str, products: &[u8], plat: u8, requester
 }
 
 async fn handler(req: Request) -> Result<Response<Body>, Error> {
-    // mTLS client identity is enforced at the API Gateway (fleet cert); the caller cert
-    // subject is also available here via request context for finer authz if needed.
+    // Authz: validate the bearer/enrollment token in the Authorization header (or rely on a
+    // Lambda authorizer in front). Reject unauthenticated callers before signing anything.
+    // (No mTLS here — the exe authenticates with a bearer credential, not the fleet cert.)
     let body = match std::str::from_utf8(req.body()) { Ok(s) => s, Err(_) => return Ok(err(400,"bad_request","non-utf8 body")) };
     let j: Value = match serde_json::from_str(body) { Ok(v) => v, Err(_) => return Ok(err(400,"bad_request","invalid json")) };
 
