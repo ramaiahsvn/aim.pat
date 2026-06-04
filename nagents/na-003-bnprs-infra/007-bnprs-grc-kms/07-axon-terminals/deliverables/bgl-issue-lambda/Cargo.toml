@@ -1,0 +1,22 @@
+[package]
+name = "bgl-issue"
+version = "0.1.0"
+edition = "2021"
+# BGL license signing Lambda (na-003/007 grc-kms). NOT deployed — code only.
+# Build: cargo lambda build --release --arm64   (same toolchain as k3-verifychallenge)
+
+[dependencies]
+lambda_http = "0.13"
+tokio = { version = "1", features = ["macros"] }
+serde_json = "1"
+ed25519-dalek = "2"
+base64 = "0.22"
+hex = "0.4"
+uuid = { version = "1", features = ["v4"] }
+aws-config = "1"
+aws-sdk-secretsmanager = "1"
+aws-sdk-dynamodb = "1"
+
+[[bin]]
+name = "bootstrap"
+path = "src/main.rs"

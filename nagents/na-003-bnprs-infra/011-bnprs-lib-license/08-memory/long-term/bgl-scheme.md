@@ -177,6 +177,19 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   kid=3 issue→inspect signature VALID, `bgl-test` 23/23. Notified cpp-card-qi the kid is final →
   fleet DLL build cleared. **Remaining:** cpp-card-qi builds DLL+exe; grc-kms API deploy pending
   owner approval; real-Windows hwid test.
+- **Real-Windows test (2026-06-04):** BprCardQi 2.56.5 windows-64 + bgl-enroll.exe run on a live
+  station — **DLL loaded, hwid derived OK** (`0018d9e6…adad8`) → the standing Windows-hwid gap is
+  CLEARED. Issued that station a kid=3 perpetual `.lic` offline via `bgl-issue` (in
+  `bpr.cpp/build/win-test/`).
+- **Online auto-licensing wired (owner: "use the API, no key in exe") 2026-06-04:** the station
+  fetches its license over the **existing fleet mTLS channel** — DLL `BglFetchLicenseToken` reuses
+  the k3-verifychallenge cert path (`BprCardQi.cpp`), new export **`bpr_cardqi_fetch_license`**
+  POSTs the .req to `kms.bnprs.ai/bgl/v1/issue`, writes+activates `<hwid>.lic`. **`bgl-enroll.exe`
+  is now keyless AND httpless** (no WinHTTP; just calls the DLL). Signing stays server-side in
+  grc-kms; the only client credential is the existing fleet mTLS cert (auth, not signing).
+  grc-kms signing **Lambda code written** (`007/.../deliverables/bgl-issue-lambda/`, Rust + deploy.sh)
+  — **AWS deploy HELD pending owner approval**. Until deployed, the exe's online path fails over to
+  writing `<hwid>.req` (offline issuance still works).
 
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
