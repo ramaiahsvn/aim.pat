@@ -243,6 +243,19 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   `01-dendrite/inputs/handoff-na003-011-wrap-bgl-license-api.md`.
   (Both only have windows-64 2.56.5 today; other platforms → request from cpp-card-qi.)
 
+**GATE-COVERAGE FIX → 2.56.6 (2026-06-04):** the BGL gate was originally at ONLY
+`BprPcSc_Context_Init`, so BprCardQi's perso/script/read exports (`StartEncoding_*`,
+`GetQiScript_*`, `QiRead_*`, `GP_*`, `QiReset_Danger`, `QiVerifyChallengeK3`) — which don't go
+through context-init — ran **unlicensed** (gated only by legacy patIsValidLicense). Reported by
+owner: `StartEncoding_Instant_Perso_Direct` worked with no BGL license. **Fix:** added
+`if (!BprBgl::isLicensed()){ *errorCode=-900; return <sentinel>; }` to the top of **every
+functional export** — 24 in `BprCardQi.cpp` + operational PcSc ops (ListReaders/Card_Connect/
+Card_GetAtr/Card_Transmit) in `dll_exports.cpp`. Left ungated: cleanup (DeInit/Disconnect),
+license-mgmt (`bpr_cardqi_activate/_is_licensed/_hwid/_activate_from_store/_license_path`), utility,
+`Bpr_GLog_Init`. Lesson: a single chokepoint is NOT enough — gate every public functional entry.
+Built 2.56.6 windows-64; **runtime re-test pending on Windows** (unlicensed → -900). **Follow-ups:**
+lib-forge republish 2.56.6; lib-multisdk re-embed 2.56.6 native (wrapper API unchanged).
+
 **Operational notes / Phase 3+ (remaining):**
 - **Bearer rotation:** the bearer is the API's sole gate — rotate `bgl-enroll-token` periodically; WAF rate-limit applies.
 - **Revocation (perpetual licenses):** the ONLY path is the offline signed **blocklist by `lid`**; every
