@@ -177,10 +177,13 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   kid=3 issue→inspect signature VALID, `bgl-test` 23/23. Notified cpp-card-qi the kid is final →
   fleet DLL build cleared. **Remaining:** cpp-card-qi builds DLL+exe; grc-kms API deploy pending
   owner approval; real-Windows hwid test.
-- **Real-Windows test (2026-06-04):** BprCardQi 2.56.5 windows-64 + bgl-enroll.exe run on a live
-  station — **DLL loaded, hwid derived OK** (`0018d9e6…adad8`) → the standing Windows-hwid gap is
-  CLEARED. Issued that station a kid=3 perpetual `.lic` offline via `bgl-issue` (in
-  `bpr.cpp/build/win-test/`).
+- **Real-Windows test FULLY PASSED (2026-06-04):** BprCardQi 2.56.5 windows-64 + bgl-enroll.exe on a
+  live Windows station (`C:\Users\MCESII`). hwid derived OK (`0018d9e6…adad8`); a kid=3 perpetual
+  `.lic` (issued offline via `bgl-issue`, product 3, plat=win) placed at
+  `C:\ProgramData\BprCardQi\<hwid>.lic` → `bgl-enroll.exe` printed **"already licensed"**, i.e. the
+  full gate path ran on real Windows: file-load → **kid=3 Ed25519 signature verify** → **hwid-binding
+  match** (MachineGuid+C: volserial) → product match → activate. **The standing Windows hwid+verify
+  gap is CLOSED.** (Online auto-fetch path returns -1 as expected until the API is deployed → writes `.req`.)
 - **Architecture (owner-decided 2026-06-04, supersedes the DLL-fetch idea):** keep the shipped
   **DLL gate-only** — exports `bpr_cardqi_activate/_is_licensed/_hwid/_activate_from_store/_license_path`
   + the Context_Init lazy-load. **NO issuance/networking in the DLL** (`bpr_cardqi_fetch_license` +
