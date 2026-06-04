@@ -42,9 +42,23 @@ fn build_block(products: &[u8], plat_mask: u8, feat: u32, iat: u64, nbf: u64, ex
     b
 }
 
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() { return false; }
+    let mut d = 0u8;
+    for i in 0..a.len() { d |= a[i] ^ b[i]; }
+    d == 0
+}
+
 fn err(status: u16, code: &str, msg: &str) -> Response<Body> {
     Response::builder().status(status).header("content-type", "application/json")
         .body(Body::from(format!("{{\"error\":\"{code}\",\"message\":\"{msg}\"}}"))).unwrap()
+}
+
+async fn load_secret_string(name: &str) -> Result<String, Error> {
+    let cfg = aws_config::load_from_env().await;
+    let sm = aws_sdk_secretsmanager::Client::new(&cfg);
+    let out = sm.get_secret_value().secret_id(name).send().await?;
+    Ok(out.secret_string().unwrap_or_default().to_string())
 }
 
 async fn load_signing_key() -> Result<[u8; 64], Error> {
@@ -75,9 +89,15 @@ async fn log_issuance(lid: &str, bid: &str, products: &[u8], plat: u8, requester
 }
 
 async fn handler(req: Request) -> Result<Response<Body>, Error> {
-    // Authz: validate the bearer/enrollment token in the Authorization header (or rely on a
-    // Lambda authorizer in front). Reject unauthenticated callers before signing anything.
-    // (No mTLS here — the exe authenticates with a bearer credential, not the fleet cert.)
+    // ---- bearer auth (the sole forge gate; reachable via the execute-api endpoint, no mTLS) ----
+    let presented = req.headers().get("authorization").and_then(|v| v.to_str().ok())
+        .and_then(|s| s.strip_prefix("Bearer ")).unwrap_or("").trim().to_string();
+    let expected = load_secret_string("bgl-enroll-token").await.unwrap_or_default();
+    if expected.is_empty() || presented.is_empty() || presented.as_bytes().len() != expected.as_bytes().len()
+        || !constant_time_eq(presented.as_bytes(), expected.as_bytes()) {
+        return Ok(err(401, "unauthorized", "invalid or missing bearer token"));
+    }
+
     let body = match std::str::from_utf8(req.body()) { Ok(s) => s, Err(_) => return Ok(err(400,"bad_request","non-utf8 body")) };
     let j: Value = match serde_json::from_str(body) { Ok(v) => v, Err(_) => return Ok(err(400,"bad_request","invalid json")) };
 

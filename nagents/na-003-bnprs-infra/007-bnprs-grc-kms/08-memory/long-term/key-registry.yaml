@@ -45,21 +45,33 @@ signing_keys:
     public_key_hex: "2aa9e4b21cf7dc0a241df00f88af439fa16f4b10c14ff330ecc691142c373ee5"
     created_at: "2026-06-04"
     supersedes: "kid=2 (self-managed test key, na-003/011; no real licenses issued)"
-    current_custody:
-      type: "local-encrypted (interim)"
-      blob: "~/BPR/.keys-backup/bgl/bgl-kid3.key.enc (AES-256-CBC/PBKDF2 200k, perms 600, outside git)"
-      passphrase: "macOS Keychain service 'bgl-kid3-signing-key' (account bnprs)"
-    target_custody:
-      type: "AWS Secrets Manager + KMS envelope (PENDING owner approval to provision)"
+    custody:
+      type: "AWS Secrets Manager + KMS envelope (DEPLOYED 2026-06-04)"
       secret_name: "bgl-signing-key"
+      secret_arn: "arn:aws:secretsmanager:ap-south-2:891963159778:secret:bgl-signing-key-CkGhOH"
       kms_cmk_alias: "alias/bnprs-bgl-signing-prod"
+      kms_key_id: "7f3560bc-f093-4b15-9ffb-1bc2df189a60 (rotation enabled)"
       account: "bnprs (891963159778)"
       region: "ap-south-2"
-    issuance_api: "POST https://kms.bnprs.ai/bgl/v1/issue (runbook in 07-axon-terminals/deliverables; NOT yet deployed)"
+    backup_custody:
+      type: "local-encrypted (offline backup / interim issuer)"
+      blob: "~/BPR/.keys-backup/bgl/bgl-kid3.key.enc (AES-256-CBC/PBKDF2 200k, outside git)"
+      passphrase: "macOS Keychain service 'bgl-kid3-signing-key'"
     notes: >
-      Private seed NEVER recorded here. Until the signing Lambda is deployed, grc-kms issues tokens
-      offline via bgl-issue using the custodied key. Revocation for perpetual tokens = signed offline
-      blocklist by lid; issuance log must capture every lid.
+      Private seed NEVER recorded here. Revocation for perpetual tokens = signed offline blocklist
+      by lid; the issuance API logs every lid to DynamoDB bgl-issuance-log.
+
+# ---- BGL issuance API (DEPLOYED 2026-06-04) ----
+bgl_issuance_api:
+  endpoint: "POST https://8nlf3cfyd9.execute-api.ap-south-2.amazonaws.com/bgl/v1/issue"
+  auth: "bearer token (Secrets Manager bgl-enroll-token); WAF rate-limit applies"
+  note: "kms.bnprs.ai (mTLS) reserved for k3-verifychallenge; BGL uses the execute-api endpoint (no mTLS)."
+  lambda: "bgl-issue — arn:aws:lambda:ap-south-2:891963159778:function:bgl-issue (python3.12, arm64, pure-Python Ed25519)"
+  iam_role: "bgl-issue-lambda (GetSecretValue on 2 secrets, kms:Decrypt on CMK, dynamodb:PutItem, logs)"
+  api_gateway: "8nlf3cfyd9 (shared with k3); integration 2ha18r6; route ri53weu 'POST /bgl/v1/issue'; $default stage auto-deploy"
+  bearer_secret_arn: "arn:aws:secretsmanager:ap-south-2:891963159778:secret:bgl-enroll-token-9HsNSa"
+  issuance_log: "DynamoDB bgl-issuance-log (PK lid) — one record per issued token"
+  verified: "2026-06-04 — no-bearer→401, bearer→200, API-issued token bgl-inspect = signature VALID (kid=3)"
 
 # Inventory status
 inventory:

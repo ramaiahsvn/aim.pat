@@ -193,8 +193,15 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   offline/fallback → writes `<hwid>.req`.
   **Long-term plan:** drop auto-fetch — exe just generates `<hwid>.req`; an admin system/portal issues
   the signed `<hwid>.lic` and distributes it back; DLL only loads+verifies it. The exe is disposable.
-  grc-kms signing **Lambda code written** (`007/.../deliverables/bgl-issue-lambda/`, Rust; authz =
-  bearer token, not mTLS) — **AWS deploy HELD pending owner approval**.
+  grc-kms signing Lambda — **DEPLOYED & verified 2026-06-04** (owner approved).
+- **BGL issuance API LIVE (na-003/007, 2026-06-04):** `POST https://8nlf3cfyd9.execute-api.ap-south-2.amazonaws.com/bgl/v1/issue`
+  (execute-api endpoint — kms.bnprs.ai is mTLS-gated for k3, so BGL uses the no-mTLS endpoint + **bearer
+  auth**). Lambda `bgl-issue` (python3.12/arm64, **pure-Python Ed25519** — Rust cross-build blocked by
+  no-rustup; verified VALID). Signing key in Secrets Manager `bgl-signing-key` (CMK
+  `alias/bnprs-bgl-signing-prod`); bearer in `bgl-enroll-token`; issuance log DynamoDB `bgl-issuance-log`;
+  role `bgl-issue-lambda`. **Verified:** no-bearer→401, bearer→200, API-issued token bgl-inspect=VALID.
+  `bgl-enroll.exe` API_DEFAULT updated to the execute-api URL; the exe needs `BGL_ENROLL_AUTH`=the bearer.
+  Full resource list → grc-kms `key-registry.yaml` (bgl_issuance_api).
 
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
