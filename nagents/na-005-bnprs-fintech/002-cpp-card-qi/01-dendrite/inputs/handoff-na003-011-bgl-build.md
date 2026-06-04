@@ -37,15 +37,36 @@ Commit `f75cd85` — "feat(BprCardQi/BGL): file-based license load + lazy gate a
 ## 2) bgl-enroll.exe (new — needs a build target)
 - Source: `cli/BprCardQi/enroll/bgl_enroll.c`. Pure Win32 + WinHTTP; runtime-loads the deployed
   `BprCardQi.dll` (does NOT link the lib at build time), so it needs no bpr.cpp object deps.
-- **Verified build command** (mingw-w64 x86_64):
+- **A standalone `CMakeLists.txt` is now provided** at `cli/BprCardQi/enroll/CMakeLists.txt`
+  (bpr.cpp @ `5990c8a`+). It's decoupled from the lib graph (links only WinHTTP), mirrors the
+  `gnd-raspberry` standalone pattern, honors `LIB_OUTPUT_DIR`, and forbids `-municode`.
+  **Verified** end-to-end through `toolchains/toolchain_windows_64.cmake` → PE32+ exe.
   ```
-  x86_64-w64-mingw32-gcc -O2 -o bgl-enroll.exe cli/BprCardQi/enroll/bgl_enroll.c -lwinhttp
+  cmake -S cli/BprCardQi/enroll -B build/bgl-enroll/windows-64 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_TOOLCHAIN_FILE="$PWD/toolchains/toolchain_windows_64.cmake" \
+        -DLIB_OUTPUT_DIR="$PWD/build/bnprs-libs/bgl-enroll/windows-64"
+  cmake --build build/bgl-enroll/windows-64 --config Release
   ```
-  → produces a PE32+ console exe. **Do NOT pass `-municode`** (it forces a wide `wmain` entry and
-  fails to link — the tool uses a normal ANSI `main`).
-- Please add the canonical target (Makefile/CMake) in whatever shape fits your build system — it's a
-  standalone exe, not one of the `OUTFILENAME` libs, so it likely wants its own small rule rather
-  than the lib `BUILD_RULE` macro.
+- **Drop-in Makefile target** (uses your existing vars; mirrors `gnd-raspberry`):
+  ```makefile
+  # bgl-enroll — standalone Windows enrollment tool (na-003/011); links only WinHTTP.
+  BGL_ENROLL_SRC := cli/BprCardQi/enroll
+
+  .PHONY: bgl-enroll-windows-64
+  bgl-enroll-windows-64:
+  	@echo ""
+  	@echo "=== Building bgl-enroll for windows-64 ==="
+  	@mkdir -p $(BUILD_DIR)/bgl-enroll/windows-64
+  	@mkdir -p $(OUT_DIR)/bgl-enroll/windows-64
+  	cmake -S $(BGL_ENROLL_SRC) -B $(BUILD_DIR)/bgl-enroll/windows-64 \
+  	    -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+  	    -DCMAKE_TOOLCHAIN_FILE="$(CURDIR)/$(TOOLCHAIN_windows-64)" \
+  	    -DLIB_OUTPUT_DIR="$(CURDIR)/$(OUT_DIR)/bgl-enroll/windows-64"
+  	cmake --build $(BUILD_DIR)/bgl-enroll/windows-64 --config $(BUILD_TYPE)
+  ```
+  Adopt/relocate as fits your build system — the Makefile is your canonical file, so I left the
+  actual edit to you; the `CMakeLists.txt` is committed and ready.
 
 ## Definition of done
 - [ ] `libBprCardQi.dll` (windows-64 at least) built; export table shows

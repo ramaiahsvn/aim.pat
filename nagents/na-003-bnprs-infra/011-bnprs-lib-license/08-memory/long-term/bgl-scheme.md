@@ -149,7 +149,9 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
 - **Lazy auto-load APPLIED at the DLL chokepoint** `BprPcSc_Context_Init` (verification-preserving;
   Android JNI left unchanged). So existing host apps pick up a dropped `.lic` with no code change.
 - Enrollment exe `cli/BprCardQi/enroll/bgl_enroll.c` — Windows/WinHTTP, runtime-loads BprCardQi.dll,
-  idempotent, no key; compile-verified PE32+ (build with `-lwinhttp`, NOT `-municode`).
+  idempotent, no key; compile-verified PE32+ (build with `-lwinhttp`, NOT `-municode`). Standalone
+  `cli/BprCardQi/enroll/CMakeLists.txt` added (decoupled from lib graph; honors LIB_OUTPUT_DIR;
+  verified via toolchain_windows_64). Drop-in Makefile target drafted in the cpp-card-qi handoff.
 - **Still pending:** grc-kms builds `POST /bgl/v1/issue` (+ auth + lid log); cpp-card-qi builds the
   DLL & exe; no real-device Windows hwid test yet.
 - **Handoff SENT to grc-kms 2026-06-04** → its `01-dendrite/inputs/handoff-na003-011-bgl-issuance-api.md`
