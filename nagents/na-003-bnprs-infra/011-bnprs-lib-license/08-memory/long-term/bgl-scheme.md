@@ -165,6 +165,13 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   `bgl-enroll.exe` (needs a build target; `-lwinhttp`, no `-municode`). Interim kid=2 test builds OK;
   final fleet DLL must embed grc-kms's chosen kid (011 will ping to rebuild). Real-Windows hwid test
   still the standing gap.
+- **grc-kms ACTIONED 2026-06-04 (decision A):** generated **kid=3** Ed25519 signing key under its
+  custody (supersedes kid=2; KMS can't Ed25519-sign so it's software-key + KMS-envelope). Pubkey
+  handed back → `011/01-dendrite/inputs/2026-06-04-keyhandback-grc-kms-kid3.md`
+  (hex `2aa9e4b2…2c373ee5`). **Our next action:** embed it in `bgl_pubkeys.h`, retire kid=2, then
+  ping cpp-card-qi to build. Production issuance API at kms.bnprs.ai is a runbook on the existing
+  k3-verifychallenge stack, PENDING owner approval to provision AWS; interim issuance via offline
+  `bgl-issue` with the kid=3 key.
 
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed

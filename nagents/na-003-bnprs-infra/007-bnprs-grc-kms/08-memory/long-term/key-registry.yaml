@@ -33,6 +33,34 @@ secrets_manager:
       Secret VALUES are never stored here. Only name, ARN, and version tracking.
       Decrypted into Lambda memory at cold start only — never logged or persisted.
 
+# ---- Offline signing keys (NOT KMS-held: AWS KMS cannot Ed25519-sign) ----
+# Software-generated Ed25519 keys held under grc-kms custody. Public key ships in the
+# verifier; private key is encrypted at rest and (target) stored in Secrets Manager.
+# NEVER store the private/secret value here — references and the PUBLIC key only.
+signing_keys:
+  - name: "bgl-signing-key"
+    kid: 3
+    algorithm: "Ed25519"
+    purpose: "Sign BGL offline license tokens (BprCardQi fleet auto-licensing); see na-003/011"
+    public_key_hex: "2aa9e4b21cf7dc0a241df00f88af439fa16f4b10c14ff330ecc691142c373ee5"
+    created_at: "2026-06-04"
+    supersedes: "kid=2 (self-managed test key, na-003/011; no real licenses issued)"
+    current_custody:
+      type: "local-encrypted (interim)"
+      blob: "~/BPR/.keys-backup/bgl/bgl-kid3.key.enc (AES-256-CBC/PBKDF2 200k, perms 600, outside git)"
+      passphrase: "macOS Keychain service 'bgl-kid3-signing-key' (account bnprs)"
+    target_custody:
+      type: "AWS Secrets Manager + KMS envelope (PENDING owner approval to provision)"
+      secret_name: "bgl-signing-key"
+      kms_cmk_alias: "alias/bnprs-bgl-signing-prod"
+      account: "bnprs (891963159778)"
+      region: "ap-south-2"
+    issuance_api: "POST https://kms.bnprs.ai/bgl/v1/issue (runbook in 07-axon-terminals/deliverables; NOT yet deployed)"
+    notes: >
+      Private seed NEVER recorded here. Until the signing Lambda is deployed, grc-kms issues tokens
+      offline via bgl-issue using the custodied key. Revocation for perpetual tokens = signed offline
+      blocklist by lid; issuance log must capture every lid.
+
 # Inventory status
 inventory:
   bnprs_account: "partial — qi-supervisor-key known; full inventory pending"

@@ -38,6 +38,16 @@ Then provision the API at the confirmed endpoint **`https://kms.bnprs.ai/bgl/v1/
 3. If grc-kms can't proceed (capacity/policy/strategic), surface it — perpetual-license + key-custody
    policy may warrant CEO (na-007/001) input.
 
+## UPDATE 2026-06-04 (later same day) — grc-kms ACTIONED, partially resolved
+The grc-kms agent was run and actioned the handoff:
+- **Decision A taken**, kid=3 Ed25519 key generated + secured under grc-kms custody, **public key
+  handed back to na-003/011** (unblocks the lib embed + cpp-card-qi build NOW). Interim issuance is
+  available offline via `bgl-issue`, so real end-to-end tests are no longer blocked.
+- **Remaining (smaller) blocker:** production deployment of the signing API at
+  `https://kms.bnprs.ai/bgl/v1/issue` — runbook written (reuses the live k3-verifychallenge stack:
+  API GW `8nlf3cfyd9` + mTLS + WAF); needs **owner approval to provision AWS** (new CMK, Secrets
+  Manager secret, `bgl-issue` Lambda, route). **Ask of BNA now:** surface that approval to the owner.
+
 ## References
 - Contract/spec: `na-003/011 …/07-axon-terminals/deliverables/design/fleet-enrollment-and-issuance-api.md`
 - Source (pushed): bpr.cpp @ `6c7e2eb` (origin/main); aim.pat @ `2ed8506`.
