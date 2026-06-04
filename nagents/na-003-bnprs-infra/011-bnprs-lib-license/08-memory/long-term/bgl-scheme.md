@@ -137,6 +137,9 @@ For the **fleet auto-licensing** of existing BprCardQi workstations, the owner c
 = .req/.lic format, claim contract, file-based load/activate in the lib facade, enrollment-exe
 source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. See [[build-ownership]].
 
+**Issuance endpoint (confirmed by owner 2026-06-04):** `https://kms.bnprs.ai/bgl/v1/issue` — the
+`bgl-enroll.exe` default (overridable via `--api`/`BGL_ISSUE_URL`); grc-kms provisions it.
+
 **Source DONE 2026-06-04 (uncommitted in bpr.cpp; build via cpp-card-qi):**
 - Spec/contract: `07-axon-terminals/deliverables/design/fleet-enrollment-and-issuance-api.md`.
 - Facade `bpr_bgl.{h,cpp}`: `activateFromFile` / `activateFromStore(<storeDir>/<hwid>.lic)` +

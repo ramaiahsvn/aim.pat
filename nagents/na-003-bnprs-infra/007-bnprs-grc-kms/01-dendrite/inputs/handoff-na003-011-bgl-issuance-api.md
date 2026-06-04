@@ -39,8 +39,11 @@ Either way: **the Ed25519 private key never lives in the exe or the lib, and is 
 
 ## API contract
 
+**Endpoint host (confirmed by owner 2026-06-04):** provision the API at
+**`https://kms.bnprs.ai/bgl/v1/issue`** (TLS required). The enrollment exe defaults to this URL.
+
 ```
-POST /bgl/v1/issue
+POST https://kms.bnprs.ai/bgl/v1/issue
 Authorization: <enrollment credential — see Security>
 Content-Type: application/json
 

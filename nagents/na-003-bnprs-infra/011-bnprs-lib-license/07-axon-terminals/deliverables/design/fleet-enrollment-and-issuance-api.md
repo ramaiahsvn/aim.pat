@@ -76,8 +76,10 @@ JSON, UTF-8. Written/sent by the exe. Contains **no secret**.
 
 ## 5. Signing API contract (grc-kms — to be built by na-003/007)
 
+**Endpoint (confirmed 2026-06-04):** `https://kms.bnprs.ai/bgl/v1/issue`
+
 ```
-POST /bgl/v1/issue
+POST https://kms.bnprs.ai/bgl/v1/issue
 Authorization: <enrollment credential — see §7>
 Content-Type: application/json
 
@@ -162,9 +164,10 @@ scoped.
 ### Enrollment exe — DRAFTED 2026-06-04
 `bpr.cpp/cli/BprCardQi/enroll/bgl_enroll.c` — Windows console app, compile-verified (PE32+,
 mingw-w64, `-lwinhttp`). Runtime-loads the deployed `BprCardQi.dll` (identical hwid derivation),
-idempotent, holds no key. Online mode POSTs the `.req` to `BGL_ISSUE_URL` (`--api`) with an optional
-`Authorization` header (`BGL_ENROLL_AUTH` / `--auth`); offline mode (`--offline` or no API) drops
-`<hwid>.req`. Writes `<hwid>.lic` and confirms activation. cpp-card-qi owns the canonical CMake target.
+idempotent, holds no key. Online mode POSTs the `.req` to the issuance endpoint — **default
+`https://kms.bnprs.ai/bgl/v1/issue`**, overridable via `--api` / `BGL_ISSUE_URL` — with an optional
+`Authorization` header (`BGL_ENROLL_AUTH` / `--auth`); `--offline` forces request-only (drops
+`<hwid>.req`). Writes `<hwid>.lic` and confirms activation. cpp-card-qi owns the canonical CMake target.
 
 ## 9. Ownership / next steps
 
