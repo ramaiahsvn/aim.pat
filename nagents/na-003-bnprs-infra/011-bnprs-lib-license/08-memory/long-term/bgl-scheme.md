@@ -149,6 +149,11 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   idempotent, no key; compile-verified PE32+ (build with `-lwinhttp`, NOT `-municode`).
 - **Still pending:** grc-kms builds `POST /bgl/v1/issue` (+ auth + lid log); cpp-card-qi builds the
   DLL & exe; no real-device Windows hwid test yet.
+- **Handoff SENT to grc-kms 2026-06-04** → its `01-dendrite/inputs/handoff-na003-011-bgl-issuance-api.md`
+  (copy logged in our `07-axon-terminals/notifications/2026-06-04-handoff-grc-kms-issuance-api.md`).
+  **Key gotcha raised:** AWS KMS cannot Ed25519-sign — recommended grc-kms generate a new kid
+  Ed25519 key, envelope-encrypt under a KMS data key, hand us the pubkey to embed (retire kid=2),
+  then cpp-card-qi rebuilds the DLL with the new kid. Awaiting grc-kms custody decision (A vs B).
 
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
