@@ -203,9 +203,34 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   `bgl-enroll.exe` API_DEFAULT updated to the execute-api URL; the exe needs `BGL_ENROLL_AUTH`=the bearer.
   Full resource list → grc-kms `key-registry.yaml` (bgl_issuance_api).
 
-**Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
-Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
-blocklist + anti-rollback high-water mark; harden signing-key storage. **Why:** user granted freedom to replace the
-legacy scheme; this is the chosen direction. **How to apply:** build Phase 1 (desktop
-bgl_verify + bgl_hwid + test keypair) first; never put the signing key in a shipped artifact;
-preserve product_id/code4 immutability from [[product-codes]].
+## ✅ CURRENT STATE & OPERATIONAL REFERENCE (as of 2026-06-04 — read this first)
+
+**The BGL fleet auto-licensing system is fully built, deployed, and proven on real Windows.**
+
+- **Active key:** kid=3 (Ed25519). Pubkey `2aa9e4b21cf7dc0a241df00f88af439fa16f4b10c14ff330ecc691142c373ee5`
+  embedded in `bpr.cpp/.../bgl/bgl_pubkeys.h`. kid=1, kid=2 retired. Private key in grc-kms custody:
+  AWS Secrets Manager `bgl-signing-key` (CMK `alias/bnprs-bgl-signing-prod`, bnprs/ap-south-2) +
+  offline backup `~/BPR/.keys-backup/bgl/bgl-kid3.key.enc` (Keychain `bgl-kid3-signing-key`).
+- **Shipped lib:** BprCardQi **2.56.5** (gate-only). Exports `bpr_cardqi_activate / _is_licensed /
+  _hwid / _activate_from_store / _license_path`; gate at `BprPcSc_Context_Init` (+ JNI `contextInit`)
+  lazy-loads `C:\ProgramData\BprCardQi\<hwid>.lic`. NO issuance/networking in the DLL.
+- **Enrollment tool:** `bpr.cpp/cli/BprCardQi/enroll/bgl_enroll.c` (+ CMakeLists). Keyless. Online →
+  POST `.req` to the API (bearer) + install `.lic`; `--offline` → write `<hwid>.req`.
+- **Issuance API (LIVE):** `POST https://8nlf3cfyd9.execute-api.ap-south-2.amazonaws.com/bgl/v1/issue`,
+  bearer auth (Secrets Manager `bgl-enroll-token`), Lambda `bgl-issue` (python3.12/arm64, pure-Python
+  Ed25519), issuance log DynamoDB `bgl-issuance-log`. Full ARNs in grc-kms `key-registry.yaml`.
+
+**How to license a station:**
+- *Online (auto):* on the station set `BGL_ENROLL_AUTH=Bearer <token>` then run `bgl-enroll.exe` → fetch+install.
+- *Offline/manual (long-term):* `bgl-enroll.exe --offline` writes `<hwid>.req`; issue with
+  `bgl-issue --key <kid3> --kid 3 --product 3 --bind hwid --bid <hwid> --plat 1 --exp-days 0`
+  (or the portal); drop the `<hwid>.lic` into `C:\ProgramData\BprCardQi\`. Verify with `bgl-inspect`.
+
+**Operational notes / Phase 3+ (remaining):**
+- **Bearer rotation:** the bearer is the API's sole gate — rotate `bgl-enroll-token` periodically; WAF rate-limit applies.
+- **Revocation (perpetual licenses):** the ONLY path is the offline signed **blocklist by `lid`**; every
+  issuance is logged to `bgl-issuance-log`. Implementing blocklist-verify in the lib is the top Phase-3 item.
+- Also pending: anti-rollback high-water mark; migrate other libs' call sites to `bgl_verify` (dual-accept);
+  Linux/Windows-32/Android real-device hwid tests; wrap via na-003/010 for Java/.NET/Go.
+- **Invariants:** never put the signing key in a shipped artifact; preserve product_id/code4 immutability
+  from [[product-codes]]; never break the wire format without a versioned migration. See [[build-ownership]].
