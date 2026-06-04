@@ -253,8 +253,14 @@ functional export** — 24 in `BprCardQi.cpp` + operational PcSc ops (ListReader
 Card_GetAtr/Card_Transmit) in `dll_exports.cpp`. Left ungated: cleanup (DeInit/Disconnect),
 license-mgmt (`bpr_cardqi_activate/_is_licensed/_hwid/_activate_from_store/_license_path`), utility,
 `Bpr_GLog_Init`. Lesson: a single chokepoint is NOT enough — gate every public functional entry.
-Built 2.56.6 windows-64; **runtime re-test pending on Windows** (unlicensed → -900). **Follow-ups:**
-lib-forge republish 2.56.6; lib-multisdk re-embed 2.56.6 native (wrapper API unchanged).
+Built 2.56.6 windows-64. **2.56.6 had a regression** (gate checked isLicensed() but did NOT
+lazy-load → host apps calling perso fns without Context_Init/activate got -900 + no logs). **Fixed in
+2.56.7:** `bgl_gate()` lazy-loads `C:\ProgramData\BprCardQi\<hwid>.lic` then checks (mirrors
+Context_Init). **2.56.7 VERIFIED on real Windows 2026-06-04:** with a valid `.lic` present, perso/read
+functions run; gate is per-process in-memory + lazy-loads from disk. (Note: the on-disk store path
+literal greps oddly in the mingw DLL — COFF encoding red herring; the path works at runtime, proven by
+"already licensed".) **Follow-ups:** lib-forge republish **2.56.7** (Generic+wrappers); yank the bad
+2.56.5 (gate hole) + 2.56.6 (regression).
 
 **Operational notes / Phase 3+ (remaining):**
 - **Bearer rotation:** the bearer is the API's sole gate — rotate `bgl-enroll-token` periodically; WAF rate-limit applies.
