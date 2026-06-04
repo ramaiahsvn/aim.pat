@@ -31,7 +31,7 @@ registry:
 source_versions:
   BprLicBase: "2.27.4"
   BprFace:    "2.24.115"
-  BprCardQi:  "2.56.6"
+  BprCardQi:  "2.56.7"
   BprCardEmv: "2.57.1"
   BprICBA:    "2.58.1"
   BprFinger:  "2.24.203"
@@ -222,3 +222,44 @@ published:
     coordinate: "ai.bnprs:nativesdk-bprcardqi:2.56.6"
     note: "re-wrap embedding the 2.56.6 native (JNA). win-x64."
   # Go bprcardqi v2.56.6 — proxy artifacts rebuilt; NOT published (tag-based registry).
+
+  # ================================================================================
+  # YANKED 2026-06-04 (deleted from registry, HTTP 204): BprCardQi 2.56.5 (ids 19,20,21 —
+  # gate hole: functional exports ran unlicensed) AND 2.56.6 (ids 22,23,24 — regression:
+  # gate didn't lazy-load → blocked legit use). Superseded by 2.56.7. The 2.56.5/2.56.6
+  # entries above are historical records of those (now-removed) publishes.
+  # ================================================================================
+  - package: "BprCardQi"            # generic native — VERIFIED-GOOD release
+    version: "2.56.7"
+    package_id: 25
+    project_id: 230
+    source_repo: "bpr.cpp"
+    source_commit: "a430359"
+    built_by: "na-005-bnprs-fintech/002 cpp-card-qi"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-06-04"
+    notes: >
+      BGL gate enforced on ALL functional exports + lazy-loads <store>/<hwid>.lic
+      (fixes 2.56.6). Verified on real Windows. win-64. Supersedes 2.56.5 + 2.56.6.
+    files: ["windows-64/libBprCardQi.dll", "windows-64/libBprCardQi.dll.sha256", "manifest.json"]
+  - package: "Bnprs.NativeSdk.BprCardQi"
+    package_type: "nuget"
+    version: "2.56.7"
+    package_id: 26
+    project_id: 230
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-06-04"
+    coordinate: "Bnprs.NativeSdk.BprCardQi 2.56.7"
+    note: "embeds 2.56.7 native. .NET FW 4.6.1-4.8 via build/.targets; x64."
+  - package: "ai/bnprs/nativesdk-bprcardqi"
+    package_type: "maven"
+    version: "2.56.7"
+    package_id: 27
+    project_id: 230
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-06-04"
+    coordinate: "ai.bnprs:nativesdk-bprcardqi:2.56.7"
+    note: "embeds 2.56.7 native (JNA). win-x64."
+  # Go bprcardqi v2.56.7 — proxy artifacts built; NOT published (tag-based registry).
