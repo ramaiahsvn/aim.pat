@@ -3,6 +3,24 @@
 Owner: **na-003/011 bnprs-lib-license**.  Issuance backend: **na-003/007 bnprs-grc-kms**.
 Build of DLL + enrollment exe: **na-005/002 cpp-card-qi**.
 
+> ## ✅ AS-BUILT (2026-06-04 — implemented, deployed, verified on real Windows)
+> The sections below are the original design narrative; the shipped system is:
+> - **DLL (gate-only):** BprCardQi **2.56.5**, exports `bpr_cardqi_activate/_is_licensed/_hwid/
+>   _activate_from_store/_license_path` + `BprPcSc_Context_Init` lazy-load. No issuance/networking in
+>   the DLL. Clean drop-in over 2.56.4 (exports 451→455, 0 removed).
+> - **Station tools (one source, two exes):** `bgl-enroll-auto.exe` (online: hwid→API→install `.lic`,
+>   bearer baked at build) and `bgl-enroll-manual.exe` (request-only: writes `<hwid>.req`). Both keyless.
+> - **Issuer tool (Mac):** `bgl/tools/bgl-issue-from-req.sh` — `<hwid>.req` → signed `<hwid>.lic` via the
+>   custodied kid=3 key. The admin/portal manual path.
+> - **Issuance API (LIVE):** `POST https://8nlf3cfyd9.execute-api.ap-south-2.amazonaws.com/bgl/v1/issue`
+>   — **execute-api endpoint + bearer auth** (NOT kms.bnprs.ai, which is mTLS-gated for k3). Python
+>   Lambda `bgl-issue` (pure-Python Ed25519), key in Secrets Manager `bgl-signing-key`, issuance log
+>   DynamoDB `bgl-issuance-log`. Verified: no-bearer→401, bearer→200, token bgl-inspect=VALID.
+> - **Key:** kid=3 (kid=2 retired). Resource ARNs in grc-kms `key-registry.yaml`. Licenses are
+>   perpetual (exp=0) → revocation = offline `lid` blocklist (Phase-3).
+> Deviations from the draft: signing happens **server-side only** (no DLL fetch — that idea was
+> removed); the exe authenticates with a **bearer token**, not the fleet mTLS cert.
+
 Goal: auto-license **existing BprCardQi Windows workstations**. A small exe run on each station
 collects the machine's hwid, asks the grc-kms signing API for a signed BGL token, and drops it at
 `C:\ProgramData\BprCardQi\<hwid>.lic`. BprCardQi then loads that file and unlocks (the BGL global

@@ -214,6 +214,8 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
 - **Shipped lib:** BprCardQi **2.56.5** (gate-only). Exports `bpr_cardqi_activate / _is_licensed /
   _hwid / _activate_from_store / _license_path`; gate at `BprPcSc_Context_Init` (+ JNI `contextInit`)
   lazy-loads `C:\ProgramData\BprCardQi\<hwid>.lic`. NO issuance/networking in the DLL.
+  **Clean drop-in over 2.56.4** (verified: windows-64 export table 451→455, **0 removed**, 4 added —
+  purely additive, so updating existing stations' `libBprCardQi.dll` won't break current apps).
 - **Enrollment tools** (one source `bpr.cpp/cli/BprCardQi/enroll/bgl_enroll.c`, `BGL_ENROLL_MANUAL` macro):
   * **`bgl-enroll-auto.exe`** — online auto-licensing (WinHTTP + bearer baked at build via
     `-DBGL_ENROLL_AUTH`); hwid→API→install `.lic`. "just run it" on a station.
