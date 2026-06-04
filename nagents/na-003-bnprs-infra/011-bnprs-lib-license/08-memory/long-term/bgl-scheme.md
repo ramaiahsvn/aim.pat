@@ -172,6 +172,11 @@ source; cpp-card-qi (na-005/002) = build the DLL + the Windows enrollment exe. S
   ping cpp-card-qi to build. Production issuance API at kms.bnprs.ai is a runbook on the existing
   k3-verifychallenge stack, PENDING owner approval to provision AWS; interim issuance via offline
   `bgl-issue` with the kid=3 key.
+- **kid=3 EMBEDDED 2026-06-04 (bpr.cpp @ `8d3dcc7`):** `bgl_pubkeys.h` now `BGL_KID 3`
+  (pubkey `2aa9e4b2…2c373ee5`), kid=2 retired (old tokens → UNKNOWN_KID). Verified: rebuilt tools,
+  kid=3 issue→inspect signature VALID, `bgl-test` 23/23. Notified cpp-card-qi the kid is final →
+  fleet DLL build cleared. **Remaining:** cpp-card-qi builds DLL+exe; grc-kms API deploy pending
+  owner approval; real-Windows hwid test.
 
 **Next (Phase 3+):** migrate other libs' call sites to `bgl_verify` (dual-accept window);
 Linux/Windows hwid real-device testing; wrap via na-003/010 for Java/.NET/Go; offline signed
