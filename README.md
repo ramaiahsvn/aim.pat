@@ -13,8 +13,8 @@ aim.pat/
   nagent-template/          ← canonical blueprint for every agent
   nagents/
     na-001-personal/        ← agent group
-      registry.yaml         ← permanent DE code ledger
-      DE01-daily-briefing/  ← individual agent
+      registry.yaml         ← permanent code ledger
+      001-daily-briefing/   ← individual agent
         01-dendrite/        inputs: connectors, APIs, sensors
         02-cell-body/       reasoning: LLM config, planning, strategies
         03-nucleus/         identity: system-prompt, persona, guardrails
@@ -78,32 +78,37 @@ Signal flow: `01 RECEIVE → 02 INTEGRATE ↔ 03 IDENTITY → 04 EXECUTE → 05 
 
 ---
 
-## Agent code system (ISO 8583 DE-style)
+## Agent code system
 
-Agent codes use a **1-byte Data Element (DE) scheme** inspired by ISO 8583:
+Each group supports up to **255 agents**, identified by a 3-digit zero-padded
+decimal code. The scheme is inspired by ISO 8583 Data Element (DE) numbering —
+you may see codes referred to as DE001, DE002, etc. in external references — but
+the canonical form used in folders and registries is plain decimal:
 
 ```
-DE01  first agent in the group       (hex 0x01)
-DE02  second agent                   (hex 0x02)
+001  first agent in the group
+002  second agent
 ...
-DEFF  255th agent — group maximum    (hex 0xFF)
+010  tenth agent
+...
+255  255th agent — group maximum
 ```
 
 ### Rules
 
 | Rule | Detail |
 |------|--------|
-| Range | DE01 to DEFF — DE00 is reserved |
+| Range | 001 to 255 — 000 is reserved/invalid |
 | Capacity | 255 agents per group |
 | Permanence | A code is **never reassigned** once used, even after agent deletion |
 | Retirement | Retired agents keep their code with `status: retired` |
-| Allocation | Always use the lowest available hex code |
+| Allocation | Always use the lowest available decimal code |
 | Ledger | All assignments recorded in `nagents/<group>/registry.yaml` |
 
-### Why DE codes?
+### Why permanent codes?
 
 ISO 8583 is a financial messaging standard where each Data Element carries a
-fixed, permanent meaning. The same principle applies here: every DE code has a
+fixed, permanent meaning. The same principle applies here: every code has a
 single, permanent identity within its group. This makes agent references stable
 across time — a code in a log, a message, or a config always points to the same
 agent regardless of renames or restructuring.
@@ -148,11 +153,11 @@ group:
   max_agents: 255
 
 registry:
-  - code: "DE01"
+  - code: "001"
     name: "daily-briefing"
     label: "Daily Briefing"
     role: "Briefing Specialist"
-    path: "DE01-daily-briefing"
+    path: "001-daily-briefing"
     status: "active"          # active | retired
     created_at: "2026-05-25"
     created_by: "bnprs"
@@ -161,7 +166,7 @@ registry:
 Retired agents:
 
 ```yaml
-  - code: "DE03"
+  - code: "003"
     name: "old-bot"
     status: "retired"         # code is locked — never reassigned
     retired_at: "2026-08-01"

@@ -41,6 +41,9 @@ node_modules/
 *.log
 logs/
 
+# Rust — build artifacts (regenerable; keep Cargo.lock)
+target/
+
 # Runtime / temp
 *.tmp
 *.bak
