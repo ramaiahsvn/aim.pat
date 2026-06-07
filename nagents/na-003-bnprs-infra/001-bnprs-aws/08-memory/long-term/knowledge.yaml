@@ -4,14 +4,21 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: technical_knowledge
+    content: >-
+      bnprs.in public hosted zone = Z04234212M3SJ07Y70SGQ (account 891963159778,
+      profile bnprs). Subdomain bruid.bnprs.in is delegated cross-account via an
+      NS record (TTL 172800) to: ns-1611.awsdns-09.co.uk, ns-1077.awsdns-06.org,
+      ns-265.awsdns-33.com, ns-824.awsdns-39.net. Created+verified INSYNC and
+      resolving end-to-end on 2026-06-07 (change C005849834EAPUV0ZSNGC). The
+      child zone for bruid.bnprs.in lives in a separate AWS account; manage
+      records under bruid.bnprs.in there, not in this zone.
+    created_at: "2026-06-07"
+    last_accessed: "2026-06-07"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.98
+    source: "session-2026-06-07"
+    tags: [route53, dns, delegation, bnprs.in, bruid, cross-account]
 
   # Example entries:
   # - id: mem-002
