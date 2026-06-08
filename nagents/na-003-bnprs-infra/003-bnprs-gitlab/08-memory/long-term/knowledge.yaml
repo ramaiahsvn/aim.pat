@@ -222,6 +222,23 @@ memories:
     confidence: 1.0
     tags: [monitoring, disk-alert, cron, msmtp, uptimerobot, pending]
 
+  - id: mem-019
+    type: configuration
+    content: >
+      2026-06-08 minted a PROJECT runner (new GitLab 18.x flow: POST /user/runners, runner_type=
+      project_type) for the cPerso Windows build runner. Runner id=14, description "cPerso Windows build
+      runner (ephemeral, on-demand; na-005/009)", tags [windows, dotnetfx], run_untagged=false,
+      locked=true, scoped to project TRP1002/trp1002.cperso.mces2 (project id=1). Status never_contacted
+      until the ephemeral Windows EC2 registers with it (see na-003/001 windows-build-runner-plan.md;
+      runner lives on a separate Windows box, per mem-011). The runner AUTHENTICATION TOKEN (glrt-...) was
+      handed to the user out-of-band and is NOT stored in any repo/agent file (key-material policy) — it
+      will be entered at AMI-bake time in `gitlab-runner register --token`. To revoke: DELETE
+      /runners/14. NOTE: tags here are descriptive (windows,dotnetfx), not the bnprs-<env>-<arch>
+      convention from mem-011.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [runner, project-runner, cperso, windows, token, na-005-009, na-003-001]
+
 # Pruning rules
 pruning:
   max_entries: 500

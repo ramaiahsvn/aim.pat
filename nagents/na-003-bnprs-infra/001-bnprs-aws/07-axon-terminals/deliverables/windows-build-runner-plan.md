@@ -72,7 +72,9 @@ pipeline:
       `gitlab.bnprs.ai`, NuGet, and Microsoft package CDNs.
 - [ ] Latest **Windows Server 2022 English Full Base** AMI id in ap-south-2
       (`aws ssm get-parameters --names /aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base`).
-- [ ] A GitLab **runner registration token** for `trp1002.cperso.mces2` (or a group runner) — **na-003/003 bnprs-gitlab**.
+- [x] GitLab **runner** minted by na-003/003 (2026-06-08): **runner id 14**, project_type, tags
+      `windows,dotnetfx`, locked to `TRP1002/trp1002.cperso.mces2`. Auth token held by user out-of-band
+      (not committed) — entered at AMI-bake `gitlab-runner register --token`.
 - [x] Start/stop control: **Lambda** (Function URL + shared secret). *Locked.*
 
 ## 5. Step-by-step provisioning (Pattern B)
@@ -195,8 +197,8 @@ Lambda (+ Function URL) + its role, EventBridge rule. EBS goes with the instance
 ## 10. Open decisions
 1. ~~Pattern A vs B~~ → **B (locked 2026-06-08)**
 2. ~~Start/stop control~~ → **Lambda Function URL + shared secret (locked 2026-06-08)**
-3. **Subnet** — default VPC public subnet (simplest, no NAT cost — runner gets a public IP, egress-only SG)
-   vs dedicated private subnet + NAT (~$32/mo NAT would dominate the bill; **not recommended** here).
+3. ~~Subnet~~ → **default VPC public subnet (locked 2026-06-08)** — runner gets a public IP, egress-only SG,
+   no NAT cost.
 4. **GUI test** — leave `Bpr.Tests.Dlls` manual, or fund a refactor to headless tests.
 5. **Build frequency** — confirms B stays cheapest (it does at low/bursty volume).
 
