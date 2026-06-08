@@ -5,13 +5,23 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: "Primary working repo is trp1002.cperso.mces2 — local /Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.mces2, remote http://16.112.21.84/TRP1002/trp1002.cperso.mces2.git (self-hosted GitLab). Default branch master; also ai_dev, bp_dev, bp_rel. Bound 2026-06-08. Holds BprMces2 (C# .NET MCES2 plugin DLLs, v2.41.03) + BprDataPrep (Tri-Badge PURE perso data prep). C++ QI/EMV layer is a separate repo trp1002.cperso.qiscript. Build: msbuild Mces2_Dlls.sln; tests: Bpr.Tests.Dlls.exe. CI gates bp_dev/bp_rel on 2 approvals."
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
+    access_count: 1
+    confidence: 0.95
+    source: "session-2026-06-08"
+    tags: [repo, mces2, working-repo, gitlab, csharp]
+
+  - id: mem-002
+    type: project_context
+    content: "GemMces2 (Gemalto/Thales ISPI4MLB2 reader interface) was split out of trp1002.cperso.mces2 on 2026-06-08 (commit d485f4d, committed locally, not yet pushed). A duplicate 'Tri-Badge PURE ... V3.0 (1).docx' under BprDataPrep was removed in the same commit. Repo's own CLAUDE.md still documents GemMces2 — stale, pending update."
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
     access_count: 1
     confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    source: "session-2026-06-08"
+    tags: [repo, mces2, gemmces2, split-out, cleanup]
 
   # Example entries:
   # - id: mem-002
