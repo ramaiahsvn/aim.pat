@@ -4,6 +4,10 @@
 > Requested by: cPerso build need (**na-005/009 bruid-cperso**) — build `BprMces2` (.NET Framework 4.6/4.8, WinForms)
 > Status: **PLAN ONLY — nothing provisioned.** Author this, approve, then execute step-by-step.
 > Date: 2026-06-08
+>
+> **Decisions locked (2026-06-08):** Pattern **B** (wake-on-pipeline stop/start) · start/stop control via
+> **Lambda** (Function URL + shared secret → CI needs **no AWS credentials**). Still open: subnet, GUI test,
+> build frequency (§10).
 
 ---
 
@@ -43,22 +47,22 @@ gitlab.bnprs.ai  ──(manager runner, always-on, co-located on GitLab box)─�
 - **Cons:** more moving parts (manager config, fleeting plugin, IAM for the manager, launch template/ASG);
   manager lives on the GitLab server (na-003/003 domain).
 
-### Pattern B — Wake-on-pipeline stop/start — *simplest* ✅ recommended for low build volume
+### Pattern B — Wake-on-pipeline stop/start — ✅ **CHOSEN**
 ```
 pipeline:
-  start_runner  (Linux/shared runner; assume IAM role → ec2 start-instances; wait online)
+  start_runner  (Linux/shared runner; curl Lambda Function URL ?action=start; wait online)
       ↓
   build         (tag `windows,dotnetfx`; MSBuild on the now-awake Windows runner)
       ↓
-  stop_runner   (when: always; ec2 stop-instances)
-+ EventBridge rule + Lambda: idle-stop safety net (stop if running >N min with no active job)
+  stop_runner   (when: always; curl Lambda Function URL ?action=stop)
++ EventBridge rule (rate 10 min) → same Lambda ?action=idle-stop  (safety net)
 ```
-- **Pros:** one instance to reason about; reuses a normal `gitlab-runner` Windows service; easiest to debug.
-- **Cons:** pays for the **30 GB EBS while stopped** (~$2.7/mo); single-concurrency; needs a start/stop
-  control path (OIDC role assumed by CI, or a Lambda).
+- **Pros:** one instance to reason about; reuses a normal `gitlab-runner` Windows service; easiest to debug;
+  **CI carries no AWS credentials** — it only knows a shared secret + the Function URL.
+- **Cons:** pays for the **30 GB EBS while stopped** (~$2.7/mo); single-concurrency.
 
-**Recommendation:** **Pattern B** for now (cPerso build volume is low and bursty). Revisit Pattern A if build
-frequency or parallelism grows.
+> Pattern A (autoscaler) is **not** the chosen path; kept above only as a future option if build frequency
+> or parallelism grows.
 
 ## 4. Prerequisites (confirm against live account before building)
 
@@ -69,7 +73,7 @@ frequency or parallelism grows.
 - [ ] Latest **Windows Server 2022 English Full Base** AMI id in ap-south-2
       (`aws ssm get-parameters --names /aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base`).
 - [ ] A GitLab **runner registration token** for `trp1002.cperso.mces2` (or a group runner) — **na-003/003 bnprs-gitlab**.
-- [ ] Decide start/stop control: (a) new GitLab OIDC provider in this account, or (b) Lambda + CI trigger.
+- [x] Start/stop control: **Lambda** (Function URL + shared secret). *Locked.*
 
 ## 5. Step-by-step provisioning (Pattern B)
 
@@ -83,12 +87,25 @@ frequency or parallelism grows.
 ### 5.2 IAM
 - **Instance profile** `win-build-runner-role`: minimal — CloudWatch Logs put, SSM (for `ssm get-parameter`
   + Session Manager instead of RDP). No S3/prod access.
-- **Start/stop control principal:**
-  - Option (a) OIDC: create IAM OIDC provider for `https://gitlab.bnprs.ai`; role `gitlab-ci-ec2-control`
-    trust-scoped to the `trp1002.cperso.mces2` project + ref; policy = `ec2:StartInstances`,
-    `ec2:StopInstances`, `ec2:DescribeInstances` **resource-scoped by tag** `Role=win-build-runner`.
-  - Option (b) Lambda `win-runner-control` with the same EC2 policy; invoked by CI (via API) or a pipeline
-    webhook. Avoids an OIDC provider.
+- **Lambda execution role** `win-runner-control-role`: policy = `ec2:StartInstances`, `ec2:StopInstances`,
+  `ec2:DescribeInstances` **resource-scoped by tag** `Role=win-build-runner` (+ `logs:*` for the log group).
+  No other account access — blast radius is one tagged instance.
+
+### 5.2a Start/stop Lambda (LOCKED design)
+- **Function** `win-runner-control` (Python 3.12), role from §5.2. Env/SSM:
+  `INSTANCE_ID` (or resolve by tag), `SHARED_SECRET` (strong, rotatable), `MAX_RUN_MIN` (e.g. 30),
+  optional `GITLAB_TOKEN` + `RUNNER_ID` for the active-job check.
+- **Invocation = Lambda Function URL** (`AuthType: NONE`) with an **in-function shared-secret check**:
+  CI calls `curl -H "x-runner-token: $SECRET" "$URL?action=start|stop"`. **No AWS credentials in CI.**
+  - Trade-off: the URL is internet-reachable, so security rests on the secret. Mitigations: long random
+    secret stored as a **masked, protected** GitLab CI variable + Lambda env (or SSM SecureString);
+    rotate periodically; function only ever start/stops **one tagged instance** (can't do anything else).
+  - Stronger alt if desired later: `AuthType: AWS_IAM` + CI SigV4 — but that reintroduces AWS creds in CI.
+- **Actions:**
+  - `start` → `start-instances`; return when `running` (CI then polls GitLab until the runner is online).
+  - `stop`  → `stop-instances`.
+  - `idle-stop` → stop **iff** instance `running` AND (uptime > `MAX_RUN_MIN` OR no active GitLab job on
+    the runner). Called by EventBridge (§5.5), not by CI.
 
 ### 5.3 Bake the AMI (one-time)
 1. Launch a temp `t3.medium`, 30 GB gp3, from the Windows Server 2022 base AMI (temporary RDP/SSM access).
@@ -107,21 +124,22 @@ frequency or parallelism grows.
   `ec2 stop-instances`. Idle cost from here = EBS only.
 
 ### 5.5 Idle-stop safety net
-- EventBridge scheduled rule (every 10 min) → Lambda `win-runner-idle-stop`: if the instance is `running`
-  and has had **no active GitLab job for >15 min** (query GitLab jobs API or a CloudWatch custom metric),
-  `stop-instances`. Guards against a failed pipeline leaving it running.
+- EventBridge scheduled rule (rate 10 min) → **same** Lambda `win-runner-control` with `action=idle-stop`
+  (§5.2a): stops the instance if `running` and past `MAX_RUN_MIN` / no active job. Guards against a failed
+  pipeline (e.g. `stop_runner` never reached) leaving the instance running and billing.
 
 ### 5.6 CI wiring (owned by na-005/009 in `trp1002.cperso.mces2/.gitlab-ci.yml`)
 ```yaml
 stages: [provision, build, teardown]
 
+# CI variables (masked, protected): RUNNER_CTL_URL = Lambda Function URL,
+#                                    RUNNER_CTL_TOKEN = shared secret. No AWS creds.
 start_runner:
   stage: provision
   tags: [linux]                       # any always-on shared runner
   script:
-    - aws ec2 start-instances --instance-ids "$WIN_RUNNER_ID" --profile-or-oidc
-    - aws ec2 wait instance-running --instance-ids "$WIN_RUNNER_ID"
-    - ./scripts/wait-runner-online.sh  # poll GitLab until the windows runner is up
+    - curl -fsS -H "x-runner-token: $RUNNER_CTL_TOKEN" "$RUNNER_CTL_URL?action=start"
+    - ./scripts/wait-runner-online.sh  # poll GitLab API until the windows runner is online
 
 build_bprmces2:
   stage: build
@@ -137,7 +155,7 @@ stop_runner:
   tags: [linux]
   when: always                        # always stop, even if build failed
   script:
-    - aws ec2 stop-instances --instance-ids "$WIN_RUNNER_ID"
+    - curl -fsS -H "x-runner-token: $RUNNER_CTL_TOKEN" "$RUNNER_CTL_URL?action=stop"
 ```
 
 ## 6. Cost breakdown (ap-south-2, On-Demand Windows, rough)
@@ -147,11 +165,12 @@ stop_runner:
 | Compute — `t3.medium` Windows | ~$0.07/hr | 25 hr → **~$1.8** |
 | EBS — 30 GB gp3 (always, while stopped too) | ~$0.092/GB-mo | **~$2.8** |
 | AMI snapshot storage (~30 GB compressed) | ~$0.05/GB-mo | **~$1.0** |
-| Data transfer / SSM / Lambda / EventBridge | negligible | **~$0.5** |
+| Data transfer / SSM / **Lambda + Function URL + EventBridge** | negligible (well within free tier: ~4.3k EventBridge invokes/mo) | **~$0.5** |
 | **Total** | | **≈ $6/mo** |
 | (contrast) always-on `t3.medium` Windows | ~$0.07/hr × 730 | ~$51/mo |
 
-**Savings vs always-on ≈ 88%.** Pattern A removes the EBS-while-stopped line (~$2.8) → ≈ $4/mo.
+**Savings vs always-on ≈ 88%.** The Lambda control plane (Function URL + ~4,300 EventBridge ticks/mo) is
+effectively free at this scale.
 
 ## 7. Known limitation — the WinForms test
 
@@ -162,8 +181,8 @@ headless in CI**. So:
   **or** the test project is refactored to a headless runner (xUnit/NUnit) before it can gate CI.
 
 ## 8. Teardown (when no longer needed)
-Stop+terminate the instance → delete the AMI + its snapshot → delete the SG, instance profile/role, OIDC
-provider (if (a)), Lambda + EventBridge rule. EBS goes with the instance. Leaves zero cost.
+Stop+terminate the instance → delete the AMI + its snapshot → delete the SG, instance profile/role,
+Lambda (+ Function URL) + its role, EventBridge rule. EBS goes with the instance. Leaves zero cost.
 
 ## 9. Cross-agent responsibilities
 
@@ -173,9 +192,16 @@ provider (if (a)), Lambda + EventBridge rule. EBS goes with the instance. Leaves
 | Runner registration token, runner tags, GitLab-side config | **na-003/003 bnprs-gitlab** |
 | `.gitlab-ci.yml` build/start/stop jobs, `wait-runner-online.sh` | **na-005/009 bruid-cperso** |
 
-## 10. Open decisions (resolve before execution)
-1. **Pattern A vs B** — recommend B for now.
-2. **Start/stop control** — OIDC provider (reusable, cleaner) vs Lambda (no new IdP).
-3. **Subnet** — default VPC public subnet (simplest) vs dedicated isolated subnet (+ NAT cost).
-4. **GUI test** — leave manual, or fund a refactor to headless tests.
-5. **Build frequency** — informs A vs B and whether RI/always-on is ever justified (it isn't at low volume).
+## 10. Open decisions
+1. ~~Pattern A vs B~~ → **B (locked 2026-06-08)**
+2. ~~Start/stop control~~ → **Lambda Function URL + shared secret (locked 2026-06-08)**
+3. **Subnet** — default VPC public subnet (simplest, no NAT cost — runner gets a public IP, egress-only SG)
+   vs dedicated private subnet + NAT (~$32/mo NAT would dominate the bill; **not recommended** here).
+4. **GUI test** — leave `Bpr.Tests.Dlls` manual, or fund a refactor to headless tests.
+5. **Build frequency** — confirms B stays cheapest (it does at low/bursty volume).
+
+### Remaining blockers before provisioning can start
+- **Subnet decision** (recommend default public subnet to avoid NAT cost).
+- **GitLab runner registration token** for `trp1002.cperso.mces2` — from **na-003/003 bnprs-gitlab**.
+- **Explicit go-ahead to begin creating resources** (cost starts at AMI bake). Per agent guardrails, each
+  create/modify step shows cost + confirms before applying.

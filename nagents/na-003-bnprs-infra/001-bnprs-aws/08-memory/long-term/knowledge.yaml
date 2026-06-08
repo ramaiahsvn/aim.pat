@@ -30,12 +30,19 @@ memories:
       Design: native x64 Windows Server 2022, prebaked AMI (VS Build Tools +
       Fx 4.6/4.8 packs + gitlab-runner), runs ONLY during a build then auto-stops
       (~$6/mo vs ~$51 always-on, ~88% saving). Floors: t3.medium (4GB) min,
-      30GB gp3 min (Windows can't go lower). Recommended Pattern B (wake-on-
-      pipeline stop/start + Lambda idle-stop). NOTE: this account has NO
-      gitlab.bnprs.ai OIDC provider (that's the ITP account 819144294008), so
-      start/stop control needs a new OIDC provider here OR a Lambda. Cross-agent:
-      runner registration = na-003/003 bnprs-gitlab; .gitlab-ci.yml jobs =
-      na-005/009 bruid-cperso. WinForms test Bpr.Tests.Dlls can't run headless.
+      30GB gp3 min (Windows can't go lower). DECISIONS LOCKED 2026-06-08:
+      Pattern B (wake-on-pipeline stop/start) + start/stop via a single Lambda
+      'win-runner-control' behind a Function URL (AuthType NONE) with an
+      in-function shared-secret check — CI carries NO AWS creds, just curls the
+      URL with x-runner-token; same Lambda also does EventBridge idle-stop
+      (rate 10 min). Lambda role scoped to ec2 Start/Stop/Describe on tag
+      Role=win-build-runner only. (This account has NO gitlab.bnprs.ai OIDC
+      provider — that's ITP 819144294008 — hence the Lambda+secret path.)
+      Recommend default public subnet (no NAT; ~$32/mo NAT would dominate).
+      Cross-agent: runner registration = na-003/003 bnprs-gitlab; .gitlab-ci.yml
+      jobs = na-005/009 bruid-cperso. WinForms test Bpr.Tests.Dlls can't run
+      headless. BLOCKERS before build-out: subnet choice, GitLab runner reg
+      token (na-003/003), explicit go-ahead (cost starts at AMI bake).
     created_at: "2026-06-08"
     last_accessed: "2026-06-08"
     access_count: 1
