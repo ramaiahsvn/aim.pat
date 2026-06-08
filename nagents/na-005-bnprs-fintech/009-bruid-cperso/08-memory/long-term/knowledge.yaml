@@ -33,6 +33,26 @@ memories:
     source: "session-2026-06-08"
     tags: [repo, mces2, branches, consolidation, ci, gitlab-admin]
 
+  - id: mem-004
+    type: technical_knowledge
+    content: "BprMces2 is WINDOWS-ONLY to build/test — do NOT attempt on pat-m4p (macOS). Projects are old-style .NET Framework csproj (v4.6/v4.7.2/v4.8); Bpr.Tests.Dlls is a WinForms GUI .exe (v4.8). This Mac has only `dotnet` 10 SDK (no MSBuild, no Mono), which fails with MSB3644 'reference assemblies for .NETFramework v4.8/v4.6 not found' — the Framework targeting packs don't exist on macOS. Build/test must run on Windows with VS/MSBuild + .NET Framework 4.6 & 4.8 targeting packs: `msbuild Mces2_Dlls.sln /p:Configuration=Debug` then run Bpr.Tests.Dlls.exe. No Windows runner is wired up yet."
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-06-08"
+    tags: [build, windows-only, dotnet-framework, msbuild, pat-m4p, blocker]
+
+  - id: mem-005
+    type: technical_knowledge
+    content: "Fixed 2026-06-08 (commit dd73ac5): Mces2_Dlls.sln (Debug) referenced a dangling project eroc.drac.rpb.coding.perso_old that does not exist on disk and was never committed (local leftover) — it broke the Debug build with MSB3202 'project file not found'. Removed its Project block + 12 ProjectConfigurationPlatforms entries + NestedProjects entry. Debug now matches Release (13 projects). Mces2_Dlls_release.sln was already clean."
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-08"
+    tags: [build, sln, fix, mces2, msbuild]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
