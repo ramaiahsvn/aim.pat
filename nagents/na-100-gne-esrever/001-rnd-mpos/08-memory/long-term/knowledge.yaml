@@ -5,13 +5,95 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
-    access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    content: >
+      EBE UI-parity work for the ITP mPOS goes in the repo **bpr1003.itp.mpos.2.ebe**
+      (NOT bpr1003.patpos.main — that is a different/older app). The EBE design source of
+      truth is **bpr1003.mpos.ebe** (reference only, never modify; UI under business/uikit/src/ui).
+      Both repos share the same module names (mPos.F2/P2/P2.11/Q2 + mPos.Controller), which makes
+      them easy to confuse. Screens are duplicated per device variant — every change applies x4.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [ebe-parity, repo, bpr1003, itp-mpos, reference, gotcha]
+
+  - id: mem-002
+    type: project_context
+    content: >
+      EBE reskin branch state (2026-06-08): in bpr1003.itp.mpos.2.ebe, **origin/bp_dev is the
+      latest** (107 commits ahead of origin/ai_dev; newest commit = Merge feature/ebe-reskin-p2-p211-q2).
+      ai_dev and bp_rel were ~9 days stale. local master was stale too. For EBE work, base off
+      origin/bp_dev. Per user instruction this session: local ai_dev was created FROM origin/bp_dev
+      (ai_dev = bp_dev base + changes), no upstream set to avoid accidental push to bp_dev.
+      UPDATE (2026-06-08, later): ai_dev is now the canonical working branch and was SYNCED to latest.
+      Merged origin/bp_dev (107 EBE-reskin commits) into ai_dev (clean, no conflicts; ai_dev's prior
+      wysiwyg-sync merge preserved) and pushed to origin/ai_dev as a FAST-FORWARD (9458dc7e..3c6de8cd)
+      — no force-push, branch protection (Maintainers-only, force_push disabled) left intact. Now
+      local ai_dev == origin/ai_dev == bp_dev content (origin/ai_dev 0 behind bp_dev). Work on ai_dev only.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [git, branch, bp_dev, ai_dev, ebe-reskin, sync, fast-forward]
+
+  - id: mem-003
+    type: technical_knowledge
+    content: >
+      EBE reskin status (bp_dev base, 2026-06-08): the EBE **theme/colour pass is already done**
+      on most screens (they reference @color/ebe_background, ebe_surface, ebe_key_ok, ebe_key_ok_text).
+      The reviewer's remaining 8 items are **structural/visual parity + missing assets**, not colours.
+      Concrete gaps: amount-entry (activity_keyboard_transaction.xml) and transaction-activity
+      (activity_layout_transaction_status_newui.xml) have ZERO ebe_ refs; card insert/tap/swipe Lottie
+      animations are entirely ABSENT (EBE drives them via LottieFragment + assets/drawable/default/
+      {en,ar}/{insert,tap,swipe}_card.json, hooked at ItpEMVCardActivity.onSearchCard); icons are a
+      major gap (repo 45 vs EBE 167 ic_/icon files; ic_sale/void/refund/settle/balance/history/print/
+      logout all missing); settlement & settings mostly un-themed. Full gap analysis:
+      07-axon-terminals/deliverables/ebe-parity-gap-analysis.md.
+    created_at: "2026-06-08"
+    confidence: 0.95
+    tags: [ebe-parity, gap-analysis, icons, lottie, amount-entry, settlement]
+
+  - id: mem-004
+    type: technical_knowledge
+    content: >
+      Build gotcha: bpr1003.itp.mpos.2.ebe variants are built on **Windows**. On macOS,
+      mPos.P2.11/app/build.gradle hardcodes a Windows keystore path (C:/CQI/.../Q2POS.jks) that
+      Gradle evaluates at configuration time, breaking ALL tasks. F2/Q2 have no hardcoded keystore
+      (P2 uses relative ../app/sunmi.jks) so they are cleaner local-build targets. JDK17 at
+      /opt/homebrew/opt/openjdk@17; Android SDK at ~/Library/Android/sdk. Cannot visually verify
+      UI parity headless (no device/emulator) — parity is a rendered-screen judgment for the team.
+    created_at: "2026-06-08"
+    confidence: 0.95
+    tags: [build, gradle, windows-keystore, macos, verification-limit]
+
+  - id: mem-005
+    type: technical_knowledge
+    content: >
+      HARD build blocker (2026-06-08): bpr1003.itp.mpos.2.ebe CANNOT build on this Mac even for F2.
+      :mPos.Controller:debugCompileClasspath fails — "Could not find :mPosCore_1.10.117:" and
+      ":sonic-sdk-release-1.5.0:" (vendor AARs not present/resolvable locally). So there is NO local
+      compile gate for ANY change; verification must happen on the Windows build host (or after those
+      vendor AARs are provided). Also: the "missing icons" (reviewer item 4) is NOT unresolved
+      resources — an autonomous scan found 0 missing @drawable refs; all resolve via the app module or
+      the shared mPos.Controller (which holds the ebe_* drawables: ebe_bg_input_field, round_green_btn,
+      ebe_keyboard_ok_button, etc.). The icon gap is VISUAL/wiring (old icons shown or EBE icons not
+      referenced), requiring rendered EBE screens + per-screen edits, not a file import. Lesson: search
+      mPos.Controller (shared) too, not just app module + EBE repo, when checking resource presence.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [build-blocker, vendor-aar, mpos-controller, icons, no-local-build, verification]
+
+  - id: mem-006
+    type: handoff
+    content: >
+      2026-06-08: EBE UI-parity implementation spec HANDED OFF to the Windows-side dev via GitLab.
+      Created **issue #1** on project 229 (BPR1003/bpr1003.itp.mpos.2.ebe):
+      https://gitlab.bnprs.ai/BPR1003/bpr1003.itp.mpos.2.ebe/-/issues/1 — assigned to
+      **Suneel Valavala** (gitlab user 18, suneelvalavala34, suneel.valavala@bnprs.in), labels
+      ebe-parity,ui. Body = the full per-item spec from
+      07-axon-terminals/deliverables/ebe-parity-implementation-spec.md (build/verify on Windows host,
+      base origin/bp_dev). Two deliverables remain on file: ebe-parity-gap-analysis.md and the
+      implementation-spec. The reviewer-reply draft was written but NOT yet sent. Implementation itself
+      stays with the Windows team (no local build gate here — see mem-005).
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [handoff, gitlab, issue, suneel, ebe-parity, deliverable]
 
   # Example entries:
   # - id: mem-002
