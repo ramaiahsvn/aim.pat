@@ -19,8 +19,13 @@
 | 2 | IAM instance role + profile / Lambda role | `win-build-runner-role` + `win-build-runner-profile` / `win-runner-control-role` (inline `ec2-start-stop-tagged`) | ✅ created | 2026-06-08 |
 | 3 | Lambda `win-runner-control` + **HTTP API** front door | fn `win-runner-control`; api `gb7ez1jj7i` → `https://gb7ez1jj7i.execute-api.ap-south-2.amazonaws.com` | ✅ created + tested (403/404/400 all correct) | 2026-06-08 |
 | 4 | AMI `mces2-win-build-runner` (VS Build Tools 2022 + Fx 4.6/4.6.2/4.8 + git + gitlab-runner id14) | `ami-0c6054dcbf22e7214` | ✅ available; runner 14 verified **online** | 2026-06-08 |
-| 5 | Persistent runner instance + EventBridge idle-stop | bake instance `i-03563f4ad6ca9abf0` **stopped** (repurpose candidate) | ⏸ **STOP — awaiting go-ahead** | — |
-| 6 | `.gitlab-ci.yml` jobs (na-005/009) | — | pending | — |
+| 5 | Persistent runner `i-03563f4ad6ca9abf0` (Role=win-build-runner, Name=mces2-win-build-runner, **stopped**) + EventBridge `mces2-win-runner-idle-stop` rate(10min)→Lambda | instance `i-03563f4ad6ca9abf0`; rule `mces2-win-runner-idle-stop` | ✅ done; **start/stop cycle tested via HTTP API, runner came online** | 2026-06-08 |
+| 6 | `.gitlab-ci.yml` jobs (na-005/009) | needs CI vars `RUNNER_CTL_URL` + `RUNNER_CTL_TOKEN` | ⏭ handoff to bruid-cperso | — |
+
+> **Steps 1-5 COMPLETE & TESTED.** Live test 2026-06-08: `curl ?action=start` → instance booted + runner 14
+> online in GitLab; `curl ?action=stop` → instance stopped. Resting state = stopped (idle cost ≈ $3.7/mo:
+> one 30 GB EBS + AMI snapshot; compute only during builds). EventBridge idle-stop active (stops if running
+> > MAX_RUN_MIN=30).
 
 > **Bake notes:** AMI baked from temp instance `i-03563f4ad6ca9abf0` (t3.medium, 30 GB, subnet
 > subnet-07ffb12c916a583a7, AMI ami-011b6d2e9dd60cae4). Install driven entirely via SSM Run Command

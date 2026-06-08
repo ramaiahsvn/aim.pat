@@ -103,6 +103,30 @@ memories:
     source: "session-2026-06-08"
     tags: [windows-runner, ami, ssm, vs-build-tools, dotnet-framework, gitlab-runner, bake, cperso]
 
+  - id: mem-005
+    type: infrastructure
+    content: >-
+      2026-06-08 steps 5 DONE — cPerso Windows build runner is LIVE (infra complete, only the
+      .gitlab-ci.yml wiring (step 6, na-005/009) remains). Repurposed the bake instance
+      i-03563f4ad6ca9abf0 as the PERSISTENT runner: retagged Role=win-build-runner (so Lambda
+      win-runner-control manages it), Name=mces2-win-build-runner; resting state = STOPPED. EventBridge
+      rule mces2-win-runner-idle-stop rate(10 minutes) -> Lambda input {"action":"idle-stop",
+      "source":"aws.events"} (handler trusts source=aws.events, skips secret) — stops the box if running
+      past MAX_RUN_MIN=30. TESTED end-to-end via HTTP API: curl ?action=start -> instance booted, runner
+      14 came online in GitLab (windows/amd64); curl ?action=stop -> stopped. FULL RESOURCE INVENTORY
+      (acct 891963159778, ap-south-2): instance i-03563f4ad6ca9abf0; AMI ami-0c6054dcbf22e7214
+      (mces2-win-build-runner); SG sg-025666a8da99505bb; IAM win-build-runner-role/-profile +
+      win-runner-control-role; Lambda win-runner-control; HTTP API gb7ez1jj7i
+      (https://gb7ez1jj7i.execute-api.ap-south-2.amazonaws.com); EventBridge mces2-win-runner-idle-stop;
+      GitLab runner id 14. Idle cost ~$3.7/mo (1x30GB EBS + AMI snapshot). CI vars for step 6:
+      RUNNER_CTL_URL=the HTTP API endpoint, RUNNER_CTL_TOKEN=the Lambda SHARED_SECRET (not in git).
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-06-08"
+    tags: [windows-runner, live, eventbridge, idle-stop, tested, inventory, cperso, ap-south-2]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
