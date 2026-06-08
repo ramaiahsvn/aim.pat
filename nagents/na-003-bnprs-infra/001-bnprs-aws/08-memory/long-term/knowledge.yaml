@@ -50,6 +50,34 @@ memories:
     source: "session-2026-06-08"
     tags: [plan, windows-runner, ec2, ephemeral, cperso, bprmces2, cost-optimisation]
 
+  - id: mem-003
+    type: infrastructure
+    content: >-
+      2026-06-08 PROVISIONED steps 1-3 of the cPerso Windows build runner (acct 891963159778,
+      ap-south-2), paused before the AMI bake (step 4, where cost starts). Resources:
+      (1) SG win-build-runner-sg = sg-025666a8da99505bb in default VPC vpc-0d80a4677ec5ae84d
+      (ingress 0 rules, egress all; admin via SSM, no RDP).
+      (2) IAM: instance role win-build-runner-role + instance profile win-build-runner-profile
+      (AmazonSSMManagedInstanceCore); Lambda role win-runner-control-role with inline policy
+      ec2-start-stop-tagged (ec2:Start/StopInstances scoped to tag Role=win-build-runner; Describe *).
+      (3) Lambda win-runner-control (python3.12, handler handler.handler) controls start/stop/idle-stop,
+      resolves the instance BY TAG Role=win-build-runner (so no instance-id needed). KEY FINDING:
+      Lambda Function URLs are NOT supported in ap-south-2 (and REST apigateway v1 absent) — used an
+      HTTP API (apigatewayv2) front door instead: api id gb7ez1jj7i, endpoint
+      https://gb7ez1jj7i.execute-api.ap-south-2.amazonaws.com (quick-create $default route, payload v2.0,
+      lambda invoke perm statement-id apigw-invoke). Auth = in-function shared-secret via header
+      x-runner-token; secret stored in the Lambda env var SHARED_SECRET (NOT in git, per key-material
+      policy) and given to the user for GitLab CI var RUNNER_CTL_TOKEN; RUNNER_CTL_URL = the endpoint.
+      Tested end-to-end: no/wrong secret=403, good secret+no instance=404, bad action=400 (all correct).
+      MAX_RUN_MIN=30 idle-stop threshold. Next: step 4 AMI bake (needs go-ahead), step 5 instance +
+      EventBridge idle-stop rule, step 6 .gitlab-ci.yml (na-005/009). GitLab runner id 14 already minted.
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-06-08"
+    tags: [windows-runner, ec2, lambda, http-api, apigatewayv2, iam, sg, cperso, ap-south-2, function-url-unsupported]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
