@@ -78,6 +78,31 @@ memories:
     source: "session-2026-06-08"
     tags: [windows-runner, ec2, lambda, http-api, apigatewayv2, iam, sg, cperso, ap-south-2, function-url-unsupported]
 
+  - id: mem-004
+    type: infrastructure
+    content: >-
+      2026-06-08 step 4 (AMI bake) DONE. AMI mces2-win-build-runner = ami-0c6054dcbf22e7214 (ap-south-2),
+      baked from temp instance i-03563f4ad6ca9abf0 (t3.medium, 30GB gp3, base AMI
+      ami-011b6d2e9dd60cae4 Windows Server 2022). Whole install driven via SSM Run Command (no RDP;
+      SG is egress-only). Installed + VERIFIED present: VS Build Tools 2022 (MSBuild at C:\Program Files
+      (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe via vswhere) with
+      workloads MSBuildTools + ManagedDesktopBuildTools; .NET Framework targeting packs v4.6, v4.6.2,
+      v4.8; git 2.54 (choco, added C:\Program Files\Git\cmd to Machine PATH — choco didn't put it on PATH
+      for the service, had to add explicitly); gitlab-runner (shell/powershell executor) registered to
+      runner id 14, service Running, config at C:\Windows\system32\config.toml (SSM cwd) — confirmed
+      ONLINE in GitLab (platform windows amd64). GOTCHA: vs_buildtools.exe --quiet --wait returned exit 0
+      in ~90s (looked too fast) but components WERE installed — always verify with vswhere + targeting-pack
+      paths, not just exit code. The bake instance is now STOPPED (kept as the step-5 persistent-runner
+      repurpose candidate). NEXT (await go-ahead): step 5 = make persistent runner (retag Role=
+      win-build-runner + rename mces2-win-build-runner, keep stopped) + EventBridge rate(10 min) ->
+      win-runner-control action=idle-stop; step 6 = .gitlab-ci.yml start/build/stop (na-005/009).
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-06-08"
+    tags: [windows-runner, ami, ssm, vs-build-tools, dotnet-framework, gitlab-runner, bake, cperso]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
