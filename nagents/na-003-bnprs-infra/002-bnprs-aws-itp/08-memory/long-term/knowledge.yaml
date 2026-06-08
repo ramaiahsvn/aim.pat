@@ -4,14 +4,59 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
+    type: operation
+    content: >
+      2026-06-08: Fully tore down the mGate UAT environment in eu-central-1 (Frankfurt) from repo
+      bpr1002.mgate.iaac (branch bp_rel, base origin/bp_dev). Destroyed all 21 deployed stacks via
+      `terraform destroy` in dependency order: 12 services -> platform/uat -> 8 bootstrap (eip last).
+      Removed: VPC vpc-03808b1a6448c99dc, Aurora cluster mgate-db, ECS cluster mgate-ecs-cluster,
+      3 ALBs (maingateway/portalbackend/callbackapplication), 12 eu-central-1 mgate-* ECR repos, all
+      UAT S3 buckets (cloudtrail, alb-logs, portal-frontend x2). 4 service stacks (mainQueueService,
+      otpStatus, servicesDb, servicesOtp) were never deployed (no state) and were skipped.
+      PRESERVED: final Aurora snapshot `mgate-db-uat-final-20260608` (available, for recovery).
+      Working-tree edits used during teardown were NOT committed and were discarded afterward.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [teardown, uat, mgate, eu-central-1, terraform, bpr1002, snapshot]
+
+  - id: mem-002
+    type: incident_learning
+    content: >
+      mGate UAT teardown (2026-06-08) hit MANY out-of-band / dependency blockers — terraform destroy
+      stalled repeatedly. Recurring patterns & fixes for next time: (1) RDS/Aurora: live
+      deletion_protection must be disabled via CLI AND config deletion_protection=false; module had
+      skip_final_snapshot=false but no final_snapshot_identifier -> took a manual snapshot instead.
+      (2) ALBs had deletion_protection enabled. (3) VPC delete blocked by ORPHANED resources not in
+      terraform: 5 ECS services + tasks + an ALB + 6 security groups (servicesdb/mainqueueservice/
+      otpstatus/callbackapplication/servicesotp -ecs-sg, callbackapplication-alb-sg) — deleted manually
+      to release ENIs. (4) S3 versioned buckets need force_destroy or manual version+marker purge;
+      portal-frontend bucket had ~4000 versions (page through ALL pages, don't use a 'no-progress'
+      heuristic). (5) AppConfig: 82 hosted config versions block profile deletion. (6) IAM user
+      mgate-appconfig-test had an out-of-band inline policy (ecs-elb-cw-readonly). (7) ECR repos must
+      be emptied of images first. (8) Service stacks' data.tf had WRONG remote_state keys
+      (platform/prod and flat bootstrap keys instead of */uat/) -> "Unable to find remote state".
+      (9) Destroying gitlab-ci + ecr deleted ACCOUNT-GLOBAL OIDC providers (gitlab.bnprs.ai +
+      token.actions.githubusercontent.com) that other stacks/CI share -> re-created both (AWS uses
+      JWKS not thumbprint, so placeholder thumbprint is fine). LESSON: UAT bootstrap stacks should not
+      own account-global/shared resources; and these envs are built on Windows (hardcoded Windows
+      keystore paths break macOS gradle builds is the OTHER repo; here it was state-key drift).
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [teardown, terraform, blockers, oidc, ecs-orphans, s3-versions, appconfig, ecr, lessons]
+
+  - id: mem-003
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
-    access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    content: >
+      mGate environments (account 819144294008): UAT runs in eu-central-1 (Frankfurt) with repos/
+      resources named mgate-* (no suffix). PROD/PROD-TEMP run in us-east-2 with their OWN ECR repos
+      and S3 (mgate-prod-temp-*, mgate-prod-*). IAM is global so OIDC providers are shared account-wide.
+      Terraform state bucket: mgate-terraform-state (eu-central-1), per-env keys like
+      platform/uat/terraform.tfstate. The "maingateway-prod-temp" ECS service (us-east-2,
+      cluster mgate-prod-temp-ecs-cluster) is the live PROD-TEMP gateway. Unrelated prod system in this
+      account: QI-SMS-GW (vpc-0cb13dd0a0313af5e, NAT nat-1c66b534b716dbf33) — do NOT touch.
+    created_at: "2026-06-08"
+    confidence: 0.95
+    tags: [mgate, environments, regions, prod, sms-gw, state-bucket]
 
   # Example entries:
   # - id: mem-002
