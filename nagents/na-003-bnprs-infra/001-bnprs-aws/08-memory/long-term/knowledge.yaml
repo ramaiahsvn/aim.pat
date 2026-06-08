@@ -158,6 +158,21 @@ memories:
     source: "session-2026-06-08"
     tags: [ci, pipeline, webhook, wow64, msbuild, msb1009, root-cause, gitlab-runner, system32, lesson, build-errors]
 
+  - id: mem-007
+    type: infrastructure
+    content: >-
+      2026-06-09 AMI re-baked to capture the fixed runner working-dir (C:\GitLab-Runner). NEW AMI =
+      ami-0b755648a6e23849f (name mces2-win-build-runner-20260609, tag Name=mces2-win-build-runner).
+      OLD AMI ami-0c6054dcbf22e7214 + its snapshot snap-0b6ded4845c86a660 DEREGISTERED/DELETED (superseded
+      mem-004/mem-005 AMI id). Persistent runner instance i-03563f4ad6ca9abf0 unchanged (stopped). All
+      other resources per mem-005 inventory still current.
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-06-09"
+    tags: [ami, rebake, mces2-win-build-runner, cleanup]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
