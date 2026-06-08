@@ -127,6 +127,37 @@ memories:
     source: "session-2026-06-08"
     tags: [windows-runner, live, eventbridge, idle-stop, tested, inventory, cperso, ap-south-2]
 
+  - id: mem-006
+    type: incident_learning
+    content: >-
+      2026-06-08 step 6 — cPerso CI pipeline is FULLY WORKING end-to-end: git push to main -> GitLab
+      pipeline -> pipeline webhook (hook 63 on project 1) -> HTTP API -> Lambda starts EC2 -> runner 14
+      online -> git clone + MSBuild -> pipeline ends -> webhook stops EC2 (idle-stop backstop). No CI
+      start/stop jobs/control-runner (none available); webhook + idle-stop chosen instead. Lambda handler
+      extended to accept GitLab webhooks (X-Gitlab-Token == SHARED_SECRET; start on early pipeline
+      states, stop on terminal). CRITICAL ROOT-CAUSE LESSON (cost ~10 failed pipelines to find): a
+      gitlab-runner whose working/builds dir is under C:\Windows\System32 makes the 32-bit MSBuild.exe
+      (...\BuildTools\MSBuild\Current\Bin\MSBuild.exe) hit WOW64 File System Redirection -> System32
+      silently maps to SysWOW64 -> MSBuild can't see the checked-out .sln -> "MSB1009 Project file does
+      not exist" EVEN THOUGH 64-bit PowerShell Test-Path says it exists. FIX: reinstall the runner
+      service with --working-directory C:\GitLab-Runner (config.toml moved there from System32). The bake
+      had registered the runner from the SSM default cwd (System32) — DO NOT register/install
+      gitlab-runner from System32. Other CI gotchas fixed: project had builds_access_level=disabled (must
+      enable); vswhere needs -products * to see VS BuildTools; VS .sln needs UTF-8 BOM + CRLF (a Python
+      rewrite stripped them -> also MSB1009-ish). PENDING: re-bake the AMI ami-0c6054dcbf22e7214 to
+      capture the fixed runner working-dir (current AMI still has the System32 config). The BUILD ITSELF
+      now fails on PRE-EXISTING CODE errors in BprMces2 (not infra): CS2001 missing source files in
+      coding.exchange (Scripts\QiCommon/QiUtils/Apdu.Qi.Read/Write.cs) and coding.preperso_kona
+      (Apdu.PrePerso.cs); CS1061/CS0029 in coding.preperso (GlobalPlatform.UpdateStaticKeys); MSB3073
+      post-build Copy to a HARDCODED dev path C:\BPR\GitRepos\trp1002.cperso.qiemv\BprMces2\Bin in
+      Bpr.GP\globalplatform.net.csproj. These need code fixes (na-005/009 / dev team).
+    created_at: "2026-06-08"
+    last_accessed: "2026-06-08"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-06-08"
+    tags: [ci, pipeline, webhook, wow64, msbuild, msb1009, root-cause, gitlab-runner, system32, lesson, build-errors]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
