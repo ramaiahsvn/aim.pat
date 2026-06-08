@@ -11,6 +11,20 @@
 
 ---
 
+## 0. Provisioning log (live)
+
+| # | Resource | ID / value | Status | Date |
+|---|----------|-----------|--------|------|
+| 1 | Security group `win-build-runner-sg` (egress-only, VPC vpc-0d80a4677ec5ae84d) | `sg-025666a8da99505bb` | ✅ created | 2026-06-08 |
+| 2 | IAM instance profile + Lambda role | — | ⏳ next | — |
+| 3 | Lambda `win-runner-control` + Function URL | — | pending | — |
+| 4 | AMI bake (temp t3.medium, 30 GB) | — | pending (cost starts) | — |
+| 5 | Stopped runner instance + EventBridge idle-stop | — | pending | — |
+| 6 | `.gitlab-ci.yml` jobs (na-005/009) | — | pending | — |
+
+> GitLab runner already minted by na-003/003: **runner id 14** (project `TRP1002/trp1002.cperso.mces2`,
+> tags `windows,dotnetfx`). Default VPC: `vpc-0d80a4677ec5ae84d` (172.31.0.0/16, ap-south-2).
+
 ## 1. Purpose
 
 `BprMces2` (repo `trp1002.cperso.mces2`) is **.NET Framework 4.6/4.8 + WinForms** → it can only be built
