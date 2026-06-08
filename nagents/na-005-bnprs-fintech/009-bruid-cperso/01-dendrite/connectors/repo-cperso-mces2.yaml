@@ -10,8 +10,8 @@ version: "1.0"
 connection:
   local_path: "/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.mces2"
   remote: "http://16.112.21.84/TRP1002/trp1002.cperso.mces2.git"  # self-hosted GitLab (16.112.21.84)
-  default_branch: master
-  branches: [master, ai_dev, bp_dev, bp_rel]
+  default_branch: main
+  branches: [main]   # consolidated 2026-06-08: master→main; ai_dev/bp_dev/bp_rel deleted (no unique work)
   auth:
     type: git-credential        # uses local git credential for 16.112.21.84
 
@@ -31,7 +31,7 @@ capabilities:
   - build_dotnet          # msbuild Mces2_Dlls.sln (Windows/MSBuild)
   - run_tests             # Bpr.Tests.Dlls.exe
 
-# CI: 2-approval gate on bp_dev / bp_rel (see .gitlab-ci.yml, BPR1000/ci-templates)
+# CI: minimal — MR-only workflow rule (2-approval gate dropped 2026-06-08 with bp_dev/bp_rel)
 
 priority: high
 rate_limit: n/a

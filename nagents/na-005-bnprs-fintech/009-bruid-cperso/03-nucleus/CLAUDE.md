@@ -133,14 +133,14 @@ BRUID card (007-bruid-applet)
 - **Repo**: `trp1002.cperso.mces2`
 - **Local**: `/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.mces2`
 - **Remote**: `http://16.112.21.84/TRP1002/trp1002.cperso.mces2.git` (self-hosted GitLab)
-- **Default branch**: `master` (also `ai_dev`, `bp_dev`, `bp_rel`)
+- **Default branch**: `main` (single branch — consolidated 2026-06-08: renamed from `master`; `ai_dev`/`bp_dev`/`bp_rel` deleted as they held no unique work)
 - **Components**:
   - `BprMces2/` — C# (.NET) MCES2 plugin DLLs (Bpr.GP GlobalPlatform SCP01/02; `eroc.drac.rpb.coding.perso` → `ChipCoding.cs`; `coding.preperso` + `_gnd`/`_kona`/`_cl`; `coding.exchange`; `Bpr.Tests.Dlls`). Version `2.41.03`.
   - `BprDataPrep/` — Tri-Badge PURE perso data preparation.
   - `GemMces2/` — **split out of this repo** (Gemalto/Thales ISPI4MLB2 reader interface); removed 2026-06-08, commit `d485f4d`.
 - **Related repo**: `trp1002.cperso.qiscript` (C++ QI/EMV layer, `Bpr.QiScript.dll`) — separate repo on same GitLab.
 - **Build**: `msbuild Mces2_Dlls.sln` (Windows/MSBuild). **Tests**: `Bpr.Tests.Dlls.exe`.
-- **CI**: 2-approval gate on `bp_dev` / `bp_rel` merges (BPR1000/ci-templates).
+- **CI**: minimal — MR-only `workflow` rule. The former 2-approval gate (`approval-check.yml`) was dropped 2026-06-08 with the `bp_dev`/`bp_rel` branches.
 
 ## Project Conventions
 
