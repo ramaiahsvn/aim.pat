@@ -441,9 +441,17 @@ sudo bash -c 'echo -e "Subject: Test\n\nTest message" | msmtp ramaiah@bnprs.in'
 
 **Workaround:** Backup TAR is split into 9MB chunks with `split`. Each chunk is uploaded individually. Restored with `cat part.* > backup.tar`. Threshold confirmed: ≤9MB works, ≥11MB fails.
 
+### Disk-Full Alerting (configured 2026-06-08)
+
+`/usr/local/bin/disk-alert.sh` runs hourly (root cron `0 * * * *`); emails `ramaiah@bnprs.in`
+(HTML, Segoe UI 15px) when `/` exceeds **85%**, throttled to once/12h, auto-rearms when usage
+drops. Log: `/var/log/disk-alert.log`. Backstops the backup script's own ≥90% pre-flight abort.
+
 ### Server Down Alerting
 
-Not yet configured. Pending: set up **UptimeRobot** (free) at https://uptimerobot.com to monitor `http://16.112.21.84` and alert `ramaiah@bnprs.in`.
+External uptime monitoring still **pending** an UptimeRobot Main API key. Plan: two HTTP monitors
+(`https://gitlab.bnprs.ai` + `http://16.112.21.84`) and email alert contact `ramaiah@bnprs.in`,
+5-min interval, free tier. Key → `01-dendrite/secrets/secrets.yaml` (git-ignored).
 
 ### Zoho OAuth Token Refresh
 
@@ -451,7 +459,9 @@ rclone handles refresh automatically. If auth fails after long inactivity, re-au
 
 ## Pending Actions
 
-- [ ] Set up UptimeRobot to monitor `http://16.112.21.84` → alert `ramaiah@bnprs.in` on server down
+- [x] Disk-full alerting via `disk-alert.sh` (hourly cron, 85% threshold) — done 2026-06-08
+- [ ] Set up UptimeRobot to monitor **both** `https://gitlab.bnprs.ai` and `http://16.112.21.84`
+  → alert `ramaiah@bnprs.in` on down — blocked on Main API key from user
 
 ## Persona
 

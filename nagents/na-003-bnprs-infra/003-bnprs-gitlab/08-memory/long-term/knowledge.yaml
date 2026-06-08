@@ -146,6 +146,82 @@ memories:
     tags: [migration, gitlab, github, mirror, backup, bash, gh-cli, all-groups]
     detail_file: "gitlab-to-github-mirror-20260225.sh"
 
+  - id: mem-014
+    type: incident
+    content: >
+      2026-06-08 outage: GitLab HTTPS (443) hung / unresponsive while HTTP (80) still 301-redirected.
+      Root cause: root disk (49G) 100% full → puma/workhorse could not write → container "Up (unhealthy)",
+      could not even `docker exec` ("no space left on device"). Two consumers: (1) 18G unrotated container
+      stdout log /var/lib/docker/containers/<id>/<id>-json.log; (2) 8.8G of piled-up backup TARs in
+      /srv/gitlab/data/backups (KEEP_LOCAL=1 cleanup had failed because disk was already full — chicken/egg).
+      Fix: `sudo truncate -s 0 <json.log>` (freed 18G, safe online), deleted stale/partial backup TARs
+      keeping latest complete one, `docker restart gitlab`. Recovered to 52% used, HTTPS → 302.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [incident, outage, disk-full, container-log, backup, recovery, truncate]
+
+  - id: mem-015
+    type: critical
+    content: >
+      Docker `restart` does NOT apply /etc/docker/daemon.json log-opts (max-size 100m / max-file 3) to an
+      existing container — LogConfig is baked at CREATION time. A long-lived `gitlab` container therefore
+      keeps unlimited json-file logging (inspect shows LogConfig.Config = map[]) and its stdout log grows
+      unbounded until the disk fills. daemon.json rotation only takes effect when the container is RECREATED
+      (docker rm + docker run). Bridge fix applied 2026-06-08 without downtime: host logrotate rule
+      /etc/logrotate.d/docker-containers (size 100M, rotate 3, copytruncate, compress) over
+      /var/lib/docker/containers/*/*.log. On next container recreate, daemon.json rotation will also apply.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [critical, docker, logrotate, daemon-json, log-rotation, disk, prevention]
+
+  - id: mem-016
+    type: incident
+    content: >
+      2026-06-08 follow-up to the disk-full outage: the existing cron "safety nets" were structurally
+      broken and silently did nothing useful. Three defects: (1) cleanup-logs.sh (root cron, Sun 03:00)
+      ran reliably but only cleaned /srv/gitlab/logs app logs — it never touched the real culprit,
+      /var/lib/docker/containers/*/*-json.log (Docker stdout, the 18G file). (2) Backup retention prune
+      (`ls -t $BACKUP_DIR/*.tar | tail -n +2 | rm`) silently no-ops when the backup runs as the ubuntu
+      user, because /srv/gitlab/data/backups is 0700 owned by uid 998 — ubuntu gets "Permission denied",
+      ls returns empty, nothing is pruned. (3) Duplicate/mismatched schedules: a DAILY backup lived in
+      the ubuntu crontab (0 2 * * *) plus a MONTHLY one in root (0 2 1 * *) — neither matched the
+      documented weekly Fri 18:30 UTC. Daily creation + ubuntu-can't-prune = guaranteed pileup; prune
+      only ever worked on the ~monthly root run.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [incident, cron, backup, retention, permissions, log-cleanup, root-cause]
+
+  - id: mem-017
+    type: configuration
+    content: >
+      2026-06-08 fixes applied (originals backed up to /root/cronfix-backup-<ts> on the server):
+      (1) Removed the duplicate DAILY backup from the ubuntu crontab — ubuntu crontab is now empty.
+      (2) Backup now runs ONLY as root, weekly Fri 18:30 UTC (30 18 * * 5), matching docs — root has
+      permission to prune the 0700 backup dir so KEEP_LOCAL=1 actually works. cleanup-logs.sh stays at
+      Sun 03:00 (0 3 * * 0). (3) cleanup-logs.sh extended to also `truncate -s 0` any
+      /var/lib/docker/containers/*-json.log over 100M. (4) Added a pre-flight guard at the top of
+      gitlab-backup-upload.sh: aborts + emails if `/` is >=90% full, preventing silent partial backups.
+      KEY RULE: the GitLab backup script MUST run as root (not ubuntu) or its local-backup pruning
+      silently fails on the 0700/uid-998 backup dir. Also note the host logrotate rule from mem-015 now
+      covers the docker container logs continuously (size 100M, copytruncate).
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [configuration, cron, backup, fix, root-user, disk-guard, logrotate]
+
+  - id: mem-018
+    type: configuration
+    content: >
+      2026-06-08 monitoring added. Disk-usage alert: /usr/local/bin/disk-alert.sh runs hourly via root
+      cron (0 * * * *), emails ramaiah@bnprs.in (HTML, Segoe UI 15px per user pref) when / exceeds 85%,
+      throttled to once/12h via /var/tmp/disk-alert.last, auto-rearms when usage drops below threshold.
+      Log: /var/log/disk-alert.log. Tested working (msmtp delivered). UptimeRobot external monitoring
+      still PENDING a Main API key from the user — plan: two HTTP monitors (https://gitlab.bnprs.ai and
+      http://16.112.21.84) + email alert contact ramaiah@bnprs.in, 5-min interval, free tier. Key to be
+      stored in 01-dendrite/secrets/secrets.yaml (git-ignored); only monitor IDs recorded in memory.
+    created_at: "2026-06-08"
+    confidence: 1.0
+    tags: [monitoring, disk-alert, cron, msmtp, uptimerobot, pending]
+
 # Pruning rules
 pruning:
   max_entries: 500
