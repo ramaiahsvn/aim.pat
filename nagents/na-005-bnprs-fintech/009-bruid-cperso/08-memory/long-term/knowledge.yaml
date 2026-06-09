@@ -73,6 +73,16 @@ memories:
     source: "session-2026-06-09"
     tags: [restructure, rebrand, bprmces2, versioning, vendor-switch, stubs, v4.8, build-fix, dev-team-todo]
 
+  - id: mem-008
+    type: project_context
+    content: "2026-06-09 (commit 3e22407): preperso_kona added to Debug solution Mces2_Dlls.sln as 'preperso_kona(deferred)' with BUILD DISABLED (ActiveCfg-only entries, no Build.0) — visible in VS, skipped by msbuild/CI, so CI stays green. Mirrors the release sln entry (which has Build.0 ENABLED and would fail if built). Still unbuildable: Scripts/Apdu.PrePerso.cs (Kona variant) missing, dev team must supply. QUIRK: the Debug csproj eroc.drac.rpb.coding.preperso_kona.csproj has AssemblyName eroc.drac.rpb.cc.preperso (no _kona suffix) — would collide with main preperso DLL if ever built; release csproj correctly outputs _kona. Plan unchanged: when Kona source arrives, fold into BprMces2PrePersoCC via CardVendor switch (Kona=4 reserved) and delete this legacy project/folder."
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-09b"
+    tags: [mces2, preperso-kona, deferred, sln, ci, dev-team-todo]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
