@@ -83,6 +83,26 @@ memories:
     source: "session-2026-06-10"
     tags: [mces2, preperso-kona, integrated, vendor-switch, sln, ci, dev-team-todo]
 
+  - id: mem-009
+    type: project_context
+    content: "2026-06-10 NATIVE LAYER SWITCHED to libBprCardQi.dll (bpr.cpp src/BprCardQi, agent na-005/002, v2.56.x), replacing Bpr.QiScript.dll (trp1002.cperso.qiscript — now legacy, unreferenced). Commit 16ee0d0 (pipeline 1463 FAILED — see below), fixed by 9f89aa8 (1464 green), then c364a97 (1465 green). Function deltas: QiGet_SupervisorKey -> QiVerifyChallengeK3 (same params, KMS challenge-response); GetQiScript_Central_PrePerso gained bool isBixK3 (BIX K3 applet pre-perso; wired to BprMces2Config.xml PrePerso/IsBixK3, default false); QiRead_DataField qiCodeSize fixed short->int. PERSO IS NATIVE-DIRECT (c364a97, PersoCC v2.33.2): StartEncoding calls StartEncoding_Instant_Perso_Direct — native opens the card itself (Perso/UserCardSlot config, default 0, -1 = TP9000), runs full perso incl. KMS supervisor-key internally, returns card number (5A data); the ~130-line C# APDU/supervisor loop was removed; _isReperso=true matches old hardcoded flag; SmartCardNumber keeps 16-hex-char prefix. GetQiScript_Instant_Perso/QiVerifyChallengeK3 imports remain declared-unused. PrePersoCC v2.31.2. BENCH-VERIFY before production: slot indexing, PC/SC contention (MCES2 host reader session vs native's own connection), card-number format. DEPLOYMENT: libBprCardQi.dll must match host bitness — old Bpr.QiScript.dll was x86; bnprs-libs v2.56.5+ ship windows-64 only (make BprCardQi-windows-32 if host is 32-bit); P/Invoke fails at FIRST CALL, not load."
+    created_at: "2026-06-10"
+    last_accessed: "2026-06-10"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-10"
+    tags: [libbprcardqi, native-layer, perso-direct, qiverifychallengek3, isbixk3, usercardslot, bitness, bench-verify, dev-team-todo]
+
+  - id: mem-010
+    type: technical_knowledge
+    content: "INCIDENT 2026-06-10: user reorganized DLL folders in the working tree (BprMces2PersoCC/Dlls/ -> shared BprMces2/Dlls-32bit/ + new Dlls-64bit/) while a session was committing; `git add -A` swept the move into commit 16ee0d0 WITHOUT the csproj HintPath updates -> pipeline 1463 red (reference resolution). Fix 9f89aa8: PersoCC Debug+release csproj HintPaths Dlls\\ -> ..\\Dlls-32bit\\. LESSONS: (1) in this repo prefer staging specific paths over `git add -A` — the user edits the tree concurrently; (2) PrePersoCC still has its own Dlls/ folder (only PersoCC moved); (3) Dlls-64bit/ currently holds only BaseLib/ChipCodingBaseLib/LightCore (+BaseLib.dll.config) — incomplete set, presumably user WIP."
+    created_at: "2026-06-10"
+    last_accessed: "2026-06-10"
+    access_count: 1
+    confidence: 0.95
+    source: "session-2026-06-10"
+    tags: [incident, git-add-a, hintpath, dlls-32bit, dlls-64bit, ci-red, lesson]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context

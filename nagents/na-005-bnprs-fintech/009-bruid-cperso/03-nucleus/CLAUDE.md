@@ -97,6 +97,7 @@ Legacy per-vendor DLLs (still present in old Z_RELEASE folders only):
 
 - **007-bruid-applet** (na-005): Target card applet
 - **008-bruid-dprep** (na-005): Provides 74-field perso blob input
+- **002-cpp-card-qi** (na-005): `libBprCardQi.dll` — the native QI layer P/Invoked by BprMces2 since 2026-06-10 (replaced `Bpr.QiScript.dll`); also runs instant perso directly (`StartEncoding_Instant_Perso_Direct`)
 - **004-cpp-card-pure** (na-005): QiScript functions (`qiscript_central_perso`, pre-perso, applet load)
 - **005-cpp-pcsc-all** (na-005): PC/SC transport to card reader
 - **na-003/007-bnprs-grc-kms**: HSM key management coordination
@@ -156,7 +157,9 @@ Legacy per-vendor DLLs (still present in old Z_RELEASE folders only):
 - **Related repo**: `trp1002.cperso.qiscript` (C++ QI/EMV layer, `Bpr.QiScript.dll`) — separate repo on same GitLab.
 - **Build**: `msbuild Mces2_Dlls.sln` — **Windows-only** (no test harness; `Bpr.Tests.Dlls` removed 2026-06-09).
 - **CI**: push-to-`main`/MR/web triggers `ci/build.ps1` on the on-demand Windows EC2 runner (started by webhook→Lambda, infra na-003/001); artifacts `ci_artifacts/*.dll`. Green as of `7dc241c`.
-- **Runtime config**: `BprMces2Config.xml` deployed next to the DLLs (sample at `BprMces2/BprMces2Config.xml`) — currently holds `PrePerso/CardVendor`.
+- **Native layer**: `libBprCardQi.dll` (bpr.cpp `src/BprCardQi/`, agent na-005/002) — replaced `Bpr.QiScript.dll` 2026-06-10. Deltas: `QiGet_SupervisorKey`→`QiVerifyChallengeK3`; `GetQiScript_Central_PrePerso` gained `isBixK3`. Instant perso is native-direct via `StartEncoding_Instant_Perso_Direct` (native opens the card itself; KMS supervisor-key handled internally). **Deploy matching host bitness** — old `Bpr.QiScript.dll` was x86; recent bnprs-libs builds are windows-64 only (`make BprCardQi-windows-32` if needed).
+- **Runtime config**: `BprMces2Config.xml` deployed next to the DLLs (sample at `BprMces2/BprMces2Config.xml`) — `PrePerso/CardVendor` (Gemalto|Gnd|Kona), `PrePerso/IsBixK3` (bool), `Perso/UserCardSlot` (int, -1 = TP9000). All read once per process.
+- **Bench-verify before production** (no card/reader on CI): direct-perso slot indexing, PC/SC contention between the MCES2 host reader session and the native layer's own connection, card-number format from `StartEncoding_Instant_Perso_Direct`.
 
 ## Project Conventions
 
