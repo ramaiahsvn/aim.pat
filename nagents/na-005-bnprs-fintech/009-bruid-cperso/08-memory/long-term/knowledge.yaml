@@ -53,6 +53,16 @@ memories:
     source: "session-2026-06-08"
     tags: [build, sln, fix, mces2, msbuild]
 
+  - id: mem-006
+    type: project_context
+    content: "2026-06-09 CI BUILDS GREEN on the on-demand Windows runner (GitLab pipeline -> webhook -> AWS Lambda starts EC2 mces2-win-build-runner, runner id 14, builds, stops; infra owned by na-003/001). .gitlab-ci.yml + ci/build.ps1: vswhere -products * to find VS BuildTools MSBuild; OutputPath overridden to ci_artifacts/ (projects had out-of-tree OutputPaths ..\\..\\..\\..\\Bin and D:\\MCES2\\...); artifacts = ci_artifacts/*.dll. The Debug solution Mces2_Dlls.sln is SCOPED to the 2 projects that actually compile: eroc.drac.rpb.coding.perso (main perso engine -> eroc.drac.rpb.cc.perso.dll) + Bpr.GP/globalplatform.net. EXCLUDED as UNBUILDABLE (need dev-team source/assemblies, NOT infra): coding.exchange (missing Scripts\\QiUtils.cs + Apdu.Qi.Read.cs, never committed, exist nowhere); coding.preperso_cl & coding.preperso_kona (missing vendor-specific Scripts\\Apdu.PrePerso.cs; only preperso+gnd have it, and they differ per vendor); coding.preperso_gnd (needs GS.PCSC assembly absent from repo); coding.preperso & gnd also fail to resolve `using globalplatform.net`. Repo also had: dev-hardcoded post-build Copy to C:\\BPR\\GitRepos\\trp1002.cperso.qiemv\\BprMces2\\Bin (removed from Bpr.GP + release csprojs); coding.preperso repointed old Dlls\\globalplatform.net.dll -> ProjectReference Bpr.GP (kept, dormant until preperso fixed). Also removed Bpr.Tests.Dlls (WinForms GUI, can't run in CI). Bpr.GP/globalplatform.net has UpdateStaticKeys(KeySet)+bool ProcessInitUpdateResponse the preperso code expects."
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-09"
+    tags: [ci, build, green, mces2, broken-projects, preperso, dev-team-todo, artifacts]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
