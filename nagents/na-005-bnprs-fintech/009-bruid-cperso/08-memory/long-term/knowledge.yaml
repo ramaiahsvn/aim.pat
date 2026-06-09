@@ -63,6 +63,16 @@ memories:
     source: "session-2026-06-09"
     tags: [ci, build, green, mces2, broken-projects, preperso, dev-team-todo, artifacts]
 
+  - id: mem-007
+    type: project_context
+    content: "2026-06-09 BprMces2 solution RESTRUCTURED + rebranded (libraries = project = folder = AssemblyName; in-code namespaces left as-is). New names/versions (AssemblyVersion+FileVersion+patDllVersion): coding.perso->BprMces2PersoCC 2.33.0; coding.preperso+coding.preperso_gnd COMBINED->BprMces2PrePersoCC 2.31.0 via a runtime CardVendor switch in Scripts/Apdu.PrePerso.cs (enum CardVendorType{Gemalto=2,Gnd=3,Kona=4}, public CardVendor property default Gemalto; derives cardVendorId + isInstationRequired=CardVendor!=Gemalto; Gemalto/GND differ only by those 2 constants); gnd project deleted. coding.preperso_cl->BprMces2PrePersoCL 2.32.0; coding.exchange->BprMces2DataExchangeCC 2.35.0. New EMPTY STUB libs (name+version reservation, compile green): BprMces2PersoCL 2.34.0, BprMces2DataExchangeCL 2.36.0. Removed leftover Bpr.Tests.Dlls. Both .slns regenerated (BOM+CRLF). CI Debug build (Mces2_Dlls.sln) GREEN building: globalplatform.net, BprMces2PersoCC, BprMces2PrePersoCC, BprMces2PersoCL, BprMces2DataExchangeCL -> artifacts ci_artifacts/*.dll with correct FileVersions. KEY BUILD FIX: BprMces2PrePersoCC must target v4.8 (was v4.6) to ProjectReference the v4.8 globalplatform.net (Bpr.GP) — the v4.6-vs-v4.8 mismatch (NOT a cascade) was why every preperso build hit CS0246 'globalplatform not found'; also deleted the stale Dlls/globalplatform.net.dll. STILL EXCLUDED (need dev-supplied source, renamed but not built): BprMces2PrePersoCL (Main.QiPersoScript uses Apdu_PrePerso but its Apdu.PrePerso.cs is missing); BprMces2DataExchangeCC (missing QiUtils.cs/Apdu.Qi.Read.cs); coding.preperso_kona folder kept/deferred (Kona vendor=4 folds into BprMces2PrePersoCC once its Apdu.PrePerso.cs arrives). FOLLOW-UP: wiring CardVendor to live card/job input for production correctness needs domain confirmation (build default Gemalto). External GemMces2 host may reference old DLL names — coordinate before deploying renamed Components."
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-09"
+    tags: [restructure, rebrand, bprmces2, versioning, vendor-switch, stubs, v4.8, build-fix, dev-team-todo]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
