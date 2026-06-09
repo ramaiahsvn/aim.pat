@@ -69,6 +69,15 @@ BRUID card (007-bruid-applet)
 
 ## Vendor Variants
 
+Since 2026-06-10 (mces2 repo), pre-perso vendor selection is a **runtime switch**, not
+per-vendor DLLs: `BprMces2PrePersoCC` reads `BprMces2Config.xml`
+(`/BprMces2Config/PrePerso/CardVendor`: `Gemalto | Gnd | Kona`, default Gemalto,
+read once per process — host restart to change). The enum is
+`Apdu_PrePerso.CardVendorType { Gemalto=2, Gnd=3, Kona=4 }`; it drives `cardVendorId`
+into the QiScript layer, `isInstationRequired` (Gnd/Kona), and the reflect CSV name.
+
+Legacy per-vendor DLLs (still present in old Z_RELEASE folders only):
+
 | Variant | DLL / Script | Notes |
 |---------|-------------|-------|
 | Gemalto | `preperso_gemalto.dll` | Gemalto card variant |
@@ -134,13 +143,20 @@ BRUID card (007-bruid-applet)
 - **Local**: `/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.mces2`
 - **Remote**: `http://16.112.21.84/TRP1002/trp1002.cperso.mces2.git` (self-hosted GitLab)
 - **Default branch**: `main` (single branch — consolidated 2026-06-08: renamed from `master`; `ai_dev`/`bp_dev`/`bp_rel` deleted as they held no unique work)
-- **Components**:
-  - `BprMces2/` — C# (.NET) MCES2 plugin DLLs (Bpr.GP GlobalPlatform SCP01/02; `eroc.drac.rpb.coding.perso` → `ChipCoding.cs`; `coding.preperso` + `_gnd`/`_kona`/`_cl`; `coding.exchange`; `Bpr.Tests.Dlls`). Version `2.41.03`.
+- **Components** (restructured/rebranded 2026-06-09; library = project = folder = AssemblyName):
+  - `BprMces2/` — C# (.NET Framework) MCES2 plugin DLLs:
+    - `Bpr.GP/` (`globalplatform.net`) — GlobalPlatform SCP01/02
+    - `BprMces2PersoCC` 2.33.0 — main contact perso (`ChipCoding.cs`)
+    - `BprMces2PrePersoCC` 2.31.1 — combined pre-perso, ALL vendors via runtime `CardVendor` switch (Gemalto/Gnd/Kona; legacy `preperso_gnd`/`preperso_kona` projects deleted); vendor set via `BprMces2Config.xml`
+    - `BprMces2PrePersoCL` 2.32.0 — NOT buildable (missing `Apdu.PrePerso.cs`, dev team)
+    - `BprMces2DataExchangeCC` 2.35.0 — NOT buildable (missing `QiUtils.cs`/`Apdu.Qi.Read.cs`, dev team)
+    - `BprMces2PersoCL` 2.34.0, `BprMces2DataExchangeCL` 2.36.0 — empty stubs
   - `BprDataPrep/` — Tri-Badge PURE perso data preparation.
   - `GemMces2/` — **split out of this repo** (Gemalto/Thales ISPI4MLB2 reader interface); removed 2026-06-08, commit `d485f4d`.
 - **Related repo**: `trp1002.cperso.qiscript` (C++ QI/EMV layer, `Bpr.QiScript.dll`) — separate repo on same GitLab.
-- **Build**: `msbuild Mces2_Dlls.sln` (Windows/MSBuild). **Tests**: `Bpr.Tests.Dlls.exe`.
-- **CI**: minimal — MR-only `workflow` rule. The former 2-approval gate (`approval-check.yml`) was dropped 2026-06-08 with the `bp_dev`/`bp_rel` branches.
+- **Build**: `msbuild Mces2_Dlls.sln` — **Windows-only** (no test harness; `Bpr.Tests.Dlls` removed 2026-06-09).
+- **CI**: push-to-`main`/MR/web triggers `ci/build.ps1` on the on-demand Windows EC2 runner (started by webhook→Lambda, infra na-003/001); artifacts `ci_artifacts/*.dll`. Green as of `7dc241c`.
+- **Runtime config**: `BprMces2Config.xml` deployed next to the DLLs (sample at `BprMces2/BprMces2Config.xml`) — currently holds `PrePerso/CardVendor`.
 
 ## Project Conventions
 
