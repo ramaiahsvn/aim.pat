@@ -19,6 +19,20 @@
 | ramaiahsvn | Personal | — | Primary personal account |
 | ramaiahsvn2 | Personal | BNPRS, IscQicard, ITPCQI | Secondary account — owns 3 orgs |
 | iCodeScrum | Organisation / Team | — | Team/product repositories |
+| ramaiah_ISCQI | Enterprise Managed User (EMU) | ISCQI (enterprise) | Smart Notification Gateway (mGate); IdP/SSO-synced |
+
+### Enterprise Managed User — ramaiah_ISCQI
+
+- **EMU account**, not a normal user. Username format `name_SHORTCODE`; the `_ISCQI`
+  suffix is the **ISCQI enterprise** shortcode (the underscore is legal for EMUs).
+- Identity is **synced from an external IdP (SSO/SAML)** — display name "ramaiah",
+  email `ramaiah@bnprs.in`. Profile/account changes go through the **IdP admin**, not GitHub.
+- Not visible on the public API (`api.github.com/users/ramaiah_ISCQI` → 404) — EMU
+  resources live inside the enterprise behind SSO.
+- **Any PAT for this account must be SSO-authorized for the ISCQI enterprise**, or
+  push/API calls are rejected. Authenticate via `gh auth login` (web flow → IdP/SSO).
+- Keep this account's work isolated from the personal accounts — do not cross-push
+  EMU repos to personal accounts or vice-versa.
 
 ### Organisations under ramaiahsvn2
 

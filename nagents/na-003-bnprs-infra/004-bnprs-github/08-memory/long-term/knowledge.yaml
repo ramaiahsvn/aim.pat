@@ -5,13 +5,43 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: "Managed GitHub accounts on pat-m4p: ramaiahsvn (primary personal, active in gh keyring), ramaiahsvn2 (secondary personal; owns orgs BNPRS/IscQicard/ITPCQI), iCodeScrum (org/team). gh keyring has all 3 logged in (https protocol). Per global memory: for private repos force the ramaiahsvn token. NOTE: secrets.yaml had a typo 'iCodeSrum' (missing c) that would break `gh auth token --user`; fixed to iCodeScrum 2026-06-09."
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.95
+    source: "session-2026-06-09"
+    tags: [accounts, github, gh-cli, secrets, pat-m4p]
+
+  - id: mem-002
+    type: project_context
+    content: "Added 2026-06-09: account ramaiah_ISCQI is an ENTERPRISE MANAGED USER (EMU), NOT a normal account. Username format name_SHORTCODE — the _ISCQI suffix is the ISCQI enterprise shortcode (underscores are LEGAL for EMU usernames, contrary to normal GitHub rules). Identity synced from external IdP (SSO/SAML): display name 'ramaiah', email ramaiah@bnprs.in; profile changes go via IdP admin not GitHub. Purpose: Smart Notification Gateway (mGate). Invisible to public API (api.github.com/users/ramaiah_ISCQI -> 404) — EMU resources sit inside the enterprise behind SSO. Any PAT MUST be SSO-authorized for the ISCQI enterprise or push/API is rejected; auth via `gh auth login` web flow -> IdP/SSO. Registered in 03-nucleus/CLAUDE.md account tables + secrets.example.yaml/secrets.yaml (token slot still EMPTY/pending). Keep EMU work isolated from personal accounts (no cross-push)."
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-09"
+    tags: [emu, enterprise-managed-user, ramaiah_ISCQI, iscqi, sso, mgate, accounts, pending-auth]
+
+  - id: mem-003
+    type: project_context
+    content: "2026-06-09 mGate import STAGED, awaiting EMU auth to push. Source: /Users/bnprs/BPR/GitRepos2/BPR1002_mGate_IQ — 4 folders git-init'd (branch main, author 'ramaiah <ramaiah@bnprs.in>', clean conventional commits, NO Claude/AI attribution per user pref [[feedback-clean-commits-no-claude]]): bpr1002.mgate.api (404 files, Java/Maven), bpr1002.mgate.api.portal (466, Java/Maven), bpr1002.mgate.iaac (432, Terraform), bpr1002.mgate.web (154, Vite/React). TARGET: create as PRIVATE under ramaiah_ISCQI user namespace, FALL BACK to an org if EMU policy blocks user-owned repos. SECRET HANDLING done before commit: iaac keys/*.pem + *.tfvars gitignored (real prod private keys mgate-prod.pem/mgate-prod-vpn.pem stay local); web application/.env.uat gitignored (held VITE_TOKEN + VITE_MAINGATEWAY_TOKEN 342-char JWT) — kept .env.uat.example, committed .env.development/.production (URLs only). Java app .properties already used ${ENV} placeholders (255) — nothing to scrub; .gitlab-ci.yml AWS creds are OIDC/runtime $(...) not literals. Verified 0 secret files tracked. DONE 2026-06-09: ramaiah_ISCQI authed (gho_ OAuth web-flow token in gh keyring, scopes repo+workflow). EMU BLOCKS user-namespace repo creation ('Repository creation using enterprise-managed user account inside this enterprise is not allowed') — so created under the **ISCQI org** instead (only org visible to the account). All 4 pushed PRIVATE, default branch main, clean remote URLs (gh credential helper, no token in .git/config): github.com/ISCQI/bpr1002.mgate.{api,api.portal,iaac,web}. LESSON: for ISCQI EMU, repos MUST live in an org (e.g. ISCQI), never the user namespace."
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-09"
+    tags: [mgate, import, staged, ramaiah_ISCQI, private, secrets, gitignore, pending-auth, push]
+
+  - id: mem-004
+    type: project_context
+    content: "2026-06-09 mGate GitHub branch flow set up (mirrors the GitLab dev->rel->main convention). On all 4 ISCQI repos (bpr1002.mgate.{api,api.portal,iaac,web}) created branches **bp_dev** and **bp_rel** off main and applied classic branch protection via `gh api -X PUT repos/ISCQI/<repo>/branches/<b>/protection`: required_pull_request_reviews=1 + dismiss_stale_reviews, allow_force_pushes=false, allow_deletions=false, required_conversation_resolution=true, enforce_admins=false. main ALSO protected with the same ruleset (added 2026-06-09 on user request) — so all 3 branches (main/bp_dev/bp_rel) are protected on all 4 repos. NOTE: GitHub auto-enabled Dependabot on the org — it flagged many vulns on push (api 708, api.portal 116, web 80) and opened dependabot/maven branches; raise with the team. Branch-protection JSON template kept at /tmp/branch_prot.json (ephemeral)."
+    created_at: "2026-06-09"
+    last_accessed: "2026-06-09"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-09"
+    tags: [mgate, branches, bp_dev, bp_rel, branch-protection, iscqi, dependabot, github]
 
   # Example entries:
   # - id: mem-002
