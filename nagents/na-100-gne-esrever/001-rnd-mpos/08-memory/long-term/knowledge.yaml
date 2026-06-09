@@ -105,8 +105,10 @@ memories:
       no stashes; ai_dev == origin/ai_dev (3c6de8cd). To surface the work on master, opened
       promotion **MR !9 bp_dev -> master** (project 229, assignee Suneel user18, labels ebe-parity,ui):
       https://gitlab.bnprs.ai/BPR1003/bpr1003.itp.mpos.2.ebe/-/merge_requests/9 — 128 commits,
-      +15538/-1839. master has NO emoji-approval gate (only bp_dev/bp_rel do) but is protected
-      Maintainers-only, so a Maintainer merges. NOTE: reskin commits authored by Admin
+      +15538/-1839. MERGED 2026-06-09 by root (merge commit cc27692b "Merge branch 'bp_dev' into
+      'master'") — origin/master NOW HAS the full reskin; the default-branch view is fixed. master has
+      NO emoji-approval gate (only bp_dev/bp_rel do) but is protected Maintainers-only.
+      NOTE: reskin commits authored by Admin
       <admin@gitlab.bnprs.ai>. Also: this repo's local git remote URL embeds a glpat token in
       plaintext (.git/config only, not committed) — consider switching to a clean URL.
     created_at: "2026-06-09"
