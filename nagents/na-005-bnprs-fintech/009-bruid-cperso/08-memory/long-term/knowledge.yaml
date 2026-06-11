@@ -122,3 +122,131 @@ pruning:
   stale_after_days: 90
   min_confidence: 0.3
   strategy: "least_recently_used"
+
+  - id: mem-011
+    type: technical_knowledge
+    content: >-
+      2026-06-11 ROOT CAUSE + FIX DRAFTED (working-tree only, not committed) for
+      "IReaderBase not passed to StartEncoding_Instant_Perso_Direct -> native
+      waits on PC/SC and fails": Apdu_Qi_Write.StartEncoding ignored the
+      host's injected IReaderBase (ctor param oCodingInterface) and called the
+      native-direct export, which opens its OWN PC/SC connection
+      (PcScHandle.open(slot) in BprCardQi.h). On an MCES2 bureau host the host
+      already owns the coupler (and Gemalto/ISPI4MLB2 couplers may not be
+      PC/SC-enumerable), so the native open hangs/contends. FIX = inject the
+      transport. NATIVE (bpr.cpp src/BprCardQi, agent na-005/002): new export
+      StartEncoding_Instant_Perso_Mces2(qiCode,qiCodeSize,embData,size,
+      PatApduTransmitFn transmit,void* ctx,_isT0,_isReperso,*errCode). New
+      callback typedef PatApduTransmitFn(const char* apduHex,char* respHexBuf,
+      int bufSize,void* ctx)->int (0=ok); PatHost_Transmit_Common routes APDUs
+      through file-static g_hostTransmitFn (registered via RAII HostTxScope for
+      the call, NOT re-entrant). Slot sentinels PAT_SLOT_TP9000(-1),
+      PAT_SLOT_HOST(-2); _qiread_datafield now dispatches PAT_SLOT_HOST ->
+      host callback. _Mces2 derives SUPERVISOR_KEY locally via
+      BprCrypt::patReadAdminKey_WithoutCard(USER_CHALLENGE) (NOT the KMS K3
+      challenge that Direct uses) per user instruction. EXISTING
+      StartEncoding_Instant_Perso_Direct LEFT UNTOUCHED (user: "do not touch
+      existing method"; the earlier ask to strip its #ifdef _DEBUG line was
+      retracted). C# (trp1002.cperso.mces2 BprMces2PersoCC Apdu.Qi.Write.cs):
+      [UnmanagedFunctionPointer(Cdecl)] delegate PatApduTransmit with IntPtr
+      respHexBuf (manual Marshal.Copy + NUL, NOT StringBuilder — unreliable for
+      reverse callbacks); HostTransmit() does oCodingInterface.SendAPDU(apdu,out
+      resp) and returns dataHex+StatusHex uppercased; delegate held in field
+      _hostTransmitDelegate across the call (GC). New config gate
+      /BprMces2Config/Perso/Mode (HostReader default | Direct) via
+      ResolvePersoModeFromConfig; HostReader=>_Mces2 callback, Direct=>legacy
+      slot path. Sample BprMces2Config.xml updated. VERIFIED: mingw
+      make BprCardQi-windows-32 builds+links clean, export ordinal 32 present
+      (objdump). NOT bench-tested on a real card/reader; C# not compiled
+      (Windows-only). Bench-verify: response hex format from SendAPDU
+      (data+SW order), challenge length 16 hex, supervisor-cmd indexing.
+    created_at: "2026-06-11"
+    last_accessed: "2026-06-11"
+    access_count: 1
+    confidence: 0.9
+    source: "session-2026-06-11"
+    tags: [bprcardqi, mces2, ireaderbase, perso-callback, host-transport, pcsc-contention, draft, bench-verify, dev-team-todo]
+
+  - id: mem-012
+    type: technical_knowledge
+    content: >-
+      GS.* DLLs in BprMces2 are NOT removable (investigated 2026-06-11). The
+      MCES2 reader contract IReaderBase (defined in ChipCodingBaseLib.dll) has
+      SendAPDU(GS.Apdu.APDU, out ChipResponse) — GS.Apdu.APDU is its parameter
+      type, so any host-reader transmit needs GS.Apdu. GS.Apdu.dll itself
+      depends on GS.HexLibrary.dll (where ToHexString lives; used live in
+      ChipCoding.cs). And Bpr.Card.Core.dll (mandatory framework ref)
+      transitively pulls ALL FOUR: GS.Apdu, GS.HexLibrary, GS.PCSC, GS.SCard —
+      they load at runtime regardless of our source. Only way to drop GS is to
+      not use the host reader (Direct mode), which reintroduces the PC/SC
+      contention bug. So: keep the DLLs. DEAD-CODE CLEANUP done instead
+      (working-tree only, NOT committed; C# is Windows-only so CI-runner
+      verified only): in BprMces2PersoCC removed dead leftovers from the
+      native-direct migration — Apdu_Qi_Write.Pat_ApduExchange,
+      SupervisorAuthentication (body was fully commented, no caller), the
+      GetQiScript_Instant_Perso P/Invoke (declared-unused), fields
+      oCardResponse/oCodingInterfaceAdmin/_isGemaltoAdmin, deleted
+      Scripts/Apdu.Qi.AdminKey.cs (+ its <Compile> entry in both csprojs),
+      dropped `using GS.PCSC` from Apdu.Qi.Write.cs. Live GS source surface now:
+      GS.Apdu + GS.Util.Hex in Apdu.Qi.Write.cs (HostTransmit), one vestigial
+      `using GS.PCSC` in Main.QiPersoScript.cs (only uses IReaderBase; left as-is).
+      Braces balanced; ChipResponse/PMProcessResult still used live. csproj
+      Reference set unchanged (GS.Apdu + GS.HexLibrary stay).
+    created_at: "2026-06-11"
+    last_accessed: "2026-06-11"
+    access_count: 1
+    confidence: 0.95
+    source: "session-2026-06-11"
+    tags: [bprmces2, persocc, gs-dlls, ireaderbase, dead-code-cleanup, dependencies, draft, windows-only]
+
+  - id: mem-013
+    type: technical_knowledge
+    content: >-
+      BprMces2PersoCC is x86-ONLY and that is permanent (verified 2026-06-11 via
+      PE CorFlags). The MCES2 framework DLLs it references are x86/32BITREQUIRED
+      (CorFlags 0x3): Bpr.Card.Core.dll, BaseLib.dll, ChipCodingBaseLib.dll,
+      LightCore.dll (Muhlbauer-supplied, can't recompile). Only GS.Apdu,
+      GS.HexLibrary, log4net are AnyCPU. So: (1) AnyCPU build is WRONG — would
+      BadImageFormatException loading the 32BITREQUIRED deps in a 64-bit host;
+      (2) a 64-bit C# build is impossible — Dlls-64bit/ is incomplete (has
+      BaseLib/ChipCodingBaseLib/LightCore, MISSING Bpr.Card.Core + GS.*), and
+      those would need real x64 builds from Muhlbauer. The MCES2 host is a
+      32-bit process. Working combo = x86 C# + 32-bit libBprCardQi.dll. CI
+      build.ps1 correctly builds /p:Platform=x86 — leave as-is. Native
+      libBprCardQi builds BOTH windows-32 and windows-64 (mingw, make
+      BprCardQi-windows-32/64) but the 64-bit is moot until a full x64 MCES2
+      framework exists.
+    created_at: "2026-06-11"
+    last_accessed: "2026-06-11"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-11"
+    tags: [bprmces2, persocc, x86-only, corflags, anycpu, bitness, mces2-framework, build]
+
+  - id: mem-014
+    type: project_context
+    content: >-
+      2026-06-11 _Mces2 debugging state (working-tree, NOT committed). Native
+      libBprCardQi bumped 2.56.7 -> 2.56.8 (Makefile VERSION_BprCardQi), both
+      bitnesses built. C# BprMces2PersoCC bumped 2.33.2 -> 2.33.3
+      (AssemblyInfo + patDllVersion). ROOT CAUSES found on the bureau machine:
+      (1) PersoCC ChipCoding.cs read the wrong MCES2 job field —
+      FindDataField("CodingData") -> FIXED to "Coding_Standard" (matches
+      PrePerso/PrePersoCL); (2) bgl_gate() (BGL global-license gate,
+      BprBgl::isLicensed / activateFromStore "C:\\ProgramData\\BprCardQi" code
+      "3") FAILED -> -900 because that host has no BGL activation; per user,
+      BYPASSED in _Mces2 ONLY (logs WARNING, continues; per-call qemv
+      patIsValidLicense still enforced) — marked TODO: activate BGL or restore
+      gate before production; the gate still guards every other export.
+      Verbose debug logging added: native glog [IP-M]/[HOST][DBG] (writes to
+      <dll-dir>\BprLogs\ BPI_=info BPE_=error BPW_=warn; this glog flushes each
+      line, no FlushLogFiles fn), C# [HOST-CS] (log4net). entry log moved before
+      the gate. NEXT: deploy 32-bit v2.56.8 dll + rebuilt x86 PersoCC, run, read
+      BPI_+BPE_ logs to see if perso now reaches 5A. Trim debug logging before
+      production.
+    created_at: "2026-06-11"
+    last_accessed: "2026-06-11"
+    access_count: 1
+    confidence: 0.95
+    source: "session-2026-06-11"
+    tags: [mces2, persocc, _mces2, bgl-gate, bypass, coding-standard, debug-logging, versions, draft]
