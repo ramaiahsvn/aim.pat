@@ -166,3 +166,52 @@ Legacy per-vendor DLLs (still present in old Z_RELEASE folders only):
 - Releases: `Z_RELEASE/TRP1002-cPerso/` (ZohoWorkDrive)
 - Source: `bpr.cpp/src/BprScripts/QiScript/` (QiScript engine)
 - Deliverables: `07-axon-terminals/deliverables/`
+
+### MCES2 build → release workflow (STANDING — follow every time, 2026-06-11)
+
+User-confirmed flow for every BprMces2 release. Do all steps, in order:
+
+1. **Bump versions**: native `Makefile` `VERSION_BprCardQi`; C#
+   `BprMces2PersoCC/Properties/AssemblyInfo.cs` (AssemblyVersion +
+   AssemblyFileVersion) and `Scripts/Main.QiPersoScript.cs` `patDllVersion`.
+2. **Build native locally** on pat-m4p: `cd bpr.cpp && make BprCardQi-windows-32`
+   (and `-windows-64` when asked). Confirms native compiles + export present.
+3. **Push for the cloud build via a MERGE REQUEST** (NOT direct to main):
+   branch + commit + push to `trp1002.cperso.mces2`, open MR → triggers the
+   GitLab `build_bprmces2` job on the on-demand Windows runner (C# is
+   Windows-only; never built on pat-m4p).
+4. **Wait for the pipeline green**, then **download the job artifacts**
+   (`bprmces2-<sha>`, `ci_artifacts/*.dll`) to pat-m4p with `glab`.
+5. **Package** with `07-axon-terminals/deliverables/package-mces2-release.sh
+   --ci-artifacts <downloaded-dir> --version vX.YY.ZZ` → copies into the Zoho
+   release folder with a manifest.
+
+The download + copy ALWAYS run on pat-m4p — the Windows runner cannot reach the
+local Zoho sync folder.
+
+### MCES2 release packaging detail
+
+Copy the release into
+`~/Library/CloudStorage/ZohoWorkDriveTrueSync-bnprs/Z_RELEASE/TRP1002-cPerso/Mces2/`
+**along with its dependencies** — into a versioned + bitness layout
+`vX.YY.ZZ/windows-<32|64>/` (one folder per arch; older sets kept under `_bk/`).
+Pass `--arch 32|64` to the script (default 32). Each arch pulls its own
+`--ci-artifacts` (x86 vs x64 C# build), `Dlls-<arch>bit/` deps, and
+`libBprCardQi` `windows-<arch>`. NOTE: 64-bit is not yet buildable — the MCES2
+framework is x86-only and `Dlls-64bit/` is incomplete (see long-term mem); the
+folder split is in place for when an x64 build becomes possible.
+
+- C# is **Windows-only** → the BprMces2*.dll come from the CI runner's
+  `ci_artifacts/`; the copy runs on **pat-m4p** (the Zoho path is a local sync
+  folder the Windows runner can't reach). The native `libBprCardQi.dll`
+  (32-bit) is built here and is one of the dependencies.
+- Package contents: built `BprMces2PersoCC.dll`, `BprMces2PrePersoCC.dll`,
+  `BprMces2PersoCL.dll`, `BprMces2DataExchangeCL.dll`, `globalplatform.net.dll`
+  + deps `Dlls-32bit/{BaseLib,Bpr.Card.Core,ChipCodingBaseLib,GS.Apdu,
+  GS.HexLibrary,LightCore,log4net}.dll` + 32-bit `libBprCardQi.dll` +
+  `BprMces2Config.xml`. (x86 only — see long-term mem on the 32BITREQUIRED
+  MCES2 framework.)
+- **Script**: `07-axon-terminals/deliverables/package-mces2-release.sh`
+  `--ci-artifacts <dir> --version vX.YY.ZZ [--native-version 2.56.8] [--force] [--dry-run]`.
+  Validates every source (fail-fast), copies built+dep+native+config into
+  `…/Mces2/vX.YY.ZZ/`, writes `manifest.txt` (size + sha256 + category).
