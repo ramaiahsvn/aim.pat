@@ -192,3 +192,40 @@ pruning:
   stale_after_days: 90
   min_confidence: 0.3
   strategy: "least_recently_used"
+
+  - id: mem-003
+    type: project_context
+    content: >-
+      2026-06-11: mGate prod (BPR1002) deployed into THIS account (891963159778,
+      profile bnprs) in eu-central-1 Frankfurt from
+      ~/BPR/GitRepos2/BPR1002_mGate_IQ/bpr1002.mgate.iaac (working-tree edits
+      ONLY — user said never commit in that repo). Stack was previously in ITP
+      819144294008, so: state bucket renamed to mgate-bnprs-prod-terraform-state
+      (46 prod .tf files), GitHub+GitLab OIDC providers and GuardDuty detector
+      created here via new create_* flags (normally UAT-stack-owned; uat not
+      deployed in this account), ECR gitlab_ci_role_arn old-account hardcode
+      removed (circular dep broken via ""-then-null two-pass apply).
+      Applied: all 9 bootstrap/*/prod + platform/prod (78/79). Key endpoints:
+      Aurora mgate-prod-db.cluster-c7smmwkw8jn3.eu-central-1.rds.amazonaws.com,
+      ECS cluster mgate-prod-ecs-cluster, CloudFront E2OHJ6KVNV048U =
+      mgate.bnprs.in (NEW domain replacing uat.itpgateway.com; ACM cert
+      420c253d-e126-45a4-8c99-b26ea03bf12f in us-east-1), OpenVPN EIP
+      3.74.90.58 (eipalloc-0df2e41d95d6e51b6), SQS ITPSQS_01-prod,
+      GitLab CI role gitlab-mgate-prod-ecr-ecs-deploy.
+      VPN: OpenVPN Marketplace never resolved (OptInRequired persisted);
+      REPLACED with new modules/vpn/wireguard on stock AL2023 (SSM-param AMI,
+      no Marketplace, no SSH key — SSM Session Manager). Live 2026-06-11:
+      i-0d6c610578f1d6846 @ 3.74.90.58 UDP 51820, server 10.250.0.1/16,
+      2 client configs in SSM SecureString /mgate-prod-vpn/wireguard/
+      client{1,2}.conf. Old /ec2/mgate-prod-vpn log group kept via terraform
+      state mv (skip_destroy + same name would have collided). services/*
+      stacks NOT applied (need images in mgate-prod-* ECR repos first). Est. cost ~$530-550/mo
+      (VPC interface endpoints ~$105/mo are the sleeper line item).
+      SECURITY DEBT: plaintext DB password + JWT secret in
+      platform/prod/terraform.tfvars; VPN admin CIDR 0.0.0.0/0.
+    created_at: "2026-06-11"
+    last_accessed: "2026-06-11"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-11"
+    tags: [mgate, bpr1002, frankfurt, eu-central-1, terraform, deployment, oidc, cloudfront]
