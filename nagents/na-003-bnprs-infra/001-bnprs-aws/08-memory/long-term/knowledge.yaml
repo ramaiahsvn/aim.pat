@@ -229,3 +229,31 @@ pruning:
     confidence: 0.97
     source: "session-2026-06-11"
     tags: [mgate, bpr1002, frankfurt, eu-central-1, terraform, deployment, oidc, cloudfront]
+
+  - id: mem-004
+    type: project_context
+    content: >-
+      2026-06-14: mGate prod platform/prod DESTROYED in eu-central-1 (account
+      891963159778) to stop spend — user found CE forecast not reflecting the
+      ~$650/mo run-rate and chose teardown. Scope: platform/prod ONLY (80
+      resources: VPC, Aurora db.r5.xlarge, 2 NAT, 6 interface endpoints,
+      WireGuard VPN, GuardDuty, CloudTrail, KMS, Secrets). Bootstrap stacks KEPT
+      (ECR, mgate-bnprs-prod-terraform-state bucket, GitHub+GitLab OIDC, SQS,
+      AppConfig, iam-appconfig, vendor-config, eip, portal-frontend CloudFront)
+      for fast re-apply. Destroy blockers cleared first (working-tree edits, NOT
+      committed): platform/prod database.tf deletion_protection true->false +
+      skip_final_snapshot false->true (Aurora deleted with NO final snapshot,
+      empty DB); cloudtrail.tf + alb-logs.tf force_destroy false->true (cloudtrail
+      bucket had 3506 log objects). Aurora deletion needs deletion_protection
+      disabled via a prior apply, THEN destroy. Verified post-destroy: 0 RDS / 0
+      NAT / 0 running EC2 / 0 interface endpoints / 0 non-default VPC. KMS keys
+      pending scheduled deletion (free). RESIDUAL COST: 3 unassociated EIPs now
+      billing ~$3.6/mo each (~$11/mo): 3.74.90.58 = mGate bootstrap/eip (kept by
+      design); 3.126.247.176 + 63.182.201.159 = pre-existing, NOT mGate
+      (investigate before releasing). Account NOT in an AWS Organization.
+    created_at: "2026-06-14"
+    last_accessed: "2026-06-14"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-06-14"
+    tags: [mgate, bpr1002, frankfurt, eu-central-1, terraform, destroy, teardown, cost, eip]
