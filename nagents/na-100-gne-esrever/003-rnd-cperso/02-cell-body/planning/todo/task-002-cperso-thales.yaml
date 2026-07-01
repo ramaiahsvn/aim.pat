@@ -81,17 +81,24 @@ subtasks:
       Reference inputs now available (Resources/): Visa VPA profile carries the DGI map;
       MC ADDONS profile gives EMV tag set; Gemalto/TechTrex traces give the SCP02 perso
       APDU sequence for the sequencer + GP SCP modules.
-    status: pending     # 2026-07-01: UNBLOCKED (was blocked on 002.1) — ready to start
+    status: completed   # 2026-07-01: architecture delivered
     priority: high
     blocked_by: []
     estimated_steps: 4
+    deliverable: "08-memory/long-term/thales/emv-engine-architecture.md — layered design, 8 modules
+      (tlv/profile/embossing/hsm/card/gp/sequencer/audit), 2 HW seams (IHsmClient PKCS#11, ICardChannel
+      PC/SC), SCP02 sequencer derived from Gemalto trace, CMake layout, 6-phase roadmap feeding 002.3."
 
   - id: "task-002.3"
     subject: "Implement C++ EMV engine module-by-module"
-    detail: "Build TLV/DGI -> APDU -> HSM client -> embossing parser -> sequencer -> GP SCP, with tests."
-    status: blocked
+    detail: >
+      Build per the 6-phase roadmap in emv-engine-architecture.md:
+      P1 tlv+profile -> P2 embossing -> P3 hsm(SoftHSM) -> P4 card+gp(SCP02) ->
+      P5 sequencer+audit -> P6 Calypso key path + real-HSM adapter. Trace-replay
+      (Gemalto/TechTrex) is the acceptance oracle for the APDU sequence.
+    status: pending     # 2026-07-01: UNBLOCKED (002.2 done) — ready to start at Phase P1
     priority: high
-    blocked_by: ["task-002.2"]
+    blocked_by: []
     estimated_steps: 8
 
   - id: "task-002.4"

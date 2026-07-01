@@ -9,9 +9,9 @@ active_tasks:
   - task_id: "task-002"
     status: in_progress
     current_step: >
-      2026-07-01: Resources/ delivered (MC+Visa profiles, Tri-Badge PURE embossing spec+sample,
-      Gemalto+TechTrex APDU traces). Open Q5/Q6 resolved, SCP02 confirmed; only Q1 platform is a
-      free choice. task-002.1 resolved, task-002.2 (architect the C++ engine) is now ready to start.
+      2026-07-01: task-002.2 COMPLETE — C++ EMV perso engine architecture delivered
+      (08-memory/long-term/thales/emv-engine-architecture.md). Next: task-002.3 implementation,
+      starting Phase P1 (tlv + profile loaders). task-002.1 resolved; open Q5/Q6 resolved; SCP02 confirmed.
 
 queue:
   pending: 0

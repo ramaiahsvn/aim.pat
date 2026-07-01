@@ -15,6 +15,9 @@
 #       - thales/perso-resources-inventory.md  — structural index of the 2026-07-01 Resources/ drop
 #           (MC+Visa profiles, Tri-Badge PURE embossing spec+sample, Gemalto+TechTrex APDU traces;
 #            resolves card-profile-spec + embossing-format gaps; SCP02 confirmed; NO PANs/keys stored)
+#       - thales/emv-engine-architecture.md    — task-002.2 deliverable: C++ EMV+Calypso perso engine
+#           architecture (8 modules, IHsmClient/ICardChannel seams, SCP02 sequencer from Gemalto trace,
+#           CMake, 6-phase roadmap for task-002.3)
 #     These were MOVED from trp1002.cperso.thales on 2026-05-30 (deleted there) per user request.
 #     Ground-truth raw artifacts that REMAIN in the source repo: SPI4MLB2_decompiled.c,
 #     Interpreter_decompiled.c, GenericCrypto.ini (real key div-data lives here).
