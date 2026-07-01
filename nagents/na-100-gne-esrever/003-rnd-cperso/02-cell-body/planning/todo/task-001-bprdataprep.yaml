@@ -19,8 +19,9 @@ task:
     On hold as of 2026-05-30 (user request) — code committed & merged to all branches; resume at
     subtask 001.1 (HSM simulator). 2026-07-01: data-side blockers cleared — card profiles (MC+Visa,
     Visa carries DGI map) + Tri-Badge PURE embossing spec/sample delivered to Resources/; GP SCP
-    confirmed SCP02. 001.2 and 001.5 resolved. NOTE: sample record width 21,228 chars vs spec's
-    ~21,157 (+71) — reconcile against V3.0 docx. Still needed: test keys (001.3), INTERPRETER manual (001.4).
+    confirmed SCP02. 001.2 and 001.5 resolved. Width delta RECONCILED 2026-07-01: spec == parser ==
+    21,156 (75 fields); file is 21,228; the +72-byte tail (21157-21228) is a reserved enrichment
+    trailer, safely ignored by the parser — no code change. Still needed: test keys (001.3), INTERPRETER manual (001.4).
   priority: high           # critical | high | medium | low
   created_at: "2026-05-30"
   assigned_to: null

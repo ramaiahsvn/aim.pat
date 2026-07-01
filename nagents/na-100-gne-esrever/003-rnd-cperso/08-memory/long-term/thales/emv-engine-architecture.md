@@ -113,9 +113,15 @@ class EmbossingParser {
   std::vector<EmbossingRecord> parse(std::istream&);   // fixed-length, LF-delimited
 };
 ```
-- Fixed-length records; **actual width 21,228 chars** (⚠ spec V3.0 says ~21,157 — reconcile the
-  +71 delta against the docx before trusting field offsets; treat width as a validated constant).
-- Co-badge MC+PURE+QI records grouped by shared `LinkId` (UUID) — same as `task-001` DataPrep.
+- Fixed-length records; **file width = 21,228 chars/record (validated constant)**, single-byte
+  UTF-8/ASCII, LF-delimited (63,687 B ÷ 3 = 21,229 B/rec incl. LF). Spec V3.0 is UTF-16 in prose but
+  the production/enriched file is single-byte — auto-detect encoding (BOM), default UTF-8.
+- **Field map = 75 fields ending at position 21,156** (spec V3.0 == DataPrep parser; last field
+  `PersoCardId` @ 21149 len 8). Positions **21157–21228 are a 72-byte reserved "enrichment trailer"**
+  present in `*_Enriched_*` files but NOT in the V3.0 field table — **ignore** (parse only 1..21156).
+  Reconciled 2026-07-01: this is expected enrichment padding, not a parse defect; no code change.
+- Co-badge MC+PURE+QI records grouped by shared `LinkId` (UUID, field 50 @ 1032 len 36) — same as
+  `task-001` DataPrep.
 - Sensitive: PAN/PIN/track — test data only; never logged in clear.
 
 ### 4.4 `hsm::IHsmClient` — crypto abstraction (PKCS#11 → SoftHSM)
@@ -229,7 +235,9 @@ Deps (all portable, permissive): **pugixml** (profile XML), **PKCS#11** headers 
 - **Loopback:** SoftHSM + a PC/SC test card (or vsmartcard/virtualsmartcard) for end-to-end.
 
 ## 8. Risks / open items
-- **Embossing width delta (+71)** — must reconcile field offsets vs docx before the parser is trusted.
+- ~~**Embossing width delta (+71)**~~ — RESOLVED 2026-07-01: spec == parser == 21,156 (75 fields);
+  file is 21,228; the extra 72 bytes (21157–21228) are a reserved enrichment trailer, parse 1..21156
+  and ignore the tail. No code change. (See §4.3.)
 - **Key derivation profiles** — EMV Option A confirmed for payment; **Calypso** key scheme (CI/TP/TV/
   TS/TR/TD from the TRANSLINK hierarchy) needs its own derivation path in `IHsmClient` — design it
   behind the same interface but validate separately.

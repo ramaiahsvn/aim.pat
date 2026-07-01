@@ -37,10 +37,15 @@ type: project
 - **32 `tagelement` blocks. Carries explicit `dgi=` attributes** (seen: 9115, 9117 for qVSDC AIP tag 82).
   → This is the DGI layout task-001.2 / task-002 needed.
 
-## Embossing sample vs spec — WIDTH DELTA ⚠️
-- Sample `R06_…Enriched_Pat.txt`: **3 records, exactly 21,228 chars/record**, LF-delimited.
-- Task-001 recorded spec V3.0 as **~21,157 chars/record** → **+71 char delta**. RECONCILE against the
-  V3.0 docx (likely enriched fields the parser doesn't yet account for) before trusting the parser.
+## Embossing sample vs spec — WIDTH DELTA ✅ RESOLVED 2026-07-01
+- Sample `R06_…Enriched_Pat.txt`: **3 records, exactly 21,228 chars/record**, single-byte UTF-8/ASCII,
+  LF-delimited (63,687 B ÷ 3 = 21,229 B/rec incl. LF — NOT UTF-16 despite the spec prose).
+- Spec V3.0 field table AND the DataPrep parser (`EmbossingRecord.cs`/`EmbossingFileParser.cs`) BOTH
+  define **75 fields ending at position 21,156** (last field `PersoCardId` @ 21149 len 8). They agree.
+- The **+72-byte tail (positions 21157–21228)** is a **reserved enrichment trailer** present only in
+  `*_Enriched_*` production files, not in the V3.0 field table. The parser's `ExtractField` stops at
+  defined fields, so it is **safely ignored** — NOT a parse defect. Conclusion: parse 1..21156, ignore
+  the trailer; treat 21,228 as the validated on-disk record width. No code change required.
 
 ## GlobalPlatform secure channel = **SCP02** (resolves task-001.5)
 - Gemalto trace shows `80 50 0000 08 <8-byte host challenge>` (INITIALIZE UPDATE) → `61 1C`
