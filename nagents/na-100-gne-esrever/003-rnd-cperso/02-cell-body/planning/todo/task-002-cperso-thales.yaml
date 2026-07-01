@@ -14,7 +14,12 @@ task:
     (project_emv_perso_engine.md) aims to replace proprietary .per bytecode with
     an open EMV perso implementation.
   status: in_progress      # pending | in_progress | completed | blocked | on_hold
-  status_note: "Activated 2026-05-30 (user moved focus here from task-001)."
+  status_note: >
+    Activated 2026-05-30 (user moved focus here from task-001). 2026-07-01: user delivered card
+    profiles (MC+Visa), Tri-Badge PURE embossing spec+sample, and Gemalto+TechTrex APDU traces into
+    Resources/ — resolves open Q5 (card profile spec) + Q6 (embossing format); GP secure channel
+    confirmed SCP02. Only Q1 (platform) remains as a free design choice (recommend CMake). Engine
+    is unblocked to enter design (task-002.2). See 08-memory/long-term/thales/perso-resources-inventory.md.
   priority: high           # critical | high | medium | low
   created_at: "2026-05-30"
   assigned_to: null
@@ -61,10 +66,10 @@ subtasks:
       (EMV payment vs Calypso vs both), (4) integration target (plug into MCES2
       pipeline / standalone PC/SC+HSM / emit .per bytecode), (5) card profile
       spec (EMV tag list + sources), (6) embossing file format.
-    status: blocked
+    status: resolved     # 2026-07-01: Q5+Q6 delivered via Resources/; Q1 platform = free choice (recommend CMake)
     priority: high
     blocked_by: []
-    needs_from_user: "Answers to the 6 open questions (see open_questions below)"
+    needs_from_user: "None gating — Q1 platform is a design decision (recommend cross-platform CMake)"
     estimated_steps: 1
 
   - id: "task-002.2"
@@ -73,9 +78,12 @@ subtasks:
       Design the 6 planned modules: TLV/DGI encoder (BER-TLV), APDU engine
       (ISO 7816), HSM client (derive/MAC/encrypt), embossing parser, perso
       sequencer, GlobalPlatform SCP. Define interfaces + build system.
-    status: blocked
+      Reference inputs now available (Resources/): Visa VPA profile carries the DGI map;
+      MC ADDONS profile gives EMV tag set; Gemalto/TechTrex traces give the SCP02 perso
+      APDU sequence for the sequencer + GP SCP modules.
+    status: pending     # 2026-07-01: UNBLOCKED (was blocked on 002.1) — ready to start
     priority: high
-    blocked_by: ["task-002.1"]
+    blocked_by: []
     estimated_steps: 4
 
   - id: "task-002.3"
@@ -108,14 +116,14 @@ subtasks:
     needs_from_user: "Confirm whether MIFARE / contactless RF power control is required"
     estimated_steps: 3
 
-# ---- Open questions gating the C++ engine (task-002.1) ---- #
+# ---- Open questions gating the C++ engine (task-002.1) — status 2026-07-01 ---- #
 open_questions:
-  1_target_platform: "Windows (MSVC) / Linux (GCC) / cross-platform? (existing stack is MSVC6/MFC)"
-  2_hsm_type: "Same Thales KMS @172.17.0.11:3500 via kmsapipc.dll, or different HSM (payShield 10K / Luna / SoftHSM)?"
-  3_card_type: "EMV payment (Visa/MC) / Calypso ticketing (TRANSLINK) / both?"
-  4_integration_target: "(a) plug into existing MCES2/Thales pipeline, (b) standalone PC/SC + HSM, or (c) emit .per bytecode?"
-  5_card_profile_spec: "EMV tag list with sources/values"
-  6_embossing_format: "Field layout, delimiters, encoding, sample record"
+  1_target_platform: "OPEN (free design choice) — recommend cross-platform CMake (PC/SC + SoftHSM both portable)"
+  2_hsm_type: "DECIDED 2026-05-30 — SoftHSM (dev/test) behind an HSM-client interface"
+  3_card_type: "DECIDED 2026-05-30 — BOTH (EMV payment Visa/MC + Calypso ticketing)"
+  4_integration_target: "DECIDED 2026-05-30 — standalone PC/SC + HSM (decoupled from MSVC6/MFC stack)"
+  5_card_profile_spec: "RESOLVED 2026-07-01 — MC ADDONS + Visa VPA profiles in Resources/ (Visa carries DGI map)"
+  6_embossing_format: "RESOLVED 2026-07-01 — Tri-Badge PURE spec V3.0 docx + 3-record sample in Resources/"
 
 # ---- Deliverables ---- #
 deliverables:

@@ -12,6 +12,9 @@
 #           (exports/RVAs, call stack, Operas TCP protocol, script encryption, checksum, TLV)
 #       - thales/emv-engine-plan.md            — planned C++ EMV+Calypso perso engine
 #           (decisions locked 2026-05-30; card profile spec + embossing format still needed)
+#       - thales/perso-resources-inventory.md  — structural index of the 2026-07-01 Resources/ drop
+#           (MC+Visa profiles, Tri-Badge PURE embossing spec+sample, Gemalto+TechTrex APDU traces;
+#            resolves card-profile-spec + embossing-format gaps; SCP02 confirmed; NO PANs/keys stored)
 #     These were MOVED from trp1002.cperso.thales on 2026-05-30 (deleted there) per user request.
 #     Ground-truth raw artifacts that REMAIN in the source repo: SPI4MLB2_decompiled.c,
 #     Interpreter_decompiled.c, GenericCrypto.ini (real key div-data lives here).
@@ -53,6 +56,24 @@ memories:
     created_at: "2026-05-30"
     confidence: 0.9
     tags: [reverse-engineering, ghidra, spi4mlb2, interpreter, scpm-callbacks]
+
+  - id: mem-004
+    type: project_context
+    content: >
+      2026-07-01: user delivered the gating perso inputs into trp1002.cperso.thales/Resources/
+      (untracked + git-ignored; holds real PANs/PII/track data — PCI, never commit). Contents:
+      MC M/Chip profile (Mastercard Profile Converter ADDONS XML, AID A0000000041010, key fields
+      EMPTY) + Visa profile (VPA 4.1/VCPS 2.2.4, AID A0000000031010, carries explicit dgi= tags —
+      the DGI layout); Tri-Badge PURE Embossing spec V3.0 docx + a 3-record sample (21,228 chars/rec
+      vs spec's ~21,157 -> +71 delta to reconcile); and TWO vendor perso APDU traces (Gemalto
+      instant MC+Qi, TechTrex 451KB). GP secure channel CONFIRMED = SCP02 (8050 INIT-UPDATE + 8-byte
+      host challenge -> 611C). Full perso APDU sequence captured (SELECT/INIT-UPDATE/EXT-AUTH/INSTALL/
+      PUT KEY/STORE DATA/UPDATE BINARY/APPEND RECORD). Details in thales/perso-resources-inventory.md.
+      Resolves task-002 open Q5/Q6 and task-001.2/task-001.5. Still outstanding: test keys (001.3),
+      Thales INTERPRETER manual (001.4).
+    created_at: "2026-07-01"
+    confidence: 0.95
+    tags: [resources, card-profiles, embossing, dgi, scp02, gemalto, techtrex, apdu-trace, task-001, task-002]
 
 # Pruning rules
 pruning:

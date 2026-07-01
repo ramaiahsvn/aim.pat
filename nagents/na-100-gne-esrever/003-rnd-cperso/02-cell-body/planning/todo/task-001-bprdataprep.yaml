@@ -15,7 +15,12 @@ task:
                   -> MC_EMV_Perso.spi -> OP_Perso / OP_GenericCrypto / OP_VISB
     Co-badge MC+PR+QI records are grouped by shared LinkId (UUID).
   status: on_hold          # pending | in_progress | completed | blocked | on_hold
-  status_note: "On hold as of 2026-05-30 (user request) — code committed & merged to all branches; resume at subtask 001.1 (HSM simulator)."
+  status_note: >
+    On hold as of 2026-05-30 (user request) — code committed & merged to all branches; resume at
+    subtask 001.1 (HSM simulator). 2026-07-01: data-side blockers cleared — card profiles (MC+Visa,
+    Visa carries DGI map) + Tri-Badge PURE embossing spec/sample delivered to Resources/; GP SCP
+    confirmed SCP02. 001.2 and 001.5 resolved. NOTE: sample record width 21,228 chars vs spec's
+    ~21,157 (+71) — reconcile against V3.0 docx. Still needed: test keys (001.3), INTERPRETER manual (001.4).
   priority: high           # critical | high | medium | low
   created_at: "2026-05-30"
   assigned_to: null
@@ -75,11 +80,15 @@ subtasks:
 
   - id: "task-001.2"
     subject: "Obtain & apply card profile spec (DGI layout)"
-    detail: "Exact DGI block layout, key versions, GP config per issuer profile."
-    status: blocked
+    detail: >
+      Exact DGI block layout, key versions, GP config per issuer profile.
+      RESOLVED 2026-07-01: MC ADDONS profile (AID A0000000041010) + Visa VPA 4.1 profile
+      (AID A0000000031010, carries explicit dgi= attributes) delivered to Resources/. Apply the
+      DGI/tag layout to the data-prep builders. Key VERSIONS still TBD with the test-key batch (001.3).
+    status: resolved     # was blocked — profiles delivered 2026-07-01
     priority: high
     blocked_by: []
-    needs_from_user: "Card profile spec (DGI 0101/0201/0301/0401/8000/A001/8010/8201 contents, key versions)"
+    needs_from_user: "None — profiles delivered (key versions come with 001.3 test keys)"
     estimated_steps: 2
 
   - id: "task-001.3"
@@ -102,11 +111,15 @@ subtasks:
 
   - id: "task-001.5"
     subject: "Confirm GP secure-channel version (SCP02 vs SCP03)"
-    detail: "Determines session-key derivation + STORE DATA encryption in steps 4/7/9."
-    status: blocked
+    detail: >
+      Determines session-key derivation + STORE DATA encryption in steps 4/7/9.
+      RESOLVED 2026-07-01 = SCP02. Gemalto instant-perso trace shows 8050 INITIALIZE UPDATE with an
+      8-byte host challenge -> 611C (28-byte response: key-div-data + key-info + card-challenge +
+      card-cryptogram) = SCP02 signature (not SCP03).
+    status: resolved     # was blocked — answered from Gemalto trace 2026-07-01
     priority: medium
     blocked_by: []
-    needs_from_user: "SCP version for the test cards"
+    needs_from_user: "None — SCP02 confirmed"
     estimated_steps: 1
 
   - id: "task-001.6"
@@ -128,12 +141,13 @@ deliverables:
   - "End-to-end test report (parse warnings, perso result, card read-back)"
   - "Updated README pending-tasks section as items close"
 
-# ---- Inputs still needed from user (gating) ---- #
+# ---- Inputs still needed from user (gating) — updated 2026-07-01 ---- #
 open_inputs:
-  - "Card profile spec / DGI layout (task-001.2)"
-  - "Test keys: ISD ENC/MAC/DEK, IMKs, CA RSA pair (task-001.3)"
-  - "Thales INTERPRETER reference manual (task-001.4)"
-  - "GP SCP version: SCP02 or SCP03 (task-001.5)"
+  - "Test keys: ISD ENC/MAC/DEK, IMKs, CA RSA pair (task-001.3) — STILL NEEDED (IDs/labels only)"
+  - "Thales INTERPRETER reference manual (task-001.4) — STILL NEEDED"
+# RESOLVED 2026-07-01 (delivered to trp1002.cperso.thales/Resources/):
+#   - Card profile spec / DGI layout (task-001.2) — MC ADDONS + Visa VPA profiles
+#   - GP SCP version (task-001.5) — SCP02, confirmed from Gemalto trace
 
 # ---- Guardrails ---- #
 guardrails:
