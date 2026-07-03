@@ -44,6 +44,58 @@ memories:
     confidence: 1.0
     tags: [teardown, terraform, blockers, oidc, ecs-orphans, s3-versions, appconfig, ecr, lessons]
 
+  - id: mem-004
+    type: cost_optimization
+    content: >
+      2026-07-03 cost review (account 819144294008): July CE forecast showed ~$15.4k but this was a
+      forecasting artifact — actual daily run-rate ~$400-410/day tracks flat vs June ($12.6k) and May
+      ($12.8k); CE over-forecasts early in the month anchored to April's $15.25k high. NO real spike.
+      Biggest live lever found: ZERO Savings Plan / RI coverage — CE reports ~$10.2k/mo SP-eligible
+      on-demand compute, 0% covered; recommended 1yr no-upfront Compute SP = $4.856/hr commit -> ~$877/mo
+      (17%) saved (more with upfront/3yr). ACTIONED: terminated 3 stopped instances + their root EBS
+      (all had DeleteOnTermination=true, single vol each, no snapshots taken): z__ ITPCore3
+      (i-068c98d17ae15495a, 500GB gp3), CTCore1-OTP (i-070b1c15b10eacc93, 1000GB gp2), uTMS-2
+      (i-0a7a59c47acd0f2bf, 500GB gp2, had termination protection ON - disabled it) -> freed 2000GB,
+      ~$190/mo. Also 2026-07-03 terminated RUNNING instance wGate-1 (i-0fc1d731ece11b768, t2.medium,
+      100GB gp3, had public IP 18.219.198.179 + termination protection ON) -> FIRST took full AMI backup
+      ami-0ba52bcf15a17bdc8 (snap-0d7fb52586c3520b9, tagged wGate-1-backup-20260703), confirmed available
+      before terminating; ~$42/mo saved less ~$5/mo backup snapshot. Recover via launch-from-AMI (new IP).
+      STILL OPEN: Compute SP purchase (needs approval); CloudWatch 365d retention + huge
+      prod-temp log ingestion (RDS audit log 158GB, VPC flow logs 78GB) ~$610/mo CW bill; gp2->gp3
+      fleet conversion; eu-central-1 has 4 NAT gw (nat-1c66b534b716dbf33 = QI-SMS-GW, DO NOT TOUCH);
+      stale stopped Aurora database-1 (2021). DONE 2026-07-03: released all 7 orphan EIPs (6 us-east-2
+      incl wGate-1's 18.219.198.179 + those freed by the 4 terminations, 1 eu-central-1 63.179.14.10)
+      -> ~$25/mo, zero unassociated EIPs remain in either region.
+      The 9 EBS safety snapshots (8.3TB, May-14) are already in ARCHIVE tier (~$104/mo, 90d min -> revisit
+      after 2026-08-12). DONE 2026-07-03: DECOMMISSIONED the UAT gateway - terminated uat_itpcore0_mgate_temporary
+      (i-0928a61d991e1914e, m5.large, 750GB gp2 vol; was the SOLE healthy target of the active uat-itpgateway
+      ALB), deleted the uat-itpgateway ALB + target group, released its EIP 3.13.105.233 -> ~$166/mo.
+    created_at: "2026-07-03"
+    confidence: 1.0
+    tags: [cost, savings-plan, ebs, termination, cloudwatch, forecast-artifact, gp3, eip, nat, open-items]
+
+  - id: mem-005
+    type: incident_learning
+    content: >
+      2026-07-03 follow-up: July CE forecast rose to ~$16k (user thought our cleanup broke something).
+      CROSS-CHECKED - it is REAL production traffic growth, NOT a billing glitch and NOT the cleanup.
+      Root cause: incoming msgs to live gateway queue ITPSQS_01-prod-temp (us-east-2) surged ~2-2.5x
+      from ~2M/day (Jun 17-27 baseline) to 5.68M on Jul-01 (peak), starting ~Jun-28. This correctly
+      autoscaled maingateway-prod-temp ECS to 15 tasks (pipes-prod-temp=9; ~42 tasks total in cluster
+      mgate-prod-temp-ecs-cluster) and drove ECS +32%, SQS +122% (per-request billing on 2-3x msgs),
+      RDS +28%, CloudWatch +63%, CloudTrail +33% vs mid-June. HEALTHY not runaway: oldest-msg age only
+      ~140-184s (queue draining in min), and DLQ ITPSQS_01-prod-temp-dlq had ZERO new dead-letters in
+      16 days (its 5,112 msgs are a STALE old backlog - purge for hygiene, ~no cost). Daily run-rate
+      thus climbed ~$420/day (mid-June) -> ~$500-550/day; $16k forecast holds ONLY if traffic sustains.
+      NOTE: tax posts as a lump on the 1st (~$49 on Jul-01) inflating the day-1 figure CE extrapolates.
+      LESSONS: (1) CE MONTHLY-granularity queries spanning a month boundary split into ResultsByTime[0]
+      (partial) + [1]; reading only [0] silently compares mismatched day-counts - use single-month
+      windows or DAILY+sum. (2) SQS msg-age is a CloudWatch metric (ApproximateAgeOfOldestMessage), NOT
+      a get-queue-attributes attribute. (3) ecs describe-services caps at 10 services/call.
+    created_at: "2026-07-03"
+    confidence: 1.0
+    tags: [cost-spike, sqs, ecs-autoscaling, mgate-prod-temp, traffic-surge, dlq, ce-forecast, gotchas]
+
   - id: mem-003
     type: project_context
     content: >
