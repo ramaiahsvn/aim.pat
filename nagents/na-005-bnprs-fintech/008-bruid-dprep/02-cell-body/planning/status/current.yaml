@@ -5,11 +5,48 @@ session:
   started_at: null
   user_id: null
 
-active_tasks: []
-# - task_id: "task-001"
-#   status: in_progress
-#   progress: 60%
-#   current_step: "Generating report"
+# ============================================================
+#  PERSO ENGINE (task-001) — STATUS SNAPSHOT 2026-07-04
+#  Paused pending cryptographic keys from the perso bureau (via na-003/007-bnprs-grc-kms).
+# ============================================================
+perso_engine:
+  status: "PAUSED — awaiting keys from perso bureau"
+  code_location: "bpr.cpp/src/BprCardEmv/persoengine (remote github.com/ramaiahsvn/bpr.cpp)"
+  tests: "44/44 passing (+1 DISABLED_ real SCP02 vector, pending ISD key)"
+  planner: "08-memory/long-term/hsm-crypto-planner.md ; design of record: rnd-cperso na-100/003"
+
+  done:
+    - "P1  tlv + profile loaders (Visa VPA / MC ADDONS) — verified vs real profiles"
+    - "P2  Tri-Badge PURE embossing parser — verified vs real 3-record sample (co-badge grouping)"
+    - "P3a IHsmClient + BprCryptHsm: EMV Option A UDK + KCV — KAT-anchored (D5D44F...)"
+    - "P3d SCP02: parse/session-key/cryptogram/C-MAC — parser verified vs 7 real trace sessions"
+    - "P3b ISO 9564-1 Format 0 PIN block — hand-computed KAT (0412AC89ABCDEF67)"
+
+  blocked_on_keys:
+    - "P3c Visa CVV / iCVV / CVV2 + PVV — needs issuer CVK-A/CVK-B and PVK"
+    - "P3d real-trace crypto verification — needs the SCP02 KVN=01 ISD master key + diversification method"
+    - "P3e production KMS/HSM adapter (KmsHsm) — needs KMS wiring (kms.bnprs.ai / central HSM)"
+
+  # ---- EXACT ASK FOR THE PERSO BUREAU (na-003/007-bnprs-grc-kms) ----
+  # Request LABELS + KCVs only — never the clear key VALUES (PCI Card Production guardrail).
+  keys_to_request:
+    - "SCP02 ISD static keys, KVN=01 (S-ENC/S-MAC/S-DEK) — label(s) + KCV(s), and the card key
+       DIVERSIFICATION method (the 10-byte key-div-data 00002060BB8D509C2020 implies MC-style
+       diversification; default GP key 40..4F was ruled out). Enables the DISABLED_ SCP02 vector."
+    - "EMV issuer master keys IMK-AC / IMK-SMI / IMK-SMC — label(s) + KCV(s) (validate P3a UDK end-to-end)."
+    - "CVK-A / CVK-B (card verification keys) — label(s) + KCV(s) (P3c CVV/iCVV/CVV2)."
+    - "PVK (PIN verification key) — label + KCV (P3c PVV)."
+    - "PIN transport key (PIN-TK) — label + KCV (confirm P3b against a real encrypted PIN block)."
+  next_when_keys_arrive:
+    - "Enable DISABLED_ SCP02 real-trace vector (scp02_test.cpp) with the ISD static/diversified keys."
+    - "Implement + verify P3c CVV/PVV against the issuer keys."
+    - "Wire P3e KmsHsm production backend."
+
+active_tasks:
+  - task_id: "task-001"
+    status: paused
+    progress: "P1/P2/P3a/P3d/P3b done; P3c/P3e blocked on bureau keys"
+    current_step: "Awaiting cryptographic keys from perso bureau (na-003/007-bnprs-grc-kms)"
 
 queue:
   pending: 0
