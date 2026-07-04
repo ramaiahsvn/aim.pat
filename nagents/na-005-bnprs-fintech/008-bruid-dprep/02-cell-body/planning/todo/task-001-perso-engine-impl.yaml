@@ -1,0 +1,56 @@
+# Task — Perso Engine implementation: data-prep modules + HSM/crypto planner
+#
+# Handed off 2026-07-04 from rnd-cperso (na-100/003, planner). See
+# 08-memory/long-term/perso-engine-handoff.md and rnd-cperso's canonical design docs.
+
+task:
+  id: "task-001"
+  subject: "Implement perso-engine data-prep modules (tlv/profile/embossing) + own the HSM/crypto planner"
+  description: >
+    bruid-dprep owns the data-preparation side of the C++ perso engine and the HSM/crypto planner.
+    Production code lives in bpr.cpp/src/BprCardEmv (a verified P1/P2 prototype relocates there from
+    trp1002.cperso.thales/persoengine). Integrate into bpr.cpp CMake/module conventions and extend
+    with the HSM/crypto layer that central (009) and instant (010) perso consume.
+  status: pending
+  priority: high
+  created_at: "2026-07-04"
+  source: "rnd-cperso na-100/003 delegation (task-003)"
+  tags: [perso-engine, dprep, tlv, profile, embossing, hsm, crypto, bpr-cpp, pci]
+
+subtasks:
+  - id: "task-001.1"
+    subject: "Integrate relocated persoengine (P1 tlv+profile, P2 embossing) into bpr.cpp/src/BprCardEmv"
+    detail: >
+      Adopt the relocated prototype; wire into bpr_*_src.cmake, BprLicense, BprCrypt. Keep the verified
+      unit tests (13 P1 + 8 P2) green. The embossing field map MUST stay in sync with the authoritative
+      C# parser (BprDataPrep/EmbossingRecord.cs) — they are the same 75-field spec V3.0 layout.
+    status: pending
+    priority: high
+
+  - id: "task-001.2"
+    subject: "HSM/crypto planner — design + implement hsm::IHsmClient (dprep owns this)"
+    detail: >
+      Plan then build: EMV Option A UDK derivation, 3-byte KCV, SCP02 session keys + C-MAC, key-block
+      export, and offline-data-auth (SDA/DDA) key/cert gen. Backend: SoftHSM2/PKCS#11 for dev/test behind
+      the seam; real HSM (BprHsm FM/HOST/HostJNI or Operas KMS) later. Wire PIN transport + CVV/PVV keys
+      from na-003/007-bnprs-grc-kms. KEYS BY LABEL ONLY — never key values (PCI).
+    status: pending
+    priority: high
+    verification: "Public KATs first (FIPS DES/3DES, EMV Book 2 UDK, GP SCP02); issuer test keys/KCVs when available."
+
+  - id: "task-001.3"
+    subject: "Produce the perso data blob/hex from parsed inputs"
+    detail: >
+      Merge embossing record + card profile -> resolved TLV/DGI blocks; assemble the 74-field central
+      blob (-> bruid-cperso) and 52-field instant hex (-> bruid-iperso). Compute PIN block (ISO 9564-1 F0),
+      CVV2/ICVV/PVV, TRACK1/TRACK2 via the HSM layer. PCI: SAD never persisted post-auth.
+    status: pending
+    priority: medium
+
+needs_from_user:
+  - "Issuer test keys / KCVs (for realistic end-to-end crypto vectors) — was rnd-cperso task-001.3"
+
+guardrails:
+  - "Never store key VALUES — labels/IDs/ARNs only (PCI Card Production)."
+  - "SAD (PIN block, track, CVV/ICVV/PVV) never persisted post-authorization (PCI-DSS Req 3.2)."
+  - "Card profiles must carry key LABELS only — reject any profile with a populated key value."

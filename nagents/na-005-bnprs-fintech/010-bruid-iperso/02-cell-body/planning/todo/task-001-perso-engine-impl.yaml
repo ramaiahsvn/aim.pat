@@ -1,0 +1,57 @@
+# Task — Perso Engine implementation: instant / public-kiosk perso (split model)
+#
+# Handed off 2026-07-04 from rnd-cperso (na-100/003, planner). See
+# 08-memory/long-term/perso-engine-handoff.md and rnd-cperso's canonical design docs.
+
+task:
+  id: "task-001"
+  subject: "Implement instant perso: central APDU script-gen (HSM) + untrusted public-kiosk executor"
+  description: >
+    bruid-iperso owns the INSTANT issuance path. DataPrep + key derivation happen CENTRALLY (HSM present)
+    and emit self-contained, single-use, card-bound APDU perso scripts; those are sent to a PUBLIC KIOSK
+    (no HSM) that executes them with remote supervisor auth (kms.bnprs.ai). Reuses the shared engine core
+    in bpr.cpp/src/BprCardEmv (from dprep + cperso). The trust boundary between central and kiosk is the
+    defining design constraint.
+  status: pending
+  priority: high
+  created_at: "2026-07-04"
+  source: "rnd-cperso na-100/003 delegation (task-003)"
+  tags: [perso-engine, iperso, instant, kiosk, apdu-script, scp02, supervisor-auth, bpr-cpp, pci]
+
+subtasks:
+  - id: "task-001.1"
+    subject: "Central: APDU perso script generator (trusted, HSM present)"
+    detail: >
+      Reuse gp::SecureChannel (SCP02) + perso::Sequencer to EMIT a serialized single-use APDU script for
+      one card (not live transmit). Consume dprep's 52-field instant hex + IHsmClient. Pre-compute SCP02
+      wrapping / STORE DATA so the kiosk needs NO key material. Bind script to card (challenge/serial) —
+      anti-replay. SAD stays central.
+    status: pending
+    priority: high
+
+  - id: "task-001.2"
+    subject: "Edge: public-kiosk APDU script executor (untrusted, no HSM)"
+    detail: >
+      ICardChannel (PC/SC via BprPcSc) replays the script. Remote supervisor auth: GET CHALLENGE ->
+      kms.bnprs.ai (mTLS k3_fleet_pfx fleet cert, 60s timeout) -> VERIFY AUTH. Re-perso via
+      GetInsertOrUpdateData_Pat; LOCK new card; read-back verify. Android POS platform backends.
+    status: pending
+    priority: high
+
+  - id: "task-001.3"
+    subject: "Kiosk threat model + hardening (public, untrusted device)"
+    detail: >
+      No secrets at rest; scripts single-use + card-bound; supervisor auth gates every issuance;
+      altered-script detection; fail-closed on network loss within the 60s window.
+    status: pending
+    priority: high
+
+depends_on:
+  - "bruid-dprep (008) task-001: 52-field instant hex + IHsmClient crypto seam (central)"
+  - "bruid-cperso (009) task-001: shared gp::SecureChannel + perso::Sequencer engine core"
+  - "na-003 KMS / kms.bnprs.ai: remote supervisor auth endpoint + fleet certs"
+
+guardrails:
+  - "Kiosk is PUBLIC/untrusted — no key material or SAD at rest on the kiosk."
+  - "APDU scripts single-use and card-bound (anti-replay); supervisor auth gates every issuance."
+  - "Never store key VALUES — labels/IDs only. Central HSM does all crypto."

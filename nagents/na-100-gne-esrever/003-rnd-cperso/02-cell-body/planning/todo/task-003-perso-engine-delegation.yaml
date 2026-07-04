@@ -1,0 +1,99 @@
+# Task — Perso Engine: delegation of implementation to the na-005 BRUID agents
+#
+# CONTEXT (2026-07-04): The user clarified rnd-cperso's posture. This agent does
+# RESEARCH + PLANNING only — it produces the design/planner. IMPLEMENTATION of the
+# production-grade perso engine is delegated to the three na-005-bnprs-fintech agents.
+# The prototype engine (persoengine P1/P2, built here as proof) relocates into the
+# production C++ codebase bpr.cpp. This task records that hand-off.
+
+task:
+  id: "task-003"
+  subject: "Delegate C++ perso-engine implementation to na-005 BRUID agents; relocate code to bpr.cpp"
+  description: >
+    rnd-cperso researched the Thales/Operas stack, reverse-engineered the tooling, and
+    designed a standalone C++ EMV+Calypso perso engine (see task-002 + emv-engine-architecture.md).
+    A working P1 (tlv+profile) and P2 (embossing) prototype was built and verified in
+    trp1002.cperso.thales/persoengine. Per user direction (2026-07-04):
+      1. rnd-cperso is research + PLANNING ONLY — no further production implementation here.
+      2. Production implementation is owned by na-005 bruid-dprep(008) / bruid-cperso(009) /
+         bruid-iperso(010).
+      3. The persoengine code MOVES to bpr.cpp/src/BprCardEmv (production C++ tree).
+      4. The HSM/crypto planner (key derivation, PIN/CVV, UDK/KCV — engine phase P3) is
+         maintained by bruid-dprep.
+  status: in_progress
+  priority: high
+  created_at: "2026-07-04"
+  assigned_to: "rnd-cperso (planner)"
+  blocks: []
+  tags: [delegation, perso-engine, bruid, dprep, cperso, iperso, bpr-cpp, planning]
+
+# ---- Central vs Instant perso (user definitions, 2026-07-04) ---- #
+domain_model:
+  central_perso: >
+    "cPerso" — personalization happens FULLY inside the perso bureau (secure facility,
+    HSM present on-site). High-volume offline batch. Owner: bruid-cperso (009).
+  instant_perso: >
+    "iPerso" — DataPrep happens CENTRALLY (where the HSM is available); the final APDU
+    perso scripts are then sent REMOTELY to a kiosk machine that is open to the public.
+    Any customer can walk up to the kiosk and get their card issued instantly. The kiosk
+    is untrusted/public — no HSM at the kiosk; it executes pre-generated APDU scripts and
+    does remote supervisor auth (kms.bnprs.ai). Owner: bruid-iperso (010).
+  data_prep: >
+    "dPrep" — transforms raw identity/biometric/card data into the perso data blob (central,
+    74-field) or hex (instant, 52-field), computes PIN/CVV/track, and drives key derivation
+    via the HSM. Sits before both cPerso and iPerso. Owner: bruid-dprep (008).
+
+# ---- Code relocation ---- #
+relocation:
+  from: "/Users/bnprs/BPR/GitRepos2/TRP1002_cPerso/trp1002.cperso.thales/persoengine"
+  to:   "/Users/bnprs/BPR/GitRepos1/bpr.cpp/src/BprCardEmv"
+  note: >
+    bpr.cpp/src/BprCardEmv already contains a production module (BprCardEmv.cpp/.h — extern "C"
+    DLL exports, glog, BprLicense, PC/SC). persoengine has NO filename collisions with it. The
+    BRUID agents integrate persoengine into the bpr.cpp CMake/module conventions (bpr_*_src.cmake,
+    BprLicense, BprPcSc) as production work — it is currently a standalone CMake sub-tree.
+  prototype_state: "P1 (tlv+profile) + P2 (embossing) built & verified; committed to trp1002.cperso.thales@main (06ed4e4, a34c06f) before the move."
+
+# ---- Engine roadmap → agent ownership ---- #
+# (roadmap phases from 08-memory/long-term/thales/emv-engine-architecture.md §9)
+phase_ownership:
+  P1_tlv_profile:      { module: "emv::tlv + perso::profile", owner: "bruid-dprep (008)", status: "prototype done (relocating)" }
+  P2_embossing:        { module: "perso::embossing",          owner: "bruid-dprep (008)", status: "prototype done (relocating)" }
+  P3_hsm_crypto:       { module: "hsm::IHsmClient (UDK/KCV/PIN/CVV/SCP02 session keys)", owner: "bruid-dprep (008) — HSM PLANNER", status: "planned (not implemented)" }
+  P4_card_gp_scp02:    { module: "card::ICardChannel + gp::SecureChannel (SCP02)", owner: "bruid-cperso (009) online / bruid-iperso (010) script-gen", status: "planned" }
+  P5_sequencer_audit:  { module: "perso::Sequencer + audit", owner: "bruid-cperso (009) batch / bruid-iperso (010) kiosk-split", status: "planned" }
+  P6_calypso_realhsm:  { module: "Calypso key path + real-HSM adapter", owner: "bruid-cperso (009)", status: "planned" }
+
+# ---- Subtasks ---- #
+subtasks:
+  - id: "task-003.1"
+    subject: "Record delegation + reposition rnd-cperso as planner-only"
+    detail: "Update nucleus role posture; task-002 marks implementation delegated; knowledge mem-007/008."
+    status: in_progress
+  - id: "task-003.2"
+    subject: "Feed perso-engine knowledge to bruid-dprep/cperso/iperso"
+    detail: >
+      Write a perso-engine handoff into each agent's 08-memory/long-term/ + create an implementation
+      task in each planner. dprep additionally receives the HSM/crypto planner. Handoff references the
+      canonical design docs held by rnd-cperso (emv-engine-architecture.md, perso-resources-inventory.md,
+      hsm-integration-analysis.md, reverse-engineering.md) — those stay with rnd-cperso as the research of record.
+    status: in_progress
+  - id: "task-003.3"
+    subject: "Relocate persoengine → bpr.cpp/src/BprCardEmv"
+    detail: >
+      git-move the persoengine tree out of trp1002.cperso.thales into bpr.cpp/src/BprCardEmv
+      (production repo, remote github.com/ramaiahsvn/bpr.cpp, ramaiahsvn token). Coordinate with
+      bruid agents for CMake integration. CONFIRM cross-repo pushes with user before executing.
+    status: pending
+  - id: "task-003.4"
+    subject: "Ongoing: rnd-cperso keeps design/research current, reviews agent implementations"
+    detail: "Planner role — maintain architecture doc, answer design questions, keep knowledge base authoritative."
+    status: pending
+
+# ---- What stays with rnd-cperso (research of record) ---- #
+retained_by_planner:
+  - "08-memory/long-term/thales/emv-engine-architecture.md   (canonical design)"
+  - "08-memory/long-term/thales/perso-resources-inventory.md (ground-truth inputs index)"
+  - "08-memory/long-term/thales/hsm-integration-analysis.md  (Operas/HSM + key hierarchy)"
+  - "08-memory/long-term/thales/reverse-engineering.md       (Ghidra RE)"
+  - "08-memory/long-term/thales/emv-engine-plan.md           (locked decisions)"

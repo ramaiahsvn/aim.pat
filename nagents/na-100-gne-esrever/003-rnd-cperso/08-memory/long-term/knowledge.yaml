@@ -117,6 +117,38 @@ memories:
     confidence: 0.95
     tags: [task-002, phase-p2, cpp, persoengine, embossing, tri-badge, linkid, co-badge, bprdataprep, verified]
 
+  - id: mem-007
+    type: project_context
+    content: >
+      ROLE CLARIFICATION (user, 2026-07-04): rnd-cperso is RESEARCH + PLANNING ONLY. It designs
+      and plans the perso engine and keeps the knowledge base authoritative; it does NOT own
+      production implementation. Implementation is delegated to three na-005-bnprs-fintech BRUID
+      agents: bruid-dprep(008)=data prep + HSM/crypto planner, bruid-cperso(009)=central bureau
+      perso, bruid-iperso(010)=instant/kiosk perso. The persoengine P1/P2 prototype built here was
+      a proof; production code now lives in bpr.cpp/src/BprCardEmv. Engine roadmap phase ownership:
+      P1 tlv+profile & P2 embossing -> dprep; P3 hsm/crypto -> dprep (HSM planner); P4 card+gp SCP02
+      & P5 sequencer -> cperso(online)/iperso(script-gen); P6 Calypso+real-HSM -> cperso. See
+      task-003-perso-engine-delegation.yaml. When asked to implement, hand off to the owning agent.
+    created_at: "2026-07-04"
+    confidence: 0.98
+    tags: [role, delegation, planning-only, bruid, dprep, cperso, iperso, bpr-cpp, routing]
+
+  - id: mem-008
+    type: project_context
+    content: >
+      PERSO DOMAIN MODEL (user definitions, 2026-07-04). CENTRAL perso (cPerso): personalization
+      happens FULLY inside the perso bureau — secure facility with HSM on-site; high-volume offline
+      batch (owner bruid-cperso 009). INSTANT perso (iPerso): DataPrep happens CENTRALLY where the
+      HSM is available, then the final APDU perso SCRIPTS are sent REMOTELY to a KIOSK machine that
+      is OPEN TO THE PUBLIC — any customer walks up and gets their card issued instantly. The kiosk
+      is untrusted (no HSM); it executes pre-generated APDU scripts + remote supervisor auth
+      (kms.bnprs.ai) (owner bruid-iperso 010). dPrep (bruid-dprep 008) builds the 74-field central
+      blob / 52-field instant hex, PIN/CVV/track, and drives key derivation via the HSM — it sits
+      before both. persoengine relocated from trp1002.cperso.thales -> bpr.cpp/src/BprCardEmv.
+    created_at: "2026-07-04"
+    confidence: 0.98
+    tags: [central-perso, instant-perso, kiosk, dprep, domain-model, bruid, definitions]
+
 # Pruning rules
 pruning:
   max_entries: 500

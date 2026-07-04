@@ -1,0 +1,58 @@
+# Task — Perso Engine implementation: central/in-bureau execution engine
+#
+# Handed off 2026-07-04 from rnd-cperso (na-100/003, planner). See
+# 08-memory/long-term/perso-engine-handoff.md and rnd-cperso's canonical design docs.
+
+task:
+  id: "task-001"
+  subject: "Implement the central perso execution engine (card channel, GP SCP02, sequencer, audit, Calypso, real HSM)"
+  description: >
+    bruid-cperso owns the CENTRAL (in-bureau, local-HSM, batch) execution side of the C++ perso engine.
+    Consumes dprep's 74-field blob + IHsmClient crypto seam. Production code in bpr.cpp/src/BprCardEmv.
+    Trace-replay (Gemalto/TechTrex) is the acceptance oracle for the APDU sequence.
+  status: pending
+  priority: high
+  created_at: "2026-07-04"
+  source: "rnd-cperso na-100/003 delegation (task-003)"
+  tags: [perso-engine, cperso, central, globalplatform, scp02, sequencer, hsm, calypso, bpr-cpp]
+
+subtasks:
+  - id: "task-001.1"
+    subject: "P4 — card::ICardChannel (PC/SC via BprPcSc) + gp::SecureChannel (SCP02)"
+    detail: >
+      PC/SC transport with 61xx/6Cxx handling; SCP02 INIT-UPDATE/EXT-AUTH per the Gemalto trace; session
+      keys via dprep's IHsmClient. Verify: trace-replay emitted APDUs == recorded Gemalto/TechTrex sequence.
+    status: pending
+    priority: high
+
+  - id: "task-001.2"
+    subject: "P5 — perso::Sequencer + audit (batch)"
+    detail: >
+      Drive SELECT CM → SCP02 → DELETE → INSTALL[for load&make] → per-applet STORE DATA (DGI blocks) →
+      read-back verify → audit. Configurable stop-on-error; never silently retry a partial card. Audit is
+      PAN/PIN/key-free (mask PAN). Align with existing qiscript_central_* pipeline + LOCK (INS 0xF0).
+    status: pending
+    priority: high
+
+  - id: "task-001.3"
+    subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"
+    detail: >
+      Calypso/TRANSLINK derivation behind IHsmClient; swap SoftHSM2 -> BprHsm (FM/HOST/HostJNI) or Operas
+      KMS behind the seam. Keys never leave HSM in plaintext.
+    status: pending
+    priority: medium
+
+  - id: "task-001.4"
+    subject: "Confirm STORE DATA P1=0x60 block semantics from the trace before finalising GP module"
+    detail: "Decode a few P1=0x60 blocks (encrypted key/DGI vs proprietary) — architecture §8 open item."
+    status: pending
+    priority: low
+
+depends_on:
+  - "bruid-dprep (008) task-001: perso data blob + IHsmClient crypto seam"
+  - "bruid-applet (007): target applet field-format constraints"
+
+guardrails:
+  - "Never store key VALUES — labels/IDs only. Keys stay inside the HSM."
+  - "Audit/logs carry no PAN/PIN/keys (mask PAN first6+last4)."
+  - "Thales proprietary binaries are read/analyze only — the engine is clean-room, links no Thales DLL."

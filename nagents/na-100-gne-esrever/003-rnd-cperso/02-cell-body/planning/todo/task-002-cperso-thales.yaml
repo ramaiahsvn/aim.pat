@@ -96,7 +96,9 @@ subtasks:
       P1 tlv+profile -> P2 embossing -> P3 hsm(SoftHSM) -> P4 card+gp(SCP02) ->
       P5 sequencer+audit -> P6 Calypso key path + real-HSM adapter. Trace-replay
       (Gemalto/TechTrex) is the acceptance oracle for the APDU sequence.
-    status: in_progress  # 2026-07-04: Phases P1 (tlv+profile) + P2 (embossing) COMPLETE & verified — P3 next
+    status: delegated  # 2026-07-04: P1+P2 prototype done & verified. Further implementation DELEGATED
+                       # to na-005 bruid-dprep/cperso/iperso; code relocating to bpr.cpp/src/BprCardEmv.
+                       # rnd-cperso is planner-only now — see task-003-perso-engine-delegation.yaml.
     priority: high
     blocked_by: []
     estimated_steps: 8
