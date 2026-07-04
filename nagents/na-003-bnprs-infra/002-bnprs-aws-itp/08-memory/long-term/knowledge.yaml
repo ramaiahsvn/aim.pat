@@ -124,6 +124,34 @@ memories:
     confidence: 1.0
     tags: [sqs, dlq, purge, hygiene, prod-temp, done]
 
+  - id: mem-007
+    type: cost_optimization
+    content: >
+      2026-07-04 CloudWatch cost investigation + action. CORRECTION to mem-004: CW cost is INGESTION-driven,
+      NOT retention. Actual CW bill (Cost Explorer): JUNE $698 total = DataProcessing-Bytes (us-east-2 log
+      ingestion) $469 + eu-central-1 MetricMonitorUsage $99.70 + VendedLog $56 + EUC1 DataProcessing $24 +
+      TimedStorage only $13. So 365d retention is a RED HERRING (storage ~$13/mo); cutting retention saves
+      almost nothing. Top us-east-2 ingesters (per-day rate -> $/mo @ $0.50/GB): /ecs/pipes-prod-temp ~$206,
+      /aws/rds/cluster/mgate-prod-temp-db/audit ~$167, /ecs/vendorstatus ~$100, /ecs/maingateway ~$92,
+      /aws/vpc/mgate-prod-temp-vpc-flow-logs ~$81 (vended). GOTCHA: get-metric-statistics with a 30-day
+      single period (2592000s) returns near-zero garbage — use DAILY period (86400) and sum.
+      EU-CENTRAL-1 DISCOVERY: not just the torn-down mGate — THREE ACTIVE ECS clusters, all Container
+      Insights ENABLED: utms-cluster (21 tasks/11 svc, biggest), wgate-uat-cluster (6/3), nagents-uat-ecs
+      (2/3) -> 439 ECS/ContainerInsights custom metrics = ~$71-99/mo. QI-SMS-GW is NOT ECS (safe). Orphaned
+      mGate UAT log groups still linger (mgate-db/audit 35GB, aws-waf-logs-maingateway 20GB, mgate-vpc-flow
+      8GB, /ecs/vendorstatus|otpstatus|callbackapplication|maingateway) - resources destroyed 06-08, log
+      groups remain (~$2/mo storage, hygiene).
+      ACTIONED 2026-07-04: disabled Container Insights on ALL THREE eu-central-1 clusters
+      (ecs update-cluster-settings containerInsights=disabled) with user approval; running tasks unchanged
+      (metrics-only change, reversible) -> ~$71-99/mo saved, realizes next billing cycle (Aug).
+      STILL OPEN (ingestion levers, us-east-2): RDS audit log ~$167/mo (trim audit filter? needs compliance/
+      DB call - biggest single); pipes-prod-temp app log verbosity ~$206/mo (app-team); VPC flow logs -> S3
+      or REJECT-only ~$81/mo; Infrequent-Access log class ($0.25 vs $0.50/GB) for write-mostly groups;
+      delete orphaned eu-central-1 mGate log groups (hygiene).
+    created_at: "2026-07-04"
+    confidence: 1.0
+    tags: [cloudwatch, cost, ingestion, container-insights, eu-central-1, ecs, utms, wgate-uat, nagents-uat, done, open-items]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
