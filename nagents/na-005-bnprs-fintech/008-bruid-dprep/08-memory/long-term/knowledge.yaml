@@ -5,13 +5,46 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
-    access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    content: >
+      2026-07-04: bruid-dprep received the perso-engine implementation hand-off from rnd-cperso
+      (na-100/003, planner). This agent owns the DATA-PREP modules (emv::tlv, perso::profile,
+      perso::embossing — P1/P2 prototype done & verified) AND the HSM/CRYPTO PLANNER (P3). Production
+      code lives in bpr.cpp/src/BprCardEmv/persoengine (relocated from trp1002.cperso.thales; remote
+      github.com/ramaiahsvn/bpr.cpp, ramaiahsvn token). Consumers: bruid-cperso(009 central),
+      bruid-iperso(010 instant/kiosk). See 08-memory/long-term/perso-engine-handoff.md and
+      02-cell-body/planning/todo/task-001-perso-engine-impl.yaml.
+    created_at: "2026-07-04"
+    confidence: 0.97
+    tags: [perso-engine, handoff, dprep, tlv, profile, embossing, hsm, bpr-cpp, rnd-cperso]
+
+  - id: mem-002
+    type: technical_knowledge
+    content: >
+      2026-07-04: bpr.cpp already ships crypto in src/AprCommon/BprCrypt — DES/DES3/DES3CBC/DESCBC
+      classes (block-level ui64) + BprCrypt:: patEncryptDecrypt3Des, patEncryptDecrypt3Des_Cbc,
+      patEncryptDecrypt_Pinblock, patSupervisorKey3Des, and an OpenSSL DES3-CBC path
+      (patOpenSSL_Encrypt_Des3Cbc). => The perso-engine HSM software/dev backend REUSES BprCrypt behind
+      an IHsmClient seam; SoftHSM2/PKCS#11 is NOT needed (dropped). bpr.cpp has no BprHsm module — "HSM"
+      here = BprCrypt (software) + remote kms.bnprs.ai (supervisor auth, used by BprCardQi/instant path).
+      Production central-HSM adapter is future work behind the same seam.
+    created_at: "2026-07-04"
+    confidence: 0.96
+    tags: [bprcrypt, 3des, des, hsm, kms, bpr-cpp, backend-decision, softhsm-dropped]
+
+  - id: mem-003
+    type: project_context
+    content: >
+      2026-07-04: HSM/crypto PLANNER delivered — 08-memory/long-term/hsm-crypto-planner.md (this agent
+      owns it). Defines IHsmClient (derive_udk EMV Option A, kcv, scp02 session keys + C-MAC, pin_block
+      ISO 9564-1 F0, cvv/pvv), backend strategy (BprCryptHsm dev -> KmsHsm prod), key inventory by LABEL
+      (IMK-AC/SMI/SMC, KEK, PIN-TK, CVK-A/B, PVK, Calypso KMC — from na-003/007-bnprs-grc-kms), and the
+      vector strategy. KAT anchor: 3DES-ECB(zeros, key 0123456789ABCDEF)=D5D44FF720683D0D, KCV D5D44F.
+      Next: implement P3a (IHsmClient + BprCryptHsm: UDK + KCV, KAT-gated). Outstanding from user:
+      issuer test keys/KCVs; confirm SCP02 derivation constants vs GP appendix. GUARDRAIL: key LABELS
+      only, never values; SAD (PIN/track/CVV) never logged or persisted post-auth (PCI-DSS 3.2).
+    created_at: "2026-07-04"
+    confidence: 0.96
+    tags: [hsm-planner, crypto, udk, kcv, scp02, pinblock, cvv, pvv, pci, task-001.2]
 
   # Example entries:
   # - id: mem-002

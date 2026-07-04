@@ -30,13 +30,17 @@ subtasks:
   - id: "task-001.2"
     subject: "HSM/crypto planner — design + implement hsm::IHsmClient (dprep owns this)"
     detail: >
-      Plan then build: EMV Option A UDK derivation, 3-byte KCV, SCP02 session keys + C-MAC, key-block
-      export, and offline-data-auth (SDA/DDA) key/cert gen. Backend: SoftHSM2/PKCS#11 for dev/test behind
-      the seam; real HSM (BprHsm FM/HOST/HostJNI or Operas KMS) later. Wire PIN transport + CVV/PVV keys
-      from na-003/007-bnprs-grc-kms. KEYS BY LABEL ONLY — never key values (PCI).
-    status: pending
+      PLAN DELIVERED 2026-07-04: 08-memory/long-term/hsm-crypto-planner.md (authoritative HSM plan).
+      Forks RESOLVED (planner recommendation): dev/test backend = REUSE bpr.cpp BprCrypt (DES3/DES3CBC/
+      patEncryptDecrypt_Pinblock) behind IHsmClient — SoftHSM2/PKCS#11 DROPPED (no new dep); prod backend
+      = KMS adapter (kms.bnprs.ai) / central-HSM adapter behind the same seam; verification = public KATs
+      first, issuer keys later. Build order (planner §6): P3a IHsmClient+BprCryptHsm (UDK+KCV, KAT-gated)
+      -> P3b PIN block (ISO 9564-1 F0) -> P3c CVV/PVV (needs na-003/007 keys) -> P3d SCP02 session keys +
+      C-MAC (trace-aligned) -> P3e KmsHsm prod adapter. KEYS BY LABEL ONLY (PCI).
+    status: in_progress   # planning done; implementation next (P3a)
     priority: high
-    verification: "Public KATs first (FIPS DES/3DES, EMV Book 2 UDK, GP SCP02); issuer test keys/KCVs when available."
+    verification: "KAT anchor: 3DES-ECB(zeros, key 0123456789ABCDEF)=D5D44FF720683D0D (KCV D5D44F). UDK/SCP02/CVV/PVV from published spec vectors; issuer test keys/KCVs when available."
+    deliverable: "08-memory/long-term/hsm-crypto-planner.md"
 
   - id: "task-001.3"
     subject: "Produce the perso data blob/hex from parsed inputs"
