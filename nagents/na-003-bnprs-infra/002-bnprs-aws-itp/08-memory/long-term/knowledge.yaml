@@ -110,6 +110,20 @@ memories:
     confidence: 0.95
     tags: [mgate, environments, regions, prod, sms-gw, state-bucket]
 
+  - id: mem-006
+    type: operation
+    content: >
+      2026-07-04: PURGED the DLQ ITPSQS_01-prod-temp-dlq (us-east-2,
+      https://sqs.us-east-2.amazonaws.com/819144294008/ITPSQS_01-prod-temp-dlq) — the open hygiene item
+      from mem-005. Re-verified stale before purging: CloudWatch NumberOfMessagesSent = 0.0 every day for
+      20 consecutive days (Jun-14..Jul-03) => zero new dead-letters; ApproximateNumberOfMessages ~5,132
+      (drift from the 5,112 seen 07-03 is just approximate-count noise, ingress is 0). Confirmed target was
+      the -dlq, NOT the live ITPSQS_01-prod-temp queue. purge-queue accepted; count dropped to 0. No cost
+      impact (SQS storage negligible). Live gateway queue untouched.
+    created_at: "2026-07-04"
+    confidence: 1.0
+    tags: [sqs, dlq, purge, hygiene, prod-temp, done]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
