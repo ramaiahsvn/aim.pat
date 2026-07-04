@@ -96,7 +96,7 @@ subtasks:
       P1 tlv+profile -> P2 embossing -> P3 hsm(SoftHSM) -> P4 card+gp(SCP02) ->
       P5 sequencer+audit -> P6 Calypso key path + real-HSM adapter. Trace-replay
       (Gemalto/TechTrex) is the acceptance oracle for the APDU sequence.
-    status: in_progress  # 2026-07-04: Phase P1 (tlv+profile) COMPLETE & verified — P2 next
+    status: in_progress  # 2026-07-04: Phases P1 (tlv+profile) + P2 (embossing) COMPLETE & verified — P3 next
     priority: high
     blocked_by: []
     estimated_steps: 8
@@ -113,8 +113,18 @@ subtasks:
         ONLY, 0 key values leaked). MC shows 0 DGIs (correct: only Visa carries explicit
         dgi= attrs; MC M/Chip DGI convention is a later phase). Code is UNTRACKED in
         trp1002.cperso.thales (GitHub ITPCQI remote) — not yet committed/pushed.
-      P2_embossing: "next — Tri-Badge PURE V3.0 parser (parse 1..21156, ignore 72-byte trailer)"
-      P3_hsm: "pending"
+      P2_embossing: >
+        DONE 2026-07-04. perso::embossing — clean-room C++ port of the authoritative BprDataPrep
+        parser (EmbossingRecord.cs + EmbossingFileParser.cs): full 75-field table (spec V3.0,
+        last field PersoCardId @21149 len8 -> ends 21156), 1-based clamped ExtractField, BOM
+        encoding detect (UTF-8/UTF-16 LE/BE; production file is single-byte no-BOM), CRLF-tolerant
+        line split, blank-line skip, truncation warning (<21156). EmbossingRecord accessors
+        (card_type/pan/expiry/name_on_card/link_id, is_mc/qi/pure/chip). group_by_link_id groups
+        co-badge records by trimmed LinkId (field 50), first-seen order. EXIT CRITERIA MET:
+        real 3-record sample parses w/ ZERO warnings; grouping yields 1 co-badge group linking
+        MC+PR+QI under LinkId 910201929 (the Tri-Badge triplet). 8 new unit tests (21/21 total).
+        CLI gained a PCI-safe embossing mode (counts/warnings/card-type groups only — no PAN/track).
+      P3_hsm: "next — hsm::IHsmClient over SoftHSM2/PKCS#11; UDK/KCV/SCP02 session-key vectors"
       P4_card_gp: "pending"
       P5_sequencer_audit: "pending"
       P6_calypso_realhsm: "pending"

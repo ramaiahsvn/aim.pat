@@ -98,6 +98,25 @@ memories:
     confidence: 0.95
     tags: [task-002, phase-p1, cpp, persoengine, tlv, profile, cmake, build, verified, pugixml, googletest]
 
+  - id: mem-006
+    type: technical_knowledge
+    content: >
+      2026-07-04: task-002.3 Phase P2 (embossing parser) implemented AND verified.
+      perso::embossing in persoengine/ is a clean-room C++ port of the AUTHORITATIVE field map,
+      which lives in the OTHER allowlisted repo: trp1002.cperso.mces2/BprDataPrep/DataPrep/
+      EmbossingRecord.cs + EmbossingFileParser.cs (spec V3.0 == this parser). Key facts learned:
+      75 fields, 1-based positions, last field PersoCardId @21149 len8 (ends 21156); CardType
+      (field 5, pos20 len2) values MC / QI / PR(=PURE); LinkId (field 50, pos1032 len36) is the
+      co-badge key, right-justified space-padded. Real sample R06_..._Enriched_Pat.txt = 3 records
+      x 21228 chars, single-byte, NO BOM, LF-delimited; the 72-char tail 21157..21228 is a reserved
+      enrichment trailer (ignored — parse only 1..21156). VERIFIED via CLI on the real sample:
+      3 records, 0 warnings, 1 co-badge group MC+PR+QI under LinkId 910201929. 8 unit tests added
+      (21/21 total). CLI embossing mode is PCI-safe (prints counts/warnings/card-type groups only,
+      never PAN/name/track/PIN). Next: P3 hsm::IHsmClient over SoftHSM2/PKCS#11.
+    created_at: "2026-07-04"
+    confidence: 0.95
+    tags: [task-002, phase-p2, cpp, persoengine, embossing, tri-badge, linkid, co-badge, bprdataprep, verified]
+
 # Pruning rules
 pruning:
   max_entries: 500
