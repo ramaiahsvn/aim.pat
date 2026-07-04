@@ -48,9 +48,18 @@ subtasks:
         tests/hsm_test.cpp). Reuses BprCrypt DES3 via a persoengine_bprcrypt static lib
         (des.cpp+des3.cpp) — no new dep. derive_udk (EMV Option A) + kcv, keys by label.
         Verified: KAT anchor D5D44FF720683D0D / KCV D5D44F; 10 HSM tests; 31/31 suite total.
+      P3d_scp02: >
+        DONE 2026-07-04 (bpr.cpp a40714b) — done ahead of P3b/P3c because the Gemalto trace provides
+        real SCP02 data. hsm::scp02 in persoengine: InitUpdate::parse (VERIFIED vs 7 real trace sessions
+        — seq 0003..0007 KVN01, 0000..0001 KVN02), session_key (3DES-CBC, GP constants ENC 0182/MAC 0101/
+        DEK 0181/RMAC 0102), card_/host_cryptogram (full-3DES CBC-MAC, ISO 9797-1 m2 pad), cmac (Retail
+        MAC alg 3, ICV chaining). Parser + session-key CBC mechanics (DES3-KAT-anchored) + cryptogram/CMAC
+        determinism VERIFIED (6 tests, 37/37 suite). FINDING: default GP key 40..4F does NOT reproduce the
+        trace card cryptogram (got 64A3AA3841762195 vs 879A95BF3A518BB7) -> this card uses issuer/diversified
+        keys. Byte-exact GP crypto verification is a DISABLED_ real-vector test, pending the KVN=01 ISD
+        master key + diversification method from na-003/007. Fixed host challenge 0123456789ABCDEF.
       P3b_pin_block: "next — ISO 9564-1 Format 0, align to BprCrypt patEncryptDecrypt_Pinblock"
       P3c_cvv_pvv: "pending — needs issuer CVK/PVK keys from na-003/007-bnprs-grc-kms"
-      P3d_scp02: "pending — session keys + C-MAC; confirm GP derivation constants first"
       P3e_kms_adapter: "pending — KmsHsm prod backend (kms.bnprs.ai / central HSM)"
 
   - id: "task-001.3"
@@ -64,6 +73,8 @@ subtasks:
 
 needs_from_user:
   - "Issuer test keys / KCVs (for realistic end-to-end crypto vectors) — was rnd-cperso task-001.3"
+  - "SCP02 KVN=01 ISD master key (label) + diversification method from na-003/007-bnprs-grc-kms —
+     to enable the DISABLED_ real-trace SCP02 vector (default GP key 40..4F ruled out empirically)."
 
 guardrails:
   - "Never store key VALUES — labels/IDs/ARNs only (PCI Card Production)."

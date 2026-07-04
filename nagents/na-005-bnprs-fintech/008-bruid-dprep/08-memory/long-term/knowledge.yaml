@@ -64,6 +64,25 @@ memories:
     confidence: 0.97
     tags: [p3a, hsm, bprcrypthsm, udk, kcv, des3, bprcrypt, kat, verified, bpr-cpp]
 
+  - id: mem-005
+    type: technical_knowledge
+    content: >
+      2026-07-04: P3d SCP02 IMPLEMENTED (bpr.cpp a40714b), done ahead of P3b/P3c because the Gemalto
+      Resources trace supplies real SCP02 data. hsm::scp02 in persoengine: InitUpdate::parse, session_key
+      (3DES-CBC, GP constants ENC 0182/C-MAC 0101/DEK 0181/R-MAC 0102), card_/host_cryptogram
+      (full-3DES CBC-MAC + ISO 9797-1 m2 pad), cmac (Retail MAC alg 3, ICV chaining). Trace facts
+      (PCI-safe, session artifacts only): fixed host challenge 0123456789ABCDEF; INIT UPDATE resp 28B =
+      keyDiv(10)|keyInfo(2)|seq(2)|cardChal(6)|cardCrypto(8); 7 sessions KVN01 seq0003..0007 + KVN02
+      seq0000..0001 (parser VERIFIED against all 7). CRITICAL FINDING: default GP key 404142..4F does NOT
+      reproduce the card cryptogram (computed 64A3AA3841762195 vs trace 879A95BF3A518BB7) => this card
+      uses ISSUER/DIVERSIFIED static keys (10B key-div-data suggests MC-style diversification). Byte-exact
+      GP crypto is a DISABLED_ real-vector test pending the KVN=01 ISD master key + diversification method
+      from na-003/007-bnprs-grc-kms. Verified now: parser, session-key CBC mechanics (DES3-KAT-anchored),
+      cryptogram/CMAC determinism (37/37 suite). The trace is ALSO the P4 trace-replay oracle (bruid-cperso).
+    created_at: "2026-07-04"
+    confidence: 0.96
+    tags: [p3d, scp02, session-keys, cmac, cryptogram, gemalto-trace, diversification, pending-key, bpr-cpp]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
