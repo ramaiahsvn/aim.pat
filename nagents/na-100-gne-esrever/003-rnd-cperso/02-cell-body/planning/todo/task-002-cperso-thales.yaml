@@ -96,10 +96,28 @@ subtasks:
       P1 tlv+profile -> P2 embossing -> P3 hsm(SoftHSM) -> P4 card+gp(SCP02) ->
       P5 sequencer+audit -> P6 Calypso key path + real-HSM adapter. Trace-replay
       (Gemalto/TechTrex) is the acceptance oracle for the APDU sequence.
-    status: pending     # 2026-07-01: UNBLOCKED (002.2 done) — ready to start at Phase P1
+    status: in_progress  # 2026-07-04: Phase P1 (tlv+profile) COMPLETE & verified — P2 next
     priority: high
     blocked_by: []
     estimated_steps: 8
+    phase_progress:
+      P1_tlv_profile: >
+        DONE 2026-07-04. persoengine/ scaffold (CMake, C++17) implements emv::tlv
+        (BER-TLV + DGI encoder/parser, hex helpers) and perso::profile (CardProfile
+        model + VisaVpaLoader + McAddonsLoader + group_by_dgi). Build: cmake + AppleClang,
+        deps pugixml + GoogleTest (both via Homebrew; `brew install googletest` was needed).
+        EXIT CRITERIA MET: (a) 13/13 unit vectors pass (tlv encode/parse round-trip, DGI
+        short+extended length, profile load, DGI grouping, key-value-rejection guardrail);
+        (b) BOTH real Resources/ profiles parse via perso-cli — Visa AID A0000000031010
+        (32 tags, DGIs 9115+9117), MC AID A0000000041010 (124 tags, 8 key slots as LABELS
+        ONLY, 0 key values leaked). MC shows 0 DGIs (correct: only Visa carries explicit
+        dgi= attrs; MC M/Chip DGI convention is a later phase). Code is UNTRACKED in
+        trp1002.cperso.thales (GitHub ITPCQI remote) — not yet committed/pushed.
+      P2_embossing: "next — Tri-Badge PURE V3.0 parser (parse 1..21156, ignore 72-byte trailer)"
+      P3_hsm: "pending"
+      P4_card_gp: "pending"
+      P5_sequencer_audit: "pending"
+      P6_calypso_realhsm: "pending"
 
   - id: "task-002.4"
     subject: "Document/maintain the existing ISPI4MLB2 <-> Operas pipeline"

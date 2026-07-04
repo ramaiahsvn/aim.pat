@@ -78,6 +78,26 @@ memories:
     confidence: 0.95
     tags: [resources, card-profiles, embossing, dgi, scp02, gemalto, techtrex, apdu-trace, task-001, task-002]
 
+  - id: mem-005
+    type: technical_knowledge
+    content: >
+      2026-07-04: task-002.3 Phase P1 (tlv + profile modules) implemented AND verified.
+      Location: trp1002.cperso.thales/persoengine/ (CMake C++17 library libpersoengine + perso-cli;
+      UNTRACKED in the GitHub ITPCQI repo — not committed/pushed). Modules: emv::tlv (encode_tag/
+      encode_len/tlv/concat/encode_dgi + BER-TLV parse + from_hex/to_hex) and perso::profile
+      (CardProfile model, VisaVpaLoader for <config>/template/tagelement reading dgi= attrs,
+      McAddonsLoader for <ADDONS>/WORKSHEET/ELEM, group_by_dgi). Build recipe on pat-m4p:
+      deps = pugixml + googletest (both Homebrew; googletest had to be `brew install`ed);
+      `cmake -S . -B build -DCMAKE_PREFIX_PATH=$(brew --prefix) && cmake --build build`.
+      VERIFIED: 13/13 GoogleTest unit vectors pass; both REAL Resources/ profiles parse via
+      perso-cli — Visa AID A0000000031010 (32 tags, DGIs 9115+9117), MC AID A0000000041010
+      (124 tags, 8 KeySlots as LABELS ONLY — key-value guardrail confirmed on real data).
+      MC yields 0 DGIs by design (only Visa profile carries explicit dgi= attrs). Next: P2
+      embossing parser. See task-002 phase_progress + emv-engine-architecture.md §9 roadmap.
+    created_at: "2026-07-04"
+    confidence: 0.95
+    tags: [task-002, phase-p1, cpp, persoengine, tlv, profile, cmake, build, verified, pugixml, googletest]
+
 # Pruning rules
 pruning:
   max_entries: 500
