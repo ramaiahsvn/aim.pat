@@ -166,10 +166,30 @@ memories:
       (all prod, keep). eu-central-1 (4): wgate-uat-nat, nagents-uat-nat, utms-nat (UAT), SMS-GW-Prod-Regional-NAT
       (=QI-SMS-GW, DO NOT TOUCH). STRUCTURAL (not pure leak - active but always-on): eu-central-1 UAT envs
       (utms, wgate-uat, nagents-uat) run 24/7 = 3 UAT NATs (~$96/mo) + ~10 ALBs/NLBs (~$180/mo) + ECS/RDS;
-      candidate for off-hours scheduling/consolidation. Nothing deleted yet (pending user confirmation).
+      candidate for off-hours scheduling/consolidation.
+      DONE 2026-07-04 (user-approved): DELETED the 2 clearly-dead ALBs itpgateway-lb-cb
+      (dns itpgateway-lb-cb-1717556652.us-east-2.elb.amazonaws.com) + local-mw-alb (internal) and their
+      orphaned target groups (ITP-Core-ASG-ALB-TG, itpgateway-TG-MW) -> ~$36/mo. STILL PENDING: itpgateway-lb
+      (2021, internet-facing, 0 traffic/14d but prod-named - verify no DNS points at it before delete);
+      stopped Aurora database-1 (snapshot+delete); eu-central-1 UAT off-hours scheduling.
     created_at: "2026-07-04"
     confidence: 1.0
-    tags: [leakage, idle-alb, aurora-stopped, nat, eu-central-1-uat, cost, findings, pending-confirm]
+    tags: [leakage, idle-alb, aurora-stopped, nat, eu-central-1-uat, cost, findings, alb-deleted]
+
+  - id: mem-009
+    type: incident_learning
+    content: >
+      2026-07-04 SQS health check (us-east-2, 18 queues). LIVE QUEUES HEALTHY under the traffic surge:
+      ITPSQS_01-prod-temp had 1,303 visible + 367 in-flight but oldest-message age only 105s (draining fast,
+      consumers keeping pace); ITPCore_01-prod-temp.fifo 26 visible/0 inflight but oldest age 1s (flowing,
+      NOT a blocked FIFO group). ONLY anomaly: ITPCore_01-prod-temp-dlq.fifo has 53 dead-letters that are
+      STALE - oldest 926,598s (~10.7 days, ~Jun 23) with ZERO new dead-letters in 7+ days (same stale-backlog
+      pattern as the ITPSQS_01 DLQ purged earlier 2026-07-04). NOT an active failure. All other DLQs
+      (CBCore/CTCore/ITPSQS_02-04/BULK/bio/patpos) = 0. ITPSQS_BULK main had 1 msg (trivial). The 53 stale
+      ITPCore DLQ msgs are candidates to inspect-for-root-cause / redrive / purge (10+ days stale, likely obsolete).
+    created_at: "2026-07-04"
+    confidence: 1.0
+    tags: [sqs, dlq, health, itpcore-fifo, stale-deadletters, surge, prod-temp]
 
   # Example entries:
   # - id: mem-002
