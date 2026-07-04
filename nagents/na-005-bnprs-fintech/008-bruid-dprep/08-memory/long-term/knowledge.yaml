@@ -46,6 +46,24 @@ memories:
     confidence: 0.96
     tags: [hsm-planner, crypto, udk, kcv, scp02, pinblock, cvv, pvv, pci, task-001.2]
 
+  - id: mem-004
+    type: technical_knowledge
+    content: >
+      2026-07-04: P3a IMPLEMENTED & verified (bpr.cpp commit 74d3c1c). hsm::IHsmClient seam +
+      BprCryptHsm dev/test backend in bpr.cpp/src/BprCardEmv/persoengine (hsm.hpp/hsm.cpp/hsm_test.cpp).
+      Wiring: a persoengine_bprcrypt STATIC lib compiles BprCrypt des.cpp+des3.cpp (relative
+      ../../AprCommon/BprCrypt) and persoengine links it PRIVATE — reuses production DES3, no new dep.
+      Confirmed BprCrypt DES3::encrypt = E_k3(D_k2(E_k1(x))) (proper EDE; 2-key uses K1,K2,K1).
+      Implemented derive_udk (EMV Option A: rightmost-16 BCD diversifier, ZR=ZL^FF,
+      MK=DES3(IMK,ZL)||DES3(IMK,ZR), odd-parity) + kcv (leftmost 3 of DES3(key,zeros)); keys by LABEL,
+      dev keys public/synthetic only. Verified: KAT anchor DES3(0123456789ABCDEF x2, zeros)=
+      D5D44FF720683D0D + KCV D5D44F (anchors DES core + EDE ordering) plus UDK shape/parity/composition
+      cross-checks; 10 HSM tests, 31/31 suite. NEXT: P3b PIN block ISO 9564-1 F0 (align to
+      BprCrypt patEncryptDecrypt_Pinblock).
+    created_at: "2026-07-04"
+    confidence: 0.97
+    tags: [p3a, hsm, bprcrypthsm, udk, kcv, des3, bprcrypt, kat, verified, bpr-cpp]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context

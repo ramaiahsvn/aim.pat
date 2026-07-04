@@ -37,10 +37,21 @@ subtasks:
       first, issuer keys later. Build order (planner §6): P3a IHsmClient+BprCryptHsm (UDK+KCV, KAT-gated)
       -> P3b PIN block (ISO 9564-1 F0) -> P3c CVV/PVV (needs na-003/007 keys) -> P3d SCP02 session keys +
       C-MAC (trace-aligned) -> P3e KmsHsm prod adapter. KEYS BY LABEL ONLY (PCI).
-    status: in_progress   # planning done; implementation next (P3a)
+    status: in_progress   # planning done; P3a DONE & verified; P3b (PIN block) next
     priority: high
     verification: "KAT anchor: 3DES-ECB(zeros, key 0123456789ABCDEF)=D5D44FF720683D0D (KCV D5D44F). UDK/SCP02/CVV/PVV from published spec vectors; issuer test keys/KCVs when available."
     deliverable: "08-memory/long-term/hsm-crypto-planner.md"
+    progress:
+      P3a_ihsmclient_udk_kcv: >
+        DONE 2026-07-04 (bpr.cpp 74d3c1c). hsm::IHsmClient + BprCryptHsm in
+        bpr.cpp/src/BprCardEmv/persoengine (include/persoengine/hsm.hpp, src/hsm.cpp,
+        tests/hsm_test.cpp). Reuses BprCrypt DES3 via a persoengine_bprcrypt static lib
+        (des.cpp+des3.cpp) — no new dep. derive_udk (EMV Option A) + kcv, keys by label.
+        Verified: KAT anchor D5D44FF720683D0D / KCV D5D44F; 10 HSM tests; 31/31 suite total.
+      P3b_pin_block: "next — ISO 9564-1 Format 0, align to BprCrypt patEncryptDecrypt_Pinblock"
+      P3c_cvv_pvv: "pending — needs issuer CVK/PVK keys from na-003/007-bnprs-grc-kms"
+      P3d_scp02: "pending — session keys + C-MAC; confirm GP derivation constants first"
+      P3e_kms_adapter: "pending — KmsHsm prod backend (kms.bnprs.ai / central HSM)"
 
   - id: "task-001.3"
     subject: "Produce the perso data blob/hex from parsed inputs"
