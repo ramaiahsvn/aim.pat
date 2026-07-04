@@ -61,6 +61,25 @@ Full GP + EMV perso flow observed (counts approx):
 → Reference sequencer for the planned C++ EMV engine (task-002.2/.3). TechTrex log gives a second,
   independent vendor perso trace for cross-vendor diff.
 
+## Trace usefulness by engine phase (assessed 2026-07-04, during bruid-dprep P3 work)
+
+Format: `->[cmd]` / `<-[resp]` raw-hex APDU log (Gemalto 603 lines; TechTrex 5114 lines, 2nd vendor,
+channel markers only, no field labels). Gemalto census: `8050`/`8482` ×7 (7 SCP02 sessions), `80E0`
+PUT KEY ×35, `80E2` STORE DATA ×47, `80E6` INSTALL ×4, `80E4` DELETE ×3.
+
+- **INIT UPDATE uses a FIXED host challenge `0123456789ABCDEF`** (deterministic perso-tool challenge) —
+  so the SCP02 sessions are **reproducible** (not random).
+- **P4 (card/gp/sequencer — bruid-cperso/iperso):** HIGH value — the trace IS the trace-replay acceptance
+  oracle (assert emitted APDU structure == recorded). Needs **no keys**. TechTrex = independent cross-vendor trace.
+- **P3d (SCP02 crypto — dprep/cperso):** PARTIAL — gives the fixed host challenge + card INIT-UPDATE response
+  (key-div-data ‖ key-info(KVN‖SCP) ‖ seq-ctr ‖ card-challenge ‖ card-cryptogram) + host-cryptogram ‖ C-MAC.
+  To VERIFY the crypto still needs the ISD base key (label from na-003/007 KMS). The trace is the wire
+  complement, **not** a substitute for the keys.
+- **P3b PIN block / P3c CVV/PVV (dprep):** NOT unblocked — PUT KEY loads keys ENCRYPTED under the KEK, and
+  STORE DATA is encrypted perso data; no cleartext key/PIN/CVV vectors are recoverable. Still need issuer
+  test keys/KCVs (labels) from na-003/007-bnprs-grc-kms. (PIN block also appears in the embossing file
+  field 28 but as SAD — do not extract.)
+
 ## What remains outstanding after this delivery
 - **Test keys / KCVs** (task-001.3) — still needed (IDs/labels only per guardrails).
 - **Thales INTERPRETER reference manual** (task-001.4) — still needed to convert `.spi` pseudocode.
