@@ -58,8 +58,14 @@ subtasks:
         trace card cryptogram (got 64A3AA3841762195 vs 879A95BF3A518BB7) -> this card uses issuer/diversified
         keys. Byte-exact GP crypto verification is a DISABLED_ real-vector test, pending the KVN=01 ISD
         master key + diversification method from na-003/007. Fixed host challenge 0123456789ABCDEF.
-      P3b_pin_block: "next — ISO 9564-1 Format 0, align to BprCrypt patEncryptDecrypt_Pinblock"
-      P3c_cvv_pvv: "pending — needs issuer CVK/PVK keys from na-003/007-bnprs-grc-kms"
+      P3b_pin_block: >
+        DONE 2026-07-04 (bpr.cpp d59b244). IHsmClient::pin_block_iso0 + BprCryptHsm::pin_block_clear_iso0:
+        ISO 9564-1 Format 0 (PINfield 0|len|PIN|F-pad XOR PANfield 0000|12 PAN digits excl check digit),
+        encrypt delegates to same DES3 as BprCrypt::patEncryptDecrypt_Pinblock (keys by label; transport-key
+        values NOT duplicated into agent/persoengine — stay in BprCrypt). Verified: hand-computed format KAT
+        PIN 1234/PAN 43219876543210987 -> 0412AC89ABCDEF67, 6/12-digit length nibbles, PAN-spacing invariance,
+        encrypt==DES3(clear), length validation. 7 tests, 44/44 suite. SAD — never logged.
+      P3c_cvv_pvv: "next (but BLOCKED on keys) — Visa CVV/iCVV/CVV2 + PVV; needs issuer CVK/PVK from na-003/007"
       P3e_kms_adapter: "pending — KmsHsm prod backend (kms.bnprs.ai / central HSM)"
 
   - id: "task-001.3"

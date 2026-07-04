@@ -83,6 +83,24 @@ memories:
     confidence: 0.96
     tags: [p3d, scp02, session-keys, cmac, cryptogram, gemalto-trace, diversification, pending-key, bpr-cpp]
 
+  - id: mem-006
+    type: technical_knowledge
+    content: >
+      2026-07-04: P3b PIN block IMPLEMENTED & verified (bpr.cpp d59b244). ISO 9564-1 Format 0 in
+      persoengine hsm: BprCryptHsm::pin_block_clear_iso0(pan,pin) builds PINfield (0|len|PIN|F-pad) XOR
+      PANfield (0000 | 12 rightmost PAN digits EXCLUDING the check digit); pin_block_iso0(label,pan,pin)
+      encrypts under the PIN key via the SAME DES3 primitive BprCrypt::patEncryptDecrypt_Pinblock uses.
+      That BprCrypt fn just does DES3::encrypt of a 64-bit block under a fixed 2-key transport key
+      (K1=K3; UAT==PROD in current source) — it does NOT build the format; caller supplies the clear block.
+      Transport-key VALUES live in bpr.cpp BprCrypt only; NOT copied into agent files (PCI guardrail).
+      Verified KAT: PIN 1234 / PAN 43219876543210987 -> clear block 0412AC89ABCDEF67; length nibbles
+      (6->'6', 12->'C'), PAN-spacing invariance, encrypt==DES3(clear). 7 tests, 44/44 suite. PIN block is
+      SAD — never logged. NEXT: P3c CVV/PVV (Visa CVV/iCVV/CVV2 + PVV) — BLOCKED on issuer CVK/PVK keys
+      from na-003/007-bnprs-grc-kms.
+    created_at: "2026-07-04"
+    confidence: 0.97
+    tags: [p3b, pinblock, iso9564, format0, des3, bprcrypt, sad, verified, bpr-cpp]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
