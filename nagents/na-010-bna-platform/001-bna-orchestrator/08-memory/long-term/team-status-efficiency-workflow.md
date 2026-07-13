@@ -62,6 +62,21 @@ Top: aid.018/020/028/029/032/037/040 (8). Bottom: aid.003 (1, no work), aid.002 
 aid.033 (4, blocked/undelivered). All ledgers committed + pushed to each agent's
 GitLab repo.
 
+## Rollup check (2026-07-12)
+
+Read live from GitLab (root $GITLAB_PAT) — each aim1001 repo's `efficiency.aid.NNN.csv`,
+latest rating per agent. **NOTE the repo layout:** repos are in TIER SUBGROUPS,
+`aim1001/<tier>/aim1001.aid.NNN` (e.g. `aim1001/04-support-agents/aim1001.aid.100`),
+NOT flat under `aim1001/` — API `groups/193/projects` needs `include_subgroups=true`.
+Project id = 127 + NNN (aid.001=128 … aid.100=227). Ledger filename is
+`efficiency.aid.NNN.csv`; rating is CSV field 5 (safe from the rationale-comma bug).
+
+**28 active** agents (up from 24), **team average 6.61/10** (was 6.46). Most recent entry
+2026-07-12 (pipeline live). Distribution 1×10 · 1×9 · 9×8 · 7×7 · 4×6 · 3×5 · 1×4 · 2×1.
+Top: aid.028(10), aid.012(9), aid.018/027/029/031(8). Bottom: aid.003 & aid.011 (1, stuck),
+aid.002(4). FLAGS: aid.019 + aid.079 stale since 2026-05-31 (~6wk — idle or hook stopped
+firing); 72/100 agents never produced a ledger (dormant/unassigned).
+
 ## Caveats
 
 - Ratings are a **self-assessment** by the same model from the transcript — a relative
