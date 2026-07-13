@@ -191,6 +191,109 @@ memories:
     confidence: 1.0
     tags: [sqs, dlq, health, itpcore-fifo, stale-deadletters, surge, prod-temp]
 
+  - id: mem-010
+    type: operation
+    content: >
+      2026-07-07: user-requested REBUILD of the UAT gateway that was terminated 2026-07-03 (mem-004).
+      First VERIFIED the original i-0928a61d991e1914e is unrecoverable: instance gone from EC2 API, and
+      account has NO AMI + NO snapshot of it (only self AMI is wGate-1's; 0x 750GB snapshots; 0x 750GB
+      orphan volumes). So rebuild = a BLANK spec-matched shell, NOT the original software/config (that
+      died with the DeleteOnTermination root volume). Launched NEW instance i-0eb9ed19151bcd26f (us-east-2):
+      Windows Server 2022 Base ami-08fca093c13a27abf (original OS was Windows per user; original AMI lost),
+      m5.large, ROOT 250GB gp3 vol-00c566bf6de82bf51 (user downsized from original 750GB gp2), VPC
+      vpc-4a606822 (ItpCoreVpc), subnet-70261618 (us-east-2a public), reused the SURVIVING original SG
+      uat-itpgateway sg-0ff78d4b4cf775868 (443 open to 0.0.0.0/0), key pair ITPCore, tags Name=
+      uat_itpcore0_mgate_temporary + Project/Owner/Environment=uat. EIP: original 3.13.105.233 was
+      UNRECOVERABLE (allocate-address --address 3.13.105.233 -> InvalidAddress.NotFound; released EIPs
+      return to AWS pool and cannot be reclaimed once recycled) -> allocated FRESH EIP 3.21.1.167
+      (eipalloc-0a0ab31d4f44111ca) and associated it. ~$90/mo (m5.large ~$70 + 250GB gp3 ~$20). NOT
+      recreated: the uat-itpgateway ALB + target group (traffic hits EIP directly). OPEN follow-ups:
+      repoint anything referencing old IP 3.13.105.233 -> 3.21.1.167; reinstall gateway stack (ideally
+      via mGate IaC/Terraform) onto the blank box; recreate ALB if needed; Admin password via ITPCore
+      key + get-password-data once Windows inits. LESSON: released EIPs are effectively gone — snapshot/
+      image AND note the EIP allocation-id BEFORE terminating anything you might rebuild.
+    created_at: "2026-07-07"
+    confidence: 1.0
+    tags: [rebuild, ec2, windows, uat-gateway, eip-unrecoverable, gp3, no-backup, vpc-4a606822, done, open-items]
+
+  - id: mem-011
+    type: operation
+    content: >
+      2026-07-07 (same session as mem-010): RECREATED the uat-itpgateway ALB + target group with the
+      SAME original names, per user request. Recovered the exact original config from CloudTrail Create
+      events (both created 2026-04-12, within 90d window) since nothing was recorded at delete time:
+      ALB uat-itpgateway = internet-facing application/ipv4, SG sg-0ff78d4b4cf775868 (uat-itpgateway),
+      subnets subnet-70261618/subnet-b65d33cc/subnet-0797464b (all 3 public in vpc-4a606822); TG
+      uat-itpgateway = HTTP:80, target-type instance, health check HTTP path /api/healthcheck matcher 200;
+      TWO listeners = HTTPS:443 (ACM cert 7b257f9b-...-5bdb716bcf99 = domain itpgateway.link, ISSUED exp
+      2027-02-05, ssl-policy ELBSecurityPolicy-TLS13-1-2-Res-PQ-2025-09) + HTTP:80, both forward to the TG.
+      NEW ARNs: ALB app/uat-itpgateway/83e3250a7aa50599 (DNS uat-itpgateway-878369483.us-east-2.elb.amazonaws.com),
+      TG targetgroup/uat-itpgateway/cbf33fa165f822f8. Registered instance i-0eb9ed19151bcd26f. ~$18/mo.
+      CAVEAT/OPEN: (1) instance SG sg-0ff78d4b4cf775868 only allows 443 inbound (0.0.0.0/0) — NOT port 80,
+      so the ALB->instance HTTP:80 health check CANNOT pass until an ingress rule allows :80 from the ALB SG
+      (guardrailed SG change, needs approval); this matches the ORIGINAL SG so faithful, but targets will read
+      unhealthy. (2) blank Windows box serves nothing on /api/healthcheck yet -> install gateway stack.
+      DNS DONE 2026-07-07: the real hostname is test.itpgateway.link (NOT apex). Route53 public zone
+      itpgateway.link (Z03617213MAKK1TMJEHCP) had a DANGLING A-alias test.itpgateway.link ->
+      dualstack.uat-itpgateway-824503646 (the OLD deleted ALB) -> UPSERTed to the new ALB
+      (dualstack.uat-itpgateway-878369483.us-east-2.elb.amazonaws.com, EvaluateTargetHealth=true).
+      Also SWAPPED the 443 listener default cert from itpgateway.link (7b257f9b, apex-only, would mismatch)
+      to test.itpgateway.link cert 71f5a2ed-...-436dd71268ce (ISSUED exp 2026-10-31). ACM inventory:
+      also exists *.itpgateway.link (ca219b40) + *.itpgateway.com certs. So https://test.itpgateway.link
+      now resolves to the ALB with a valid cert (targets still unhealthy until SG:80 + app installed).
+    created_at: "2026-07-07"
+    confidence: 1.0
+    tags: [alb, target-group, recreate, uat-itpgateway, cloudtrail-recovery, acm, itpgateway.link, sg-port80, done, open-items]
+
+  - id: mem-012
+    type: operation
+    content: >
+      2026-07-07: set up SES email sending for sender "QiCard" (display name) in account 819144294008.
+      SES ACCOUNT STATE at start: SANDBOX in both us-east-2 & us-east-1 (ProductionAccessEnabled=False,
+      200/day, 1 msg/s, SendingEnabled=True, EnforcementStatus HEALTHY). Pre-existing identity bnprs.in
+      was BROKEN (DKIM FAILED, not verified) + info@bnprs.in. User picked itpgateway.com as the QiCard
+      sending domain (it's a Route53 public zone here Z065126021WLLO6U774F7, so DKIM auto-verifies fast).
+      ACTIONED (us-east-2): created SES Easy-DKIM identity itpgateway.com; published 3 DKIM CNAMEs
+      (<token>._domainkey.itpgateway.com -> <token>.dkim.amazonses.com) + a monitoring DMARC TXT
+      (_dmarc.itpgateway.com = "v=DMARC1; p=none;") to Route53; enabled DKIM signing. RESULT: identity
+      VerifiedForSendingStatus=True, DkimStatus=SUCCESS within ~1 min. So mail can now send as
+      From: "QiCard <no-reply@itpgateway.com>" with DKIM alignment (DMARC passes via DKIM; no custom
+      MAIL FROM set, envelope stays amazonses.com). KEY POINT for future: an email "sender ID" is just
+      the free-text From display name — the gate is a verified DOMAIN identity, not the name.
+      PRODUCTION ACCESS REQUESTED 2026-07-07: submitted put-account-details --production-access-enabled
+      --mail-type MARKETING (user said BOTH transactional+promotional; declared MARKETING as the stricter)
+      --website-url https://qi.iq/en/home --contact-language EN --additional-contact ramaiah.polyu@gmail.com,
+      use-case = Qi Card cardholder mail (OTP/alerts/receipts + opted-in promo, own customers only, SNS
+      bounce/complaint handling, up to 1,000/day). ReviewStatus=PENDING (AWS usually decides <24h;
+      ProductionAccessEnabled flips True on approval).
+      BOUNCE/COMPLAINT HANDLING DONE 2026-07-07: account-level suppression was ALREADY on for BOUNCE+
+      COMPLAINT (auto-suppresses hard bounces/complainers). Added the notification pipeline: SNS topic
+      qicard-ses-events (arn:aws:sns:us-east-2:819144294008:qicard-ses-events) with a topic policy
+      allowing ses.amazonaws.com sns:Publish (cond AWS:SourceAccount=819144294008); email sub
+      ramaiah.polyu@gmail.com = PendingConfirmation (user must click confirm link). SES config set
+      qicard-itpgateway with event destination sns-bounce-complaint -> that topic, matching BOUNCE,
+      COMPLAINT, REJECT, RENDERING_FAILURE, DELIVERY_DELAY. Set qicard-itpgateway as the DEFAULT config
+      set on identity itpgateway.com, so ALL QiCard mail emits events automatically (no per-send flag).
+      TESTED 2026-07-08: sent QiCard HTML test (Segoe UI 15px) as "QiCard <no-reply@itpgateway.com>"
+      first to success@simulator.amazonses.com (sandbox-safe, MessageId 010f019f4009c977-...), then
+      verified recipient ramaiah.polyu@gmail.com (SES email-address identity) and delivered the same
+      email to that Gmail (MessageId 010f019f400b9567-...). Pipeline confirmed end-to-end.
+      IAM ROLE 2026-07-08: attached least-privilege SES-send role to the gateway EC2 i-0eb9ed19151bcd26f
+      so .NET/AWSSDK.SimpleEmailV2 can send KEYLESS via the instance profile (no static keys). Role +
+      instance profile = qicard-gateway-ses-send-role; inline policy ses-send-qicard allows ses:SendEmail
+      + ses:SendRawEmail scoped to Resource identity/itpgateway.com + configuration-set/qicard-itpgateway
+      ONLY. Association iip-assoc-0a848fe4a4c4e3d7a = associated. SSM ADDED 2026-07-08: attached AWS managed
+      AmazonSSMManagedInstanceCore to the SAME role qicard-gateway-ses-send-role (one instance profile max
+      per EC2, so both live on one role: inline ses-send-qicard + managed SSM). Enables Session Manager +
+      AWSSupport-ResetAccess (keyless Windows admin-password reset) once the preinstalled SSM agent registers
+      (~mins; instance has public egress). So the gateway is now keyless for BOTH SES send AND management.
+      STILL OPEN: confirm the SNS email subscription; optional custom MAIL FROM mail.itpgateway.com
+      (MX+SPF) for envelope alignment; await production-access approval.
+      NOTE: "QiCard"/Qi Card = Iraqi payment brand (ITP/ITPartners).
+    created_at: "2026-07-07"
+    confidence: 1.0
+    tags: [ses, email, qicard, itpgateway.com, dkim, dmarc, sandbox, verified, done, open-items]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
