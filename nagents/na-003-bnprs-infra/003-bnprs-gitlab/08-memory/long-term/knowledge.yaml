@@ -104,13 +104,18 @@ memories:
   - id: mem-010
     type: team
     content: >
-      Current members documented in 08-memory/long-term/members.yaml. Reference project:
-      BPR2002/bpr2002.misc.dev-playground. Maintainers (11): charan, doddamurali, jranjithk,
-      sai1365, VenkatBorusu, krishnavamsi, Ashok, trinadhadabala, teja, venkatesh1117,
-      chiranjeevinarukula. Developers (14). Reporters: info_bnprs, devops_bnprs (service accounts).
+      Current members documented in 08-memory/long-term/members.yaml. CORRECTION 2026-07-09: the
+      reference project "BPR2002/bpr2002.misc.dev-playground" is STALE / does not exist — the real
+      dev-playground is BPR1010/bpr1010.misc.dev-playground (project id 3). Org-wide roster (mem):
+      Maintainers (11): charan, doddamurali, jranjithk, sai1365, VenkatBorusu, krishnavamsi, Ashok,
+      trinadhadabala, teja, venkatesh1117, chiranjeevinarukula. Developers (14). Reporters: info_bnprs,
+      devops_bnprs (service accounts). PER-TEAM MODEL (2026-07-09): membership is set at the GROUP level
+      and inherits into projects. E.g. AandhiPe = group BPR2001 (id 18) with 5 direct members: root
+      (Owner), doddamurali/venkatesh1117/jranjithk (Maintainer), balaji (Developer); individual projects
+      may add extras directly (e.g. sibling bpr2001.aandhipe.devplaygrounds adds sai1365 Developer).
     created_at: "2026-05-26"
     confidence: 0.9
-    tags: [members, team, roles, maintainer, developer]
+    tags: [members, team, roles, maintainer, developer, bpr2001, aandhipe, group-inheritance]
 
   - id: mem-011
     type: infrastructure
