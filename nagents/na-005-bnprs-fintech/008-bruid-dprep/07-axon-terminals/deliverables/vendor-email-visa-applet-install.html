@@ -1,0 +1,50 @@
+<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#1a1a1a;line-height:1.55;max-width:760px;">
+
+<p>Dear Gemalto/Thales team,</p>
+
+<p>On the Visa test sample you provided, we successfully instantiated the Visa payment applet
+from the pre-loaded package over an authenticated SCP02 session, and would like to confirm the
+install parameters before we personalize.</p>
+
+<p style="margin:16px 0 4px;"><b>Card</b></p>
+<table style="border-collapse:collapse;font-size:14px;">
+  <tr><td style="padding:2px 14px 2px 0;color:#555;">Type</td><td>Gemalto GP JavaCard (test), ISD <code>A000000003000000</code> (Visa-RID), OP_READY</td></tr>
+  <tr><td style="padding:2px 14px 2px 0;color:#555;">Reader</td><td>ACS ACR39U ICC (PC/SC, contact)</td></tr>
+  <tr><td style="padding:2px 14px 2px 0;color:#555;">ATR</td><td><code>3BFE130000100080318066B0840C016E0183009000</code></td></tr>
+</table>
+
+<p style="margin:16px 0 4px;"><b>Instantiation — operation &amp; results</b></p>
+<pre style="background:#f4f5f7;border:1px solid #dfe1e6;border-radius:6px;padding:12px;font-size:13px;overflow-x:auto;">
+BEFORE
+  SELECT A0000000031010  -> 6A 82   (Visa AID not present)
+  SELECT A0000000031056  -> 6A 82   (module AID, not selectable)
+
+INSTALL [for install]  (over SCP02)
+  Package AID  : A00000000310
+  Module AID   : A0000000031056
+  Instance AID : A0000000031010   -> SUCCESS
+
+AFTER
+  GET STATUS: APP: A0000000031010 (SELECTABLE)
+  SELECT A0000000031010  -> 90 00 + FCI
+</pre>
+
+<p style="margin:16px 0 4px;"><b>Our reading</b></p>
+<p>The Visa applet lives in package <code>A00000000310</code> as module <code>A0000000031056</code>
+and instantiates cleanly to the standard Visa AID <code>A0000000031010</code>. The instance is
+<b>bare / unpersonalized</b> (no PAN/keys/tracks yet).</p>
+
+<p style="margin:16px 0 4px;"><b>Please confirm</b></p>
+<ol style="margin:4px 0;padding-left:22px;">
+  <li>The production <b>module → instance</b> mapping — is <code>A0000000031056 → A0000000031010</code> the intended Visa credit/debit path? What are <code>A000000003104D</code> and the <code>A00000000316</code> modules for?</li>
+  <li>The required <b>INSTALL [for install] parameters</b> (privileges + install <code>C9</code> data) for the production instance — we used defaults for this test.</li>
+  <li>That our held <b>Visa VPA profile</b> (DGI/tag layout) matches this applet version, plus any <code>STORE DATA</code> sequencing notes.</li>
+  <li>Applet product/version for package <code>A00000000310</code> v1.0.</li>
+</ol>
+
+<p>The raw SELECT trace is attached; the byte-level SCP02-wrapped INSTALL APDUs can be provided on request. Thank you.</p>
+
+<p style="margin-top:18px;">Best regards,<br>
+BNPRS / ITPartners — BRUID Personalization</p>
+
+</div>

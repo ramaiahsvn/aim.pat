@@ -1,0 +1,55 @@
+<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;color:#1a1a1a;line-height:1.55;max-width:760px;">
+
+<p>Dear Gemalto/Thales team,</p>
+
+<p>On the M/Chip test sample you provided, we are preparing personalization and want to
+confirm the applet identity before we proceed. From the host side (authenticated
+<b>GET STATUS</b> over an SCP02 session) we can see applet code in your namespace, but
+nothing is registered under the standard Mastercard AID <code>A0000000041010</code> yet.</p>
+
+<p style="margin:16px 0 4px;"><b>Card</b></p>
+<table style="border-collapse:collapse;font-size:14px;">
+  <tr><td style="padding:2px 14px 2px 0;color:#555;">Type</td><td>Gemalto GP JavaCard (test), ISD <code>A000000004000000</code> (MC-RID), OP_READY</td></tr>
+  <tr><td style="padding:2px 14px 2px 0;color:#555;">Reader</td><td>ACS ACR39U ICC (PC/SC, contact)</td></tr>
+  <tr><td style="padding:2px 14px 2px 0;color:#555;">ATR</td><td><code>3BFE130000100080318066B0840C016E0183009000</code></td></tr>
+</table>
+
+<p style="margin:16px 0 4px;"><b>SELECT APDU traces</b></p>
+<pre style="background:#f4f5f7;border:1px solid #dfe1e6;border-radius:6px;padding:12px;font-size:13px;overflow-x:auto;">
+candidate M/Chip #1
+  C: 00 A4 04 00 0E A0 00 00 00 18 0F 00 00 01 83 30 32 44 44 00
+  R: 69 99          (applet-selection-failed — consistent)
+
+candidate M/Chip #2
+  C: 00 A4 04 00 0B A0 00 00 00 18 0F 00 00 01 83 04 00
+  R: 90 00          (selects; empty FCI)
+
+standard MC AID A0000000041010  (control, x2)
+  C: 00 A4 04 00 07 A0 00 00 00 04 10 10 00
+  R: 6A 82          (not registered under the MC AID)
+
+nonexistent AID (baseline)   -> 6A 82
+partial A000000004 (ISD)     -> FCI + 90 00
+</pre>
+
+<p style="margin:16px 0 4px;"><b>Our reading</b></p>
+<p>We believe the M/Chip applet is present as <code>A0000000180F0000018330324444</code> — the
+consistent <code>6999</code> looks like an installed-but-unpersonalized payment applet that
+refuses SELECT until perso data is loaded. The <code>6A82</code> on <code>A0000000041010</code>
+is expected pre-perso (that select-AID is bound at personalization).</p>
+
+<p style="margin:16px 0 4px;"><b>Please confirm</b></p>
+<ol style="margin:4px 0;padding-left:22px;">
+  <li>Which AID is the Mastercard M/Chip applet (package/module + instance) — is it <code>A0000000180F0000018330324444</code>?</li>
+  <li>Is the <code>6999</code> expected pre-perso behavior, or a lifecycle/config issue?</li>
+  <li>The M/Chip <b>perso profile</b> (DGI/tag layout, mandatory data groups, INSTALL parameters) — as you provided for Visa VPA.</li>
+  <li>After perso, which SELECT AID the applet registers (e.g. <code>A0000000041010</code>) and any PSE/PPSE entry.</li>
+  <li>Product/version for package <code>A0000000180F00000183303244</code> v1.0.</li>
+</ol>
+
+<p>Full card inventory and the raw trace log are attached. Thank you.</p>
+
+<p style="margin-top:18px;">Best regards,<br>
+BNPRS / ITPartners — BRUID Personalization</p>
+
+</div>

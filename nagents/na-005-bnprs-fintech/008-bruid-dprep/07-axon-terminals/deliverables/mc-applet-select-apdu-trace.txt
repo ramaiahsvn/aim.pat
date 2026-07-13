@@ -1,0 +1,46 @@
+APDU TRACE — Mastercard applet candidate SELECTs
+Card: Gemalto GP JavaCard, ISD A000000004000000 (MC-RID), test card
+Reader: ACS ACR39U ICC Reader
+Date: 2026-07-09
+==================================================================
+
+ATR:
+3b:fe:13:00:00:10:00:80:31:80:66:b0:84:0c:01:6e:01:83:00:90:00
+
+------------------------------------------------------------------
+[1] SELECT A0000000180F0000018330324444  (candidate M/Chip #1)
+------------------------------------------------------------------
+Sending: 00 A4 04 00 0E A0 00 00 00 18 0F 00 00 01 83 30 32 44 44 00 
+Received (SW1=0x69, SW2=0x99)
+
+------------------------------------------------------------------
+[2] SELECT A0000000180F0000018304  (candidate M/Chip #2)
+------------------------------------------------------------------
+Sending: 00 A4 04 00 0B A0 00 00 00 18 0F 00 00 01 83 04 00 
+Received (SW1=0x90, SW2=0x00)
+
+------------------------------------------------------------------
+[3] control — SELECT A000000018320A02...  (Gemalto, selectable)
+------------------------------------------------------------------
+Sending: 00 A4 04 00 10 A0 00 00 00 18 32 0A 02 00 00 00 00 00 00 00 00 00 
+Received (SW1=0x69, SW2=0x99)
+
+------------------------------------------------------------------
+[4] control — SELECT MC RID A0000000041010  (standard MC AID)
+------------------------------------------------------------------
+Sending: 00 A4 04 00 07 A0 00 00 00 04 10 10 00 
+Received (SW1=0x69, SW2=0x99)
+
+==================================================================
+DIAGNOSTIC (clean fresh-connect SELECTs) — 2026-07-09
+==================================================================
+Nonexistent A0000000999999      -> 6A82 (baseline not-found)
+MC RID A0000000041010 (P2=00)   -> 6A82  (x2, consistent) NOT registered
+MC RID A0000000041010 (P2=0C)   -> 6A82
+Partial A000000004 (P1=04)      -> 9000 + FCI  (= the ISD A000000004000000)
+Partial A000000003 (Visa)       -> 6A82  (no Visa SD on this MC-RID card)
+Gemalto A0000000180F0000018330324444 -> 6999 (consistent; present, rejects select = unpersonalized payment applet)
+Gemalto A0000000180F0000018304       -> 9000 (empty FCI)
+
+NOTE: an earlier single 6999 on A0000000041010 was a transient card-state artifact;
+clean repeated fresh-connect SELECTs give 6A82. The standard MC select-AID is bound at perso.

@@ -115,6 +115,118 @@ memories:
     confidence: 0.98
     tags: [pause, blocked, keys, perso-bureau, na-003-007, task-001, resume-plan]
 
+  - id: mem-008
+    type: technical_knowledge
+    content: >
+      2026-07-09: PARTIAL UNBLOCK of the SCP02 track. User supplied the ISD/GP master key "KMC"
+      (label only: THALES-DIS test KMC; KCV C277BA; 2-key 3DES). RECORD LABEL+KCV+METHOD ONLY — never
+      the value (PCI Card Production guardrail). EMPIRICAL PROOF (from the rnd-cperso session, live card
+      in ACR39U reader, ISD A0000000040000, KVN01/SCP02): GlobalPlatformPro opened a full SCP02 session
+      with `gp --key <KMC> --key-kdf visa2` (auth SUCCEEDED end-to-end -> gp reproduced+verified that
+      card's cryptograms). The EMV KDF FAILED and default GP key 40..4F was ruled out. => the card
+      DIVERSIFICATION METHOD IS **VISA2**, not the "MC-style" guessed in mem-005/scp02_test.cpp comment
+      (that comment is now stale). CONSEQUENCE for task-001: the KVN=01 ISD static keys (S-ENC/S-MAC/
+      S-DEK) needed by the DISABLED_ scp02 real-trace vector are now DERIVABLE = visa2(KMC, keyDivData).
+      For the Gemalto trace card, keyDivData=00002060BB8D509C2020 (a DIFFERENT card than the live one,
+      whose kdd differed) -> must still EMPIRICALLY confirm the trace card shares this same KMC by
+      reproducing its cardCryptogram 879A95BF3A518BB7. SCOPE: the KMC unblocks ONLY the SCP02/P3d path;
+      it is the GP/ISD key and is NOT the EMV issuer keys — P3c (CVV/PVV: CVK-A/CVK-B, PVK), P3a IMK
+      end-to-end (IMK-AC/SMI/SMC), and P3b real-PIN (PIN-TK) REMAIN blocked on separate bureau keys.
+      PLAN: add a visa2 diversifier to persoengine hsm (public algo, no secret), have the DISABLED_
+      vector read the KMC from an ENV VAR at runtime (never hardcode/commit), derive S-ENC/S-MAC, and
+      assert the trace's three values. If it matches -> P3d byte-exact DONE for that card.
+    created_at: "2026-07-09"
+    confidence: 0.9
+    tags: [kmc, scp02, visa2, diversification, unblock-partial, p3d, kcv-C277BA, label-only, pci, task-001]
+
+  - id: mem-009
+    type: technical_knowledge
+    content: >
+      2026-07-09: TEST-CARD install-for-install VERIFIED end-to-end (user-authorized, disposable test
+      card; ISD A000000003000000 Visa-RID, KVN01/SCP02, VISA2+KMC). Ran `gp --key <KMC> --key-kdf visa2
+      --package A00000000310 --applet A0000000031056 --create A0000000031010` -> SUCCESS: new instance
+      A0000000031010 became SELECTABLE (GET STATUS APP entry + raw SELECT returns 9000/FCI; was 6A82
+      before). CONFIRMS: (a) the Gemalto Visa payment module lives in package A00000000310 as module AID
+      A0000000031056 and instantiates to the standard Visa AID A0000000031010; (b) INSTALL [for install]
+      works over our SCP02 session with the bureau KMC via VISA2 KDF — i.e. the P4 channel + GP install
+      path is proven on real hardware. The instance is BARE / UNPERSONALIZED — no PAN/keys/tracks yet;
+      STORE DATA perso (P5) still needs the EMV issuer keys/CVK/PVK (BLOCKED, see mem-007/mem-008).
+      Reversible via `gp ... --delete A0000000031010`. NOTE: card in the reader now differs from the
+      earlier MC-RID card (mem: rnd-cperso session) — this is a Visa-RID card with Visa modules loaded.
+      No key values stored (KMC label/KCV only, mem-008). FULL REPRODUCIBLE PROCEDURE recorded in
+      07-axon-terminals/deliverables/runbook-visa-applet-install-scp02.md (steps 1-5 + rollback +
+      blockers; KMC referenced by env var + label/KCV only). VENDOR PACKAGE PREPARED 2026-07-09:
+      vendor-report-visa-applet-install.md + vendor-email-visa-applet-install.html (Segoe UI) +
+      visa-applet-install-apdu-trace.txt (before 6A82 / INSTALL success / after 9000+FCI; byte-level
+      SCP02-wrapped INSTALL APDUs offered via --debug re-run when the Visa card is reinserted). Parallel
+      to the MC package. PCI-safe (test card, no PAN/keys/values).
+    created_at: "2026-07-09"
+    confidence: 0.95
+    tags: [test-card, install-for-install, visa, A0000000031010, scp02, visa2, gp, p4-proven, unpersonalized, bpr-cpp]
+
+  - id: mem-010
+    type: technical_knowledge
+    content: >
+      2026-07-09: Mastercard applet identification on the Gemalto MC-RID test card (ISD
+      A000000004000000). LESSON: do NOT identify scheme applets by the scheme RID — Gemalto registers
+      M/Chip under its OWN RID A000000018..., so searching A0000000041010 (MC RID) is the wrong lens and
+      falsely reads as "no MC". Evidence the vendor's "MC is already there" is right: this MC-RID card has
+      TWO extra Gemalto applets NOT present on the Visa-RID card — A0000000180F0000018330324444 (SELECT ->
+      6999 applet-selection-failed, typical of an UNPERSONALIZED payment applet that rejects select until
+      perso) and A0000000180F0000018304 (SELECT -> 9000, empty FCI). Standard MC RID A0000000041010 -> 6A82
+      (CLEAN repeated fresh-connect SELECTs are consistently 6A82 — a one-off 6999 seen once was a
+      TRANSIENT card-state artifact, NOT a registered applet: verified vs a nonexistent-AID baseline that
+      also gives 6A82, and partial A000000004 gives 9000 = just the ISD. So the MC select-AID is NOT bound
+      yet; that binding happens at perso. Only the A0000000180F0000018330324444 6999 is CONSISTENT = the
+      real present-but-unpersonalized MC candidate). Raw APDU trace + diagnostic saved to
+      07-axon-terminals/deliverables/mc-applet-select-apdu-trace.txt. VENDOR PACKAGE PREPARED 2026-07-09
+      (ready to send to Gemalto/Thales): vendor-report-mc-applet-inquiry.md (full inventory + traces + 5
+      confirm-questions) + vendor-email-mc-applet-inquiry.html (Segoe UI email body) + the .txt trace as
+      attachment. PCI-safe: test card, no PAN/keys, no key values. CANNOT decode Gemalto's
+      opaque product AIDs (0F0000018330.., 320A..) to "M/Chip" from bytes alone — need Gemalto catalog.
+      OPEN: get from vendor / MC perso profile the EXACT MC applet AID (package/module/instance or the
+      registered SELECT AID). Then confirm lifecycle + drive STORE DATA perso (still blocked on issuer
+      keys/CVK/PVK). Contrast: Visa card had a dedicated Visa-RID payment module A00000000310 we could
+      instantiate to A0000000031010 (mem-009); the MC card's payment applet lives in the Gemalto namespace.
+    created_at: "2026-07-09"
+    confidence: 0.85
+    tags: [mastercard, mchip, gemalto-aid, identification, 6999-unpersonalized, pending-vendor-aid, test-card, perso]
+
+  - id: mem-011
+    type: project_context
+    content: >
+      2026-07-09 VENDOR REPLY (Gemalto/Thales) to the card-applet packages. CONFIRMED: (1) the
+      Mastercard M/Chip Applet/Instance AID IS A0000000180F0000018330324444 (our candidate — now
+      LOCKED), managed under CM/ISD A000000004000000. (2) The SW 6999 on SELECT is EXPECTED for an
+      installed-but-unpersonalized M/Chip applet — NOT a config/install issue; vendor says the card
+      ships pre-loaded with the applet and to "personalize first, then re-test". (3) VISA: it is the
+      SAME Visa applet already working in the FIELD; they use DEFAULT INSTALL params -> so our
+      A0000000031056->A0000000031010 default-param install (mem-009) is production-valid. So both
+      applet identities are locked and our 6999 reading was right. STILL NOT PROVIDED by vendor (the
+      real blockers): (a) the M/Chip PERSO PROFILE (DGI/tag layout for STORE DATA) — they said
+      "personalize first" but didn't supply the profile; (b) the ISSUER KEYS (IMK-AC/SMI/SMC, CVK-A/B,
+      PVK, PIN-TK, labels+KCVs) — the gate for STORE DATA perso AND engine P3c (CVV/PVV) + P3d
+      real-vector. Vendor asked back why we need INSTALL params -> answer: reproducible clean-room
+      engine; but since defaults are field-proven, that ask is CLOSED. NEXT: follow up requesting only
+      (a) MC perso profile + (b) issuer keys; everything else on the applet-identification thread is done.
+      UPDATE 2026-07-09: open-item (a) RESOLVED — the MC perso profile is on disk at
+      trp1002.cperso.thales/Resources/Card Profiles/MC/PFL_20251009_071246508_Addon_PersoTool_1_MCC.xml
+      (Mastercard Profile Converter ADDONS XML, ver 312E30). Structure: 4 WORKSHEETs (fci, internal,
+      recordcontact, recordcontactless), 140 ELEM (95 populated static EMV config, 45 empty fill-at-perso).
+      fci DF Name tag 84 = A0000000041010 (post-perso registered AID; explains pre-perso 6A82 there).
+      PCI-SAFE TEMPLATE: PAN(5A)/Track2(57)/name(5F20) all VALUE="" — NO cardholder data, NO key values.
+      The 45 empty fields ENUMERATE the issuer keys the bureau must supply: AC/SMI/SMC Master Key +
+      ICC Dynamic Number Master Key (Contact+Contactless), ICC Public Key Cert/Exponent/Remainder, CA
+      Public Key Index, Reference PIN. persoengine McAddonsLoader already parses this <ADDONS>/WORKSHEET/
+      ELEM format (mem-005). MC ADDONS has NO explicit dgi= attrs (unlike Visa VPA) -> engine maps
+      tags->DGIs by M/Chip CPS convention. Sibling Visa profile also present at Card Profiles/Visa/
+      OutputFile_..._A0000000031010_DI_VisaDebit.xml. REMAINING BLOCKER now narrowed to just: (b) issuer
+      keys from na-003/007-bnprs-grc-kms + per-card cardholder input (PAN/name/PIN from issuer data file).
+    created_at: "2026-07-09"
+    updated_at: "2026-07-09"
+    confidence: 0.95
+    tags: [vendor-reply, mastercard, mchip-aid-confirmed, 6999-expected, visa-field-confirmed, perso-profile-open, issuer-keys-open, blocker]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context

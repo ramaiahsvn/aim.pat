@@ -1,0 +1,33 @@
+APDU / OPERATION TRACE — Visa applet instantiation
+Card: Gemalto GP JavaCard, ISD A000000003000000 (Visa-RID), test card
+Reader: ACS ACR39U ICC Reader
+ATR: 3BFE130000100080318066B0840C016E0183009000
+Access: authenticated SCP02 (VISA2-diversified ISD keys, KVN 01)
+Date: 2026-07-09
+==================================================================
+
+[BEFORE INSTALL — target/module AIDs not registered]
+C: 00 A4 04 00 07 A0 00 00 00 03 10 10 00   (Visa credit/debit A0000000031010)
+R: 6A 82
+C: 00 A4 04 00 07 A0 00 00 00 03 10 56 00   (module A0000000031056)
+R: 6A 82
+C: 00 A4 04 00 07 A0 00 00 00 03 10 4D 00   (module A000000003104D)
+R: 6A 82
+C: 00 A4 04 00 07 A0 00 00 00 03 16 44 00   (module A0000000031644)
+R: 6A 82
+C: 00 A4 04 00 07 A0 00 00 00 03 16 50 00   (module A0000000031650)
+R: 6A 82
+
+[INSTALL for install — over SCP02]
+Package (load file) AID : A00000000310
+Executable module AID   : A0000000031056
+Instance AID (created)  : A0000000031010
+Result                  : SUCCESS
+(byte-level SCP02-wrapped INSTALL APDUs available via --debug re-run on request)
+
+[AFTER INSTALL — instance live]
+GET STATUS: APP: A0000000031010 (SELECTABLE)
+C: 00 A4 04 00 07 A0 00 00 00 03 10 10 00
+R: <FCI> 90 00
+
+NOTE: instance is bare/unpersonalized (no PAN/keys/tracks). STORE DATA perso pending issuer keys.
