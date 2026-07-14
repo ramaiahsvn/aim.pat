@@ -116,7 +116,12 @@ subtasks:
       record -> the 52-field instant hex (task-001.3). Distinct front-door from the Tri-Badge PURE loader;
       same record model behind. NOTE: SOAP transport + WS-Security signature verification are handled by the
       Part A/B team member (NOT dprep) — dprep receives the DPI payload and decrypts/parses only.
-    status: pending
+      DONE 2026-07-14: implemented in bpr.cpp/src/BprCardEmv/persoengine — dpi.hpp/dpi.cpp
+      (perso::dpi::GdDataProviderLoader): pugixml parse (namespace-prefix robust) -> DEK resolved BY LABEL via
+      a DekResolver callback (never embedded, PCI) -> DpiRecord {metadata + clear + decrypted secure}. Verified
+      against the real Resources/DPI sample (Python prototype byte-matched DecryptedDPIsecureblock.txt) + a
+      self-contained C++ KAT (tests/dpi_test.cpp, 4 tests). 48/48 engine tests green.
+    status: done
     priority: high
     depends_on: "task-001.7 (AES-256-CBC in crypto layer)"
 
@@ -126,7 +131,9 @@ subtasks:
       Engine crypto is 3DES-centric (BprCrypt). Add AES-256-CBC (decrypt path first) behind the same seam
       (in-tree OpenSSL available) to consume the DPI secure block. Handle IV-prepended CipherValue:
       base64-decode -> first 16 bytes = IV -> AES-256-CBC-decrypt remainder under the DEK.
-    status: pending
+      DONE 2026-07-14: AES-256-CBC via OpenSSL EVP (find_package(OpenSSL) + link OpenSSL::Crypto) + base64
+      decoder, in dpi.cpp. iso2 label == PKCS7 unpad in this feed (EVP default). CipherValue = base64(16B IV || ct).
+    status: done
     priority: high
 
 needs_from_user:
