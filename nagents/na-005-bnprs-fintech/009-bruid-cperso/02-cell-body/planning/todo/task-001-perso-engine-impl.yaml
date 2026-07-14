@@ -16,6 +16,13 @@ task:
   source: "rnd-cperso na-100/003 delegation (task-003)"
   tags: [perso-engine, cperso, central, globalplatform, scp02, sequencer, hsm, calypso, bpr-cpp]
 
+# ---- READY TO BUILD — full perso hand-off (rnd-cperso, 2026-07-14) ----
+# See 01-dendrite/inputs/2026-07-14-uat-perso-handoff.md — ALL mechanisms VALIDATED LIVE on the UAT card:
+#   perso-entry INSTALL params = C9 05 0111000105 (pkg A0000000180F000001833032, module A0000000180F0000018303,
+#   instance A0000000041010, priv 12); SELECT->9000; applet SCP02 (gp --connect); STORE DATA DGI A002 -> 9000.
+# No unknowns/blockers. Build = port BprDataPrep/PersoScripts/MC_EMV_Perso.spi driven with UAT keys (ISD C277BA/
+# VISA2, IMK 82E136). CVK/PVK NOT needed. Full DGI oracle = Operas/THALES MDA traces (48 sessions, 270 STORE DATA).
+
 # ---- Input channel: CENTRAL (user, 2026-07-13) ----
 # cperso's input is dprep's 74-field CENTRAL blob, which dprep builds from the EMBOSSING FILE DIRECTLY
 # (Tri-Badge PURE V3.0 fixed-width — dprep task-001.5, already built). This is the CENTRAL channel; it does

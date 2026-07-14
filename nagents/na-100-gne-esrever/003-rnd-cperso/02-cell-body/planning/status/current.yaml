@@ -37,9 +37,14 @@ active_tasks:
           OPEN (planner to confirm w/ bureau): iCVV/CVV2 supplied-in-DP vs computed (would need CVK); offline
           reference PIN loaded-at-DP vs online/kiosk-set (would need PIN-TK). With ISD key (C277BA/VISA2) +
           IMK (82E136) both in hand, UAT data prep + card perso are UNBLOCKED.
-      Awaiting: DEK (MENTA, out-of-band, INSTANT channel only); CVK/PVK/PIN-TK only if iCVV/CVV2/offline-PIN
-      are generated at DP (pending confirmation). Next planner step: route IMK to bruid-dprep -> derive UDK
-      (verify against KCV) -> build DGIs -> perso the card.
+      (5) 2026-07-14: PERSO FULLY VALIDATED + HANDED OFF. Found the correct INSTALL params in the Operas/THALES
+          MDA traces (C9 05 0111000105, pkg A0000000180F000001833032, module A0000000180F0000018303, instance
+          A0000000041010, priv 12); validated LIVE on card: INSTALL->9000, SELECT->9000 (was 6999), applet SCP02
+          (gp --connect), STORE DATA DGI A002->9000. CVK/PVK NOT DP keys; PIN in input. MC_EMV_Perso.spi = the
+          port template. Full perso build handed to bruid-cperso (its task-001 + input 2026-07-14-uat-perso-
+          handoff.md). Gemalto vendor query SUPERSEDED. mem-014/015.
+      Planner role now: review bruid-cperso's P5 Sequencer output when built; keep design authoritative.
+      Sole external dep left = MENTA DEK (instant channel, bruid-iperso, out-of-band).
 
 # ---- Coordination view: KEY DEPENDENCIES (two domains) ----
 key_dependencies:
