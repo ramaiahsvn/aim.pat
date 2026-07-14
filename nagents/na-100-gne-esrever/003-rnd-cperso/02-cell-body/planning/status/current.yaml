@@ -30,8 +30,16 @@ active_tasks:
           file (Tri-Badge PURE -> cperso) / INSTANT = MENTA DPI (G&D data-provider -> iperso). Part A (frontend) +
           Part B (SOAP/WS-Security/DUI) are ANOTHER team member's; iperso owns only the perso script (BprCardEmv).
           Surfaced a SECOND key domain — the MENTA DEK (AES-256) wrapping the DPI secure block; see key_dependencies.
-      Awaiting: grc-kms key manifest -> bruid-dprep; MENTA DEK (out-of-band). Next planner step: enable
-      DISABLED_ SCP02 vector + review emitter output when keys land.
+      (4) 2026-07-14: UAT keys RECEIVED from perso bureau (Resources/UAT_Keys.txt). Verified end-to-end:
+          ZMK = P1^P2^P3 (component KCVs 6DB2A2/CCC0E4/E24E54), reconstructed ZMK KCV A85DE2; IMK-AC/SMI/SMC
+          decrypted under ZMK -> clear KCV 82E136 (all match bureau). IMK is USABLE for UDK derivation.
+          Bureau clarified: for DATA PREP only the IMK is needed; CVK/PVK/PIN-TK are transaction/host-side.
+          OPEN (planner to confirm w/ bureau): iCVV/CVV2 supplied-in-DP vs computed (would need CVK); offline
+          reference PIN loaded-at-DP vs online/kiosk-set (would need PIN-TK). With ISD key (C277BA/VISA2) +
+          IMK (82E136) both in hand, UAT data prep + card perso are UNBLOCKED.
+      Awaiting: DEK (MENTA, out-of-band, INSTANT channel only); CVK/PVK/PIN-TK only if iCVV/CVV2/offline-PIN
+      are generated at DP (pending confirmation). Next planner step: route IMK to bruid-dprep -> derive UDK
+      (verify against KCV) -> build DGIs -> perso the card.
 
 # ---- Coordination view: KEY DEPENDENCIES (two domains) ----
 key_dependencies:

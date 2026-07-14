@@ -192,6 +192,24 @@ memories:
     confidence: 0.95
     tags: [emv-cps, store-data, dgi, personalization, reference, globalplatform, sequencer, encryption, kcv, ordering]
 
+  - id: mem-011
+    type: milestone
+    content: >
+      2026-07-14: UAT keys received from perso bureau (Resources/UAT_Keys.txt) and VALIDATED end-to-end
+      (KCVs only — NO key values stored, PCI). Chain: ZMK = P1^P2^P3 (component KCVs 6DB2A2/CCC0E4/E24E54)
+      -> reconstructed ZMK KCV A85DE2; IMK-AC/SMI/SMC delivered ENCRYPTED under ZMK, 3DES-decrypt -> clear
+      IMK KCV 82E136 (all match bureau). UAT IMK is single-length-style (K1==K2 -> 3DES == single DES;
+      handle degenerate case). VALIDATION: derived a per-card UDK via EMV Book 2 Annex A1.4.1 Option A
+      (Y = rightmost 16 of PAN||PSN, left-pad; ZL, ZR=~ZL; MK = 3DES(IMK,ZL)||3DES(IMK,ZR); odd parity)
+      for test PAN 5413330089020011 PSN 00 -> UDK KCV 655857. Same as bruid-dprep P3a (KAT-anchored), so
+      production derivation matches. Bureau clarified: DATA PREP needs only the IMK; CVK/PVK/PIN-TK are
+      transaction/host-side (open: CVK if we compute iCVV/CVV2; PIN-TK if offline reference PIN loaded at DP).
+      Combined with the ISD SCP02 key (C277BA/VISA2, mem-009), card crypto personalization is UNBLOCKED.
+      Routed to bruid-dprep: 01-dendrite/inputs/2026-07-14-uat-imk-keys-received.md.
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [uat-keys, imk, zmk, udk, option-a, validated, kcv-82E136, kcv-A85DE2, milestone, dp-unblocked]
+
 # Pruning rules
 pruning:
   max_entries: 500
