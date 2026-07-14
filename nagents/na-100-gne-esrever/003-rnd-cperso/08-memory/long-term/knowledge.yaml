@@ -25,6 +25,9 @@
 #       - thales/emv-cps-reference.md          — EMV CPS perso structure (GlobalPlatform CPSdemonstrator
 #           Spec 2.0): STORE DATA/DGI flow, DGI>=0x8000=encrypted-under-DEK, key/PIN ordering, KCV method,
 #           STORE DATA status words, last-STORE-DATA=personalize+close. Governs perso scripts. (see mem-010)
+#       - thales/mc-perso-script-blueprint.md  — GROUND TRUTH MC M/Chip perso sequence from the Gemalto trace:
+#           full flow (SCP02 -> DELETE -> INSTALL -> STORE DATA x47 + PUT KEY x35), the DGI map, encrypted-DGI
+#           list (8000/8001/8010/8201-8205), and our-card adaptation. P5 Sequencer template. (see mem-012)
 #     These were MOVED from trp1002.cperso.thales on 2026-05-30 (deleted there) per user request.
 #     Ground-truth raw artifacts that REMAIN in the source repo: SPI4MLB2_decompiled.c,
 #     Interpreter_decompiled.c, GenericCrypto.ini (real key div-data lives here).
@@ -209,6 +212,45 @@ memories:
     created_at: "2026-07-14"
     confidence: 1.0
     tags: [uat-keys, imk, zmk, udk, option-a, validated, kcv-82E136, kcv-A85DE2, milestone, dp-unblocked]
+
+  - id: mem-012
+    type: reference
+    content: >
+      2026-07-14: Extracted the COMPLETE MC M/Chip perso blueprint from the real Gemalto trace
+      (Resources/GemaltoCard_Traces_PrePersoInstant_McQi.LOG). Flow: SELECT ISD -> SCP02 (INIT UPDATE/EXT
+      AUTH) -> DELETE x3 (PSE/PPSE/MC applet) -> INSTALL x3 [make selectable] -> SELECT MC applet -> SCP02
+      -> STORE DATA x47 (DGIs) + PUT KEY x35. DGI sequence documented in
+      08-memory/long-term/thales/mc-perso-script-blueprint.md. Encrypted DGIs (>=0x8000, under session DEK):
+      8000/8001 (symmetric UDK keys), 8201-8205 (RSA/ODA key material), 8010 (PIN block -> offline PIN IS
+      loaded at DP for this card). Clear DGIs: records 0201/0301/0302/0401-0404 (0403/0404=ODA certs),
+      9102 (FCI), A0xx/B0xx (MC proprietary), 9010 (PIN control). OUR-CARD ADAPTATION: M/Chip applet is
+      pre-installed under Gemalto AID A0000000180F0000018330324444 (6999) -> SKIP DELETE/INSTALL, SELECT the
+      Gemalto AID, confirm DGI compatibility. This is the P5 Sequencer template; LIVE perso is IMPLEMENTATION
+      owned by bruid-cperso (central) / bruid-iperso (instant), NOT rnd-cperso (planner). Keys ready: ISD
+      C277BA/VISA2 + IMK 82E136; session DEK from SCP02; open: CVK (iCVV/CVV2) + PIN-TK (8010 PIN block).
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [perso-blueprint, mc-mchip, store-data, dgi, put-key, gemalto-trace, p5-sequencer, encrypted-dgi, reference]
+
+  - id: mem-013
+    type: milestone
+    content: >
+      2026-07-14: RESOLVED the perso-entry blocker by tracing the Gemalto McQi log. The 6999 pre-installed
+      applet is NOT the perso target — Gemalto INSTALLs a FRESH selectable instance under the STANDARD scheme
+      AID and personalizes that. Trace: DELETE A0000000041010 <-6A88 (idempotent) -> INSTALL [for install &
+      make selectable] pkg=A00000000410 module/instance=A0000000041010 <-6101 -> SELECT A0000000041010
+      <-9000 (SELECTABLE) -> INIT UPDATE/EXT AUTH/STORE DATA. So our cards' 6999 (instance under a GEMALTO
+      AID) is just a placeholder; personalize by INSTALLing under the STANDARD AID (A0000000041010 MC /
+      A0000000031010 Visa) from the loaded payment pkg (A00000000410 MC / A00000000310 Visa), then SELECT ->
+      STORE DATA. BONUS: post-perso the card answers to the STANDARD scheme AID (resolves the AID question).
+      Also: SECOND UAT card is VISA (same ATR 3BFE13; distinguish by ISD RID A000000003000000 vs MC
+      A000000004000000). Visa payment instance A000000018320A020000000000000000 = 6999; same UAT key
+      (C277BA/VISA2) works; BIXAPP_K3 present. TechTrex_Logs.LOG is the BIX/biometric ID-applet perso
+      (TTC_DIK2_IDAPP figureprint/iris/photo), NOT EMV payment. Perso path now specified end-to-end;
+      handed to bruid-cperso.
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [perso-entry, install-make-selectable, 6999-resolved, standard-aid, visa-card, blocker-resolved, milestone]
 
 # Pruning rules
 pruning:

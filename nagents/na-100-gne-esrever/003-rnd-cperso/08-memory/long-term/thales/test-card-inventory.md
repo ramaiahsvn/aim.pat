@@ -32,6 +32,18 @@ type: project
 Packages (~15 LOADED): JavaCard framework (Sun `A000000062…`), Gemalto libs (`A000000018…`, incl. emvapi
 pkg v3.1/v1.0), GlobalPlatform SSD + CASD (`A000000151…`), Visa/GP (`A000000003…`/`A000000030…`).
 
+## Second UAT card — VISA (same batch, SAME ATR, 2026-07-14)
+The two UAT cards share the identical ATR `3BFE13…` (same Gemalto chip/OS/mask) — distinguish them by the
+**Card Manager RID**, not the ATR:
+- **ISD / Card Manager: `A000000003000000` (Visa RID)** — vs the MC card's `A000000004000000` (MC RID).
+- Same UAT ISD key authenticates (`C277BA`, VISA2, KVN01) — same test batch.
+- **Visa payment applet (instance): `A000000018320A020000000000000000`** — state **`6999`** (installed,
+  UNPERSONALIZED). This is the Visa analogue of the MC card's M/Chip instance.
+- Also present: Gemalto `emvapi` (`A0000000180200…`, 6999), **BIXAPP_K3** (`A0000003764249584150505F4B33`,
+  selectable 9000). Visa payment packages `A00000000310` / `A00000000316` LOADED.
+- Standard AID `A0000000031010` / `A0000000031056` NOT directly selectable (6A82) — same placeholder pattern.
+- => Same perso path + same INSTALL-based entry (INSTALL under `A0000000031010` from pkg `A00000000310`).
+
 ## Key findings / corrections
 1. **The M/Chip payment applet IS installed** — under the **Gemalto-RID instance AID** `A000000018 0F…`,
    NOT the standard MC AID `A0000000041010`. That is why an earlier `SELECT A0000000041010` returned 6A82
