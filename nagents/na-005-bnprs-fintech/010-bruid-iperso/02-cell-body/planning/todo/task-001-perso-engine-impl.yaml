@@ -28,6 +28,17 @@ subtasks:
       anti-replay. SAD stays central.
     status: pending
     priority: high
+    live_trigger: >
+      2026-07-13: a blank MC GP JavaCard (AID A0000000041010) was presented for perso; this emitter is
+      the missing piece to generate a loadable script. The engine core (SCP02 session-key/C-MAC, UDK,
+      PIN block) is built and unit-verified; what is absent is the Sequencer that assembles STORE DATA +
+      SCP02-wrapped APDUs into a serialized script. Build the emitter + a dry-run mode against KATs now,
+      so it is ready the moment keys land.
+    blocked_by:
+      - "bruid-dprep (008) task-001.4 — MC-ADDONS DGI grouping fix (data blob currently DGIs:0)."
+      - "na-003/007-bnprs-grc-kms — SCP02 ISD keys KVN=01 (label+KCV) + diversification method, and
+         CVK/PVK/PIN-TK. Requested 2026-07-13 (grc-kms 01-dendrite/inputs/handoff-na005-008-perso-engine-bureau-keys.md).
+         Structure/dry-run can proceed on KATs before keys arrive; live SCP02 wrap needs the ISD key."
 
   - id: "task-001.2"
     subject: "Edge: public-kiosk APDU script executor (untrusted, no HSM)"
@@ -46,8 +57,29 @@ subtasks:
     status: pending
     priority: high
 
+  # ---- Pointman/MENTA vendor-kiosk instant path (input: 01-dendrite/inputs/2026-07-13-pointman-kiosk-integration-v1.3.md) ----
+  # A SECOND instant-issuance context alongside the BRUID public-kiosk model above. SAME engine core
+  # (script generator 001.1 + executor 001.2); DIFFERENT surrounding integration.
+  # SCOPE (user, 2026-07-13): Part A (kiosk frontend) + Part B (MENTA<->machine SOAP, WS-Security, DPI receive,
+  # DUI send) are built by ANOTHER team member on our side — NOT iperso. iperso owns only the personalization
+  # script (bpr.cpp/src/BprCardEmv). MENTA = perso bureau (upstream); Pointman = kiosk hardware vendor.
+  - id: "task-001.4"
+    subject: "Pointman/MENTA boundary: parsed DPI record -> perso script -> perso result for DUI"
+    detail: >
+      In the vendor-kiosk flow, MENTA (bureau) sends the DPI RequestPerso; the Part A/B team member handles the
+      SOAP transport + WS-Security, and bruid-dprep decrypts (DEK) + parses it (dprep task-001.6). iperso
+      RECEIVES that parsed perso record, runs the script generator (001.1) + executor (001.2) to personalize
+      the card, and RETURNS the perso outcome that populates the team member's DUI StatusUpdate
+      (PTM_CP_0014 success / PTM_CP_0013 fail). Define the internal hand-off contract (parsed-record in,
+      perso-result out) with the Part A/B owner. iperso does NOT build the SOAP / frontend / WS-Security / DUI wire.
+    status: pending
+    priority: high
+    depends_on: "bruid-dprep (008) task-001.6 (DPI decrypt+parse, instant channel)"
+
 depends_on:
   - "bruid-dprep (008) task-001: 52-field instant hex + IHsmClient crypto seam (central)"
+  - "bruid-dprep (008) task-001.6: DPI (G&D data-provider) decrypt+parse -> parsed record (Pointman/MENTA path)"
+  - "Part A/B (kiosk frontend + MENTA<->machine SOAP / WS-Security / DUI) — ANOTHER team member on our side, NOT iperso"
   - "bruid-cperso (009) task-001: shared gp::SecureChannel + perso::Sequencer engine core"
   - "na-003 KMS / kms.bnprs.ai: remote supervisor auth endpoint + fleet certs"
 

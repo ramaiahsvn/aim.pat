@@ -16,6 +16,13 @@ task:
   source: "rnd-cperso na-100/003 delegation (task-003)"
   tags: [perso-engine, cperso, central, globalplatform, scp02, sequencer, hsm, calypso, bpr-cpp]
 
+# ---- Input channel: CENTRAL (user, 2026-07-13) ----
+# cperso's input is dprep's 74-field CENTRAL blob, which dprep builds from the EMBOSSING FILE DIRECTLY
+# (Tri-Badge PURE V3.0 fixed-width — dprep task-001.5, already built). This is the CENTRAL channel; it does
+# NOT use the DPI / G&D data-provider / DEK-decrypt path — that is the INSTANT channel (bruid-iperso, MENTA/
+# Pointman vendor kiosk). Same shared engine core (card / gp / sequencer) as iperso; only the front-door
+# data source differs: embossing file (central) vs parsed DPI record (instant).
+
 subtasks:
   - id: "task-001.1"
     subject: "P4 — card::ICardChannel (PC/SC via BprPcSc) + gp::SecureChannel (SCP02)"
@@ -50,6 +57,7 @@ subtasks:
 
 depends_on:
   - "bruid-dprep (008) task-001: perso data blob + IHsmClient crypto seam"
+  - "bruid-dprep (008) task-001.5: CENTRAL channel — embossing file (Tri-Badge PURE) -> 74-field central blob"
   - "bruid-applet (007): target applet field-format constraints"
 
 guardrails:

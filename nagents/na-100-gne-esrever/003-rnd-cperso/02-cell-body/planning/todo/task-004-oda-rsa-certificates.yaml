@@ -1,0 +1,107 @@
+# Task — Offline Data Authentication (ODA / RSA / EMV certificate PKI)
+#
+# Opened 2026-07-13. GAP found while prepping perso for a live MC card: the MC profile
+# (PFL_..._MCC.xml) carries the full ODA tag set (8F/90/92/9F32/9F46/9F47/9F48/9F49/9F4A) =>
+# the card is DDA/CDA-capable and REQUIRES the RSA certificate chain. The engine implements
+# NONE of it (symmetric only), and the grc-kms key request (handoff-na005-008) did NOT include
+# the issuer RSA key or the scheme-CA certificate. This task records the whole ODA workstream.
+
+task:
+  id: "task-004"
+  subject: "EMV Offline Data Authentication — RSA key path + issuer/ICC certificates (SDA/DDA/CDA)"
+  status: in_progress          # planner tracking; implementation delegated (see owners)
+  priority: high
+  created_at: "2026-07-13"
+  source: "gap found during live MC card perso attempt (task-003 context)"
+  owner: "rnd-cperso (na-100/003) — planner/design; implementation delegated to na-005 + na-100/001"
+  tags: [oda, rsa, sda, dda, cda, capk, issuer-cert, icc-cert, emv, pki, perso-engine, gap]
+
+# ---- Why it matters (one line) ----
+why: >
+  Symmetric keys let the card transact ONLINE; the RSA certificate layer is what lets an OFFLINE
+  terminal verify the card is genuine (anti-clone). The MC profile mandates it (tags 8F/90/9F46...).
+
+# ---- The 3-tier PKI (reference) ----
+pki:
+  tier1_scheme_ca: "Mastercard CA holds root private key; its CAPK is pre-loaded in every terminal (tag 8F selects it)."
+  tier2_issuer:    "We generate Issuer RSA keypair; send Issuer PUBLIC key to MC CA -> CA returns Issuer PK Cert (tag 90). One-time per BIN."
+  tier3_icc:       "Per card during perso: generate ICC RSA keypair; sign ICC public key with ISSUER PRIVATE key -> ICC Cert (tag 9F46). ICC private key stays on chip."
+
+# ---- TODO LIST ----
+subtasks:
+  - id: "task-004.1"
+    subject: "Amend grc-kms key request — add the RSA/certificate material"
+    owner: "rnd-cperso (coordinate) -> na-003/007 grc-kms"
+    detail: >
+      Add to the bureau ask (labels/cert data only, never private-key values):
+      (a) Issuer RSA private key — LABEL; (b) Issuer PK Certificate (tag 90 data) already returned by
+      the MC CA, + tag 92 remainder + 9F32 exponent; (c) CA Public Key Index (tag 8F) to target.
+      Call out the SANDBOX option: use Mastercard PUBLISHED TEST CAPKs (no real CA registration needed
+      for bring-up). Update handoff-na005-008-perso-engine-bureau-keys.md.
+    status: pending
+    priority: high
+
+  - id: "task-004.2"
+    subject: "Engine: implement RSA path in hsm::IHsmClient"
+    owner: "bruid-dprep (na-005/008)"
+    detail: >
+      Implement gen_icc_rsa(bits), sign_sda(issuerKeyLabel, staticData) [tag 93], gen_icc_cert(IccCsr)
+      [tag 9F46], and issuer-cert verification helpers. Backend: dev/test RSA via bpr.cpp crypto (or
+      OpenSSL RSA) behind the same seam; real HSM later. KAT against EMV Book 2 ODA test vectors +
+      Mastercard test CAPK. Keys by LABEL only.
+    status: pending
+    priority: high
+
+  - id: "task-004.3"
+    subject: "ODA tag builders — assemble the certificate DGIs"
+    owner: "bruid-dprep (na-005/008)"
+    detail: >
+      Build tags 8F, 90, 92, 9F32 (issuer, static per BIN) and per-card 9F46, 9F47, 9F48, plus
+      9F49 (DDOL), 9F4A (SDA tag list). Populate 'Length of ICC Public Key Modulus' + 'Length of ICC
+      PIN Encipherment Public Key Modulus' from the profile. Wire into group_by_dgi so ODA data lands
+      in the right DGI blocks.
+    status: pending
+    priority: high
+    depends_on: "task-004.2"
+
+  - id: "task-004.4"
+    subject: "Sequencer: emit ODA data in the perso script + load ICC private key"
+    owner: "bruid-cperso (009) central / bruid-iperso (010) instant"
+    detail: >
+      STORE DATA blocks for the cert tags; securely load the ICC private key into the chip (or trigger
+      on-card keygen so the private key never leaves). Sequence ODA after applet install, before lock.
+    status: pending
+    priority: medium
+    depends_on: "task-004.3"
+
+  - id: "task-004.5"
+    subject: "Terminal side: load matching test CAPK on rnd-mpos"
+    owner: "rnd-mpos (na-100/001)"
+    detail: >
+      Load the Mastercard test CAPK (matching tag 8F index) on the acceptance side so DDA/CDA offline
+      auth can be VERIFIED end-to-end. Cross-agent: issuance (this) <-> acceptance (rnd-mpos).
+    status: pending
+    priority: medium
+
+  - id: "task-004.6"
+    subject: "Verify: DDA/CDA offline auth end-to-end"
+    owner: "rnd-cperso (review) + agents"
+    detail: >
+      Personalize a test card with the full chain (test CAPK -> test issuer key -> per-card ICC keys);
+      at an offline terminal: recover issuer PK from tag 90, ICC PK from tag 9F46, challenge card,
+      verify the ICC signature. Card must authenticate offline without a clone passing.
+    status: pending
+    priority: medium
+    depends_on: ["task-004.4", "task-004.5"]
+
+# ---- Guardrails ----
+guardrails:
+  - "Private keys (issuer RSA, ICC RSA) NEVER leave the HSM/card and are NEVER stored in any file — labels only."
+  - "Public keys / certificates (tags 8F/90/92/9F32/9F46/9F47/9F48) are non-secret and may be recorded."
+  - "Sandbox first: Mastercard PUBLISHED TEST CAPKs — no real CA registration until production."
+
+# ---- Cross-refs ----
+see_also:
+  - "task-003 (delegation) + handoff-na005-008-perso-engine-bureau-keys.md (symmetric keys)"
+  - "emv-engine-architecture.md §4.4 (gen_icc_rsa/sign_sda/gen_icc_cert sketch)"
+  - "bruid-dprep hsm-crypto-planner.md (offline data auth — RSA, deferred)"

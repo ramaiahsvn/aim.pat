@@ -18,6 +18,10 @@
 #       - thales/emv-engine-architecture.md    — task-002.2 deliverable: C++ EMV+Calypso perso engine
 #           architecture (8 modules, IHsmClient/ICardChannel seams, SCP02 sequencer from Gemalto trace,
 #           CMake, 6-phase roadmap for task-002.3)
+#       - thales/test-card-inventory.md        — GROUND TRUTH from the physical test card (2026-07-14):
+#           Gemalto/NXP JCOP, MC card manager, SCP02 i=55 + VISA2 diversification, ISD KVN=01 (master KCV
+#           C277BA — value NOT stored), M/Chip applet installed-but-unpersonalized (AID A000000018 0F…, 6999),
+#           BIXAPP_K3 present. Confirms SCP02; corrects earlier "no M/Chip applet". (see mem-009)
 #     These were MOVED from trp1002.cperso.thales on 2026-05-30 (deleted there) per user request.
 #     Ground-truth raw artifacts that REMAIN in the source repo: SPI4MLB2_decompiled.c,
 #     Interpreter_decompiled.c, GenericCrypto.ini (real key div-data lives here).
@@ -148,6 +152,25 @@ memories:
     created_at: "2026-07-04"
     confidence: 0.98
     tags: [central-perso, instant-perso, kiosk, dprep, domain-model, bruid, definitions]
+
+  - id: mem-009
+    type: ground_truth
+    content: >
+      Physical TEST card (ACS ACR39U) analysed first-hand over authenticated SCP02 (gp.jar). NXP JCOP,
+      GlobalPlatform 2.3, JavaCard v3. ISD/Card Manager AID A000000004000000 (Mastercard RID), OP_READY.
+      SCP02 i=55; ISD key KVN=01 (S-ENC/S-MAC/S-DEK, 2TDEA, same value); MASTER key KCV=C277BA (VALUE NOT
+      stored — PCI); diversification = VISA2 (proven offline: reproduced the card cryptogram; raw+EMV did
+      not). M/Chip PAYMENT applet IS installed under the Gemalto-RID instance AID A0000000180F0000018330324444
+      (NOT the standard A0000000041010 — that is why an earlier SELECT of A0000000041010 gave 6A82). It is
+      UNPERSONALIZED -> SELECT returns 6999 (SW_APPLET_SELECT_FAILED), which is EXPECTED (Gemalto confirmed:
+      personalize then re-test; card delivered pre-loaded+pre-installed, only data-perso needed). Also present
+      & selectable: BNPRS BIXAPP_K3 (A0000003764249584150505F4B33) and Gemalto emvapi/0F04. Perso does NOT
+      rename the GP instance AID (6999->9000 after perso); whether a terminal can SELECT A0000000041010 is an
+      install-time + PPSE(tag 4F) matter (PPSE currently 6A82) — confirm with Gemalto, verify after first perso.
+      Full detail: 08-memory/long-term/thales/test-card-inventory.md.
+    created_at: "2026-07-14"
+    confidence: 0.97
+    tags: [test-card, ground-truth, gemalto, jcop, scp02, visa2, mchip, bixapp-k3, kcv-c277ba, aid, 6999]
 
 # Pruning rules
 pruning:

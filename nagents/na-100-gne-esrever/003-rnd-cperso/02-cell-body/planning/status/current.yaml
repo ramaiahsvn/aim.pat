@@ -12,10 +12,51 @@ active_tasks:
       2026-07-01: task-002.2 COMPLETE — C++ EMV perso engine architecture delivered
       (08-memory/long-term/thales/emv-engine-architecture.md). Next: task-002.3 implementation,
       starting Phase P1 (tlv + profile loaders). task-002.1 resolved; open Q5/Q6 resolved; SCP02 confirmed.
+      NOTE: implementation delegated to na-005 BRUID agents (task-003); this agent stays planner/review.
+
+  - task_id: "task-003"
+    status: in_progress
+    current_step: >
+      2026-07-13: live MC card (AID A0000000041010) presented for perso. Confirmed two gaps blocking
+      script generation. Actions taken as planner/coordinator:
+      (1) KEYS-FIRST — filed bureau key request to na-003/007-bnprs-grc-kms
+          (its 01-dendrite/inputs/handoff-na005-008-perso-engine-bureau-keys.md): SCP02 ISD KVN=01
+          label+KCV + diversification method (default GP 40..4F ruled out; div-data 00002060BB8D509C2020
+          => MC-style), plus IMK-AC/SMI/SMC, CVK-A/B, PVK, PIN-TK — labels+KCVs only (PCI).
+      (2) Routed impl hand-offs: bruid-dprep task-001.4 (fix MC-ADDONS DGIs:0 grouping bug);
+          bruid-iperso task-001.1 annotated (build P5 Sequencer/script-emitter + dry-run on KATs now).
+      (3) 2026-07-14: Pointman/MENTA vendor-kiosk integration (v1.3) folded into na-005. MENTA = perso bureau,
+          Pointman = kiosk hardware, BRUID = perso backend. dPrep now has TWO input channels: CENTRAL = embossing
+          file (Tri-Badge PURE -> cperso) / INSTANT = MENTA DPI (G&D data-provider -> iperso). Part A (frontend) +
+          Part B (SOAP/WS-Security/DUI) are ANOTHER team member's; iperso owns only the perso script (BprCardEmv).
+          Surfaced a SECOND key domain — the MENTA DEK (AES-256) wrapping the DPI secure block; see key_dependencies.
+      Awaiting: grc-kms key manifest -> bruid-dprep; MENTA DEK (out-of-band). Next planner step: enable
+      DISABLED_ SCP02 vector + review emitter output when keys land.
+
+# ---- Coordination view: KEY DEPENDENCIES (two domains) ----
+key_dependencies:
+  domain_A_emv_bureau:
+    source: "na-003/007-bnprs-grc-kms (perso bureau); labels + KCVs only (PCI)"
+    channel: "both (central + instant)"
+    requested_via: "grc-kms 01-dendrite/inputs/handoff-na005-008-perso-engine-bureau-keys.md (2026-07-13)"
+    keys:
+      - "SCP02 ISD static S-ENC / S-MAC / S-DEK, KVN=01 + card diversification method (the gate)"
+      - "IMK-AC / IMK-SMI / IMK-SMC (per-card UDK derivation)"
+      - "CVK-A / CVK-B — CVV1 / iCVV / CVV2; fills the EMPTY CVV2/ICVV slots seen in the DPI + embossing data"
+      - "PVK (PVV); PIN-TK (ISO 9564-1 F0 PIN block)"
+    plus_oda: "ODA/RSA certs — issuer cert (tag 90) + CAPK index (8F) + per-card ICC cert (9F46) — rnd-cperso task-004"
+  domain_B_data_exchange:
+    source: "MENTA (perso bureau, upstream); exchanged OUT-OF-BAND; record LABEL only"
+    channel: "INSTANT only (DPI path -> bruid-iperso)"
+    keys:
+      - "DEK (e.g. MENTA/DEK/DEV_DEK_02) — AES-256-CBC key wrapping the DPI xe:EncryptedData secure block"
+    note: >
+      DISTINCT from the EMV bureau keys — NOT sourced via grc-kms. Needed by bruid-dprep task-001.6/001.7 to
+      decrypt the instant DPI. Central channel (embossing file) needs NO DEK. Tracked in dprep needs_from_user.
 
 queue:
   pending: 0
-  in_progress: 1      # task-002 cperso.thales
+  in_progress: 2      # task-002 cperso.thales; task-003 delegation/coordination
   on_hold: 1          # task-001 BprDataPrep
   completed: 0
   blocked: 0

@@ -77,10 +77,62 @@ subtasks:
     status: pending
     priority: medium
 
+  - id: "task-001.4"
+    subject: "BUG: MC-ADDONS profile yields DGIs:0 — fix DGI grouping in the P1 profile path"
+    detail: >
+      Triggered 2026-07-13 by a live MC card (AID A0000000041010). perso-cli on the real MC profile
+      (Resources/Card Profiles/MC/PFL_20251009_071246508_Addon_PersoTool_1_MCC.xml) parses 124 tags +
+      8 keys but reports "DGIs: 0" — McAddonsLoader / group_by_dgi() produces no DGI groups, so the
+      data blob half of a perso script cannot be emitted for MC. Visa VPA path groups correctly, so
+      the fault is MC-ADDONS-specific (tags carry no DGI assignment, or group_by_dgi filters them out).
+      Fix so MC tags resolve into DGIs; add a unit test asserting DGI count > 0 against this real
+      profile. This is the data-blob prerequisite for bruid-iperso task-001.1 (script emitter).
+    status: pending
+    priority: high
+    blocks: "bruid-iperso (010) task-001.1 script generation for MC"
+
+  # ---- dPrep input channels: TWO source formats, split by perso type (user, 2026-07-13) ----
+  # Central perso <- embossing file directly (Tri-Badge PURE). Instant perso <- DPI (G&D data-provider v2).
+  # Both loaders feed ONE internal perso-record model; everything downstream (profile merge, HSM, emit) is shared.
+  # See input: 01-dendrite/inputs/2026-07-13-pointman-dpi-dataprep-v1.3.md
+  - id: "task-001.5"
+    subject: "CENTRAL channel: embossing-file loader (Tri-Badge PURE) — already built, keep as-is"
+    detail: >
+      Central perso (-> bruid-cperso) takes the embossing file DIRECTLY (Tri-Badge PURE V3.0 fixed-width)
+      via the existing EmbossingParser (P2, verified). No DPI, no DEK, no signature. Feeds the 74-field
+      central blob (task-001.3). No new work beyond keeping it green as the shared record model evolves.
+    status: done
+    priority: low
+
+  - id: "task-001.6"
+    subject: "INSTANT channel: DPI consumer (GdDataProviderLoader) for iperso"
+    detail: >
+      Instant perso (-> bruid-iperso) takes the MENTA DPI RequestPerso (G&D data-provider v2). Build the
+      inbound consumer: (1) decrypt the xe:EncryptedData secure block (DEK by label, AES-256-CBC, iso2 padding,
+      IV prepended in base64 CipherValue); (2) parse clear + secure perso-entity fields -> internal perso
+      record -> the 52-field instant hex (task-001.3). Distinct front-door from the Tri-Badge PURE loader;
+      same record model behind. NOTE: SOAP transport + WS-Security signature verification are handled by the
+      Part A/B team member (NOT dprep) — dprep receives the DPI payload and decrypts/parses only.
+    status: pending
+    priority: high
+    depends_on: "task-001.7 (AES-256-CBC in crypto layer)"
+
+  - id: "task-001.7"
+    subject: "Crypto: add AES-256-CBC (iso2 padding) to the crypto seam"
+    detail: >
+      Engine crypto is 3DES-centric (BprCrypt). Add AES-256-CBC (decrypt path first) behind the same seam
+      (in-tree OpenSSL available) to consume the DPI secure block. Handle IV-prepended CipherValue:
+      base64-decode -> first 16 bytes = IV -> AES-256-CBC-decrypt remainder under the DEK.
+    status: pending
+    priority: high
+
 needs_from_user:
   - "Issuer test keys / KCVs (for realistic end-to-end crypto vectors) — was rnd-cperso task-001.3"
   - "SCP02 KVN=01 ISD master key (label) + diversification method from na-003/007-bnprs-grc-kms —
      to enable the DISABLED_ real-trace SCP02 vector (default GP key 40..4F ruled out empirically)."
+  - "INSTANT channel DEK (label + which environment, e.g. MENTA/DEK/DEV_DEK_02) — the AES-256 data-encryption
+     key that MENTA/DPI secure blocks are wrapped under. Exchanged out-of-band; record LABEL only. Distinct
+     from the EMV bureau keys. Needed by task-001.6/001.7."
 
 guardrails:
   - "Never store key VALUES — labels/IDs/ARNs only (PCI Card Production)."
