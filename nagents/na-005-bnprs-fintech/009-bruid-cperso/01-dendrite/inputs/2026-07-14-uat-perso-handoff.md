@@ -10,7 +10,7 @@ personalize the two UAT test cards. Design of record: rnd-cperso `08-memory/long
 ## The two UAT cards (same ATR 3BFE13; distinguish by ISD RID)
 - **MC card:** ISD `A000000004000000`; M/Chip placeholder `A0000000180F0000018330324444` = 6999.
 - **Visa card:** ISD `A000000003000000`; payment placeholder `A000000018320A020000000000000000` = 6999.
-- Both: same UAT ISD key **`THALESDISBPSTEST`** (KCV `C277BA`, **VISA2** diversification, KVN01); BIXAPP_K3 present.
+- Both: same UAT ISD key (KCV `C277BA`, **VISA2** diversification, KVN01 — value provided out-of-band, NOT stored); BIXAPP_K3 present.
 
 ## Keys (held / verified — KCVs only, values in Resources/UAT_Keys.txt, PCI)
 - **ISD SCP02** — open channel + session S-ENC/S-MAC/S-DEK: KCV `C277BA`, VISA2 div.

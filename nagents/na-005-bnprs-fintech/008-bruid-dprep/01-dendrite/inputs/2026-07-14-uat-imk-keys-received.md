@@ -28,7 +28,7 @@ Bureau says: for DATA PREP only the IMK is needed; **CVK-A/B, PVK, PIN-TK are tr
 If iCVV/CVV2 are supplied and no offline PIN at DP → IMK alone suffices; else request CVK/PIN-TK.
 
 ## Companion key (already held)
-SCP02 ISD transport key `THALESDISBPSTEST` (KCV C277BA, VISA2 div, KVN01) — opens the secure channel to the
+SCP02 ISD transport key (KCV C277BA, VISA2 div, KVN01 — value provided out-of-band, NOT stored) — opens the secure channel to the
 card for loading (rnd-cperso mem-009). DEK (MENTA, INSTANT channel) still outstanding, out-of-band.
 
 ## Action
