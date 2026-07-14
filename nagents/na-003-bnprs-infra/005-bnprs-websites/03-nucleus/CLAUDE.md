@@ -20,6 +20,7 @@
 | bnprs.in | bnprs-in-fe | E1SC03F64TLZZ0 | — | deployed |
 | bnprs.com | bnprs-com-fe | EIRPPLAXGKOQA | — | deployed |
 | aandhipe.in | — | — | — | not deployed |
+| circletech.me | circletech-me-fe | EKFR8SABR872A | d3bcmmhcvintjd.cloudfront.net | deployed — **ITP acct 819144294008** (profile `itp`, us-east-2); registrar GoDaddy (DNS kept); see mem-007/008 |
 
 ### bnprs.ai — Full Details
 

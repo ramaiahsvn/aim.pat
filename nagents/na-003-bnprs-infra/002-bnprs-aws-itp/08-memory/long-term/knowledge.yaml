@@ -307,6 +307,22 @@ memories:
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
 
+  - id: mem-013
+    type: hosted_resource
+    content: >
+      2026-07-14: The circletech.me static WEBSITE is hosted in THIS account (819144294008). Resources:
+      S3 `circletech-me-fe` (us-east-2, private, OAC) + CloudFront `EKFR8SABR872A`
+      (d3bcmmhcvintjd.cloudfront.net) + ACM cert (us-east-1)
+      arn:...:certificate/e1bd3290-aa78-4904-b694-507025cddd16 (www.circletech.me + circletech.me).
+      Registrar stays GoDaddy (no Route 53 zone); www CNAME -> CloudFront, apex via GoDaddy 301 HTTPS
+      forwarding. Built + deployed by na-003/005 bnprs-websites (source BPR2004_Design/bpr2004.circletech.me,
+      Vite). Tagged Project=ITPCore, Owner=bnprs, Environment=prod. ROUTING: circletech.me always lives here
+      (this ITP account) — bnprs-websites owns build/deploy, this agent owns the account/cost. Include these
+      in cost reviews (small: S3 + CloudFront, ~$0-1/mo).
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [circletech.me, website, s3, cloudfront, acm, hosted-here, bnprs-websites, cost]
+
 # Pruning rules
 pruning:
   max_entries: 500

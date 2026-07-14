@@ -67,6 +67,40 @@ memories:
     confidence: 0.99
     tags: [deployment, astro, s3, cloudfront, bnprs.ai, bnprs.in, bnprs.com]
 
+  - id: mem-007
+    type: routing_rule
+    content: >
+      ROUTING: circletech.me ALWAYS lives in the ITPCore AWS account (819144294008, profile `itp`,
+      us-east-2) — managed by na-003/002 bnprs-aws-itp. This is an EXCEPTION to this agent's usual
+      account (bnprs 891963159778 / ap-south-2, which hosts bnprs.ai/.in/.com). Any future work on
+      circletech.me (redeploy, cert, CloudFront, cost) MUST use profile `itp` / account 819144294008 and
+      coordinate with bnprs-aws-itp. Do NOT create circletech.me resources in the bnprs account.
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [routing, circletech.me, itp-account, 819144294008, aws-itp, exception]
+
+  - id: mem-008
+    type: deployment
+    content: >
+      2026-07-14: Deployed circletech.me static site to ITPCore account 819144294008 (profile itp).
+      Pattern: private S3 (OAC) + CloudFront + ACM, DNS kept at GoDaddy (registrar GoDaddy, NOT transferred;
+      no Route 53 zone). Resources: S3 bucket `circletech-me-fe` (us-east-2, private, public-access-block on,
+      bucket policy scoped to the distribution via OAC E2ZOKKSZ9XUGKK); CloudFront `EKFR8SABR872A` ->
+      `d3bcmmhcvintjd.cloudfront.net` (PriceClass_100, http2and3, min TLS1.2_2021, SPA custom errors
+      403/404 -> /index.html 200, default root index.html); ACM cert (us-east-1)
+      arn:...:certificate/e1bd3290-aa78-4904-b694-507025cddd16 for www.circletech.me + circletech.me,
+      DNS-validated. GoDaddy DNS: `www` CNAME -> d3bcmmhcvintjd.cloudfront.net; apex = GoDaddy Domain
+      Forwarding (301, HTTPS/auto-SSL, forward-only) -> https://www.circletech.me. Source:
+      BPR2004_Design/bpr2004.circletech.me (Vite/React + Tailwind, build -> dist/). BUILD GOTCHA: node_modules
+      missing @rollup/rollup-darwin-arm64 (npm optional-deps bug) -> `npm install @rollup/rollup-darwin-arm64`;
+      and node_modules/.bin/vite lost +x -> run `node node_modules/vite/bin/vite.js build`. Deploy = `aws s3 sync
+      dist/ s3://circletech-me-fe --delete`. LIVE at https://www.circletech.me (CloudFront TLS1.3, valid cert);
+      apex HTTPS forwarding SSL provisions ~few hours. NOTE the recurring gotcha: GoDaddy long-TTL (1hr) cache on
+      the old www record delayed propagation. Tags all resources Project=ITPCore, Owner=bnprs, Environment=prod.
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [deployment, circletech.me, s3, cloudfront, acm, oac, godaddy, vite, itp-account, 819144294008]
+
 # Pruning rules
 pruning:
   max_entries: 500
