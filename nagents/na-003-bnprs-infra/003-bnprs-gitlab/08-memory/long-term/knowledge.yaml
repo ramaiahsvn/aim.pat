@@ -244,6 +244,23 @@ memories:
     confidence: 1.0
     tags: [runner, project-runner, cperso, windows, token, na-005-009, na-003-001]
 
+  - id: mem-020
+    type: operation
+    content: >
+      2026-07-14: Created + pushed the CircleTech website repo. Group BPR2004 (ID 122, path "BPR2004",
+      name "BPR2004 - Design", private) is the design-sites group (siblings: bpr2004.bnprs.ai/.in/.com;
+      convention = project path bpr2004.<name>, default+only branch master). New project:
+      BPR2004/bpr2004.circletech.me (project ID 249, private,
+      https://gitlab.bnprs.ai/BPR2004/bpr2004.circletech.me.git). Local init from
+      BPR2004_Design/bpr2004.circletech.me (95 source files; node_modules/dist gitignored), initial
+      commit 457c58f, pushed to master. Branch protection on master: push=Maintainer(40),
+      merge=Maintainer(40), allow_force_push=false (matches org convention: devs raise MRs, maintainers
+      merge). Default branch master. Site itself is hosted S3+CloudFront in the ITPCore AWS account
+      (819144294008) by bnprs-websites/aws-itp — GitLab repo is source-of-truth only.
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [project-create, BPR2004, circletech, protected-branch, master, group-122, project-249]
+
 # Pruning rules
 pruning:
   max_entries: 500

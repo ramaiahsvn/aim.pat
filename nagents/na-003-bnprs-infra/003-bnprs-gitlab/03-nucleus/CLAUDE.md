@@ -107,6 +107,7 @@ docker exec -it gitlab /bin/bash
 | ID  | Path    | Name               | Visibility | Description |
 |-----|---------|--------------------|------------|-------------|
 | 193 | aim1001 | AIM1001 - AIM Team | private    | AIM Team — BNPRS AI Agent Management Platform (aim.pat) |
+| 122 | BPR2004 | BPR2004 - Design   | private    | Design/website sources (bpr2004.bnprs.ai/.in/.com, bpr2004.circletech.me); convention `bpr2004.<name>`, branch `master` |
 
 ## Projects — aim1001 group
 
