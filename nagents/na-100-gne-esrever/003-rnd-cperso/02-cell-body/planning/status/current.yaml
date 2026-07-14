@@ -48,11 +48,18 @@ key_dependencies:
     channel: "both (central + instant)"
     requested_via: "grc-kms 01-dendrite/inputs/handoff-na005-008-perso-engine-bureau-keys.md (2026-07-13)"
     keys:
-      - "SCP02 ISD static S-ENC / S-MAC / S-DEK, KVN=01 + card diversification method (the gate)"
-      - "IMK-AC / IMK-SMI / IMK-SMC (per-card UDK derivation)"
-      - "CVK-A / CVK-B — CVV1 / iCVV / CVV2; fills the EMPTY CVV2/ICVV slots seen in the DPI + embossing data"
-      - "PVK (PVV); PIN-TK (ISO 9564-1 F0 PIN block)"
-    plus_oda: "ODA/RSA certs — issuer cert (tag 90) + CAPK index (8F) + per-card ICC cert (9F46) — rnd-cperso task-004"
+      - "SCP02 ISD static S-ENC / S-MAC / S-DEK, KVN=01 + card diversification method (the gate) — HELD (C277BA/VISA2)"
+      - "IMK-AC / IMK-SMI / IMK-SMC — per-card UDK derivation — RECEIVED (KCV 82E136, validated). KMS labels:
+         IVSCI(AC)/IVSTP(SMI)/IVSTV(SMC)/IVSTR(IDN), owner TRANSLINK (per MC_EMV_Perso.spi + GenericCrypto.ini)"
+    resolved_2026_07_14_via_MC_EMV_Perso_spi:
+      - "CVK-A/B NOT a DP key — ICVV/CVV2/PVV are PARSED from the DP input (pre-computed upstream), never
+         computed in perso. Confirms bureau. Drop CVK from the bureau ask for DP."
+      - "PVK NOT a DP key — PVV supplied in input (host-side value)."
+      - "PIN: pinblock arrives in the DP input under the issuer transport key; perso re-encrypts to the card key
+         (SMC) via KMS TranslatePinBlock -> DGI 8201. PIN-TK is a KMS/data-side key, not a card-load key."
+      - "ODA/RSA fully handled in-script via KMS (GenerateRSAKeyPair, GetIssuerPKCertificate,
+         GenerateICCPKCertificate, GenerateSDAD) — DGI A001 (8F/90/92/9F32/93/9F46/9F47/9F48) + DGI 8010 ICC priv."
+    plus_oda: "ODA/RSA = task-004; script exists (MC_EMV_Perso.spi) — the RSA/cert flow is specified, not a gap."
   domain_B_data_exchange:
     source: "MENTA (perso bureau, upstream); exchanged OUT-OF-BAND; record LABEL only"
     channel: "INSTANT only (DPI path -> bruid-iperso)"
