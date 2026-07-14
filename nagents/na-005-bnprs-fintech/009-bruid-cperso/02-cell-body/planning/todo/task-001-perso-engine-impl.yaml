@@ -38,6 +38,9 @@ subtasks:
       Drive SELECT CM → SCP02 → DELETE → INSTALL[for load&make] → per-applet STORE DATA (DGI blocks) →
       read-back verify → audit. Configurable stop-on-error; never silently retry a partial card. Audit is
       PAN/PIN/key-free (mask PAN). Align with existing qiscript_central_* pipeline + LOCK (INS 0xF0).
+      STORE DATA per EMV CPS (rnd-cperso emv-cps-reference.md): 84 E2, ONE DGI per command, P2 = sequence;
+      the LAST STORE DATA transitions the applet to PERSONALIZED + closes the channel (moves a pre-installed
+      M/Chip instance from 6999 to selectable). Map SW: 9315 KCV-fail, 9580 out-of-sequence, 6A88 bad DGI.
     status: pending
     priority: high
 

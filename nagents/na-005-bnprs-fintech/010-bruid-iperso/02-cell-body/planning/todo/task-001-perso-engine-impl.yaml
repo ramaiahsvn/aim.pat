@@ -26,6 +26,8 @@ subtasks:
       one card (not live transmit). Consume dprep's 52-field instant hex + IHsmClient. Pre-compute SCP02
       wrapping / STORE DATA so the kiosk needs NO key material. Bind script to card (challenge/serial) —
       anti-replay. SAD stays central.
+      STORE DATA per EMV CPS (rnd-cperso emv-cps-reference.md): 84 E2, ONE DGI per command, P2 = sequence;
+      DGI >= 0x8000 encrypted under session DEK; the LAST STORE DATA personalizes + closes the channel.
     status: pending
     priority: high
     live_trigger: >

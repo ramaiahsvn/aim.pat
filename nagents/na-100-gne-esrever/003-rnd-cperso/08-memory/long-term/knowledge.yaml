@@ -22,6 +22,9 @@
 #           Gemalto/NXP JCOP, MC card manager, SCP02 i=55 + VISA2 diversification, ISD KVN=01 (master KCV
 #           C277BA — value NOT stored), M/Chip applet installed-but-unpersonalized (AID A000000018 0F…, 6999),
 #           BIXAPP_K3 present. Confirms SCP02; corrects earlier "no M/Chip applet". (see mem-009)
+#       - thales/emv-cps-reference.md          — EMV CPS perso structure (GlobalPlatform CPSdemonstrator
+#           Spec 2.0): STORE DATA/DGI flow, DGI>=0x8000=encrypted-under-DEK, key/PIN ordering, KCV method,
+#           STORE DATA status words, last-STORE-DATA=personalize+close. Governs perso scripts. (see mem-010)
 #     These were MOVED from trp1002.cperso.thales on 2026-05-30 (deleted there) per user request.
 #     Ground-truth raw artifacts that REMAIN in the source repo: SPI4MLB2_decompiled.c,
 #     Interpreter_decompiled.c, GenericCrypto.ini (real key div-data lives here).
@@ -171,6 +174,23 @@ memories:
     created_at: "2026-07-14"
     confidence: 0.97
     tags: [test-card, ground-truth, gemalto, jcop, scp02, visa2, mchip, bixapp-k3, kcv-c277ba, aid, 6999]
+
+  - id: mem-010
+    type: reference
+    content: >
+      EMV CPS reference for perso-script structure — GlobalPlatform CPSdemonstrator Spec 2.0
+      (Resources/CPSdemonstrator Spec 2.0.pdf). Perso flow: SELECT -> INITIALIZE UPDATE -> EXTERNAL
+      AUTHENTICATE (P1 01=MAC/03=MAC+ENC) -> STORE DATA (84 E2 P1 P2seq) one DGI per command -> LAST
+      STORE DATA transitions applet to PERSONALIZED + closes channel (this is what moves our card's
+      M/Chip instance from 6999 to selectable). STORE DATA data field = DGI(2)||Len(1)||content. KEY
+      RULE: DGI >= 0x8000 (MSB set) = ENCRYPTED under session DEK; < 0x8000 = clear. KCV = leftmost 3
+      bytes of 3DES(key, 8x00) (matches C277BA check). Ordering: 8000(app key) before 9000(KCV);
+      9010(PIN related) before 8010(PIN). STORE DATA SW: 9315 KCV-fail, 9580 out-of-sequence, 6A88
+      unrecognized DGI. Governs cperso Sequencer + iperso emitter + dprep DGI assembly. Full:
+      08-memory/long-term/thales/emv-cps-reference.md.
+    created_at: "2026-07-14"
+    confidence: 0.95
+    tags: [emv-cps, store-data, dgi, personalization, reference, globalplatform, sequencer, encryption, kcv, ordering]
 
 # Pruning rules
 pruning:

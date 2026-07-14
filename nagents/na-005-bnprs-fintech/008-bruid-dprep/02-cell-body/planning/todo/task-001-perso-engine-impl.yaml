@@ -74,6 +74,9 @@ subtasks:
       Merge embossing record + card profile -> resolved TLV/DGI blocks; assemble the 74-field central
       blob (-> bruid-cperso) and 52-field instant hex (-> bruid-iperso). Compute PIN block (ISO 9564-1 F0),
       CVV2/ICVV/PVV, TRACK1/TRACK2 via the HSM layer. PCI: SAD never persisted post-auth.
+      Follow EMV CPS DGI rules (rnd-cperso 08-memory/long-term/thales/emv-cps-reference.md): DGI >= 0x8000
+      (MSB set) is ENCRYPTED under the session DEK; keep clear DGIs < 0x8000; honor ordering — app key
+      (8000) before its KCV (9000), PIN-related (9010) before PIN (8010). KCV = 3DES(key, 8x00)[:3].
     status: pending
     priority: medium
 
