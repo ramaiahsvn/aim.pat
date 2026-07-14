@@ -22,6 +22,12 @@ READ DATA           80 B2 <P1 table> <P2>          -- read-back verify (optional
 > The **last STORE DATA transitions the applet to PERSONALIZED** — this is exactly what moves our test
 > card's M/Chip instance from `6999` (SW_APPLET_SELECT_FAILED, unpersonalized) to selectable. See
 > [[test-card-inventory]].
+>
+> **Two finalization models — support both:** (a) CPS demonstrator = the LAST STORE DATA finalizes; (b) the
+> BNPRS reference script `MC_EMV_Perso.spi` finalizes with **`SET STATUS <appletAID> -> 07` (PERSONALIZED)**
+> after the STORE DATA sequence. Also note `MC_EMV_Perso.spi` uses EXT AUTH **security level 03** (C-MAC +
+> C-DECRYPTION) and re-encrypts the PIN block issuer-TK -> card-key (`TranslatePinBlock`) => **PIN-TK is a
+> DP input** for this card. See [[mc-perso-script-blueprint]].
 
 ## STORE DATA data field
 `DGI(2) ∥ Length(1) ∥ DGI-content`. Each DGI is sent in its own STORE DATA. (This CPS demonstrator does

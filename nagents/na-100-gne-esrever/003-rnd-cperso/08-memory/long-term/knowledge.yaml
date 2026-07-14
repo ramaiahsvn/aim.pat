@@ -252,6 +252,26 @@ memories:
     confidence: 1.0
     tags: [perso-entry, install-make-selectable, 6999-resolved, standard-aid, visa-card, blocker-resolved, milestone]
 
+  - id: mem-014
+    type: reference
+    content: >
+      2026-07-14: The COMPLETE M/Chip perso script is already on disk (in scope):
+      BprDataPrep/PersoScripts/MC_EMV_Perso.spi (BNPRS/Operas). Full flow: SELECT ISD -> INIT UPDATE ->
+      EXT AUTH (SCP02 security level 03 = C-MAC+C-DEC) -> SELECT A0000000041010 -> STORE_DATA 0101(AID/label)
+      0201(Track2/PAN/dates) 0301(name/CVM/lang) 0401(CDOL/IAC) 8000(UDK keys) A001(certs) 8010(ICC keypair)
+      8201(PIN block); records wrapped in template 70 -> SET STATUS A0000000041010 07 (PERSONALIZED). Encodes
+      UDK derivation via KMS (GetTKt_KTRn/ComputeHostCryptogram), ICC RSA keypair + Issuer/ICC certs + SSAD,
+      and PIN-block re-encryption (TranslatePinBlock) => PIN-TK IS a DP input. Companion: SPI4MLB2.INI,
+      MC_KMS_Macros.ini. So perso is FULLY specified = profile(data) + MC_EMV_Perso.spi(script/DGI) + Gemalto
+      trace(47-DGI APDU oracle) + UAT keys. TWO finalization models: SET STATUS 07 (.spi) vs last-STORE-DATA
+      (CPS). NARROW remaining gap: both .spi + trace assume SELECT A0000000041010 works (selectable); our cards'
+      Gemalto applet build returns 6999; INSTALL with trace params (C90301000000) creates but leaves 6999 ->
+      need the correct Gemalto INSTALL params for THIS applet build (not in profile/.spi). Superseded my earlier
+      "need Gemalto DGI/perso spec" — it was on disk; only the install-param for the Gemalto build is outstanding.
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [mc-emv-perso-spi, perso-script, on-disk, dgi, set-status-07, pin-tk-at-dp, install-param-gap, reference]
+
 # Pruning rules
 pruning:
   max_entries: 500

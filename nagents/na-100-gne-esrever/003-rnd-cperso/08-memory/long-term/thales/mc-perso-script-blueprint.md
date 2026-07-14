@@ -69,6 +69,29 @@ package. BONUS: after perso the card answers to the STANDARD scheme AID (install
 - Session DEK (to encrypt the 8xxx DGIs): derived per-session from the ISD DEK during SCP02 open.
 - Outstanding: CVK (only if iCVV/CVV2 computed here — likely in track DGIs), PIN-TK source for the 8010 PIN block.
 
+## Reference perso SCRIPT already on disk — MC_EMV_Perso.spi (2026-07-14)
+`TRP1002_cPerso/trp1002.cperso.mces2/BprDataPrep/PersoScripts/MC_EMV_Perso.spi` (in scope) is a COMPLETE
+BNPRS/Operas M/Chip perso script — the P5 Sequencer template in executable form. Flow:
+```
+SELECT ISD -> INIT UPDATE -> EXT AUTH (SCP02, security level 03 = C-MAC + C-DEC)
+SELECT A0000000041010
+STORE_DATA: 0101(AID/label) 0201(Track2/PAN/dates) 0301(name/CVM/lang) 0401(CDOL/IAC)
+            8000(UDK keys)  A001(certs)  8010(ICC keypair)  8201(PIN block)   [records wrapped in template 70]
+SET STATUS A0000000041010 -> 07 (PERSONALIZED)     <-- finalization (NOT "last STORE DATA")
+```
+Also encodes: UDK derivation via KMS (GetTKt_KTRn, ComputeHostCryptogram), ICC RSA keypair + Issuer/ICC
+certs + SSAD, and PIN-block re-encryption (TranslatePinBlock issuer-TK -> card-key) => **PIN-TK IS a DP input**.
+Companion perso-tool config: `SPI4MLB2.INI`, `MC_KMS_Macros.ini` (same folder). The 47-DGI Gemalto trace is
+the higher-fidelity APDU oracle; the .spi is the clean structural template. Two finalization models to support:
+`SET STATUS 07` (this .spi) and "last STORE DATA finalizes" (CPS demonstrator).
+
+## Only remaining gap (narrow)
+Both the .spi AND the trace do `SELECT A0000000041010 -> STORE DATA`, ASSUMING the applet is selectable. Our
+cards' Gemalto applet build returns 6999 (not selectable pre-perso). INSTALL with the trace params
+(C90301000000) creates the instance but leaves it 6999. => Need the CORRECT Gemalto INSTALL parameters for
+this applet build (not in the profile/.spi — they assume a pre-selectable applet). Everything else (data,
+DGI structure, flow, keys) is now in hand.
+
 ## Risk / ownership
 Live perso = **implementation** (P5 Sequencer) owned by **bruid-cperso (central) / bruid-iperso (instant)** —
 NOT rnd-cperso (planner). Single UAT card: use read-back verify + stop-on-error; a wrong DGI set risks a

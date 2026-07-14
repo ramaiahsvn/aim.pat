@@ -34,6 +34,15 @@ Full sequence in mc-perso-script-blueprint.md. EMV CPS rules (emv-cps-reference.
 under session DEK (8000/8001 UDK keys, 8201-8205 RSA/ODA, 8010 PIN block); clear records 0201/0301/0401-04,
 9102 FCI, A0xx/B0xx MC proprietary, 9010 PIN control; last STORE DATA = PERSONALIZED (clears 6999).
 
+## PORT THIS: the perso script is already on disk — MC_EMV_Perso.spi
+`TRP1002_cPerso/trp1002.cperso.mces2/BprDataPrep/PersoScripts/MC_EMV_Perso.spi` is a COMPLETE BNPRS/Operas
+M/Chip perso script — port it as the P5 Sequencer. Flow: SELECT ISD -> INIT UPDATE -> EXT AUTH (security
+level 03 C-MAC+C-DEC) -> SELECT A0000000041010 -> STORE_DATA 0101/0201/0301/0401/8000/A001/8010/8201 (records
+in template 70) -> SET STATUS A0000000041010 07 (PERSONALIZED). Encodes UDK derivation (KMS), ICC RSA keypair
++ Issuer/ICC certs + SSAD, PIN-block re-encrypt (TranslatePinBlock -> PIN-TK IS a DP input). Companion config
+SPI4MLB2.INI + MC_KMS_Macros.ini. Finalization: support BOTH SET STATUS 07 (.spi) and last-STORE-DATA (CPS).
+Perso is now FULLY specified: profile(data) + MC_EMV_Perso.spi(script) + Gemalto trace(47-DGI oracle) + keys.
+
 ## Build steps (P5 Sequencer — you)
 1. Reproduce the entry (INSTALL make-selectable under standard AID) — per card scheme.
 2. Derive UDKs from the UAT IMK (82E136) + card PAN/PSN; place in 8000/8001; verify KCV.
@@ -45,5 +54,12 @@ under session DEK (8000/8001 UDK keys, 8201-8205 RSA/ODA, 8010 PIN block); clear
 Full SCP02 auth to the card verified live (INIT UPDATE -> EXT AUTH -> 9000) with the UAT key. Do NOT
 personalize the Gemalto-AID placeholder; INSTALL the standard-AID instance per above.
 
-## Open (confirm w/ bureau, non-blocking for symmetric perso)
-iCVV/CVV2 supplied-in-DP vs computed (CVK); offline reference PIN at DP (PIN-TK, DGI 8010 present in trace).
+## Only gating open item — Gemalto INSTALL params for this applet build
+Proof-of-life tested on the real card: SCP02 auth works; INSTALL [make selectable] CREATES the instance under
+the standard AID (6A82 -> registered) — but with the trace params (C90301000000) it lands in 6999 (our cards'
+Gemalto applet build is not selectable pre-perso). Both MC_EMV_Perso.spi and the trace assume SELECT works.
+=> Obtain the CORRECT Gemalto INSTALL parameters for THIS applet build (not in profile/.spi) to clear the 6999.
+Then the ported .spi flow runs. (Test instance was DELETEd; card restored.)
+
+## Non-blocking opens (confirm w/ bureau)
+iCVV/CVV2 supplied-in-DP vs computed (CVK). PIN-TK confirmed a DP input (.spi re-encrypts the PIN block).
