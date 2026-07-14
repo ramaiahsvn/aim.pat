@@ -85,12 +85,21 @@ Companion perso-tool config: `SPI4MLB2.INI`, `MC_KMS_Macros.ini` (same folder). 
 the higher-fidelity APDU oracle; the .spi is the clean structural template. Two finalization models to support:
 `SET STATUS 07` (this .spi) and "last STORE DATA finalizes" (CPS demonstrator).
 
-## Only remaining gap (narrow)
-Both the .spi AND the trace do `SELECT A0000000041010 -> STORE DATA`, ASSUMING the applet is selectable. Our
-cards' Gemalto applet build returns 6999 (not selectable pre-perso). INSTALL with the trace params
-(C90301000000) creates the instance but leaves it 6999. => Need the CORRECT Gemalto INSTALL parameters for
-this applet build (not in the profile/.spi — they assume a pre-selectable applet). Everything else (data,
-DGI structure, flow, keys) is now in hand.
+## Perso-entry — RESOLVED + VALIDATED on the card (2026-07-14, from Operas/THALES MDA traces)
+The correct INSTALL is in the real Thales Operas perso trace (Operas/THALES MDA/Spi4MLB2.trace.txt — a full
+48-session capture). EXACT command that makes the applet selectable:
+```
+80E60C 002C  0C A0000000180F000001833032  0B A0000000180F0000018303  07 A0000000041010  01 12  07 C9050111000105  00
+  P1=0C (install & make selectable) | pkg=A0000000180F000001833032 | module=A0000000180F0000018303
+  INSTANCE=A0000000041010 (STANDARD MC AID) | privileges=12 | INSTALL PARAMS = C9 05 0111000105 | token=00
+```
+Trace evidence: INSTALL <-6101, SELECT A0000000041010 <-610D (SELECTABLE, FCI), then INIT UPDATE/EXT AUTH
+(the applet's OWN SCP02, same ISD keys via diversification) -> STORE DATA. VALIDATED live on our MC card:
+same INSTALL -> SELECT A0000000041010 -> 9000 (was 6999). My earlier failure used WRONG pkg/module/priv(00)/
+params(C90301000000). The `.spi`'s assumption (applet selectable) holds once installed with these params.
+So the entry is: INSTALL [make selectable] (params C9050111000105, priv 12) -> SELECT A0000000041010 ->
+applet SCP02 -> STORE DATA -> SET STATUS 07. NO Gemalto round-trip needed — answer was in the Thales traces.
+(Visa analogue: same approach, Visa pkg/module + its own C9 params — grep the same traces for the Visa INSTALL.)
 
 ## Risk / ownership
 Live perso = **implementation** (P5 Sequencer) owned by **bruid-cperso (central) / bruid-iperso (instant)** —

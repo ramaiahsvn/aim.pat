@@ -272,6 +272,23 @@ memories:
     confidence: 1.0
     tags: [mc-emv-perso-spi, perso-script, on-disk, dgi, set-status-07, pin-tk-at-dp, install-param-gap, reference]
 
+  - id: mem-015
+    type: milestone
+    content: >
+      2026-07-14: PERSO-ENTRY FULLY RESOLVED + VALIDATED on the card. The correct INSTALL is in the real
+      Thales Operas trace (Operas/THALES MDA/Spi4MLB2.trace.txt — 48-session, 270 STORE DATA capture from the
+      MCES2 machine). EXACT M/Chip INSTALL [make selectable]: pkg=A0000000180F000001833032,
+      module=A0000000180F0000018303, INSTANCE=A0000000041010 (standard MC AID), privileges=12, INSTALL PARAMS
+      = C9 05 0111000105, token=00. Trace: INSTALL<-6101, SELECT A0000000041010<-610D (SELECTABLE), then INIT
+      UPDATE/EXT AUTH (applet's own SCP02) -> STORE DATA. VALIDATED LIVE on our MC card: this INSTALL -> SELECT
+      A0000000041010 -> 9000 (was 6999). My earlier attempts failed on WRONG pkg/module/priv(00)/params
+      (C90301000000 guessed from McQi). So the C9 params = C9050111000105. Entry = INSTALL[make selectable]
+      (these params) -> SELECT standard AID -> applet SCP02 -> STORE DATA -> SET STATUS 07. NO Gemalto needed
+      (the drafted vendor query is now superseded/optional). Applet ends up under standard AID A0000000041010.
+    created_at: "2026-07-14"
+    confidence: 1.0
+    tags: [perso-entry-resolved, c9-params, C9050111000105, install-make-selectable, validated-on-card, thales-mda-trace, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500
