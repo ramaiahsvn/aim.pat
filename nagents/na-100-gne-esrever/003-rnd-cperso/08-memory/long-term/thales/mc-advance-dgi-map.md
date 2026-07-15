@@ -444,3 +444,24 @@ proprietary control DGI, config value `AD14`). When AD14 is sent BEFORE the ICC 
    loading 8010 without 9010 leaves an inconsistent PIN → end-of-perso 6985. Both skipped ⇒ no offline PIN.
 3. **card→SECURED** finalize needs SCP02 C-MAC afterward; two earlier UAT cards were left SECURED (recoverable
    only with C-MAC secure messaging — a future engine feature).
+
+## 🏆 2026-07-15 — 100% COMPLETE: fully functional M/Chip card (all 41 DGIs + PIN + AD14; GPO/READ/VERIFY pass)
+The last two gaps closed:
+1. **AD14** (2-byte proprietary control) — it poisons the ICC CRT ONLY when sent before it. Solution: send it
+   as the **end-of-perso LAST STORE DATA `80E280<P2>02AD14`** (P1.b8=1) — loads after the keys (no poison) AND
+   triggers SELECTABLE→PERSONALIZED in one command (AD14 is effectively the finalize control).
+2. **DGI 9010 PIN-Related-Data** = **PTC(1)‖PTL(1) = 2 bytes** (§6.21). The trace/config value `90100103` is
+   1-byte (value 03) → 6985 on GCX7.5. Fixed: `9010 02 0303` (PTC=3, PTL=3). With the DEK-wrapped **8010**
+   Reference PIN (`241234FFFFFFFFFF` = PIN 1234, ISO fmt-2), the PIN pair loads.
+
+**Live end-to-end result (perso-live --commit, default):** all 41 DGIs → 9000; AD14 end-of-perso → 9000;
+GPO `80A8000002830000` → `770E8202 3900 9408 1801020120020400`; AFL-driven READ RECORD returns PAN
+5213720475428723 / cardholder TARIQ/ZIAD / expiry 2411 / track2 / ICC+issuer PK certs (SFI4);
+**VERIFY PIN 1234 → 9000 (offline PIN works)**. Only `0E01` skipped (E5-vs-70 template quirk, non-essential).
+
+**Full correct perso recipe (GCX7.5 Gemalto M/Chip Advance, this engine):**
+SELECT ISD → INIT UPDATE/EXT AUTH(VISA2) → DELETE + INSTALL A0000000041010 (C9050111000105) → applet
+INIT UPDATE/EXT AUTH → STORE DATA all 41 DGIs in TRACE ORDER (skip AD14+0E01; 9010 as 2-byte PTC/PTL; keyset
+KCV 9000/9103 computed from UDKs; ICC CRT 8201-8205 with qInv/dq/dp full-length) → STORE DATA AD14 with
+P1.b8=1 (end-of-perso) → [optional --secure: re-SELECT ISD, SET STATUS 80F0800700/80F0800F00 → card SECURED,
+then C-MAC required]. Engine: bpr.cpp persoengine; perso-live app orchestrates + self-verifies (GPO/READ/VERIFY).
