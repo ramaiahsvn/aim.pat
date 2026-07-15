@@ -46,8 +46,7 @@ subtasks:
          bpr.cpp BprPcSc lib (wraps pcsc::Card, resolves 61xx GET RESPONSE + 6Cxx Le). perso-card-probe =
          read-only ATR+SELECT smoke tool. 8 mock-channel tests (SW maps 6A88 stop / 9315 continue); suite 84/84.
          Adapter+probe behind PERSOENGINE_BUILD_PCSC; compiles+links on macOS, connects + reads the card ATR live."
-      - "2026-07-15 — BprPcSc macOS TRANSMIT GATE RESOLVED (branch fix/pcsc-macos-transmit-pci, commit c155b19,
-         NOT yet merged to main — shared component, pending user sign-off). Root cause found via read-only diag:
+      - "2026-07-15 — BprPcSc macOS TRANSMIT GATE RESOLVED + MERGED to bpr.cpp main (c155b19). Root cause found via read-only diag:
          connect negotiates activeProtocol=T0 correctly, but SCardTransmit with the macOS global SCARD_PCI_T0/T1
          POINTERS returns SCARD_E_PROTO_MISMATCH. Fix: build a LOCAL SCARD_IO_REQUEST{dwProtocol, cbPciLength}
          in Card::transmitRaw (the portable approach gp.jar uses; equivalent on Windows/Linux, no behavior change

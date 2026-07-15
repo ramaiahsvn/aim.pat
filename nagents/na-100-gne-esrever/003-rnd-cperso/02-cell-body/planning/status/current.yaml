@@ -79,10 +79,10 @@ open_gates:
       2026-07-15-issuer-rsa-key-process.md (task-004.1).
     owner: "perso bureau (MENTA/Thales) + user (topology decision)"
   - id: "bprpcsc-macos-transmit"
-    status: RESOLVED   # 2026-07-15 — branch fix/pcsc-macos-transmit-pci (c155b19), pending merge to main
+    status: RESOLVED   # 2026-07-15 — MERGED to bpr.cpp main (c155b19)
     what: "BprPcSc live SELECT hit 'SCardTransmit: Protocol mismatch' on macOS/ACR39U. Root cause: the global SCARD_PCI_T0/T1 pointers fail on macOS even when the negotiated protocol (T0) is correct."
-    resolution: "FIXED — Card::transmitRaw now builds a LOCAL SCARD_IO_REQUEST (portable; gp.jar-style; no change on Win/Linux). Verified live read-only: SELECT ISD -> 9000 + full FCI. On branch fix/pcsc-macos-transmit-pci (c155b19); merge to main pending user sign-off (shared component)."
-    owner: "BprPcSc (shared) — fix ready on branch"
+    resolution: "FIXED + MERGED to main (c155b19) — Card::transmitRaw now builds a LOCAL SCARD_IO_REQUEST (portable; gp.jar-style; no change on Win/Linux). Verified live read-only: SELECT ISD -> 9000 + full FCI. Branch merged (ff) and deleted."
+    owner: "BprPcSc (shared) — DONE"
 
 # ---- Coordination view: KEY DEPENDENCIES (two domains) ----
 key_dependencies:
