@@ -307,3 +307,30 @@ pruning:
     confidence: 0.97
     source: "session-2026-07-15"
     tags: [persoengine, cperso, bpr-cpp, mchip-advance, dgi, store-data, scp02, dek-wrap, oda, rsa, pcsc, driver, perso-entry, complete, visa2-gate, issuer-key-gate]
+
+  - id: mem-016
+    type: project_context
+    content: >-
+      2026-07-15 — VISA2 GATE RESOLVED (updates mem-015 gate (a)). Ran gp.jar
+      --key-kdf visa2 -d --list on the live UAT Gemalto card (ACS ACR39U): EXT
+      AUTH -> 9000, secure channel opened, applets listed. Implemented
+      scp02::visa2_diversify + visa2_session_keys in bpr.cpp (commit 181a2ae):
+      GPPro fillVisa KDF = 3DES-ECB(ISD master, D) where D = kdd[0:2]||kdd[4:8]||
+      F0||keyId||kdd[0:2]||kdd[4:8]||0F||keyId (keyId 1/2/3 = ENC/MAC/DEK), then
+      the standard SCP02 session-key derivation. The engine reproduces that live
+      session's card cryptogram 4E69A8C28F08308D AND host cryptogram
+      F602F36D214BAEF5 byte-for-byte (keystore-gated test
+      Scp02Visa2.ReproducesLiveGpJarSession; ISD key loaded by label from the
+      git-ignored keys/uat_keystore.txt, never committed). The earlier offline
+      miss was a stale kResp1 vector (879A95BF…, seq 0003) from a DIFFERENT
+      session/card. NET: SCP02 session + REAL session DEK now fully derivable
+      in-engine — real 8000 (DEK-wrapped UDKs) + 8010 (DEK-wrapped ICC priv key)
+      DGIs are unblocked. Remaining external gates now = (b) real issuer RSA key
+      for real 9F46 certs, (c) BprPcSc macOS transmit protocol-PCI fix. Suite 88
+      tests green.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-15"
+    tags: [visa2, scp02, diversification, gp-jar, live-verified, session-keys, dek, gate-resolved, mem-015-update]
