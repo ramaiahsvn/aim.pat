@@ -116,3 +116,35 @@ Authoritative options, in order of preference:
      fields. Do this only if the specs are unavailable.
 
 The generic record DGIs (02xx/03xx/04xx) and the framing emitter are unaffected — those are ready to build.
+
+## DECISIVE ARCHITECTURE (2026-07-15) — three DGI classes, three strategies
+
+Decoding the trace shows the ~41 DGIs fall into three classes, each with a different (and for the config
+class, much LOWER-risk) build strategy. This supersedes "hand-code 41 byte-exact builders":
+
+1. **Record DGIs — template-70 BER-TLV** (0201, 0301, 0302, 0401, 0402, 0403, 0404, 0E01).
+   Self-describing TLV. e.g. the trace's 0201 = `70 81A6 { 9F42=0368, 5F25=011121, 5F24=…, 57 track2,
+   5A PAN, 5F34, 5F28, … }`. BUILD from tags (extend the existing build_dgi_0201.. with the FULL tag set
+   decoded from each record's template-70 content in the trace). Carries the per-card data. KAT vs trace.
+
+2. **Config DGIs — fixed positional CRM templates** (A002, A012, A022, A007/A017/A027, A008, A009, A00A,
+   A005, A00E, B002, B005, B010, B011, B016, B023, 9101, 9010, 9000, A202, AD14). These encode PRODUCT-LEVEL
+   risk/limit constants from the ADDONS profile (accumulator currency tables, limits, IAC, control bytes) —
+   NOT cardholder data, so they are BATCH-INVARIANT (identical for every card of this product). Do NOT
+   reconstruct field-by-field (risky, single-sample). Instead capture each DGI's exact byte block once as a
+   **product-config constant** (derived from the profile / verified against the trace) and emit VERBATIM.
+   Non-secret (risk params, no keys/PAN — all are P1=00 plaintext), so the product-config table is git-safe.
+   A002 partial decode (for documentation) — 111 bytes: Acc1 CurrencyCode(2)=0368, Acc1 ConvTable(25),
+   Acc1 Lower/Upper(6+6), Acc2 CurrencyCode(2)=0999, Acc2 ConvTable(25), Acc2 Lower/Upper(6+6), counters,
+   Additional Check Table(18)=000000+FF×15, CDOL1-RelData-Len(C7)=42, CRM Country(C8)=0368, PIN Try Limit
+   (C6)=01, Max Txn Currency(DF24)=0999, … Exact interior widths need the M/Chip Advance A002 template;
+   verbatim-emit avoids needing them.
+
+3. **Encrypted key DGIs — DEK-wrapped** (8010 ICC priv key, 8201-8205, 8000/8001 issuer keys, A006/A016).
+   P1=0x60. Values are per-card, DEK-wrapped under the SCP02 DEK session key. BUILD via IHsmClient
+   (derive UDKs / gen ICC RSA → wrap under DEK). Needs task-001.1 (SCP02 session) + task-001.3 (HSM).
+   NEVER commit real DEK ciphertext to tests — synthetic values only.
+
+Build order to reach a physical-card perso: (2) capture config-DGI product table [git-safe, unblocks most
+of the stream] → (1) full TLV record builders from the trace tag sets → emitter assembles config+records →
+(3) encrypted key DGIs once SCP02+HSM land → live driver (SELECT→SCP02→INSTALL→STORE DATA→SET STATUS).
