@@ -156,6 +156,34 @@ class, much LOWER-risk) build strategy. This supersedes "hand-code 41 byte-exact
   Built by perso::oda (bpr.cpp b63fdbd) per EMV Book 2 §6.4 — structurally verified end-to-end offline with a
   test issuer key. Exact trace 9F46 needs the REAL issuer RSA private key (HSM), same gate as VISA2.
 
+## VERSION RECONCILIATION + MANUAL DGI CATALOG (2026-07-15)
+
+The bureau manuals resolve the DGI-scheme question:
+- **M/Chip Advance applet uses A0xx DGIs** (A002/A012/A013/A014/A015/A022-A025, B0xx, A005-A00F, etc.) in BOTH
+  the GFCX17.0 manual AND our GCX7_5 Operas trace — SAME scheme. So MChipAdvance_applet_GFCX17.0_ReferenceManual
+  is the authoritative manual for our MC card's application DGIs. (The PURE manual's D0xx is a DIFFERENT applet;
+  its value is the COMMON key-loading = 8000/8010/8201 under SKUDEK.)
+- Version caveat remains: manual = GFCX17.0 / applet v3.18.1; our card = GCX7_5 / MCHIP_ADVANCE_V2_4. Check §1.4
+  "Differences with previous applets" before relying on any specific field.
+
+Authoritative M/Chip Advance DGI catalog (GFCX17.0 §6): 9102/5101/5111 (answer-to-SELECT/FCI); A002 (CRM);
+A012/A013/A014/A015 (contact risk/app-control/read-record-filter/IACs); A022-A025 (contactless); B010/B023
+(IVCVC3); B002 (log cfg); A005/B005 (GPO response); A007 (status+ATC); **A017/A027 (3DES Key Information)**;
+A008 (PIN err ctr); A009/5092 (life cycle); A00A (txn params); **8010 (Reference PIN, enc)**; 9010 (PIN data);
+5001/5002/5011/5012 (blocking); B102 (linked app); **8000/8001 (Keyset, enc)**; **A006/A016 (IDN key, enc)**;
+8400/8401 (KDCVC3); 8004 (MAS4C AC MK); A028 (MAS4C key info); **5000/5103 (Keyset KCV)** [NOT 9000 for MC];
+A004 (PK length); **8201-8205 (ICC CRT RSA)**; 8301-8305 (PIN CRT RSA); 5093 (RSA key check); B100/B101
+(relay resistance); A00F (currency conv); 5090 (data sharing); **[SFI][rec] records** (§6.38 — this is 0E01 =
+SFI 14 rec 1).
+
+### 8000 6A80 — root cause per §6.27
+DGI 8000/8001 = Diversified AC(16)‖SMI(16)‖SMC(16); 3DES-ECB no-pad under SKUDEK (=SCP02 session DEK, engine
+correct). **"Note: the 3 keys MUST be loaded otherwise the STORE DATA is rejected with 6A80h."** Our engine
+sends all 3 (48B) — so the format is right. The live 6A80 is therefore a CONTEXT issue (a prerequisite like
+A017/A027 key-info or the perso sequence not matching what the applet expects on GCX7_5), OR a GCX7_5-vs-
+GFCX17.0 field difference. NEXT: rebuild the MC stream to the §6 catalog + §5.2 perso flow (fix 0E01 to the
+[SFI][rec] format, use 5000/5103 for the KCV, ensure A017/A027 precede 8000) and re-test 8000 live.
+
 ## LIVE PERSO RESULTS (2026-07-15) — first end-to-end run on the physical card
 
 Ran perso-live --commit against the UAT Gemalto card. WORKS LIVE: VISA2 auth (ISD EXT AUTH -> 9000),
