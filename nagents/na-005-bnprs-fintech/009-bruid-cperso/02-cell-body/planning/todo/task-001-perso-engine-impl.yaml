@@ -111,11 +111,23 @@ subtasks:
          --key-kdf visa2 -vd capture for the exact UAT card to match the engine step by step. DEK-wrap +
          session mechanics are ready; just feed them the verified diversified static keys. RealVector test stays
          DISABLED pending this."
-      - "REMAINING to a physical-card perso: (a) RSA cert DGIs 0401/0403/0404 (per-card RSA: 9F46/9F47 ICC PK
-         cert + 90/92/93 issuer PK cert/SSAD = engine ICC keypair + issuer PK cert, RSA/ODA task-004);
-         (b) wire the DEK-wrap to real derived UDKs (8000) + ICC priv key (8010) once VISA2 verified; (c) live
-         driver SELECT->SCP02->INSTALL->STORE DATA->SET STATUS (task-001.1 card channel). Assembler already
-         leaves correct injectable slots for (a)/(b) via cert_key_data."
+      - "2026-07-15 — RSA/ODA CERT PATH DONE (bpr.cpp 74b6bad + b63fdbd). (1) Issuer PK Cert DGI 0404 (tag 90,
+         248B) is an issuer-invariant public constant -> verbatim config (26 config DGIs); only 0401/0403 are
+         per-card. (2) New perso::oda module (OpenSSL RSA/BN/SHA-1): generate_rsa_keypair, raw rsa_public/private,
+         icc_pk_cert_recovery_message (EMV Book 2 6.4: 6A||fmt||PAN||expiry||serial||hashAlgo||pkAlgo||N_IC||
+         expLen||ICC-mod(leftmost N_I-42, BB-pad)||SHA1(20)||BC), build_icc_pk_certificate (signs w/ issuer priv;
+         9F48 remainder split), build_icc_cert_dgi (70{9F47,9F46,9F48}). End-to-end offline: generate->sign->
+         recover w/ issuer pubkey->verify header/trailer+hash; certs fill assembler 0401/0403 slots (P2 0x17/
+         0x19). 6 tests; suite 76/76 green. In production the issuer signature is an HSM op — dev/test uses a
+         self-generated issuer key, so does NOT reproduce the trace's exact 9F46 (needs the real issuer RSA key),
+         same nature as the VISA2 gap."
+      - ">>> ENTIRE PERSO STREAM NOW ASSEMBLES (all 41 DGIs): 26 config verbatim + 3 TLV records byte-exact +
+         2 ICC cert DGIs (RSA, structurally verified) + 10 encrypted key DGIs (DEK-wrap ready). Plaintext =
+         byte-exact vs trace; cert/key values are real-key-gated. <<<"
+      - "REMAINING to a LIVE physical-card perso (external inputs, not engine logic): (a) real issuer RSA private
+         key -> real 9F46 certs (HSM); (b) VISA2 diversification verified (gp.jar -vd capture) -> real session
+         DEK -> real 8000 (UDKs) + 8010 (ICC priv) key DGIs; (c) live driver SELECT->SCP02->INSTALL->STORE DATA->
+         SET STATUS over PC/SC (task-001.1). All engine-side DGI builders + the assembler injection points are done."
 
   - id: "task-001.3"
     subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"

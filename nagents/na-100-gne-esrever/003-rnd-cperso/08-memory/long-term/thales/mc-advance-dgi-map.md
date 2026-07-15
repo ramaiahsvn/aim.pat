@@ -143,7 +143,21 @@ class, much LOWER-risk) build strategy. This supersedes "hand-code 41 byte-exact
 3. **Encrypted key DGIs — DEK-wrapped** (8010 ICC priv key, 8201-8205, 8000/8001 issuer keys, A006/A016).
    P1=0x60. Values are per-card, DEK-wrapped under the SCP02 DEK session key. BUILD via IHsmClient
    (derive UDKs / gen ICC RSA → wrap under DEK). Needs task-001.1 (SCP02 session) + task-001.3 (HSM).
-   NEVER commit real DEK ciphertext to tests — synthetic values only.
+   NEVER commit real DEK ciphertext to tests — synthetic values only. DEK-wrap primitive DONE (511d2ba).
+
+### RSA cert sub-classes (refined on decode 2026-07-15)
+- **0404 (tag 90, Issuer PK Cert, 248B) + 0402 (8F CA index + 9F32 issuer exp)** = issuer-invariant public
+  constants → verbatim config (done, byte-exact).
+- **0401 (contact) / 0403 (contactless)** = per-card ICC PK Certificate: 9F47 exp / 9F46 cert (176B = N_I) /
+  9F48 remainder (42B). ONE ICC keypair (identical 9F48), two certs over the contact vs contactless SDA data.
+  Built by perso::oda (bpr.cpp b63fdbd) per EMV Book 2 §6.4 — structurally verified end-to-end offline with a
+  test issuer key. Exact trace 9F46 needs the REAL issuer RSA private key (HSM), same gate as VISA2.
+
+## Engine status (2026-07-15): full 41-DGI stream assembles
+26 config verbatim + 3 TLV records (byte-exact) + 2 ICC cert DGIs (RSA, structurally verified) + 10 encrypted
+key DGIs (DEK-wrap ready). Remaining for a LIVE card perso are EXTERNAL inputs, not engine logic: (a) real
+issuer RSA key → real 9F46; (b) VISA2 diversification verified → real session DEK → real 8000/8010; (c) live
+PC/SC driver. Engine-side builders + assembler injection points are complete.
 
 Build order to reach a physical-card perso: (2) capture config-DGI product table [git-safe, unblocks most
 of the stream] → (1) full TLV record builders from the trace tag sets → emitter assembles config+records →
