@@ -68,7 +68,8 @@ open_gates:
       key DGIs unblocked (8010 still needs the per-card ICC RSA key from the ODA path).
     owner: "rnd-cperso (R&D) — DONE"
   - id: "issuer-rsa-key"
-    what: "Real issuer RSA private key for the real 9F46 ICC PK certs. perso::oda uses a self-generated test issuer key (runs end-to-end offline) but cannot chain to the bureau's real 0404/CAPK."
+    status: UAT-RESOLVED   # 2026-07-15 — test-CA mode (bpr.cpp 39bdacc); real-CAPK chain still needs bureau key
+    what: "Real issuer RSA private key for PRODUCTION-CHAIN 9F46 certs. UAT is UNBLOCKED: test-CA mode (self CA signs issuer key -> regenerated 0404; issuer signs ICC -> 0401/0403) gives a self-consistent, terminal-verifiable chain with no external dependency. Only cards that must chain to the bureau's real 0404/CAPK need the real issuer key."
     resolution: >
       NOT a grc-kms key — it is asymmetric issuer PKI held by the PERSO BUREAU (MENTA/Thales), who already
       signed the trace's 9F46 (we hold the matching Issuer PK Cert as DGI 0404). Route to the bureau, not

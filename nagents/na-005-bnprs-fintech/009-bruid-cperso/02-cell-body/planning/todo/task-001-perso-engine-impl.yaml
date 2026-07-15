@@ -143,9 +143,19 @@ subtasks:
          DGIs 8201=PQ(qInv)/8202=DQ/8203=DP/8204=Q/8205=P, DEK-wrapped under the session key. oda::RsaKeyPair now
          carries CRT factors (p/q/dp/dq/qInv via OpenSSL rsa-factor1/2, rsa-exponent1/2, rsa-coefficient1);
          sequencer::build_icc_privkey_dgis pads each to componentLen + DEK-wraps -> 8201-8205. Test: gen ICC key ->
-         CRT DGIs -> DEK-decrypt recovers each component -> land at assembler P2 0x1F-0x23 (P1=60). Suite 91/91.
-         NET: the ENTIRE encrypted-key half is now derivable in-engine — 8000/8001/A006/A016 on real UAT symmetric
-         keys, and 8201-8205 from the engine-generated ICC keypair. Real 9F46 certs still need the real issuer key."
+         CRT DGIs -> DEK-decrypt recovers each component -> land at assembler P2 0x1F-0x23 (P1=60). Suite 91/91."
+      - "2026-07-15 — UAT TEST-CA MODE DONE (bpr.cpp 39bdacc). Issuer PK Cert builder (EMV Book 2 6.3): a
+         self-generated test CA signs a self-generated issuer key -> DGI 0404 (tag 90) + 0402 (8F CA index/9F32
+         issuer exp); with the tier-3 ICC cert (6.4) this is a fully self-consistent, terminal-verifiable ODA chain
+         (CA->0404->0401/0403) with NO bureau/HSM dependency. Factored a shared EMV recovery-message builder
+         (idField=IIN(4) issuer / PAN(10) ICC). assemble_perso_stream's cert_key_data is now a UNIVERSAL slot
+         override, so regenerated 0402/0404 replace the captured bureau config. Test: both recovery steps verify
+         (the terminal's checks) + the 4 ODA DGIs inject/override. Suite 92/92."
+      - ">>> ENGINE NOW PRODUCES A COMPLETE, SELF-CONSISTENT, TERMINAL-VERIFIABLE PERSO STREAM FOR UAT with ZERO
+         external crypto dependency (test-CA issuer key + regenerated 0404 for UAT; real UAT symmetric keys for
+         8000/8001/A006/A016; VISA2 session). The ONLY remaining blocker to a LIVE run is the BprPcSc macOS
+         transmit protocol-PCI fix (or run on a Windows/Linux POS). Real-CAPK (production-chain) cards still need
+         the bureau's real issuer key — see rnd-cperso 2026-07-15-issuer-rsa-key-process.md. <<<"
       - "2026-07-15 — RSA/ODA CERT PATH DONE (bpr.cpp 74b6bad + b63fdbd). (1) Issuer PK Cert DGI 0404 (tag 90,
          248B) is an issuer-invariant public constant -> verbatim config (26 config DGIs); only 0401/0403 are
          per-card. (2) New perso::oda module (OpenSSL RSA/BN/SHA-1): generate_rsa_keypair, raw rsa_public/private,
