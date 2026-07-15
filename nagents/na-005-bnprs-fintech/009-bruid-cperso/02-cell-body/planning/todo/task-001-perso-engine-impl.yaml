@@ -36,8 +36,23 @@ subtasks:
     detail: >
       PC/SC transport with 61xx/6Cxx handling; SCP02 INIT-UPDATE/EXT-AUTH per the Gemalto trace; session
       keys via dprep's IHsmClient. Verify: trace-replay emitted APDUs == recorded Gemalto/TechTrex sequence.
-    status: pending
+    status: in_progress
     priority: high
+    progress:
+      - "2026-07-15 — LIVE PC/SC DRIVER DONE (bpr.cpp 9c23092). perso::driver: ICardChannel seam + ApduResponse;
+         APDU builders select/init_update/ext_auth/set_status (byte-exact vs the ISpi4Mlb2 wire: SELECT, INIT
+         UPDATE, EXT AUTH sec-level 0x00); run_store_data (ordered transmit, SW==9000 check, stop-on-first-error
+         so a partial card never continues; records failedAt/failedSw). BprPcScChannel adapts the existing
+         bpr.cpp BprPcSc lib (wraps pcsc::Card, resolves 61xx GET RESPONSE + 6Cxx Le). perso-card-probe =
+         read-only ATR+SELECT smoke tool. 8 mock-channel tests (SW maps 6A88 stop / 9315 continue); suite 84/84.
+         Adapter+probe behind PERSOENGINE_BUILD_PCSC; compiles+links on macOS, connects + reads the card ATR live."
+      - "KNOWN (BprPcSc, not driver logic): live SELECT hits 'SCardTransmit: Protocol mismatch' on this
+         macOS/ACR39U combo (ATR reads fine). BprPcSc backend_pcsclite.transmitRaw picks SCARD_PCI_T0/T1 from the
+         stored active protocol; macOS negotiation stores a value that mismatches. Fix belongs in BprPcSc (a
+         shared component — not modified here). Driver logic validated via mock + byte-exact trace KATs regardless."
+      - "REMAINING for a full live run: SCP02 auth crypto (host cryptogram) needs VISA2-diversified session keys
+         (open item), and DELETE/INSTALL[for install&make-selectable] APDU builders for the perso-entry (params
+         in mc-perso-script-blueprint.md, validated live earlier). Then run_store_data drives the assembled stream."
 
   - id: "task-001.2"
     subject: "P5 — perso::Sequencer + audit (batch)"
