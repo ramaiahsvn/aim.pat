@@ -186,8 +186,18 @@ Concrete spec-grounded engine fixes (each an increment):
    8203=CD1(DP), 8204=CQ(Q), 8205=CP(P). Our earlier left-zero-pad was the 8203-8205 6A80 cause.
 Ordering prerequisites from the manual: **A004 (Public Key Length) must precede the CRT DGIs** for 16*n+8-bit
 moduli (§6.33.1); A009 before 5092; A004 before 82xx/83xx. 8010 PIN block padding: check §6.20.
-STILL TODO: (3) 0E01 = [SFI][rec] format (§6.38); (4) add A004 when needed; (5) live re-test (padding fix
-should unblock 8201-8205); (6) the 8000 keyset 6A80 — see below.
+3. **A004 Public Key Length builder + SFI-record clarity (§6.33.1/§6.38)** — DONE (1120a72):
+   oda::build_public_key_length_dgi_a004([icc mod bytes][pin RSA mod bytes]) — the prerequisite that MUST
+   precede the CRT DGIs for 16*n+8-bit moduli; conditional (optional for 16-bit-multiple moduli / our UAT
+   keys, and absent from the GCX7_5 trace) so it stays injectable, NOT forced into the fixed stream.
+   §6.38: SFI records = **template 70** with EMV tags (Currency/Dates/AUC/PAN/PANseq/AppVer/CDOL1-2/Name/CVM/
+   IAC/Country/Track2; +SDA tags 8F/90/9F32/92/93/9F4A if SDA; +DDA tags 9F49/9F46/9F47/9F48 if DDA/CDA).
+   Our 0201/0301/0302 template-70 records are CORRECT per this. NOTE: trace 0E01 uses an E5 template (not 70)
+   — a GCX7_5/profile anomaly; §6.38 also warns DGI 0BYY (SFI 11) is applet-reserved for transaction logs.
+STILL TODO: (5) live re-test on the corrected stream (padding fix should unblock 8201-8205); (6) the 8000
+keyset 6A80 (see below); reconcile the 0E01 E5-vs-70 anomaly (GCX7_5 vs GFCX17.0). REFERENCE: manual §10
+"M/Chip Advance profile examples" (Dual Interface, p.107) has a COMPLETE worked perso stream + §10.3 example
+3DES/RSA keys — use it as a byte-level reference for the rebuild.
 
 ### 8000 6A80 — root cause per §6.27
 DGI 8000/8001 = Diversified AC(16)‖SMI(16)‖SMC(16); 3DES-ECB no-pad under SKUDEK (=SCP02 session DEK, engine
