@@ -334,3 +334,37 @@ pruning:
     confidence: 0.98
     source: "session-2026-07-15"
     tags: [visa2, scp02, diversification, gp-jar, live-verified, session-keys, dek, gate-resolved, mem-015-update]
+
+  - id: mem-017
+    type: project_context
+    content: >-
+      2026-07-15 — MILESTONE: the ENTIRE encrypted-key half of the cperso stream
+      is now derivable in-engine on real keys (extends mem-015/016). After VISA2
+      was verified live (mem-016), wired the real key DGIs in bpr.cpp persoengine:
+      (1) build_key_dgi (commit e9616a4) — real 8000/8001 = card UDKs AC||SMI||SMC
+      (3×16B DEK-enc, 48B, no KCVs per trace) + A006/A016 IDN keys; keystore-gated
+      test derives UDK-AC/SMI/SMC from the UAT IMKs (EMV Option A) -> DEK-wraps
+      under the LIVE VISA2 session DEK -> round-trips -> lands at assembler P2 0x26.
+      (2) ICC RSA private key (commit 7d02eac) — CORRECTED the DGI map from the
+      INTERPRETER trace REM labels: DGI 8010 is the PIN (8B), NOT the ICC key; the
+      ICC private key is the 5 CRT DGIs 8201=PQ(qInv)/8202=DQ/8203=DP/8204=Q/8205=P
+      DEK-wrapped under the session key. oda::RsaKeyPair now exposes CRT factors
+      (OpenSSL rsa-factor1/2, rsa-exponent1/2, rsa-coefficient1);
+      sequencer::build_icc_privkey_dgis pads+DEK-wraps -> 8201-8205 at P2 0x1F-0x23.
+      Suite 91/91 green. NET STATE: the engine produces REAL values for every DGI
+      class except the RSA cert 9F46 (needs the real issuer RSA private key to
+      sign). ONLY TWO EXTERNAL GATES REMAIN: (a) issuer RSA private key (HSM) ->
+      real 9F46 ICC certs (0401/0403); (b) BprPcSc macOS SCardTransmit protocol-PCI
+      fix (or run the live perso on a Windows/Linux POS). Everything else — plaintext
+      stream byte-exact, SCP02 session (VISA2), DEK-wrap, all symmetric key DGIs,
+      ICC keypair+CRT, full 41-DGI assembler, full APDU sequence incl DELETE/INSTALL
+      perso-entry — is complete and tested. Guardrails held throughout: real keys
+      loaded by label from the git-ignored keys/uat_keystore.txt (never committed);
+      session cryptograms + KCVs are non-secret; fail-closed key-value gate on every
+      commit; no Claude attribution; ramaiahsvn token for bpr.cpp pushes.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-15"
+    tags: [milestone, encrypted-key-dgis, 8000, 8201-8205, icc-private-key, crt, dek-wrap, udk, visa2, two-gates-remain, issuer-rsa-key, bprpcsc, complete]

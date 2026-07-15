@@ -7,11 +7,14 @@ type: project
 > **Source:** rnd-cperso (na-100/003) — perso R&D/planning agent (research of record). bruid-cperso
 > OWNS production implementation of the CENTRAL execution engine. Delivered 2026-07-04.
 >
-> **✅ STATUS 2026-07-15 — ENGINE FEATURE-COMPLETE** (bpr.cpp `persoengine`, 86 tests green). Full
-> 41-DGI M/Chip Advance perso stream assembles (plaintext byte-exact vs the Operas trace) + full APDU
+> **✅ STATUS 2026-07-15 — ENGINE COMPLETE; PRODUCES REAL VALUES FOR EVERY DGI EXCEPT 9F46** (bpr.cpp
+> `persoengine`, 91 tests green). Full 41-DGI M/Chip Advance stream (plaintext byte-exact) + full APDU
 > sequence (SELECT→INIT UPDATE→EXT AUTH→DELETE→INSTALL→STORE DATA→SET STATUS) + RSA/ODA cert builder +
-> DEK-wrap + live PC/SC driver. See knowledge.yaml **mem-015** for the commit trail, architecture, and the
-> 3 remaining EXTERNAL gates (VISA2 diversification capture, real issuer RSA key, BprPcSc macOS transmit).
+> live PC/SC driver, PLUS the real crypto: VISA2 session keys (verified live vs gp.jar), DEK-wrap, all
+> symmetric key DGIs (8000/8001/A006/A016 from the real UAT IMKs) and the ICC RSA private key (8201-8205
+> CRT). See knowledge.yaml **mem-015 / mem-016 / mem-017** for the full commit trail + architecture.
+> Only **TWO EXTERNAL GATES** remain: (a) real issuer RSA private key (HSM) → real 9F46 ICC certs;
+> (b) BprPcSc macOS SCardTransmit fix (or run on a Windows/Linux POS).
 > Canonical DGI decode: rnd-cperso `…/thales/mc-advance-dgi-map.md`.
 >
 > **Canonical design** (in rnd-cperso memory `…/003-rnd-cperso/08-memory/long-term/thales/`):
