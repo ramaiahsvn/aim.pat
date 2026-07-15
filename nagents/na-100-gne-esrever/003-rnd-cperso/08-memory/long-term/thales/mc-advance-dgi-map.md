@@ -177,10 +177,22 @@ SCP02 (applet EXT AUTH -> 9000), and **31 of the 41 STORE DATA DGIs accepted (90
      structure.
    - RULED OUT LIVE (both → 6A80 on all 9): wrapping under the SESSION DEK (session_key const 0x0181) AND the
      STATIC VISA2-diversified DEK (keyId 3). So the DEK CHOICE is not the gap.
-   - REMAINING unknown (needs the GeneralOS / M/Chip Advance CPS confidential-DGI spec): either the exact
-     secret-loading DEK/derivation (neither standard SCP02 DEK), OR a missing "initialize secret loading"
-     command before the encrypted DGIs, OR a per-key-block header the applet parses. This is the deepest
-     perso step (secure key injection) and is the LAST functional gap.
+   - ✅ RESOLVED BY SPEC (2026-07-15) — bureau sent the manuals (Resources/Perso Manual and LoA/). The
+     **PURE_GFCX17.0_Personalization_Manual §3.9 + §6.1.2** define it EXACTLY, and it CONFIRMS the engine is
+     already correct:
+       * DGI 8000/8001 = Diversified AC(16)‖SMI(16)‖SMC(16) UDKs; DGI 8010 = PIN block; DGI 8201-8205 = ICC
+         CRT RSA key; 8301-8305 = ICC PIN-enc RSA; 8401-8405 = contactless ICC RSA. DGI 9000/9001 = 3-byte KCVs
+         (leftmost 3 of 3DES[zeros] with each key; loaded AFTER 8000).
+       * Encryption: **3DES-ECB, NO padding, under SKUDEK**. And SKUDEK = 3DES-CBC[0181 ‖ seq ‖ 00×12] with
+         KDEK — i.e. the STANDARD SCP02 session DEK = scp02::session_key(KDEK, 0x0181, seq). Our
+         build_key_dgi + dek_encrypt already do exactly this.
+     So the live 6A80 was NOT the crypto/DEK (we tested that key). The manual defines a FULL required DGI
+     catalog that must be loaded first: D002 (card internal data), D003 (security limits), D004 (AID proprietary),
+     **D005 (Profile Selection Table)**, D007 (PDOL length), D010-D01F (Profile Resource Object), D021-D02A
+     (PDE), 9102/9103, then the key DGIs. Our inferred live stream skipped these -> the applet rejected the key
+     DGIs for missing perso context. NEXT: build the perso stream per the PURE manual's DGI catalog + order.
+     CAVEAT: manuals are GFCX17.0; our card/trace is GCX7_5 — reconcile version differences (the D0xx DGI scheme
+     here vs the A0xx seen in the GCX7_5 trace may differ by OS version).
 2. **0E01 (SFI 14 Record 1) → 6A80** — a profile-specific data record ("Mastercard_DI_GFCX9_MChipAdvance
    Without IDS & SDS & CVC3"). Our verbatim copy doesn't match the freshly-installed instance's expectation.
 

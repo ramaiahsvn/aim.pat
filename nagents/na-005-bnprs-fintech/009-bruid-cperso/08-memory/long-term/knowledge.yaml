@@ -471,3 +471,35 @@ pruning:
     confidence: 0.97
     source: "session-2026-07-15"
     tags: [visa, vsdc, live-perso, 5-of-5-dgis, vpa-profile, standard-record-layout, C900-install, no-trace-needed, visa-imks-gap, same-card-multi-app, bureau-ask]
+
+  - id: mem-021
+    type: project_context
+    content: >-
+      2026-07-15 — BUREAU PERSO MANUALS + LoA RECEIVED (Resources/Perso Manual and
+      LoA/): MChipAdvance_applet_GFCX17.0_ReferenceManual_v1.2.pdf, VSDC2.9.2_
+      Personalization_Manual_v1.3.pdf, PURE_GFCX17.0_Personalization_Manual_v1.2.pdf,
+      CLOA-THAL240705-241107(a).pdf (Card LoA), LBTHAL05819_Letter. SCOPE NOTE (user
+      2026-07-15): we now work with FOUR applets — MasterCard (M/Chip Advance), Visa
+      (VSDC), PURE (Thales platform), and BIX (BNPRS BIXAPP). FIRST FOCUS = MasterCard
+      + Visa. SECRET-LOADING GAP RESOLVED BY THE PURE MANUAL (§3.9 + §6.1.2) — and it
+      CONFIRMS the engine's key crypto is already correct: DGI 8000/8001 = Diversified
+      AC||SMI||SMC UDKs (16B each), 8010 = PIN, 8201-8205 = ICC CRT RSA, 8301-8305 =
+      ICC PIN-enc RSA, 8401-8405 = contactless ICC RSA, 9000/9001 = 3B KCVs (after
+      8000); encryption = 3DES-ECB NO padding under SKUDEK; and SKUDEK = 3DES-CBC[0181||
+      seq||00*12] with KDEK = the STANDARD SCP02 session DEK = scp02::session_key(KDEK,
+      0x0181, seq), which build_key_dgi/dek_encrypt already implement. So the live 6A80
+      on the 9 key DGIs was NOT the crypto/DEK — the applet needs a FULL required DGI
+      catalog loaded first: D002 (card internal data), D003 (security limits), D004 (AID
+      proprietary), D005 (Profile Selection Table), D007 (PDOL len), D010-D01F (Profile
+      Resource Object), D021-D02A (PDE), 9102/9103, THEN keys. Our inferred stream
+      skipped these. NEXT: rebuild the perso stream per the PURE manual DGI catalog +
+      order (MC), and per VSDC2.9.2 manual (Visa). CAVEAT: manuals are GFCX17.0 but our
+      card/trace is GCX7_5 — the PURE D0xx DGI scheme here differs from the A0xx in the
+      GCX7_5 Operas trace; reconcile OS-version differences. This flips the last hard
+      gap from 'unknown proprietary format' to 'follow the spec's DGI list/order'.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.96
+    source: "session-2026-07-15"
+    tags: [perso-manuals, PURE, secret-loading-resolved, SKUDEK-is-session-dek, D005-profile-selection, four-applets, mc-visa-priority, GFCX17-vs-GCX7_5, dgi-catalog]
