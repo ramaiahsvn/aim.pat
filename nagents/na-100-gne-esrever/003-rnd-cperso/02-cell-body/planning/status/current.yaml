@@ -68,9 +68,15 @@ open_gates:
       key DGIs unblocked (8010 still needs the per-card ICC RSA key from the ODA path).
     owner: "rnd-cperso (R&D) — DONE"
   - id: "issuer-rsa-key"
-    what: "Real issuer RSA private key (HSM) for the real 9F46 ICC PK certs. perso::oda uses a self-generated test issuer key (runs end-to-end offline) but cannot reproduce the trace 9F46."
-    resolution: "Provide/route the issuer key as an HSM signing op behind the oda signer seam."
-    owner: "grc-kms / HSM"
+    what: "Real issuer RSA private key for the real 9F46 ICC PK certs. perso::oda uses a self-generated test issuer key (runs end-to-end offline) but cannot chain to the bureau's real 0404/CAPK."
+    resolution: >
+      NOT a grc-kms key — it is asymmetric issuer PKI held by the PERSO BUREAU (MENTA/Thales), who already
+      signed the trace's 9F46 (we hold the matching Issuer PK Cert as DGI 0404). Route to the bureau, not
+      grc-kms. Fork: (A) bureau signs 9F46 (we never hold the key) vs (B) bureau provisions the key HSM->HSM
+      encrypted into our HSM. UAT SHORTCUT buildable now: self-generated test issuer key + Mastercard TEST
+      CAPK + regenerate 0404. Full process + bureau checklist: 07-axon-terminals/deliverables/
+      2026-07-15-issuer-rsa-key-process.md (task-004.1).
+    owner: "perso bureau (MENTA/Thales) + user (topology decision)"
   - id: "bprpcsc-macos-transmit"
     what: "BprPcSc live SELECT hits 'SCardTransmit: Protocol mismatch' on macOS/ACR39U (ATR reads fine). Backend picks SCARD_PCI_T0/T1 from the stored active protocol."
     resolution: "Fix in BprPcSc backend_pcsclite, or run the live perso on a Windows/Linux POS where that path is exercised."

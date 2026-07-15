@@ -30,14 +30,29 @@ pki:
 # ---- TODO LIST ----
 subtasks:
   - id: "task-004.1"
-    subject: "Amend grc-kms key request — add the RSA/certificate material"
-    owner: "rnd-cperso (coordinate) -> na-003/007 grc-kms"
+    subject: "Obtain the Issuer RSA key path — route to the PERSO BUREAU (not grc-kms)"
+    owner: "rnd-cperso (coordinate) -> perso bureau (MENTA/Thales); grc-kms only for the symmetric keys"
     detail: >
-      Add to the bureau ask (labels/cert data only, never private-key values):
-      (a) Issuer RSA private key — LABEL; (b) Issuer PK Certificate (tag 90 data) already returned by
-      the MC CA, + tag 92 remainder + 9F32 exponent; (c) CA Public Key Index (tag 8F) to target.
-      Call out the SANDBOX option: use Mastercard PUBLISHED TEST CAPKs (no real CA registration needed
-      for bring-up). Update handoff-na005-008-perso-engine-bureau-keys.md.
+      CLARIFIED 2026-07-15 (see 07-axon-terminals/deliverables/2026-07-15-issuer-rsa-key-process.md).
+      The issuer RSA key is ASYMMETRIC issuer PKI — NOT a grc-kms symmetric bureau key (that's why it's not
+      alongside the ISD/IMK). The perso bureau (MENTA/Thales) ALREADY HOLDS the issuer private key in their HSM
+      — the decoded trace wrote real 9F46 certs signed by it, and we already captured its Issuer PK Certificate
+      as config DGI 0404 (tag 90). The private key is never exported in clear.
+      DECISION FORK (business/user):
+        Option A — perso stays at the bureau: they sign 9F46; we never hold the private key. Simplest.
+        Option B — perso in OUR HSM: bureau transfers the issuer key HSM->HSM encrypted (KEK/ZMK or key
+          ceremony). Arrange with the BUREAU, not the bank.
+      ASK THE BUREAU (MENTA/Thales): (1) bureau-side signing vs provision into our HSM? (2) issuer key metadata
+      (non-secret): CA PK index (8F, saw EF), issuer key index, modulus length, exponent (9F32=03), KCV/label,
+      expiry, Issuer PK Cert (tag 90 = our DGI 0404); (3) for UAT: which TEST issuer key + TEST CAPK, and will
+      they load the test issuer key into our HSM.
+      The ISSUER (bank) is only in the one-time MC CA registration (public key -> Mastercard), almost certainly
+      already done for this BIN; we do NOT get the key value from them.
+      UAT SHORTCUT (buildable NOW, no external dep): use a self-generated test issuer key (perso::oda already
+      does this + signs 9F46 e2e) + a Mastercard TEST CAPK, and REGENERATE DGI 0404 (re-certify the test issuer
+      public key under the test CA) so the card chains self-consistently. Only a card that must chain to the
+      REAL 0404 needs the real issuer key from the bureau.
+      Update handoff-na005-008-perso-engine-bureau-keys.md: MOVE the issuer-RSA ask from grc-kms to the bureau.
     status: pending
     priority: high
 
