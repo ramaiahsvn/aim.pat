@@ -301,3 +301,34 @@ Why the earlier offline probe failed: it used the stale scp02_test kResp1 vector
 879A95BF…) which is from a DIFFERENT earlier session/card, not the ISD-KVN01(C277BA) key. NET: the SCP02
 session + real DEK are now fully derivable in-engine — real 8000 (UDKs) and 8010 (ICC priv) key DGIs are
 unblocked (they still need the per-card ICC RSA key from the ODA path / real issuer key).
+
+### 2026-07-15 — record-first ordering + manual-confirmed key crypto (live re-test)
+Two live `perso-live --commit` runs on the Gemalto MC card, after the CRT method-2 padding fix:
+- **Before record-first:** 8 DGIs 6A80 (`8010 8204 8205 A006 A016 8000 9000 8001`). CRT padding fix already
+  turned 8201/8202/8203 green (was 9 rejects → 8).
+- **After record-first reorder** (stable-partition: 0xxx records/certs → A0xx/B0xx/9xxx config → 8xxx/A0xx keys
+  last, in `perso-live/main.cpp`): **7 rejects** (`9010 8204 8205 A006 A016 8000 8001`). **DGI 8010
+  (Reference PIN, DEK-encrypted) flipped to ACCEPTED** — proving ordering matters and some encrypted DGIs
+  need earlier records present. `9000` also flipped to accepted; `9010` now the one rejected (they trade places
+  with the key positions — consistent with per-arrival validation).
+
+**Manual (MChipAdvance GFCX17 ReferenceManual v1.2) CONFIRMS our key crypto is byte-correct:**
+- §6.27 (8000/8001 Keyset): "3DES ECB with **SKUDEK**, **no padding**"; the 3 keys (Kac‖Ksmi‖Ksmc, 48B) must
+  ALL be present or **6A80**. Engine matches (build_key_dgi, no pad, 3 keys).
+- §6.28 (A006/A016 IDN key): 3DES-ECB SKUDEK, no padding, single MKIDN. (Engine currently loads SMI as a
+  placeholder for MKIDN — value-wrong but not a 6A80 cause.)
+- §6.33 (8201-8205 ICC CRT): "add '80' then '00…' to a multiple of 8" = ISO 9797-1 **method 2**. Engine matches.
+- §6.32: keyset KCV = **5000 (contact) / 5103 (contactless)** = 3-leftmost-bytes of 3DES[00×8] with each
+  diversified key. **NOT** 9000. Correction to earlier note: **9000 = completion/checksum sentinel**;
+  **9010 = PIN Related Data (§6.21)**, not a KCV. Our trace-derived stream **omits 5000/5103 entirely** — the
+  §10 worked example loads them right AFTER 8000/8001 (so not a strict prereq, but they belong in the stream,
+  computed from our UDKs).
+
+**Residual 6A80 cluster (unexplained by the manual — our bytes match the documented format):**
+`8000 8001 A006 A016` (pure symmetric UDKs), `8204 8205` (RSA primes P/Q — but 8201/8202/8203 pass), `9010`
+(PIN Related Data — §6.21 says PTL=00 ⇒ 6A80; our value `03` may be mis-framed). DEK-wrapping is PROVEN
+correct (CRT 8201-8203 decrypt on-card). No static engine bug found. Working theory: **GCX7.5 card diverges
+from the GFCX17 manual on these key DGIs**, or an undocumented prereq/dependency (e.g. A004 for 8204/8205,
+5000/5103 for 8000/8001). Next non-destructive levers before more live runs: (a) emit computed 5000/5103 after
+the keysets; (b) verify the 8204/8205=Q/P tag mapping vs §6.33; (c) inject A004 before the CRT DGIs. Otherwise
+this is a bureau ask: confirm the exact GCX7.5 keyset/CRT DGI format or supply a reference perso script.
