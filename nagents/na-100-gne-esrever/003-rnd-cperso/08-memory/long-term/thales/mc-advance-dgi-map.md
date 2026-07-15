@@ -360,3 +360,39 @@ this needs a **factory-fresh / pre-perso'd card** or the **bureau's pre-perso sc
 (correct per §6.32/§6.33.1; will be accepted once the instance is pre-perso'd). This closes the 6A80 chase:
 the block is procedural (card lifecycle), not code. → bureau ask (already drafted): pre-perso procedure / a
 factory-state UAT card.
+
+### 2026-07-15 (cont.2) — FRESH CARD + raw trace decode: real cause is CRT key-load, not card state
+Got a second factory-fresh card. Read-only card-analyze: pristine (NO A0000000041010 instance yet; factory
+ships package A0000000180F000001833032 + selectable pre-perso instance ...8304 + EMV lib server + CPS helper).
+ISD-KVN01 authenticates. Ran full `perso-live --commit` (INSTALL + STORE DATA) — **identical 6A80 pattern to
+the old card**, disproving the "lost factory pre-perso" theory. The gate is in HOW we perso, not card state.
+
+**Decoded the RAW perso trace `Resources/Spi4MLB2.trace.txt` (the actual working perso, SW=9000):**
+- Flow + INSTALL are **byte-identical to ours**: `80E40000094F07A0000000041010` DELETE, then
+  `80E60C002C 0C A0000000180F000001833032 0B A0000000180F0000018303 07 A0000000041010 01 12 07 C905011100010500`
+  INSTALL (same C9!), SELECT A0000000041010, applet INIT UPDATE, EXT AUTH P1=00, STORE DATA.
+- Key tail (P2 / DGI / P1): `1D 8010 60` · `1E 9010 00` · `1F-23 8201-8205 60` (each **96B enc** ⇒ 88B
+  component ⇒ **1408-bit ICC key**) · `24 A006 60` · `25 A016 60` · `26 8000 60`(48B) · `27 9000 00`(09B KCV)
+  · `28 8001 60`(48B) · `29 9103 80`(09B KCV, LAST). Trace keys are all-identical (KCV 69B317×3).
+- ⇒ **9000/9103 are the keyset KCV DGIs (NOT 5000/5103, NOT a sentinel)**; the card validates the loaded
+  keyset against them. KCV = 3-leftmost of 3DES[00×8] per key. Engine now computes 9000/9103 from OUR UDKs.
+
+**Fixes applied (perso-live + sequencer):** reverted the record-first reorder → EXACT trace order; dropped
+5000/5103 (wrong DGIs for this card); emit computed 9000/9103; added 9103 (OPT) + A004 slots; PIN/ICC-size
+experiments. **Wins (live-confirmed):** A006/A016 (symmetric single-key DEK loading) LOAD; 9000/9103 computed
+KCVs are ACCEPTED; 9010/8201/certs/records/config/A004 all load.
+
+**★ Isolated the real blocker = ICC CRT key loading (8201-8205):**
+- **8201 (qInv) always loads; 8202-8205 return 6A80.** Size-dependent: at **512-bit 8201/8202/8203 load**
+  (only 8204/8205 fail); at **1024/1408-bit only 8201 loads**. Bigger ICC key ⇒ earlier CRT failure ⇒ points
+  to a per-component length / on-card key-load buffer limit, NOT format (our §6.33.2 mapping+method-2 padding
+  are byte-correct; A004 pinning the size did NOT help).
+- Whichever CRT DGI fails then **POISONS a variable set of following key DGIs** (8000/8001, and run-to-run the
+  KCVs/A016 flip pass↔fail). This poisoning — not an independent 8000 bug — is why the keysets fail: A006/A016
+  (16B single keys) squeak through post-CRT, but 8000/8001 (48B) don't.
+- 8010 (Reference PIN): empty → 6A80 at this position; a valid 8-byte PIN block also 6A80 (entangled w/ poison).
+
+**Open question for bureau / next tooling** (sharp, specific): our ICC CRT DGIs 8201-8205 match §6.33.2
+(8201=Q⁻¹modP … 8205=P, ISO 9797-1 method-2 pad, equal-length components) and the trace's 96-byte geometry,
+yet **8201 is accepted while 8202-8205 return 6A80** (worse at larger key sizes). What is the exact CRT
+element encoding / key-creation prerequisite / inter-DGI timing for on-card ICC RSA key loading on GCX7.5?
