@@ -199,6 +199,24 @@ keyset 6A80 (see below); reconcile the 0E01 E5-vs-70 anomaly (GCX7_5 vs GFCX17.0
 "M/Chip Advance profile examples" (Dual Interface, p.107) has a COMPLETE worked perso stream + §10.3 example
 3DES/RSA keys — use it as a byte-level reference for the rebuild.
 
+### ✅ KEY-LOADING CRYPTO FULLY CONFIRMED BY §9 (2026-07-15) — engine is correct end-to-end
+- §9.2.3 Key & PIN Encryption: 3DES-ECB under SKUDEK; pad 80‖00 to a multiple of 8 ONLY if not already a
+  multiple of 8 (else no padding). => 8000 (3×16=48B, multiple of 8) = NO padding (our dek_encrypt); RSA CRT
+  elements = method-2 padding (our fixed build_icc_privkey_dgis). MATCHES the engine exactly.
+- §9.1.1 Derived keys: KENC/KMAC/KDEK are the ISD keys diversified from KMC (VISA1 = Last2AID‖CSN‖F00k‖…‖0F0k;
+  VISA2 = IIN‖CSN‖…), and "the applet DELEGATES authentication + secure messaging to the ISD." So SKUDEK uses
+  the SAME keys as the channel — since our EXT AUTH works (SKUENC right), SKUDEK (keyId 3) is right too.
+- CONCLUSION: the whole key-loading path (SKUENC/SKUMAC/SKUDEK, 3DES-ECB, symmetric no-pad, RSA method-2 pad,
+  3-key 8000) is spec-correct in the engine. The live 8000 6A80 is a CONTEXT/ORDER issue, NOT crypto.
+- §10 WORKED EXAMPLE (Dual Interface) DGI ORDER differs from our trace: FCI (9102/5101) -> GPO (A005/B005) ->
+  SFI RECORDS FIRST (0101-0105, 0201-0204, 0301) -> A0xx config (A002/A012/.../A007) -> A017/A027 -> KEYS
+  (8000/8001/A006/A016/8401). Example clear key: 8000 Kac = 9E2A6E98E5BC8997E54968AB0BF41638. §10.3.1 has the
+  example 3DES keys for our AID A0000000041010. Note: VISA1 is the Thales "default" mode — verify our card
+  uses VISA2 (gp.jar-proven) vs VISA1 if a live re-test still 6A80s.
+- NEXT (live re-test on corrected stream): try the §10 record-first order + the CRT method-2 padding + the
+  last-block marker; if 8000 still 6A80, byte-diff our 8000 against §10.3.1's example (encrypt the example
+  clear key under the derived SKUDEK) to isolate.
+
 ### 8000 6A80 — root cause per §6.27
 DGI 8000/8001 = Diversified AC(16)‖SMI(16)‖SMC(16); 3DES-ECB no-pad under SKUDEK (=SCP02 session DEK, engine
 correct). **"Note: the 3 keys MUST be loaded otherwise the STORE DATA is rejected with 6A80h."** Our engine

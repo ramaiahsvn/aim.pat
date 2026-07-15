@@ -503,3 +503,35 @@ pruning:
     confidence: 0.96
     source: "session-2026-07-15"
     tags: [perso-manuals, PURE, secret-loading-resolved, SKUDEK-is-session-dek, D005-profile-selection, four-applets, mc-visa-priority, GFCX17-vs-GCX7_5, dgi-catalog]
+
+  - id: mem-022
+    type: project_context
+    content: >-
+      2026-07-15 — MC stream rebuild from the GFCX17.0 M/Chip Advance manual: 3
+      engine increments landed + KEY-LOADING CRYPTO FULLY CONFIRMED. Increments
+      (bpr.cpp): (1) 13cc30d last-block marker (§5.2: last STORE DATA sets P1.b8=1);
+      (2) 452d5ae ICC CRT key padding FIX — real bug: was left-zero-pad, spec §6.33.2
+      requires ISO 9797-1 method-2 (append 80 then 00 to /8) then 3DES-ECB (this was
+      the 8203-8205 6A80 cause; matches trace 88B comp+80+00*7=96B); (3) 1120a72
+      A004 Public Key Length builder (§6.33.1 prerequisite, conditional for 16*n+8-bit
+      moduli, injectable not forced). Suite 94/94. CRYPTO CONFIRMED by manual §9:
+      §9.2.3 = keys 3DES-ECB under SKUDEK, pad 80||00 to /8 only if not already /8
+      (so 8000 48B = no pad; RSA CRT = method-2) — MATCHES engine. §9.1.1 = KENC/KMAC/
+      KDEK are the ISD keys diversified from KMC (VISA1=Last2AID||CSN, VISA2=IIN||CSN,
+      markers F00k/0F0k), applet DELEGATES auth+SM to ISD => SKUDEK = same keys as the
+      channel; our EXT AUTH works so SKUDEK is right. So the whole key-loading path is
+      spec-correct in the engine; the live 8000 6A80 is CONTEXT/ORDER, not crypto.
+      §6.38: SFI records = template-70 (our 0201/0301/0302 correct); trace 0E01 uses E5
+      (GCX7_5 anomaly). §10 WORKED EXAMPLE order differs from our trace: FCI->GPO->
+      SFI records FIRST (0101-0105,0201-0204,0301)->A0xx config->A017/A027->keys; has
+      example clear keys (8000 Kac=9E2A6E98E5BC8997E54968AB0BF41638) + §10.3.1 3DES keys
+      for our AID A0000000041010. NEXT: live re-test with §10 record-first order + the
+      fixes; if 8000 still 6A80, byte-diff vs §10.3.1 example, and check VISA1 (Thales
+      default) vs VISA2. Manuals at Resources/Perso Manual and LoA/. Version: manual
+      GFCX17.0 vs card GCX7_5.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.96
+    source: "session-2026-07-15"
+    tags: [mc-rebuild, crypto-confirmed, skudek, crt-padding-fix, a004, worked-example, dgi-order, visa1-vs-visa2, 8000-6a80-is-context]
