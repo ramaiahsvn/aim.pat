@@ -396,3 +396,29 @@ KCVs are ACCEPTED; 9010/8201/certs/records/config/A004 all load.
 (8201=Q⁻¹modP … 8205=P, ISO 9797-1 method-2 pad, equal-length components) and the trace's 96-byte geometry,
 yet **8201 is accepted while 8202-8205 return 6A80** (worse at larger key sizes). What is the exact CRT
 element encoding / key-creation prerequisite / inter-DGI timing for on-card ICC RSA key loading on GCX7.5?
+
+## ✅✅ 2026-07-15 — SOLVED: full M/Chip Advance perso loaded live (ALL 41 DGIs → 9000)
+Personalized a factory-fresh Gemalto MC card end-to-end: **all 41 STORE DATA DGIs returned 9000** (CRT,
+both keysets, KCVs, PIN, ICC+issuer+CA certs, records, config) + card-level finalize 9000. THE FIX chain:
+
+1. **`--crt-only` isolation was the key experiment.** Sent ONLY A004+8201-8205 right after EXT AUTH →
+   8201-8204 loaded (8205=6981 only because it was the last-block-marker block). ⇒ **the CRT format is
+   correct; the full-stream 6A80s were DOWNSTREAM POISONING**, not a CRT bug.
+2. **Root cause = ordering.** Config/record DGIs sent BEFORE the RSA/keyset DGIs poison on-card key loading
+   (8202-8205 → 6700 "wrong length" / 6A80; keysets → 6A80). Sending the **KEY REGION FIRST** (right after
+   EXT AUTH), then config/records/certs, makes the ENTIRE key region load: A004, 8010 PIN, 8201-8205 CRT,
+   A006/A016, 8000/8001 keysets, 9000 KCV — all 9000. Implemented as a stable_partition in perso-live.
+3. **Last-block marker must NOT be used with keys-first.** The perso-complete marker (P1 b8=1) makes whichever
+   DGI lands last return 6985/6981 (seen on 8205, 9103, AD14). Keys-first moves the natural last block (9103)
+   off the end, so we **drop the marker entirely** (markLastBlock=false) and finalize via SET STATUS instead.
+4. **9010 (PIN Related Data) skipped** — genuinely order-conflicted (needs config-before AND CRT-not-yet-loaded,
+   which keys-first inverts): 6985 in front, 6A80 after config. Minor PIN-config byte; deferred.
+5. **Finalize = ISD-directed SET STATUS, not applet.** Applet SET STATUS → 6D00. Trace form (Spi4MLB2 lines
+   1288-1369): re-SELECT ISD → re-auth → **`80F0800700` then `80F0800F00`** (card lifecycle → SECURED), both
+   9000. (Our old `80F0400707+AID` was wrong.)
+6. Supporting: ICC key 1152-bit, regenerate until qInv/dq/dp full-length (clean size inference w/o A004);
+   computed 9000/9103 keyset KCVs from our UDKs; A004 moved to stream front.
+
+**Net:** the engine now produces a live-working M/Chip Advance personalization. Remaining polish (non-blocking):
+9010 PIN-Related-Data ordering, and folding the keys-first order + ISD finalize into the core sequencer/driver
+(currently orchestrated in perso-live). engine `bpr.cpp` commit; 94/94 unit tests pass.
