@@ -50,9 +50,16 @@ subtasks:
          macOS/ACR39U combo (ATR reads fine). BprPcSc backend_pcsclite.transmitRaw picks SCARD_PCI_T0/T1 from the
          stored active protocol; macOS negotiation stores a value that mismatches. Fix belongs in BprPcSc (a
          shared component — not modified here). Driver logic validated via mock + byte-exact trace KATs regardless."
-      - "REMAINING for a full live run: SCP02 auth crypto (host cryptogram) needs VISA2-diversified session keys
-         (open item), and DELETE/INSTALL[for install&make-selectable] APDU builders for the perso-entry (params
-         in mc-perso-script-blueprint.md, validated live earlier). Then run_store_data drives the assembled stream."
+      - "2026-07-15 — DELETE + INSTALL perso-entry builders DONE (bpr.cpp b64a014). driver::delete_apdu
+         (80 E4 00 00 | 4F LV(aid)) + install_make_selectable_apdu (80 E6 0C 00 | LV loadFile/module/instance/
+         priv/params/token). Byte-exact vs the ISpi4Mlb2 trace: DELETE A0000000041010; INSTALL instance under
+         the standard MC AID with pkg A0000000180F000001833032, module A0000000180F0000018303, priv 12, params
+         C9050111000105. 2 trace KATs + guards; suite 86/86 green."
+      - "REMAINING for a full LIVE run (external inputs only): (1) SCP02 host cryptogram needs VISA2-diversified
+         session keys (open item — gp.jar -vd capture); (2) BprPcSc macOS transmit protocol-PCI fix (or run on
+         Windows/Linux POS). Then the full sequence is: SELECT ISD -> INIT UPDATE -> EXT AUTH -> DELETE ->
+         INSTALL[0C] -> (applet SCP02) -> run_store_data(assemble_perso_stream(...)) -> SET STATUS. ALL engine-
+         side APDU builders + the ordered stream are now complete and byte-exact vs the trace."
 
   - id: "task-001.2"
     subject: "P5 — perso::Sequencer + audit (batch)"
