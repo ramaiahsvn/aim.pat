@@ -422,3 +422,25 @@ both keysets, KCVs, PIN, ICC+issuer+CA certs, records, config) + card-level fina
 **Net:** the engine now produces a live-working M/Chip Advance personalization. Remaining polish (non-blocking):
 9010 PIN-Related-Data ordering, and folding the keys-first order + ISD finalize into the core sequencer/driver
 (currently orchestrated in perso-live). engine `bpr.cpp` commit; 94/94 unit tests pass.
+
+## ✅✅✅ 2026-07-15 — FUNCTIONAL CARD: GPO + READ RECORD work; the "poison" is DGI AD14
+Bisected the CRT-loading poison (via `perso-live --trace-order --skip=<list>`, --secure gated OFF so the card
+stays iterable): config OK, certs OK, records OK, 8010 OK — **the single poison is `AD14`** (a 2-byte
+proprietary control DGI, config value `AD14`). When AD14 is sent BEFORE the ICC CRT DGIs, 8202-8205 return
+6700 ("wrong length") and everything after is poisoned. **Skip AD14 → the entire stream loads in TRACE ORDER**
+(no keys-first partition needed) — 39/41 DGIs 9000.
+- End-of-perso = a STANDALONE last STORE DATA `80E280<P2><len><9103>` (P1.b8=1) → applet SELECTABLE→PERSONALIZED.
+- **Live read-back on the personalized card:** GPO `80A8000002830000` → `770E8202 3900 9408 1801020120020400`
+  (AIP 3900 + AFL); READ RECORD SFI2/SFI3 return the full app records — **PAN 5A=5213720475428723**, cardholder
+  5F20="TARIQ/ZIAD", track2 57=5213720475428723D24112011198462200000F, CDOL1/2, IACs, service code 0201.
+- Default `perso-live --commit` now: trace order, skip {0E01, AD14, 8010, 9010}, standalone end-of-perso,
+  GPO/READ-RECORD self-probe. `--secure` (SET STATUS card→SECURED, then C-MAC-only) is OPT-IN because it makes
+  the card one-shot for the plain-SCP02 tool. `--keys-first` kept as legacy.
+
+**Remaining refinements (non-blocking; card is functional without them):**
+1. **AD14 placement** — it poisons the CRT before it; likely needs loading AFTER the keys, or it interacts with
+   our A004 (trace sends no A004). Deferred (skipped).
+2. **PIN pair 8010/9010** — 9010 PIN-Related-Data returns 6985 (conditions not satisfied) even in trace order;
+   loading 8010 without 9010 leaves an inconsistent PIN → end-of-perso 6985. Both skipped ⇒ no offline PIN.
+3. **card→SECURED** finalize needs SCP02 C-MAC afterward; two earlier UAT cards were left SECURED (recoverable
+   only with C-MAC secure messaging — a future engine feature).
