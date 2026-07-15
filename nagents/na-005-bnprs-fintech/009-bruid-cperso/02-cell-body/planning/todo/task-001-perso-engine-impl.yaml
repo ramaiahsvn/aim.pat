@@ -71,11 +71,22 @@ subtasks:
            (0201/0301/0302/0401-0404) WITH M/Chip Advance proprietary DGIs (A002 CRM, A012/A022, B0xx, 9xxx, 0E01)
            carrying proprietary tags (DFxx/Cx/Dx from the ADDONS profile). Our 0201/0301/0401 builders ARE real
            trace DGIs (a valid subset) — NOT wrong. DGI 0101 is NOT written on this card (AID/FCI via A0xx config)."
-      - "REAL NEXT DELIVERABLE = the M/Chip Advance DGI content builders, two buckets: (1) PLAINTEXT DGIs
-         (A0xx/B0xx/9xxx/0E01/02xx-04xx) — pure logic, internal DFxx/Cx layout decoded from the trace + values
-         from the ADDONS profile, KAT vs trace bytes offline; (2) ENCRYPTED DGIs (8010/820x/8000/8001/A006/A016)
-         — DEK-wrapped, need IHsmClient (task-001.3) + SCP02 session (task-001.1); synthetic values only in tests.
-         Emitter framing (build_store_data_apdus) is already correct for all of them (DGI-agnostic)."
+      - "2026-07-15 — 3-CLASS DGI ARCHITECTURE decided (rnd-cperso mc-advance-dgi-map.md): (1) TLV record DGIs
+         (0201/0301/0302/0E01) build from tags; (2) config DGIs (A0xx/B0xx/9xxx) = batch-invariant product
+         constants → emit verbatim; (3) encrypted key DGIs (8010/820x/8000/A006/A016) → DEK-wrap via HSM.
+         Avoids hand-inferring 41 fixed-field builders (single-sample byte-alignment risk)."
+      - "2026-07-15 — TLV RECORD DGIs DONE, byte-exact (bpr.cpp 2ccc7a0). Replaced the idealized 0101/0201/0301/
+         0401 builders with the REAL M/Chip Advance records decoded from the trace: build_dgi_0201 (SFI2/contact),
+         0301 (SFI3/contactless), 0302 (name/DDOL/track2/service). Corrected config to real values (CDOL1 39B
+         incl 5F2A/9F4C/9F21/9F7C; IAC B450840000; contact vs contactless CVM/IAC differ) + exact trace tag
+         order. PersoRecord now separates per-card inputs from product config. 3 KATs reproduce the trace's
+         0201/0301/0302 DGIs byte-for-byte. Removed 0101 (not written on this card) + 0401 (RSA cert record ->
+         cert path). Suite 58/58 green. NOTE: test fixtures carry the trace card's test-range PAN/track2 +
+         EMV config lists (CDOL/CVM/IAC) — non-secret; key-value gate clean."
+      - "NEXT: (a) config-DGI verbatim product table (A0xx/B0xx/9xxx — classify invariant vs per-card: A001/9000
+         are per-card; CRM/risk params invariant); (b) RSA cert DGIs 0401/0403/0404/A001 (per-card, needs ICC
+         keypair + issuer PK cert = engine RSA, task-004); (c) encrypted key DGIs via IHsmClient+SCP02 (DEK-wrap);
+         (d) live driver SELECT->SCP02->INSTALL->STORE DATA->SET STATUS (task-001.1 card channel)."
 
   - id: "task-001.3"
     subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"
