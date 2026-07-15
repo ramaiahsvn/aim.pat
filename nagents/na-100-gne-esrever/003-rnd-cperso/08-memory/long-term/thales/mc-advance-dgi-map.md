@@ -86,4 +86,33 @@ Corrections to the first-pass reading:
      NEVER commit the real DEK ciphertext to tests — use synthetic values for framing KATs.
 
 Full A002 content (the anchor DGI) is captured verbatim in the trace at the `H01-SMC data = '...'` line
-(Spi4MLB2 line ~1048) — decode DF-tag by DF-tag when implementing build_dgi_a002.
+(Spi4MLB2 line ~1048).
+
+## CRITICAL structural insight — A0xx DGIs are FIXED POSITIONAL, not TLV
+
+The generic record DGIs (0201/0301/0401…) are template-70 BER-TLV — self-describing, easy to build.
+The M/Chip Advance **A0xx/B0xx DGIs are fixed positional binary structures**, NOT TLV. Example — A002
+(DGI len 0x6F = 111 bytes), verbatim from the trace:
+
+```
+0368 0368000100 0368000100 0368000100 0368000100 0368000100 000000000000000000000000
+0999 0999000100 0999000100 0999000100 0999000100 0999000100 000000000000000000000000
+00000000 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF 42 0000000003680000000109990000
+```
+Recognizable profile fields appear concatenated by OFFSET (currency 0368, accumulator conversion tables
+0999000100…, CDOL1-related-data-length 42 = profile tag C7, FF… limit masks) — but there are NO tag
+bytes delimiting them. To build A002 byte-exact you need the **M/Chip Advance CPS field-layout spec**
+(field order + widths for the A002 CRM template), which is proprietary and NOT derivable from a single
+trace sample with confidence.
+
+Implication for the port: the plaintext A0xx/B0xx builders cannot be safely inferred from the trace alone.
+Authoritative options, in order of preference:
+  1. The **M/Chip Advance CPS / Card Personalization spec** (Mastercard) — defines each A0xx template layout.
+  2. The **Thales DPM / Profile-Converter template files** that turn the ADDONS profile into DGIs — these
+     encode the exact ADDONS-tag → A0xx-DGI offset mapping. (The profile is `Addon_PersoTool` output; the
+     converter templates are the missing link.)
+  3. Failing 1/2: byte-align each A0xx DGI against the trace field-by-field using the ADDONS values as
+     anchors — slow, per-DGI, and must be KAT-verified against the trace; residual risk on padding/reserved
+     fields. Do this only if the specs are unavailable.
+
+The generic record DGIs (02xx/03xx/04xx) and the framing emitter are unaffected — those are ready to build.
