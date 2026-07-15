@@ -128,11 +128,11 @@ subtasks:
          with NO C-MAC — so the CLA-80/no-MAC sequencer output IS the wire; key DGIs protected by DEK-wrap only.
          Tests: DEK ECB KAT + round-trip + guards, session bundle, and an end-to-end assembler test (DEK-wrap a
          key -> 8010 DGI -> lands P1=60 at its P2 slot). Suite 70/70 green. Synthetic keys only."
-      - "OPEN (rnd-cperso, mc-advance-dgi-map.md): VISA2 static-key diversification not yet reproduced offline —
-         GPPro visa2/emv KDD layouts didn't match the trace card cryptogram from ISD-KVN01. Need a gp.jar
-         --key-kdf visa2 -vd capture for the exact UAT card to match the engine step by step. DEK-wrap +
-         session mechanics are ready; just feed them the verified diversified static keys. RealVector test stays
-         DISABLED pending this."
+      - "2026-07-15 — VISA2 DIVERSIFICATION RESOLVED (bpr.cpp 181a2ae). scp02::visa2_diversify (GPPro fillVisa:
+         kdd[0:2]||kdd[4:8]||F0/0F||keyId, 3DES-ECB under ISD master) + visa2_session_keys. VERIFIED LIVE: ran
+         gp.jar --key-kdf visa2 on the UAT card; engine reproduces that session's card cryptogram
+         4E69A8C28F08308D + host cryptogram F602F36D214BAEF5 byte-for-byte (keystore-gated test). SCP02 session +
+         real session DEK now fully derivable in-engine -> real 8000 (UDKs) + 8010 (ICC priv) key DGIs unblocked."
       - "2026-07-15 — RSA/ODA CERT PATH DONE (bpr.cpp 74b6bad + b63fdbd). (1) Issuer PK Cert DGI 0404 (tag 90,
          248B) is an issuer-invariant public constant -> verbatim config (26 config DGIs); only 0401/0403 are
          per-card. (2) New perso::oda module (OpenSSL RSA/BN/SHA-1): generate_rsa_keypair, raw rsa_public/private,

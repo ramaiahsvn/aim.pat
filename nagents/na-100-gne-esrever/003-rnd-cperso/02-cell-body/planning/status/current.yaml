@@ -57,13 +57,16 @@ active_tasks:
 # ---- Open R&D gates (engine complete; these are the only blockers to a LIVE central perso) ----
 open_gates:
   - id: "visa2-diversification"
+    status: RESOLVED   # 2026-07-15
     what: >
-      VISA2 static-key diversification not yet reproduced offline in the engine. GPPro visa2/emv KDD layouts
-      did NOT match the trace card cryptogram 879A95BF3A518BB7 from ISD-KVN01 (KCV C277BA, seq 0003). Blocks the
-      real SCP02 host cryptogram + real session DEK (=> real 8000/8010 encrypted key DGIs). Engine session +
-      DEK-wrap mechanics are ready to consume the diversified static keys once verified.
-    resolution: "Capture gp.jar --key-kdf visa2 -vd on the UAT card (dumps derived static+session keys+host cryptogram); match the engine step by step. scp02_test.Scp02RealVector stays DISABLED until then."
-    owner: "rnd-cperso (R&D) + user (run gp.jar on the card)"
+      VISA2 static-key diversification — RESOLVED. Ran gp.jar --key-kdf visa2 -d --list on the live UAT card
+      (ACR39U): EXT AUTH -> 9000, channel opened. The engine (scp02::visa2_diversify + visa2_session_keys,
+      bpr.cpp 181a2ae) reproduces that session's card cryptogram 4E69A8C28F08308D AND host cryptogram
+      F602F36D214BAEF5 byte-for-byte (keystore-gated test). KDF = GPPro fillVisa layout (kdd[0:2]||kdd[4:8]||
+      F0/0F||keyId). The earlier offline miss used a stale kResp1 vector from a different session/card. The
+      SCP02 session + real session DEK are now fully derivable in-engine — real 8000 (UDKs) + 8010 (ICC priv)
+      key DGIs unblocked (8010 still needs the per-card ICC RSA key from the ODA path).
+    owner: "rnd-cperso (R&D) — DONE"
   - id: "issuer-rsa-key"
     what: "Real issuer RSA private key (HSM) for the real 9F46 ICC PK certs. perso::oda uses a self-generated test issuer key (runs end-to-end offline) but cannot reproduce the trace 9F46."
     resolution: "Provide/route the issuer key as an HSM signing op behind the oda signer seam."

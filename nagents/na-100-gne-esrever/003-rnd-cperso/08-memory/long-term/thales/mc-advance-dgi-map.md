@@ -174,14 +174,15 @@ EXT AUTH (84 82 00 00 10 <8-byte host cryptogram><8-byte C-MAC>) → DELETE/INST
   under the SESSION DEK (3DES-ECB), independent of the channel security level. Implemented: bpr.cpp
   `scp02::dek_encrypt` (511d2ba). The session DEK = `session_key(staticDEK, kDerivDek=0x0181, seqCounter)`.
 
-### OPEN: VISA2 static-key diversification not yet reproduced offline in the engine
+### ✅ RESOLVED (2026-07-15): VISA2 static-key diversification verified live
 The card's SCP02 static keys are the ISD master (KVN01, KCV C277BA) **VISA2-diversified** with the 10-byte
-INIT UPDATE key-div-data (e.g. `00002060BB8D509C2020`). `gp.jar --key-kdf visa2` proved this externally.
-Attempted to reproduce the trace card cryptogram (`879A95BF3A518BB7`, seq=0003) offline from the UAT keystore
-ISD-KVN01 using the GPPro VISA2 **and** EMV KDD layouts (kdd[0:2]‖kdd[4:8]‖F0/0F‖… and kdd[4:10]‖F0/0F‖…,
-key ids 1/2/3) → NONE matched. So either (a) the engine's card_cryptogram/session formula needs verifying
-against a gp.jar-computed vector, or (b) that recorded session (scp02_test kResp1) is not from the
-ISD-KVN01(C277BA) key/card. RESOLUTION PATH: capture a gp.jar `--key-kdf visa2 -vd` run (its debug prints the
-derived static keys + session keys + host cryptogram) for the exact UAT card, and match the engine step by
-step. Until then the DEK-wrap + session-key mechanics are ready — just feed them the verified diversified
-static keys. (scp02_test.Scp02RealVector stays DISABLED pending this.)
+INIT UPDATE key-div-data. The KDF is the **GPPro fillVisa layout**: D = kdd[0:2]‖kdd[4:8]‖F0‖keyId‖
+kdd[0:2]‖kdd[4:8]‖0F‖keyId, then card key = 3DES-ECB(master, D); keyId 1/2/3 = ENC/MAC/DEK; session keys
+via the standard SCP02 derivation. VERIFIED by running `gp.jar --key-kdf visa2 -d --list` on the live UAT
+Gemalto card (ACR39U): EXT AUTH -> 9000, channel opened. The engine (`scp02::visa2_diversify` +
+`visa2_session_keys`, bpr.cpp 181a2ae) reproduces that live session's **card cryptogram 4E69A8C28F08308D**
+AND **host cryptogram F602F36D214BAEF5** byte-for-byte (keystore-gated test Scp02Visa2.ReproducesLiveGpJarSession).
+Why the earlier offline probe failed: it used the stale scp02_test kResp1 vector (seq 0003, cryptogram
+879A95BF…) which is from a DIFFERENT earlier session/card, not the ISD-KVN01(C277BA) key. NET: the SCP02
+session + real DEK are now fully derivable in-engine — real 8000 (UDKs) and 8010 (ICC priv) key DGIs are
+unblocked (they still need the per-card ICC RSA key from the ODA path / real issuer key).
