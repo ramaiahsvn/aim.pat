@@ -59,6 +59,24 @@ Mastercard TEST CA). Result: a fully self-consistent, terminal-verifiable UAT ca
 material touched. (For a card that must chain to the REAL 0404 we captured, we need the REAL issuer key -> the
 bureau, per above.)
 
+## ALSO ask the bureau: the secret-loading key-block format (added 2026-07-15)
+
+The first live perso (perso-live --commit) proved the whole framework works — auth, applet INSTALL, applet
+SCP02, and **31/41 DGIs accepted incl. the RSA certificates**. The **only functional gap left** is the 9
+encrypted key-loading DGIs (8000/8001, 8010 PIN, 8203-8205 ICC-key CRT, A006/A016 IDN, 9000 KCVs), all → 6A80.
+We DECODED the format from the trace (symmetric key DGI = 16-byte 3DES-ECB DEK-encrypted key, no KCV in the
+DGI — matches our engine) and RULED OUT the DEK choice live (both session + static DEK → 6A80). The applet
+loads keys via the Thales KMS `stdCPSEmvGeGKOSConfForSecretLoading` (a black box). So ask the bureau for:
+- The **M/Chip Advance CPS "confidential DGI" / GeneralOS secret-loading spec** — the exact key-block format
+  the applet expects (DEK derivation for secret loading, any per-block header, and whether an "initialize
+  secret loading" command precedes the encrypted DGIs).
+- The **PIN/KEY encryption KEK** setup (trace: `G0E01.TEST.PINENC.KEK.01`, `…KEYENC.KEK.01`) if key loading is
+  done our side.
+- Also the **SFI-14 (0E01) record definition** for the profile "Mastercard_DI_GFCX9_MChipAdvance Without
+  IDS & SDS & CVC3".
+This is the SAME conversation as the issuer-RSA-key ask (Option A: the bureau does key loading + 9F46 signing;
+Option B: they give us the formats/keys to do it in our HSM).
+
 ## Decision needed (from the user / business)
 
 - Central perso topology: **bureau signs (Option A)** vs **our HSM signs (Option B)**? This is the fork that

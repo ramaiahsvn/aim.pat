@@ -48,6 +48,16 @@ subtasks:
       they load the test issuer key into our HSM.
       The ISSUER (bank) is only in the one-time MC CA registration (public key -> Mastercard), almost certainly
       already done for this BIN; we do NOT get the key value from them.
+      ALSO ASK THE BUREAU (added 2026-07-15 after the first live perso): the SECRET-LOADING KEY-BLOCK FORMAT.
+      The live run accepted 31/41 DGIs incl. the RSA certs; the 9 encrypted key DGIs (8000/8001/8010/8203-8205/
+      A006/A016/9000) all return 6A80. We decoded the DGI format (16-byte 3DES-ECB DEK-enc key, no KCV — matches
+      our engine) and RULED OUT the DEK choice live (session + static both 6A80). The applet loads keys via the
+      Thales KMS stdCPSEmvGeGKOSConfForSecretLoading (black box). Need: the M/Chip Advance CPS confidential-DGI /
+      GeneralOS secret-loading spec (exact DEK derivation for secret loading + any per-block header + whether an
+      'initialize secret loading' precedes the encrypted DGIs); the PIN/KEY encryption KEKs (G0E01.TEST.PINENC/
+      KEYENC.KEK.01) if we load keys our side; and the SFI-14 (0E01) record definition for profile
+      Mastercard_DI_GFCX9_MChipAdvance. Full decode: 07-axon-terminals/deliverables/2026-07-15-issuer-rsa-key-
+      process.md + mc-advance-dgi-map.md.
       UAT SHORTCUT (buildable NOW, no external dep): use a self-generated test issuer key (perso::oda already
       does this + signs 9F46 e2e) + a Mastercard TEST CAPK, and REGENERATE DGI 0404 (re-certify the test issuer
       public key under the test CA) so the card chains self-consistently. Only a card that must chain to the

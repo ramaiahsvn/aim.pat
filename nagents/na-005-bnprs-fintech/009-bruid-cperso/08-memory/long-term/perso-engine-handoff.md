@@ -7,14 +7,15 @@ type: project
 > **Source:** rnd-cperso (na-100/003) — perso R&D/planning agent (research of record). bruid-cperso
 > OWNS production implementation of the CENTRAL execution engine. Delivered 2026-07-04.
 >
-> **✅ STATUS 2026-07-15 — ENGINE COMPLETE; PRODUCES REAL VALUES FOR EVERY DGI EXCEPT 9F46** (bpr.cpp
-> `persoengine`, 91 tests green). Full 41-DGI M/Chip Advance stream (plaintext byte-exact) + full APDU
-> sequence (SELECT→INIT UPDATE→EXT AUTH→DELETE→INSTALL→STORE DATA→SET STATUS) + RSA/ODA cert builder +
-> live PC/SC driver, PLUS the real crypto: VISA2 session keys (verified live vs gp.jar), DEK-wrap, all
-> symmetric key DGIs (8000/8001/A006/A016 from the real UAT IMKs) and the ICC RSA private key (8201-8205
-> CRT). See knowledge.yaml **mem-015 / mem-016 / mem-017** for the full commit trail + architecture.
-> Only **TWO EXTERNAL GATES** remain: (a) real issuer RSA private key (HSM) → real 9F46 ICC certs;
-> (b) BprPcSc macOS SCardTransmit fix (or run on a Windows/Linux POS).
+> **✅ STATUS 2026-07-15 — ENGINE PROVEN LIVE on the physical card** (bpr.cpp `persoengine`, 92 tests green).
+> perso-live --commit ran end-to-end on the UAT Gemalto M/Chip Advance card: VISA2 auth, perso-entry
+> (DELETE/INSTALL → instance created, 6999 gone), applet SCP02, and **31/41 STORE DATA DGIs accepted incl.
+> the RSA certificates**. Everything the engine builds itself is accepted by a real applet. See knowledge.yaml
+> **mem-015…mem-019** for the full trail. The BprPcSc macOS transmit fix is MERGED to bpr.cpp main.
+> **TWO remaining gaps — both vendor FORMAT/SPEC, same bureau conversation as the issuer key:**
+> (1) the 9 encrypted key-loading DGIs (secret-loading key block — format decoded, DEK ruled out live, needs
+> the GeneralOS `stdCPSEmvGeGKOSConfForSecretLoading` spec); (2) the SFI-14 (0E01) profile record. Both folded
+> into the bureau ask (rnd-cperso task-004.1 + `2026-07-15-issuer-rsa-key-process.md`).
 > Canonical DGI decode: rnd-cperso `…/thales/mc-advance-dgi-map.md`.
 >
 > **Canonical design** (in rnd-cperso memory `…/003-rnd-cperso/08-memory/long-term/thales/`):

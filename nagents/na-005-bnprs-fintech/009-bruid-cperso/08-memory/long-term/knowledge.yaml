@@ -401,3 +401,33 @@ pruning:
     confidence: 0.98
     source: "session-2026-07-15"
     tags: [live-perso, milestone, 6A80, secret-loading, key-block, GeGKOSConf, 0E01, sfi14, rsa-certs-accepted, format-gap]
+
+  - id: mem-019
+    type: project_context
+    content: >-
+      2026-07-15 — SESSION MILESTONE: cperso engine PROVEN LIVE on the physical
+      Gemalto M/Chip Advance card, and the last gap precisely characterized +
+      routed to the bureau. Extends mem-018. What works LIVE end-to-end (perso-live
+      --commit): VISA2 auth, perso-entry (DELETE/INSTALL -> instance created,
+      6999 gone), applet SCP02, and 31/41 STORE DATA DGIs accepted (all config/CRM,
+      FCI, records, and the RSA CERT DGIs 0401-0404). SECRET-LOADING KEY-BLOCK
+      DECODE (rnd-cperso mc-advance-dgi-map.md): the 9 encrypted key DGIs (6A80)
+      load via the Thales KMS stdCPSEmvGeGKOSConfForSecretLoading; keys start under
+      KEKs (PINENC/KEYENC.KEK.01) then re-cipher to the session key; the DGI content
+      MATCHES our engine (16-byte 3DES-ECB DEK-enc key, no KCV in DGI; the KMS's
+      extra 8B is a server-side KCV/MAC). RULED OUT LIVE: session DEK AND static
+      VISA2 DEK both 6A80 -> DEK choice is not the gap. REMAINING (needs the
+      GeneralOS spec): exact secret-loading DEK derivation / an init-secret-loading
+      step / a per-block header. Folded into the bureau ask (task-004.1 +
+      2026-07-15-issuer-rsa-key-process.md) alongside the issuer RSA key and the
+      SFI-14 (0E01) record def. ENGINE STATUS: everything the engine builds itself
+      is accepted by a real applet; the 2 remaining gaps (secret-loading key block,
+      SFI-14 record) are vendor-format/spec items, same bureau conversation as the
+      issuer key. perso-live: read-only preflight default, --commit destructive,
+      DGI skip-list + continue-on-error, locks only if all pass; card left UNLOCKED.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-15"
+    tags: [milestone, live-perso-proven, 31-of-41, secret-loading-decoded, dek-ruled-out, bureau-ask, GeneralOS-spec, session-conclusion]
