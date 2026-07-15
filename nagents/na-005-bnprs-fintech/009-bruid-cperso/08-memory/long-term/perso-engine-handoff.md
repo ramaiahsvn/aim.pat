@@ -7,6 +7,13 @@ type: project
 > **Source:** rnd-cperso (na-100/003) — perso R&D/planning agent (research of record). bruid-cperso
 > OWNS production implementation of the CENTRAL execution engine. Delivered 2026-07-04.
 >
+> **✅ STATUS 2026-07-15 — ENGINE FEATURE-COMPLETE** (bpr.cpp `persoengine`, 86 tests green). Full
+> 41-DGI M/Chip Advance perso stream assembles (plaintext byte-exact vs the Operas trace) + full APDU
+> sequence (SELECT→INIT UPDATE→EXT AUTH→DELETE→INSTALL→STORE DATA→SET STATUS) + RSA/ODA cert builder +
+> DEK-wrap + live PC/SC driver. See knowledge.yaml **mem-015** for the commit trail, architecture, and the
+> 3 remaining EXTERNAL gates (VISA2 diversification capture, real issuer RSA key, BprPcSc macOS transmit).
+> Canonical DGI decode: rnd-cperso `…/thales/mc-advance-dgi-map.md`.
+>
 > **Canonical design** (in rnd-cperso memory `…/003-rnd-cperso/08-memory/long-term/thales/`):
 > `emv-engine-architecture.md`, `perso-resources-inventory.md`, `hsm-integration-analysis.md`,
 > `reverse-engineering.md`.

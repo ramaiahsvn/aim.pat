@@ -250,3 +250,60 @@ pruning:
     confidence: 0.95
     source: "session-2026-06-11"
     tags: [mces2, persocc, _mces2, bgl-gate, bypass, coding-standard, debug-logging, versions, draft]
+
+  - id: mem-015
+    type: project_context
+    content: >-
+      2026-07-15 — CPERSO ENGINE (central perso, C++) FEATURE-COMPLETE in
+      bpr.cpp/src/BprCardEmv/persoengine (NOT the MCES2/C# path). 86 unit tests
+      green. Target = physical Gemalto M/Chip Advance V2.4 card, QiCard MC
+      product. Ground truth throughout = the Operas THALES MDA trace
+      (Resources/Spi4MLB2.trace.txt wire + ISpi4Mlb2.trace.txt card-DLL) + the
+      Mastercard ADDONS profile (Card Profiles/MC/PFL_..._Addon_PersoTool_1_MCC.xml).
+      Full decode recorded in rnd-cperso 08-memory/long-term/thales/mc-advance-dgi-map.md.
+      BUILD (commit trail on github.com/ramaiahsvn/bpr.cpp main):
+      9373bc5 P5 clear-DGI builder; efe0bd6 STORE DATA emitter (CLA80/INS E2,
+      P2=seq, P1=00 plain / 0x60 DEK-enc); 2ccc7a0 byte-exact TLV record DGIs
+      0201/0301/0302; aae4817 verbatim config table; 74b6bad Issuer PK Cert 0404
+      config; 946a418 full-stream assembler (41 DGIs, P2 order); 511d2ba SCP02
+      session bundle + DEK-wrap (dek_encrypt=3DES-ECB under session DEK);
+      b63fdbd RSA/ODA ICC PK Cert builder (perso::oda, OpenSSL, EMV Book2 6.4);
+      9c23092 live PC/SC driver (perso::driver + BprPcScChannel over bpr.cpp
+      BprPcSc); b64a014 DELETE + INSTALL[for install&make-selectable] perso-entry.
+      ARCHITECTURE — the 41-DGI M/Chip Advance stream = 3 classes: (1) 26 config
+      DGIs A0xx/B0xx/9xxx/0E01/0402/0404/AD14 = batch-invariant product constants
+      captured VERBATIM from the trace (mc_advance_product.cpp), byte-exact;
+      (2) 3 per-card TLV records 0201/0301/0302 built from tags, byte-exact;
+      (3) per-card RSA cert DGIs 0401/0403 (perso::oda) + 10 DEK-encrypted key
+      DGIs 8010/820x/8000/8001/A006/A016. assemble_perso_stream(record,
+      cert_key_data) interleaves all 41 at their exact P2 positions; unsupplied
+      cert/key slots become empty placeholders (inject by id). Full APDU sequence
+      (byte-exact vs trace, all in perso::driver): SELECT ISD -> INIT UPDATE ->
+      EXT AUTH (P1=0x00 sec level, so STORE DATA go CLA=80 no C-MAC) -> DELETE ->
+      INSTALL[0C] under MC AID A0000000041010 (pkg A0000000180F000001833032,
+      module A0000000180F0000018303, priv 12, params C9050111000105) ->
+      applet SCP02 -> run_store_data(assembled stream) -> SET STATUS. run_store_data
+      stops on first non-9000 (never continues a partial card; SW map 9315 KCV /
+      9580 sequence / 6A88 bad DGI). BprPcScChannel does 61xx/6Cxx; behind CMake
+      option PERSOENGINE_BUILD_PCSC; compiles+connects+reads ATR live on the ACS
+      ACR39U. THREE EXTERNAL GATES remain (NOT engine code): (a) VISA2 static-key
+      diversification not yet reproduced offline — GPPro visa2/emv KDD layouts did
+      NOT match the trace card cryptogram 879A95BF3A518BB7 from ISD-KVN01(C277BA);
+      need a gp.jar --key-kdf visa2 -vd capture on the UAT card to match the engine
+      step by step; blocks the real host cryptogram + real session DEK (real
+      8000/8010 key DGIs). scp02_test.Scp02RealVector stays DISABLED. (b) Real
+      issuer RSA private key (HSM) for the real 9F46 ICC certs — oda uses a
+      self-generated test issuer key so runs end-to-end offline but does not
+      reproduce the trace 9F46. (c) BprPcSc macOS transmit 'SCardTransmit:
+      Protocol mismatch' quirk (ATR reads fine; backend picks SCARD_PCI_T0/T1 from
+      the stored active protocol) — fix in BprPcSc or run on Windows/Linux POS.
+      GUARDRAILS honored: no key VALUES committed (verbatim config = public EMV
+      risk/FCI constants + test-range PAN/track2 only; keys stay in HSM / git-
+      ignored uat_keystore.txt); fail-closed key-value gate on every commit;
+      no Claude attribution; bpr.cpp pushes via ramaiahsvn token.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-15"
+    tags: [persoengine, cperso, bpr-cpp, mchip-advance, dgi, store-data, scp02, dek-wrap, oda, rsa, pcsc, driver, perso-entry, complete, visa2-gate, issuer-key-gate]
