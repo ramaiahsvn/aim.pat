@@ -43,8 +43,35 @@ active_tasks:
           (gp --connect), STORE DATA DGI A002->9000. CVK/PVK NOT DP keys; PIN in input. MC_EMV_Perso.spi = the
           port template. Full perso build handed to bruid-cperso (its task-001 + input 2026-07-14-uat-perso-
           handoff.md). Gemalto vendor query SUPERSEDED. mem-014/015.
-      Planner role now: review bruid-cperso's P5 Sequencer output when built; keep design authoritative.
-      Sole external dep left = MENTA DEK (instant channel, bruid-iperso, out-of-band).
+      (6) 2026-07-15: ENGINE FEATURE-COMPLETE — bruid-cperso delivered the full central perso engine
+          (bpr.cpp/src/BprCardEmv/persoengine, 86 tests green). Planner review DONE: the full 41-DGI M/Chip
+          Advance STORE DATA stream assembles (plaintext byte-exact vs the Operas trace), full APDU sequence
+          (SELECT->INIT UPDATE->EXT AUTH->DELETE->INSTALL[0C]->STORE DATA->SET STATUS) all byte-exact, RSA/ODA
+          ICC-cert builder (task-004) + DEK-wrap + live PC/SC driver (over bpr.cpp BprPcSc). Canonical DGI decode
+          authored this session: 08-memory/long-term/thales/mc-advance-dgi-map.md (3-class architecture: 26
+          verbatim config / 3 TLV records / RSA-cert + DEK-key). See bruid-cperso knowledge.yaml mem-015 for the
+          commit trail. task-003 delegation + task-004 ODA now satisfied in-engine.
+      Planner role now: 3 EXTERNAL R&D gates remain (below) — none are engine code. Keep design authoritative.
+      Remaining external deps: MENTA DEK (instant channel, bruid-iperso, out-of-band) + the 3 gates in open_gates.
+
+# ---- Open R&D gates (engine complete; these are the only blockers to a LIVE central perso) ----
+open_gates:
+  - id: "visa2-diversification"
+    what: >
+      VISA2 static-key diversification not yet reproduced offline in the engine. GPPro visa2/emv KDD layouts
+      did NOT match the trace card cryptogram 879A95BF3A518BB7 from ISD-KVN01 (KCV C277BA, seq 0003). Blocks the
+      real SCP02 host cryptogram + real session DEK (=> real 8000/8010 encrypted key DGIs). Engine session +
+      DEK-wrap mechanics are ready to consume the diversified static keys once verified.
+    resolution: "Capture gp.jar --key-kdf visa2 -vd on the UAT card (dumps derived static+session keys+host cryptogram); match the engine step by step. scp02_test.Scp02RealVector stays DISABLED until then."
+    owner: "rnd-cperso (R&D) + user (run gp.jar on the card)"
+  - id: "issuer-rsa-key"
+    what: "Real issuer RSA private key (HSM) for the real 9F46 ICC PK certs. perso::oda uses a self-generated test issuer key (runs end-to-end offline) but cannot reproduce the trace 9F46."
+    resolution: "Provide/route the issuer key as an HSM signing op behind the oda signer seam."
+    owner: "grc-kms / HSM"
+  - id: "bprpcsc-macos-transmit"
+    what: "BprPcSc live SELECT hits 'SCardTransmit: Protocol mismatch' on macOS/ACR39U (ATR reads fine). Backend picks SCARD_PCI_T0/T1 from the stored active protocol."
+    resolution: "Fix in BprPcSc backend_pcsclite, or run the live perso on a Windows/Linux POS where that path is exercised."
+    owner: "BprPcSc maintainer (shared component)"
 
 # ---- Coordination view: KEY DEPENDENCIES (two domains) ----
 key_dependencies:
@@ -64,7 +91,9 @@ key_dependencies:
          (SMC) via KMS TranslatePinBlock -> DGI 8201. PIN-TK is a KMS/data-side key, not a card-load key."
       - "ODA/RSA fully handled in-script via KMS (GenerateRSAKeyPair, GetIssuerPKCertificate,
          GenerateICCPKCertificate, GenerateSDAD) — DGI A001 (8F/90/92/9F32/93/9F46/9F47/9F48) + DGI 8010 ICC priv."
-    plus_oda: "ODA/RSA = task-004; script exists (MC_EMV_Perso.spi) — the RSA/cert flow is specified, not a gap."
+    plus_oda: "ODA/RSA = task-004 — DONE in-engine (perso::oda, bpr.cpp b63fdbd): ICC PK Cert builder per EMV
+       Book 2 6.4, verified end-to-end offline with a test issuer key. Real 9F46 needs the real issuer RSA key
+       (open_gates: issuer-rsa-key)."
   domain_B_data_exchange:
     source: "MENTA (perso bureau, upstream); exchanged OUT-OF-BAND; record LABEL only"
     channel: "INSTANT only (DPI path -> bruid-iperso)"
@@ -76,10 +105,12 @@ key_dependencies:
 
 queue:
   pending: 0
-  in_progress: 2      # task-002 cperso.thales; task-003 delegation/coordination
+  in_progress: 2      # task-002 cperso.thales; task-003 delegation/coordination (engine done; 3 external gates open)
   on_hold: 1          # task-001 BprDataPrep
-  completed: 0
+  completed: 1        # task-004 ODA/RSA — delivered in-engine (perso::oda)
   blocked: 0
+  # NOTE: cperso ENGINE is feature-complete (86 tests). Remaining blockers to a LIVE perso are the 3
+  #       external gates in open_gates (VISA2 capture, issuer RSA key, BprPcSc macOS transmit) — not engine code.
 
 resources:
   active_connectors: []

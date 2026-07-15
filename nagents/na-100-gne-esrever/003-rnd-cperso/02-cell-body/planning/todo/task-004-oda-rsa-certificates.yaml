@@ -9,7 +9,7 @@
 task:
   id: "task-004"
   subject: "EMV Offline Data Authentication — RSA key path + issuer/ICC certificates (SDA/DDA/CDA)"
-  status: in_progress          # planner tracking; implementation delegated (see owners)
+  status: in_progress          # 2026-07-15: ENGINE builder DONE (perso::oda, bpr.cpp b63fdbd); real 9F46 gated on the issuer RSA key (task-004.1)
   priority: high
   created_at: "2026-07-13"
   source: "gap found during live MC card perso attempt (task-003 context)"
@@ -49,7 +49,10 @@ subtasks:
       [tag 9F46], and issuer-cert verification helpers. Backend: dev/test RSA via bpr.cpp crypto (or
       OpenSSL RSA) behind the same seam; real HSM later. KAT against EMV Book 2 ODA test vectors +
       Mastercard test CAPK. Keys by LABEL only.
-    status: pending
+    status: done   # 2026-07-15: perso::oda (bpr.cpp b63fdbd, OpenSSL RSA/BN/SHA-1) — generate_rsa_keypair,
+                   # raw RSA, EMV Book 2 6.4 ICC PK cert (recovery message + SHA-1 + 9F48 remainder split).
+                   # Verified end-to-end offline (generate->sign->recover->verify hash) with a test issuer key.
+                   # Real 9F46 gated on the real issuer RSA private key (task-004.1 / open_gates: issuer-rsa-key).
     priority: high
 
   - id: "task-004.3"
@@ -60,7 +63,10 @@ subtasks:
       9F49 (DDOL), 9F4A (SDA tag list). Populate 'Length of ICC Public Key Modulus' + 'Length of ICC
       PIN Encipherment Public Key Modulus' from the profile. Wire into group_by_dgi so ODA data lands
       in the right DGI blocks.
-    status: pending
+    status: done   # 2026-07-15: real card DGI layout decoded — 8F+9F32 = config DGI 0402; 90 = config DGI 0404
+                   # (issuer PK cert, verbatim); per-card 9F46/9F47/9F48 = DGIs 0401/0403 via oda::build_icc_cert_dgi;
+                   # 9F49/9F4A live in the 0201/0302 TLV records. All wired into assemble_perso_stream at their trace
+                   # P2 slots. See mc-advance-dgi-map.md.
     priority: high
     depends_on: "task-004.2"
 
@@ -70,7 +76,9 @@ subtasks:
     detail: >
       STORE DATA blocks for the cert tags; securely load the ICC private key into the chip (or trigger
       on-card keygen so the private key never leaves). Sequence ODA after applet install, before lock.
-    status: pending
+    status: done   # 2026-07-15: assemble_perso_stream places 0401/0403 (ICC certs) + 8010 (DEK-wrapped ICC priv)
+                   # at their exact trace P2 slots (0x17/0x19/0x1D), after INSTALL and before SET STATUS. ICC priv
+                   # key DEK-wrapped via scp02::dek_encrypt. Real values gated on issuer key + VISA2 session DEK.
     priority: medium
     depends_on: "task-004.3"
 

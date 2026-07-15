@@ -56,13 +56,14 @@ relocation:
 
 # ---- Engine roadmap → agent ownership ---- #
 # (roadmap phases from 08-memory/long-term/thales/emv-engine-architecture.md §9)
+# 2026-07-15: ENGINE FEATURE-COMPLETE (bpr.cpp persoengine, 86 tests). See bruid-cperso knowledge.yaml mem-015.
 phase_ownership:
-  P1_tlv_profile:      { module: "emv::tlv + perso::profile", owner: "bruid-dprep (008)", status: "prototype done (relocating)" }
-  P2_embossing:        { module: "perso::embossing",          owner: "bruid-dprep (008)", status: "prototype done (relocating)" }
-  P3_hsm_crypto:       { module: "hsm::IHsmClient (UDK/KCV/PIN/CVV/SCP02 session keys)", owner: "bruid-dprep (008) — HSM PLANNER", status: "planned (not implemented)" }
-  P4_card_gp_scp02:    { module: "card::ICardChannel + gp::SecureChannel (SCP02)", owner: "bruid-cperso (009) online / bruid-iperso (010) script-gen", status: "planned" }
-  P5_sequencer_audit:  { module: "perso::Sequencer + audit", owner: "bruid-cperso (009) batch / bruid-iperso (010) kiosk-split", status: "planned" }
-  P6_calypso_realhsm:  { module: "Calypso key path + real-HSM adapter", owner: "bruid-cperso (009)", status: "planned" }
+  P1_tlv_profile:      { module: "emv::tlv + perso::profile", owner: "bruid-dprep (008)", status: "DONE (engine)" }
+  P2_embossing:        { module: "perso::embossing",          owner: "bruid-dprep (008)", status: "DONE (engine)" }
+  P3_hsm_crypto:       { module: "hsm::IHsmClient (UDK/KCV/PIN/CVV/SCP02 session keys + DEK-wrap)", owner: "bruid-dprep (008) — HSM PLANNER", status: "DONE (engine; real session keys gated on VISA2 capture)" }
+  P4_card_gp_scp02:    { module: "card::ICardChannel + gp::SecureChannel (SCP02)", owner: "bruid-cperso (009) online / bruid-iperso (010) script-gen", status: "DONE (engine; perso::driver + BprPcScChannel; live transmit gated on BprPcSc macOS fix)" }
+  P5_sequencer_audit:  { module: "perso::Sequencer + audit", owner: "bruid-cperso (009) batch / bruid-iperso (010) kiosk-split", status: "DONE (engine; full 41-DGI stream byte-exact vs trace)" }
+  P6_calypso_realhsm:  { module: "Calypso key path + real-HSM adapter", owner: "bruid-cperso (009)", status: "EMV/ODA done (perso::oda); Calypso + real-HSM adapter still open" }
 
 # ---- Subtasks ---- #
 subtasks:
