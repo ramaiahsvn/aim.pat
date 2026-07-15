@@ -156,6 +156,27 @@ class, much LOWER-risk) build strategy. This supersedes "hand-code 41 byte-exact
   Built by perso::oda (bpr.cpp b63fdbd) per EMV Book 2 §6.4 — structurally verified end-to-end offline with a
   test issuer key. Exact trace 9F46 needs the REAL issuer RSA private key (HSM), same gate as VISA2.
 
+## LIVE PERSO RESULTS (2026-07-15) — first end-to-end run on the physical card
+
+Ran perso-live --commit against the UAT Gemalto card. WORKS LIVE: VISA2 auth (ISD EXT AUTH -> 9000),
+perso-entry (DELETE + INSTALL[make selectable] -> instance created, SELECT -> 9000, no more 6999), applet
+SCP02 (applet EXT AUTH -> 9000), and **31 of the 41 STORE DATA DGIs accepted (9000)** — ALL config/CRM
+(A0xx/B0xx), FCI (A001/9101), the 3 records (0201/0301/0302), and CRUCIALLY the RSA cert DGIs
+(0401/0402/0403/0404). Two gaps remain, both FORMAT/SPEC (not engine framework):
+
+1. **Encrypted key-loading DGIs → 6A80** (9 DGIs: 8000/8001, 8010 PIN, 8203/8204/8205 ICC-key CRT,
+   A006/A016 IDN, 9000 key-KCVs). Root cause from the trace REM: these load via
+   **`stdCPSEmvGeGKOSConfForSecretLoading`** — "computes cryptogram(s) to load PIN, 3DES keys and RSA keys."
+   i.e. the applet expects a **secret-loading CRYPTOGRAM / key block**, NOT the plain `dek_encrypt(key)` the
+   engine emits. (8201/8202 happened to pass — likely coincidental length acceptance.) NEEDS: the M/Chip
+   Advance / Thales GeneralOS key-block format (key length ‖ DEK-enc key ‖ KCV/MAC, or a full put-key
+   cryptogram). This is the deepest perso step (secure key injection).
+2. **0E01 (SFI 14 Record 1) → 6A80** — a profile-specific data record ("Mastercard_DI_GFCX9_MChipAdvance
+   Without IDS & SDS & CVC3"). Our verbatim copy doesn't match the freshly-installed instance's expectation.
+
+Card left UNLOCKED (SET STATUS not reached). NET: the whole perso FRAMEWORK is proven live end-to-end; the
+remaining work is reproducing two Thales/M-Chip data formats (the secret-loading key block + the SFI-14 record).
+
 ## Engine status (2026-07-15): full 41-DGI stream assembles
 26 config verbatim + 3 TLV records (byte-exact) + 2 ICC cert DGIs (RSA, structurally verified) + 10 encrypted
 key DGIs (DEK-wrap ready). Remaining for a LIVE card perso are EXTERNAL inputs, not engine logic: (a) real

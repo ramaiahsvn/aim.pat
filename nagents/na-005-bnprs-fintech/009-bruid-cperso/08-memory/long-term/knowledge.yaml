@@ -368,3 +368,36 @@ pruning:
     confidence: 0.98
     source: "session-2026-07-15"
     tags: [milestone, encrypted-key-dgis, 8000, 8201-8205, icc-private-key, crt, dek-wrap, udk, visa2, two-gates-remain, issuer-rsa-key, bprpcsc, complete]
+
+  - id: mem-018
+    type: project_context
+    content: >-
+      2026-07-15 — FIRST LIVE PERSO on the physical UAT Gemalto M/Chip Advance
+      card (perso-live --commit, bpr.cpp). The whole FRAMEWORK works end-to-end
+      live: VISA2 auth (ISD EXT AUTH -> 9000; host cryptogram + C-MAC correct on a
+      fresh session), perso-entry (DELETE tolerant of 6A88; INSTALL[make
+      selectable] -> instance created; SELECT -> 9000, the old 6999 gone), applet
+      SCP02 (applet EXT AUTH -> 9000, same ISD key diversified for the applet's
+      kdd/seq). STORE DATA: 31 of 41 DGIs ACCEPTED (9000) — ALL config/CRM
+      (A0xx/B0xx), FCI (A001/9101), records (0201/0301/0302), and the RSA CERT
+      DGIs (0401/0402/0403/0404). TWO gaps remain, both FORMAT/SPEC (not framework):
+      (1) the 9 encrypted key-loading DGIs (8000/8001/8010-PIN/8203/8204/8205-ICC-
+      CRT/A006/A016/9000) return 6A80 — per the trace REM they load via
+      stdCPSEmvGeGKOSConfForSecretLoading ("computes cryptogram(s) to load PIN,
+      3DES keys and RSA keys"), i.e. the applet wants a SECRET-LOADING CRYPTOGRAM /
+      key block, NOT the plain scp02::dek_encrypt(key) the engine emits. Need the
+      M/Chip Advance / Thales GeneralOS key-block format (len ‖ DEK-enc key ‖
+      KCV/MAC or a put-key cryptogram). (2) 0E01 (SFI 14 Record 1) 6A80 — a
+      profile-specific data record (profile Mastercard_DI_GFCX9_MChipAdvance Without
+      IDS&SDS&CVC3). perso-live: read-only preflight by default, --commit is
+      destructive; has a DGI skip-list + continue-on-error diag; DELETE tolerates
+      6A88/6283; locks (SET STATUS 07) only if all DGIs pass. Card left UNLOCKED.
+      NEXT: reverse the secret-loading key-block format (biggest value — unblocks
+      all 9 key DGIs) + the SFI-14 record; both likely need the M/Chip Advance CPS
+      / GeneralOS spec or more trace decode. Full decode: rnd-cperso mc-advance-dgi-map.md.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-15"
+    tags: [live-perso, milestone, 6A80, secret-loading, key-block, GeGKOSConf, 0E01, sfi14, rsa-certs-accepted, format-gap]
