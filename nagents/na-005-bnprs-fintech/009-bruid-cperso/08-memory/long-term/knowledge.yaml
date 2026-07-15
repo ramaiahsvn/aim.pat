@@ -504,6 +504,29 @@ pruning:
     source: "session-2026-07-15"
     tags: [perso-manuals, PURE, secret-loading-resolved, SKUDEK-is-session-dek, D005-profile-selection, four-applets, mc-visa-priority, GFCX17-vs-GCX7_5, dgi-catalog]
 
+  - id: mem-024
+    type: project_context
+    content: >-
+      2026-07-15 — 🏆 100% FUNCTIONAL M/Chip card personalized end-to-end. Beyond mem-023
+      (all 41 DGIs load), the card is now fully operational: GPO returns AIP/AFL, AFL-driven
+      READ RECORD returns PAN 5213720475428723 / cardholder TARIQ/ZIAD / track2 / ICC+issuer
+      PK certs, and VERIFY PIN 1234 → 9000. Two final fixes (bpr.cpp 42564e5): (1) DGI AD14
+      (2-byte proprietary control) poisons the ICC CRT if sent BEFORE it — send it as the
+      END-OF-PERSO last STORE DATA (80E280<P2>02AD14, P1.b8=1): loads after the keys AND
+      transitions the applet SELECTABLE→PERSONALIZED (AD14 is the finalize control); (2) DGI
+      9010 PIN-Related-Data = PTC(1)‖PTL(1) = 2 bytes (§6.21), the config's 1-byte 90100103
+      → 6985; use 9010 02 0303 + DEK-wrapped 8010 PIN (241234FFFFFFFFFF). The CRT "poison"
+      root cause (mem earlier thought size/format) was AD14 ordering, found by bisect. Default
+      perso-live --commit now produces this card (trace order, skip 0E01+AD14, AD14 as end
+      marker, self-verifies GPO/READ/VERIFY). --secure opt-in does card→SECURED (mandatory for
+      issuance, then C-MAC-only). Engine complete for MasterCard; Visa next. 94/94 unit tests.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-15"
+    tags: [SOLVED, fully-functional-card, gpo-read-verify-pass, ad14-finalize-control, 9010-2byte-ptc-ptl, offline-pin-works, mchip-complete]
+
   - id: mem-023
     type: project_context
     content: >-
