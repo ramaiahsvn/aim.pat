@@ -91,11 +91,19 @@ subtasks:
          'raw' field to StoreDataBlock so verbatim/control blocks (e.g. AD14, a 2-byte no-length control DGI)
          bypass DGI encoding. src/mc_advance_product.cpp; KATs reproduce B010/B023/A202/AD14/9000/A002 APDUs
          byte-for-byte. Suite 61/61 green. Key-value gate clean (EMV config/FCI only)."
-      - "NEXT: (a) RSA cert DGIs 0401/0403/0404 (per-card RSA records: 9F46/9F47 ICC PK cert + 90/92/93 issuer
-         PK cert/SSAD — needs engine ICC keypair + issuer PK cert = RSA/ODA task-004); (b) encrypted key DGIs
-         8010/820x/8000/A006/A016 via IHsmClient+SCP02 DEK-wrap (task-001.1/.3); (c) FULL-STREAM ASSEMBLER —
-         interleave config + records + certs + keys at their exact P2 positions (map in mc-advance-dgi-map.md);
-         (d) live driver SELECT->SCP02->INSTALL->STORE DATA->SET STATUS (task-001.1 card channel)."
+      - "2026-07-15 — FULL-STREAM ASSEMBLER DONE (bpr.cpp 946a418). assemble_perso_stream(record, cert_key_data)
+         emits the canonical 41-DGI stream in the trace's exact P2 order, interleaving verbatim config +
+         per-card TLV records + RSA cert (0401/0403/0404) + DEK-encrypted key (8010/820x/8000/8001/A006/A016)
+         slots. Cert/key DGIs injected by id from the RSA/HSM paths; unsupplied → empty placeholder DGI (id +
+         P1 preserved) so ordering/P2 stay correct. Added DGI 0402 to config table (25 config DGIs). KATs: the
+         assembled stream reproduces every plaintext APDU byte-for-byte at its P2 slot; placeholders land in the
+         right cert/key slots with correct P1; supplied data splices correctly. Suite 65/65 green. NO keys.
+         >>> PLAINTEXT PERSO STREAM (27 of 41 DGIs) IS NOW COMPLETE & BYTE-EXACT vs the trace. <<<"
+      - "REMAINING to a physical-card perso (all need the RSA + HSM/SCP02 seam): (a) RSA cert DGIs 0401/0403/0404
+         — per-card RSA records (9F46/9F47 ICC PK cert + 90/92/93 issuer PK cert/SSAD) = engine ICC keypair +
+         issuer PK cert (RSA/ODA, task-004); (b) encrypted key DGIs via IHsmClient+SCP02 DEK-wrap (task-001.1/.3);
+         (c) live driver SELECT->SCP02->INSTALL->STORE DATA->SET STATUS (task-001.1 card channel). The assembler
+         already leaves correct slots for (a)/(b) — inject by id via cert_key_data."
 
   - id: "task-001.3"
     subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"
