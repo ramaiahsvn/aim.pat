@@ -133,6 +133,13 @@ subtasks:
          gp.jar --key-kdf visa2 on the UAT card; engine reproduces that session's card cryptogram
          4E69A8C28F08308D + host cryptogram F602F36D214BAEF5 byte-for-byte (keystore-gated test). SCP02 session +
          real session DEK now fully derivable in-engine -> real 8000 (UDKs) + 8010 (ICC priv) key DGIs unblocked."
+      - "2026-07-15 — REAL 8000 KEY DGI WIRED (bpr.cpp e9616a4). build_key_dgi(id, sessionDek, keyValues) DEK-wraps
+         + concatenates. DGI 8000 = 3 card UDKs AC||SMI||SMC (16B each DEK-enc, 48B, no KCVs — per trace layout).
+         Keystore-gated end-to-end test runs on REAL UAT keys: derive UDK-AC/SMI/SMC from the UAT IMKs (EMV Option
+         A) -> DEK-wrap under the LIVE VISA2 session DEK -> build 8000 -> round-trip (card DEK-decrypts back to
+         UDK-AC) -> lands in the assembler 8000 slot (P2=0x26/P1=60/Lc=0x33). Same build_key_dgi does A006/A016.
+         Suite 90/90. Only 8010 (ICC priv) still gated — needs the per-card ICC RSA key from the ODA path + real
+         issuer key. So of the encrypted key DGIs, 8000/8001/A006/A016 are now fully derivable in-engine."
       - "2026-07-15 — RSA/ODA CERT PATH DONE (bpr.cpp 74b6bad + b63fdbd). (1) Issuer PK Cert DGI 0404 (tag 90,
          248B) is an issuer-invariant public constant -> verbatim config (26 config DGIs); only 0401/0403 are
          per-card. (2) New perso::oda module (OpenSSL RSA/BN/SHA-1): generate_rsa_keypair, raw rsa_public/private,
