@@ -60,20 +60,23 @@ Corrections to the first-pass reading:
 | 1A | 0404 | 00 | FE | |
 | 1B | AD14 | 00 | (Lc=02, id-only) | control DGI, no data body |
 | 1C | 0E01 | 00 | D0 | |
-| 1D | 8010 | **60** | 08 | **encrypted** — ICC RSA private key (DEK-wrapped) |
+| 1D | 8010 | **60** | 08 | **encrypted** — **PIN** (8-byte block; NOT the ICC key — per trace REM "EMV DGI 8010 - PIN") |
 | 1E | 9010 | 00 | 01 | |
-| 1F | 8201 | **60** | 60 | **encrypted** — key/PIN block |
-| 20 | 8202 | **60** | 60 | **encrypted** |
-| 21 | 8203 | **60** | 60 | **encrypted** |
-| 22 | 8204 | **60** | 60 | **encrypted** |
-| 23 | 8205 | **60** | 60 | **encrypted** |
-| 24 | A006 | **60** | — | **encrypted** — keyed (contact) |
-| 25 | A016 | **60** | — | **encrypted** — keyed (contactless) |
-| 26 | 8000 | **60** | — | **encrypted** — issuer keys |
+| 1F | 8201 | **60** | 60 | **encrypted** — **ICC RSA priv key: Component PQ (qInv)** |
+| 20 | 8202 | **60** | 60 | **encrypted** — **ICC RSA priv key: Component DQ** |
+| 21 | 8203 | **60** | 60 | **encrypted** — **ICC RSA priv key: Component DP** |
+| 22 | 8204 | **60** | 60 | **encrypted** — **ICC RSA priv key: Component Q** |
+| 23 | 8205 | **60** | 60 | **encrypted** — **ICC RSA priv key: Component P** |
+| 24 | A006 | **60** | — | **encrypted** — Applicative IDN Key (contact) |
+| 25 | A016 | **60** | — | **encrypted** — Applicative IDN Key (contactless) |
+| 26 | 8000 | **60** | 30 | **encrypted** — card UDKs AC‖SMI‖SMC (3×16, no KCV) |
 | 27 | 9000 | 00 | 09 | final DGI (completion / checksum) |
-| 28 | 8001 | **60** | — | **encrypted** — issuer key (2nd) |
+| 28 | 8001 | **60** | 30 | **encrypted** — card UDKs (2nd set, contactless) |
 
 (P2 0x27/0x28 ordering: 9000 then 8001 — confirm exact tail order against the trace when implementing.)
+DGI labels above are from the INTERPRETER trace REM comments (ground truth). CORRECTION 2026-07-15: 8010 is the
+PIN (not the ICC key); the ICC RSA private key is the 5 CRT-component DGIs 8201-8205 (PQ/DQ/DP/Q/P), each
+DEK-wrapped under the session encryption key. KEY-PAYK/MACIK/ENCK-CONTACT + IDN = the A0xx/8000 key DGIs.
 
 ## What this means for the bpr.cpp build
 
