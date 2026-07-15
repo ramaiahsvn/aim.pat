@@ -46,10 +46,14 @@ subtasks:
          bpr.cpp BprPcSc lib (wraps pcsc::Card, resolves 61xx GET RESPONSE + 6Cxx Le). perso-card-probe =
          read-only ATR+SELECT smoke tool. 8 mock-channel tests (SW maps 6A88 stop / 9315 continue); suite 84/84.
          Adapter+probe behind PERSOENGINE_BUILD_PCSC; compiles+links on macOS, connects + reads the card ATR live."
-      - "KNOWN (BprPcSc, not driver logic): live SELECT hits 'SCardTransmit: Protocol mismatch' on this
-         macOS/ACR39U combo (ATR reads fine). BprPcSc backend_pcsclite.transmitRaw picks SCARD_PCI_T0/T1 from the
-         stored active protocol; macOS negotiation stores a value that mismatches. Fix belongs in BprPcSc (a
-         shared component — not modified here). Driver logic validated via mock + byte-exact trace KATs regardless."
+      - "2026-07-15 — BprPcSc macOS TRANSMIT GATE RESOLVED (branch fix/pcsc-macos-transmit-pci, commit c155b19,
+         NOT yet merged to main — shared component, pending user sign-off). Root cause found via read-only diag:
+         connect negotiates activeProtocol=T0 correctly, but SCardTransmit with the macOS global SCARD_PCI_T0/T1
+         POINTERS returns SCARD_E_PROTO_MISMATCH. Fix: build a LOCAL SCARD_IO_REQUEST{dwProtocol, cbPciLength}
+         in Card::transmitRaw (the portable approach gp.jar uses; equivalent on Windows/Linux, no behavior change
+         for other consumers). VERIFIED LIVE read-only via perso-card-probe: BprPcScChannel now does SELECT ISD ->
+         9000 with full FCI (61xx GET RESPONSE resolved); SELECT of the uninstalled MC AID -> 6A82 as expected.
+         The full live PC/SC path (connect -> ATR -> SELECT -> 61xx -> FCI) now works end-to-end."
       - "2026-07-15 — DELETE + INSTALL perso-entry builders DONE (bpr.cpp b64a014). driver::delete_apdu
          (80 E4 00 00 | 4F LV(aid)) + install_make_selectable_apdu (80 E6 0C 00 | LV loadFile/module/instance/
          priv/params/token). Byte-exact vs the ISpi4Mlb2 trace: DELETE A0000000041010; INSTALL instance under
@@ -151,11 +155,13 @@ subtasks:
          (idField=IIN(4) issuer / PAN(10) ICC). assemble_perso_stream's cert_key_data is now a UNIVERSAL slot
          override, so regenerated 0402/0404 replace the captured bureau config. Test: both recovery steps verify
          (the terminal's checks) + the 4 ODA DGIs inject/override. Suite 92/92."
-      - ">>> ENGINE NOW PRODUCES A COMPLETE, SELF-CONSISTENT, TERMINAL-VERIFIABLE PERSO STREAM FOR UAT with ZERO
-         external crypto dependency (test-CA issuer key + regenerated 0404 for UAT; real UAT symmetric keys for
-         8000/8001/A006/A016; VISA2 session). The ONLY remaining blocker to a LIVE run is the BprPcSc macOS
-         transmit protocol-PCI fix (or run on a Windows/Linux POS). Real-CAPK (production-chain) cards still need
-         the bureau's real issuer key — see rnd-cperso 2026-07-15-issuer-rsa-key-process.md. <<<"
+      - ">>> UAT PERSO IS FULLY UNBLOCKED (2026-07-15). Both former gates addressed: (1) test-CA mode gives a
+         complete, self-consistent, terminal-verifiable stream with ZERO external crypto dependency (test-CA
+         issuer key + regenerated 0404; real UAT symmetric keys for 8000/8001/A006/A016; VISA2 session; ICC CRT);
+         (2) the BprPcSc macOS transmit fix makes the live PC/SC path work (verified read-only). The engine + a
+         live card can now do a full UAT perso end-to-end. NEXT is an ACTUAL live perso run (DESTRUCTIVE — writes
+         the card; needs explicit go-ahead + card in reader) + merge the BprPcSc fix branch to main. Real-CAPK
+         production cards still need the bureau's real issuer key (rnd-cperso 2026-07-15-issuer-rsa-key-process.md). <<<"
       - "2026-07-15 — RSA/ODA CERT PATH DONE (bpr.cpp 74b6bad + b63fdbd). (1) Issuer PK Cert DGI 0404 (tag 90,
          248B) is an issuer-invariant public constant -> verbatim config (26 config DGIs); only 0401/0403 are
          per-card. (2) New perso::oda module (OpenSSL RSA/BN/SHA-1): generate_rsa_keypair, raw rsa_public/private,
