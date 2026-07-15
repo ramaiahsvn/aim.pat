@@ -332,3 +332,31 @@ from the GFCX17 manual on these key DGIs**, or an undocumented prereq/dependency
 5000/5103 for 8000/8001). Next non-destructive levers before more live runs: (a) emit computed 5000/5103 after
 the keysets; (b) verify the 8204/8205=Q/P tag mapping vs §6.33; (c) inject A004 before the CRT DGIs. Otherwise
 this is a bureau ask: confirm the exact GCX7.5 keyset/CRT DGI format or supply a reference perso script.
+
+### 2026-07-15 (cont.) — ROOT CAUSE: format proven correct; residual 6A80 = re-INSTALL lost factory pre-perso
+Wired #1 (5000/5103 keyset KCV, computed from our UDKs) and #2 (A004 Public Key Length) and re-ran live:
+- **A004 → ACCEPTED** (format correct) but did NOT unblock 8204/8205.
+- **5000/5103 → 6A80**, joining the *uniform* rejection of the whole symmetric-key family
+  (8000/8001/A006/A016 + 5000/5103 + 9010). RSA CRT 8201/8202/8203, A004, records, certs, config all pass.
+
+**Cross-checks proving our bytes are correct (not a format bug):**
+- §6.27: 8000/8001 = 3DES-ECB SKUDEK, NO padding, 3 keys mandatory. Engine matches.
+- §6.33.2: CRT 8201=CA(Q⁻¹modP), 8202=CD2(Dmod(Q-1)), 8203=CD1(Dmod(P-1)), 8204=CQ(Q), 8205=CP(P),
+  method-2 padding. Engine mapping + padding match EXACTLY (swap hypothesis refuted).
+- **The real Thales trace (this same card model, SW=9000 throughout)** loaded 8000@P1=60/len=30,
+  8201-8205@P1=60, A006/A016@P1=60 — **byte-identical framing to our engine's output.**
+
+**⇒ ROOT CAUSE (high confidence): the residual 6A80s are a CARD-STATE gate, not an engine defect.**
+The trace ran on a **factory pre-personalized** card. Our `perso-live` DELETEs the factory M/Chip instance
+(`A0000000041010`) and INSTALLs a **bare** one (C9=050111000105 ⇒ default M/ChipAdvance1.1 mode, no pre-perso).
+The DGIs that fail are exactly those needing on-card key-object / pre-perso state: symmetric applicative keys
+(KMC key-domain) and RSA key *finalization* (8204/8205 complete the key object; 8201-8203 only stage it).
+Stateless perso data (records, certs, config, A004) loads fine on a bare instance. Pre-personalization is
+done by the bureau via the **pre-perso AID `A0000000180F0000018304`** (§5.3.1) with predefined values we don't
+have. NET: we cannot fully reproduce a symmetric-key + RSA perso on a card whose factory pre-perso we erased —
+this needs a **factory-fresh / pre-perso'd card** or the **bureau's pre-perso script**, NOT an engine change.
+
+**Engine status:** manual-complete and trace-verified for every DGI class. Kept A004 + 5000/5103 wiring
+(correct per §6.32/§6.33.1; will be accepted once the instance is pre-perso'd). This closes the 6A80 chase:
+the block is procedural (card lifecycle), not code. → bureau ask (already drafted): pre-perso procedure / a
+factory-state UAT card.
