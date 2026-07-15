@@ -504,6 +504,35 @@ pruning:
     source: "session-2026-07-15"
     tags: [perso-manuals, PURE, secret-loading-resolved, SKUDEK-is-session-dek, D005-profile-selection, four-applets, mc-visa-priority, GFCX17-vs-GCX7_5, dgi-catalog]
 
+  - id: mem-023
+    type: project_context
+    content: >-
+      2026-07-15 — ✅ SOLVED: full M/Chip Advance perso loaded LIVE on a factory-fresh
+      Gemalto card — ALL 41 STORE DATA DGIs → 9000 (CRT, both keysets, KCVs, PIN, ICC+
+      issuer+CA certs, records, config) + card finalize 9000. mem-022's prediction was
+      right: the 8000/CRT 6A80 was ORDER, not crypto. Breakthrough via a `--crt-only`
+      isolation run (send ONLY A004+8201-8205 right after EXT AUTH): the CRT loaded
+      clean → proved the 6A80s were DOWNSTREAM POISONING from config/record DGIs sent
+      BEFORE the RSA/keyset DGIs. FIX (bpr.cpp 4ebc546): (1) send the KEY REGION FIRST
+      (stable_partition in perso-live) — A004,8010,8201-8205,A006,A016,8000,9000,8001,
+      9103 all load; (2) DROP the perso-complete last-block marker (P1.b8=1 makes
+      whichever DGI lands last return 6985/6981); (3) finalize via ISD-directed SET
+      STATUS 80F0800700 then 80F0800F00 (card→SECURED) after re-SELECT+re-auth on the
+      ISD — applet SET STATUS gives 6D00 (trace Spi4MLB2 lines 1288-1369 confirm this);
+      (4) ICC key 1152-bit regenerated until qInv/dq/dp full-length (clean size inference
+      without A004); (5) computed 9000/9103 keyset KCVs from OUR UDKs (were verbatim-
+      trace). Whole flow/INSTALL/C9 byte-identical to the working trace. REMAINING polish
+      (non-blocking): 9010 PIN-Related-Data still order-conflicted (skipped — needs
+      config-before AND CRT-not-yet-loaded, which keys-first inverts); fold keys-first +
+      ISD finalize into the core sequencer/driver (now orchestrated in perso-live app).
+      94/94 unit tests pass. See rnd-cperso mc-advance-dgi-map.md "SOLVED" section.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-15"
+    tags: [SOLVED, full-perso-live, all-41-dgis-9000, keys-first-order, crt-only-isolation, drop-last-block-marker, isd-finalize-setstatus, poisoning]
+
   - id: mem-022
     type: project_context
     content: >-
