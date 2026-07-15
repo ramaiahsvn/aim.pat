@@ -148,3 +148,26 @@ class, much LOWER-risk) build strategy. This supersedes "hand-code 41 byte-exact
 Build order to reach a physical-card perso: (2) capture config-DGI product table [git-safe, unblocks most
 of the stream] → (1) full TLV record builders from the trace tag sets → emitter assembles config+records →
 (3) encrypted key DGIs once SCP02+HSM land → live driver (SELECT→SCP02→INSTALL→STORE DATA→SET STATUS).
+
+## SCP02 wire + DEK-wrap (from ISpi4Mlb2 card-DLL trace, 2026-07-15)
+
+Real per-session wire: `SELECT ISD → INIT UPDATE (80 50 00 00 08 <host chal>) → GET RESPONSE (80 C0) →
+EXT AUTH (84 82 00 00 10 <8-byte host cryptogram><8-byte C-MAC>) → DELETE/INSTALL/STORE DATA`.
+- EXT AUTH **P1 = 0x00** ⇒ security level 0 for subsequent commands: **STORE DATA is sent CLA=0x80 with NO
+  C-MAC** (0× `84E2`, 135× `80E2` in the trace). So the engine's per-command secure-messaging wrap is NOT
+  exercised by this perso; the sequencer's CLA-80/no-MAC output is already the wire.
+- The key DGIs (8010/820x/8000/8001/A006/A016, P1=0x60) are protected by **DEK encryption of the key values**
+  under the SESSION DEK (3DES-ECB), independent of the channel security level. Implemented: bpr.cpp
+  `scp02::dek_encrypt` (511d2ba). The session DEK = `session_key(staticDEK, kDerivDek=0x0181, seqCounter)`.
+
+### OPEN: VISA2 static-key diversification not yet reproduced offline in the engine
+The card's SCP02 static keys are the ISD master (KVN01, KCV C277BA) **VISA2-diversified** with the 10-byte
+INIT UPDATE key-div-data (e.g. `00002060BB8D509C2020`). `gp.jar --key-kdf visa2` proved this externally.
+Attempted to reproduce the trace card cryptogram (`879A95BF3A518BB7`, seq=0003) offline from the UAT keystore
+ISD-KVN01 using the GPPro VISA2 **and** EMV KDD layouts (kdd[0:2]‖kdd[4:8]‖F0/0F‖… and kdd[4:10]‖F0/0F‖…,
+key ids 1/2/3) → NONE matched. So either (a) the engine's card_cryptogram/session formula needs verifying
+against a gp.jar-computed vector, or (b) that recorded session (scp02_test kResp1) is not from the
+ISD-KVN01(C277BA) key/card. RESOLUTION PATH: capture a gp.jar `--key-kdf visa2 -vd` run (its debug prints the
+derived static keys + session keys + host cryptogram) for the exact UAT card, and match the engine step by
+step. Until then the DEK-wrap + session-key mechanics are ready — just feed them the verified diversified
+static keys. (scp02_test.Scp02RealVector stays DISABLED pending this.)

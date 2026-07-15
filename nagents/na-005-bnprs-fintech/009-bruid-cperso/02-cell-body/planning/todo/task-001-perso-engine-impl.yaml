@@ -99,11 +99,23 @@ subtasks:
          assembled stream reproduces every plaintext APDU byte-for-byte at its P2 slot; placeholders land in the
          right cert/key slots with correct P1; supplied data splices correctly. Suite 65/65 green. NO keys.
          >>> PLAINTEXT PERSO STREAM (27 of 41 DGIs) IS NOW COMPLETE & BYTE-EXACT vs the trace. <<<"
-      - "REMAINING to a physical-card perso (all need the RSA + HSM/SCP02 seam): (a) RSA cert DGIs 0401/0403/0404
-         — per-card RSA records (9F46/9F47 ICC PK cert + 90/92/93 issuer PK cert/SSAD) = engine ICC keypair +
-         issuer PK cert (RSA/ODA, task-004); (b) encrypted key DGIs via IHsmClient+SCP02 DEK-wrap (task-001.1/.3);
-         (c) live driver SELECT->SCP02->INSTALL->STORE DATA->SET STATUS (task-001.1 card channel). The assembler
-         already leaves correct slots for (a)/(b) — inject by id via cert_key_data."
+      - "2026-07-15 — SCP02 SESSION + DEK-WRAP DONE (bpr.cpp 511d2ba). scp02::dek_encrypt/dek_decrypt (3DES-ECB
+         under session DEK) = the sensitive-data encryption for the key DGIs; scp02::SessionKeys +
+         derive_session_keys(enc,mac,dek,seq); BprCryptHsm::des3_ecb_decrypt. Trace wire finding (ISpi4Mlb2):
+         perso does INIT UPDATE->GET RESP->EXT AUTH (84 82 00 00, sec level P1=00) then STORE DATA at CLA=80
+         with NO C-MAC — so the CLA-80/no-MAC sequencer output IS the wire; key DGIs protected by DEK-wrap only.
+         Tests: DEK ECB KAT + round-trip + guards, session bundle, and an end-to-end assembler test (DEK-wrap a
+         key -> 8010 DGI -> lands P1=60 at its P2 slot). Suite 70/70 green. Synthetic keys only."
+      - "OPEN (rnd-cperso, mc-advance-dgi-map.md): VISA2 static-key diversification not yet reproduced offline —
+         GPPro visa2/emv KDD layouts didn't match the trace card cryptogram from ISD-KVN01. Need a gp.jar
+         --key-kdf visa2 -vd capture for the exact UAT card to match the engine step by step. DEK-wrap +
+         session mechanics are ready; just feed them the verified diversified static keys. RealVector test stays
+         DISABLED pending this."
+      - "REMAINING to a physical-card perso: (a) RSA cert DGIs 0401/0403/0404 (per-card RSA: 9F46/9F47 ICC PK
+         cert + 90/92/93 issuer PK cert/SSAD = engine ICC keypair + issuer PK cert, RSA/ODA task-004);
+         (b) wire the DEK-wrap to real derived UDKs (8000) + ICC priv key (8010) once VISA2 verified; (c) live
+         driver SELECT->SCP02->INSTALL->STORE DATA->SET STATUS (task-001.1 card channel). Assembler already
+         leaves correct injectable slots for (a)/(b) via cert_key_data."
 
   - id: "task-001.3"
     subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"
