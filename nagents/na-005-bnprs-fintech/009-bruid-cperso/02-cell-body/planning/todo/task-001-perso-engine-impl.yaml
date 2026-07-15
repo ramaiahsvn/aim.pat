@@ -48,8 +48,16 @@ subtasks:
       STORE DATA per EMV CPS (rnd-cperso emv-cps-reference.md): 84 E2, ONE DGI per command, P2 = sequence;
       the LAST STORE DATA transitions the applet to PERSONALIZED + closes the channel (moves a pre-installed
       M/Chip instance from 6999 to selectable). Map SW: 9315 KCV-fail, 9580 out-of-sequence, 6A88 bad DGI.
-    status: pending
+    status: in_progress
     priority: high
+    progress:
+      - "2026-07-15 — CLEAR data-record DGI builder DONE (bpr.cpp 9373bc5). perso::sequencer::PersoRecord +
+         build_dgi_0101/0201/0301/0401 + build_clear_data_dgis; each DGI = EMV TLVs wrapped in template 0x70;
+         pan_to_bcd packs PAN right-F-padded to 8 bytes. Product config defaults ported from MC_EMV_Perso.spi
+         [INIT]; per-card fields from dprep. include/persoengine/sequencer.hpp + src/sequencer.cpp +
+         tests/sequencer_test.cpp (5 tests). Full suite 54/54 green."
+      - "NEXT: encrypted key/cert DGIs (8000/8010/8201/A001) via IHsmClient, then the STORE DATA emitter (84 E2,
+         one DGI/cmd, P2 sequence) and the SELECT->SCP02->INSTALL->STORE DATA->SET STATUS driver (needs task-001.1)."
 
   - id: "task-001.3"
     subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"
