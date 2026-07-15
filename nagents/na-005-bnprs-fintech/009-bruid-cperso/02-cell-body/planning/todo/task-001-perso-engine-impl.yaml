@@ -61,19 +61,21 @@ subtasks:
          DEK-encrypted DGIs else 0x00; CLA stays unsecured 0x80 (SCP02 layer promotes to 84 + C-MAC); guards
          >256 blocks. KAT: reproduces real THALES MDA trace APDUs (B010, A202) byte-for-byte at recorded P2;
          encrypted framing uses a synthetic value (no DEK ciphertext committed). 4 tests; suite 58/58 green."
-      - "FINDING (trace reconciliation) — the LIVE Gemalto M/Chip Advance card is personalized with M/CHIP ADVANCE
-         proprietary DGIs (A002 CRM params, A012/A022 keyed blocks, B0xx, DFxx tags), NOT the generic CPS
-         0101/0201/0301/0401 EMV-tag DGIs. Evidence: Operas Spi4MLB2 trace — 135 STORE DATA, all A0xx/B0xx/9000
-         DGIs carrying DF22/DF21/DF67/DF7x… proprietary tags. The build_dgi_0101.. clear-DGI builder is correct
-         as a GENERIC CPS primitive (kept + unit-tested) but does NOT match this card. REAL NEXT DELIVERABLE:
-         port the M/Chip Advance DGI content map (A002/A012/A022/B0xx + DFxx) from the trace + card profile.
-         The emitter framing above is already correct for it (DGI-agnostic)."
-      - "BLOCKER for exact port: BprDataPrep/PersoScripts/MC_EMV_Perso.spi + the profile are no longer under
-         Resources (git-ignored, removed). Trace remains as oracle, but need the .spi/profile re-provided to
-         reproduce exact DGI content/order and the DFxx tag map."
-      - "NEXT: (1) M/Chip Advance DGI content builders (A002/A012/A022/B0xx, DFxx) grounded in the trace;
-         (2) encrypted key/cert DGIs via IHsmClient (DEK-wrap, P1=60); (3) SELECT->SCP02->INSTALL->STORE
-         DATA->SET STATUS driver (needs task-001.1 card channel)."
+      - "2026-07-15 — .spi + MC profile RE-PROVIDED (Resources/MC_EMV_Perso.spi + Card Profiles/MC/
+         PFL_..._Addon_PersoTool_1_MCC.xml). Full DGI map decoded from the Operas Spi4MLB2 trace and recorded:
+         rnd-cperso 08-memory/long-term/thales/mc-advance-dgi-map.md (canonical 31 plaintext + 10 encrypted
+         DGIs in P2 order). CORRECTS the prior finding:"
+      - "  * MC_EMV_Perso.spi is an IDEALIZED generic-CPS flow (only 0101/0201/0301/0401 + 8000/8010/A001/8201,
+           plain EMV tags in template 70). Our build_dgi_0101.. builders port it FAITHFULLY."
+      - "  * BUT the real M/Chip Advance card needs ~31 plaintext + ~10 encrypted DGIs mixing generic record DGIs
+           (0201/0301/0302/0401-0404) WITH M/Chip Advance proprietary DGIs (A002 CRM, A012/A022, B0xx, 9xxx, 0E01)
+           carrying proprietary tags (DFxx/Cx/Dx from the ADDONS profile). Our 0201/0301/0401 builders ARE real
+           trace DGIs (a valid subset) — NOT wrong. DGI 0101 is NOT written on this card (AID/FCI via A0xx config)."
+      - "REAL NEXT DELIVERABLE = the M/Chip Advance DGI content builders, two buckets: (1) PLAINTEXT DGIs
+         (A0xx/B0xx/9xxx/0E01/02xx-04xx) — pure logic, internal DFxx/Cx layout decoded from the trace + values
+         from the ADDONS profile, KAT vs trace bytes offline; (2) ENCRYPTED DGIs (8010/820x/8000/8001/A006/A016)
+         — DEK-wrapped, need IHsmClient (task-001.3) + SCP02 session (task-001.1); synthetic values only in tests.
+         Emitter framing (build_store_data_apdus) is already correct for all of them (DGI-agnostic)."
 
   - id: "task-001.3"
     subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"
