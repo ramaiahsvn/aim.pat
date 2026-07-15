@@ -56,8 +56,24 @@ subtasks:
          pan_to_bcd packs PAN right-F-padded to 8 bytes. Product config defaults ported from MC_EMV_Perso.spi
          [INIT]; per-card fields from dprep. include/persoengine/sequencer.hpp + src/sequencer.cpp +
          tests/sequencer_test.cpp (5 tests). Full suite 54/54 green."
-      - "NEXT: encrypted key/cert DGIs (8000/8010/8201/A001) via IHsmClient, then the STORE DATA emitter (84 E2,
-         one DGI/cmd, P2 sequence) and the SELECT->SCP02->INSTALL->STORE DATA->SET STATUS driver (needs task-001.1)."
+      - "2026-07-15 — STORE DATA APDU emitter DONE (bpr.cpp efe0bd6). build_store_data_apdus(StoreDataBlock[]):
+         CLA 80 / INS E2, ONE DGI per cmd (encode_dgi = id||len||value), P2 = block sequence, P1 = 0x60 for
+         DEK-encrypted DGIs else 0x00; CLA stays unsecured 0x80 (SCP02 layer promotes to 84 + C-MAC); guards
+         >256 blocks. KAT: reproduces real THALES MDA trace APDUs (B010, A202) byte-for-byte at recorded P2;
+         encrypted framing uses a synthetic value (no DEK ciphertext committed). 4 tests; suite 58/58 green."
+      - "FINDING (trace reconciliation) — the LIVE Gemalto M/Chip Advance card is personalized with M/CHIP ADVANCE
+         proprietary DGIs (A002 CRM params, A012/A022 keyed blocks, B0xx, DFxx tags), NOT the generic CPS
+         0101/0201/0301/0401 EMV-tag DGIs. Evidence: Operas Spi4MLB2 trace — 135 STORE DATA, all A0xx/B0xx/9000
+         DGIs carrying DF22/DF21/DF67/DF7x… proprietary tags. The build_dgi_0101.. clear-DGI builder is correct
+         as a GENERIC CPS primitive (kept + unit-tested) but does NOT match this card. REAL NEXT DELIVERABLE:
+         port the M/Chip Advance DGI content map (A002/A012/A022/B0xx + DFxx) from the trace + card profile.
+         The emitter framing above is already correct for it (DGI-agnostic)."
+      - "BLOCKER for exact port: BprDataPrep/PersoScripts/MC_EMV_Perso.spi + the profile are no longer under
+         Resources (git-ignored, removed). Trace remains as oracle, but need the .spi/profile re-provided to
+         reproduce exact DGI content/order and the DFxx tag map."
+      - "NEXT: (1) M/Chip Advance DGI content builders (A002/A012/A022/B0xx, DFxx) grounded in the trace;
+         (2) encrypted key/cert DGIs via IHsmClient (DEK-wrap, P1=60); (3) SELECT->SCP02->INSTALL->STORE
+         DATA->SET STATUS driver (needs task-001.1 card channel)."
 
   - id: "task-001.3"
     subject: "P6 — Calypso key path + real-HSM adapter (BprHsm / Operas KMS)"
