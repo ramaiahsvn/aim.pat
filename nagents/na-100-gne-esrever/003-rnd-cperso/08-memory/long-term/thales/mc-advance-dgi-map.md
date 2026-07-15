@@ -165,12 +165,22 @@ SCP02 (applet EXT AUTH -> 9000), and **31 of the 41 STORE DATA DGIs accepted (90
 (0401/0402/0403/0404). Two gaps remain, both FORMAT/SPEC (not engine framework):
 
 1. **Encrypted key-loading DGIs → 6A80** (9 DGIs: 8000/8001, 8010 PIN, 8203/8204/8205 ICC-key CRT,
-   A006/A016 IDN, 9000 key-KCVs). Root cause from the trace REM: these load via
-   **`stdCPSEmvGeGKOSConfForSecretLoading`** — "computes cryptogram(s) to load PIN, 3DES keys and RSA keys."
-   i.e. the applet expects a **secret-loading CRYPTOGRAM / key block**, NOT the plain `dek_encrypt(key)` the
-   engine emits. (8201/8202 happened to pass — likely coincidental length acceptance.) NEEDS: the M/Chip
-   Advance / Thales GeneralOS key-block format (key length ‖ DEK-enc key ‖ KCV/MAC, or a full put-key
-   cryptogram). This is the deepest perso step (secure key injection).
+   A006/A016 IDN, 9000 key-KCVs; oddly 8201/8202 pass — unexplained). Loaded via the Thales KMS
+   **`stdCPSEmvGeGKOSConfForSecretLoading`** ("computes cryptogram(s) to load PIN, 3DES keys and RSA keys").
+   KEY-BLOCK DECODE (from the trace, 2026-07-15):
+   - Keys start under KEKs (`G0E01.TEST.PINENC.KEK.01`, `…KEYENC.KEK.01`); the KMS re-ciphers each from the
+     KEK to the SESSION encryption key (`SKUDEK`/`SK_ECB` = session key in ECB) and emits a cryptogram.
+   - KMS I/O lengths: PIN input `00A5`→ out 16B; 3DES `00AE`→ out 24B (×8 keys); RSA `032F`→ out 688B (5 CRT).
+   - **The DGI content matches the engine's format**: symmetric key DGI = the 16-byte 3DES-ECB DEK-encrypted
+     key VALUE, concatenated, NO KCV/MAC in the DGI (trace 8000[0:16] == A006 value — same key encrypted).
+     The KMS's extra 8 bytes (24 vs 16) are a KCV/MAC used server-side, NOT sent. So `build_key_dgi` = correct
+     structure.
+   - RULED OUT LIVE (both → 6A80 on all 9): wrapping under the SESSION DEK (session_key const 0x0181) AND the
+     STATIC VISA2-diversified DEK (keyId 3). So the DEK CHOICE is not the gap.
+   - REMAINING unknown (needs the GeneralOS / M/Chip Advance CPS confidential-DGI spec): either the exact
+     secret-loading DEK/derivation (neither standard SCP02 DEK), OR a missing "initialize secret loading"
+     command before the encrypted DGIs, OR a per-key-block header the applet parses. This is the deepest
+     perso step (secure key injection) and is the LAST functional gap.
 2. **0E01 (SFI 14 Record 1) → 6A80** — a profile-specific data record ("Mastercard_DI_GFCX9_MChipAdvance
    Without IDS & SDS & CVC3"). Our verbatim copy doesn't match the freshly-installed instance's expectation.
 
