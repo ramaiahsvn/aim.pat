@@ -176,6 +176,19 @@ A004 (PK length); **8201-8205 (ICC CRT RSA)**; 8301-8305 (PIN CRT RSA); 5093 (RS
 (relay resistance); A00F (currency conv); 5090 (data sharing); **[SFI][rec] records** (§6.38 — this is 0E01 =
 SFI 14 rec 1).
 
+### MC STREAM REBUILD from the GFCX17.0 manual (in progress, bpr.cpp)
+Concrete spec-grounded engine fixes (each an increment):
+1. **Last-block marker (§5.2)** — DONE (13cc30d): the LAST STORE DATA DGI must set P1.b8=1 (perso-complete).
+   build_store_data_apdus(blocks, markLastBlock).
+2. **ICC CRT key padding (§6.33.2)** — DONE (452d5ae): CRT elements 8201-8205 use ISO 9797-1 METHOD-2 padding
+   (append 0x80 then 0x00 to a multiple of 8) THEN 3DES-ECB under SKUDEK — NOT left-zero-pad. Confirmed by the
+   trace (88-byte component + 80 + 00×7 = 96 = trace 8201 length). CRT map: 8201=CA(qInv), 8202=CD2(DQ),
+   8203=CD1(DP), 8204=CQ(Q), 8205=CP(P). Our earlier left-zero-pad was the 8203-8205 6A80 cause.
+Ordering prerequisites from the manual: **A004 (Public Key Length) must precede the CRT DGIs** for 16*n+8-bit
+moduli (§6.33.1); A009 before 5092; A004 before 82xx/83xx. 8010 PIN block padding: check §6.20.
+STILL TODO: (3) 0E01 = [SFI][rec] format (§6.38); (4) add A004 when needed; (5) live re-test (padding fix
+should unblock 8201-8205); (6) the 8000 keyset 6A80 — see below.
+
 ### 8000 6A80 — root cause per §6.27
 DGI 8000/8001 = Diversified AC(16)‖SMI(16)‖SMC(16); 3DES-ECB no-pad under SKUDEK (=SCP02 session DEK, engine
 correct). **"Note: the 3 keys MUST be loaded otherwise the STORE DATA is rejected with 6A80h."** Our engine
