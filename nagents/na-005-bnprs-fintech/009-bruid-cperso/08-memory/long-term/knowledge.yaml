@@ -431,3 +431,43 @@ pruning:
     confidence: 0.98
     source: "session-2026-07-15"
     tags: [milestone, live-perso-proven, 31-of-41, secret-loading-decoded, dek-ruled-out, bureau-ask, GeneralOS-spec, session-conclusion]
+
+  - id: mem-020
+    type: project_context
+    content: >-
+      2026-07-15 — VISA (VSDC) live perso explored on the SAME UAT card that also
+      does MC — a strong, cleaner result than MC. The card is a multi-app Gemalto
+      GP JavaCard (ATR 3BFE13, same batch): card manager AID A000000003000000
+      (Visa GP ISD, lifecycle 01 OP_READY), and the SAME UAT ISD key (C277BA,
+      VISA2, KVN01) AUTHENTICATES it (EXT AUTH 9000). It also carries a Gemalto
+      M/Chip instance (656D766170, SELECT->6999) + BNPRS BIXAPP_K3 (personalized,
+      9000). The Visa VSDC package is LOADED (load file A00000000310, modules
+      A0000000031056 + A000000003104D; also A00000000316/A0000000030000) but NO
+      Visa applet INSTANCE was installed. LIVE perso-live-visa --commit result:
+      INSTALL[make selectable] of instance A0000000031010 from module
+      A0000000031056 with priv 00 + params **C900** (empty C9) -> 9000 (the MC
+      params C9050111000105 -> 6A80, i.e. MC's proprietary config is Visa-wrong,
+      expected); SELECT instance -> 9000; applet SCP02 (same ISD key) -> 9000; and
+      **5/5 inferred plaintext DGIs accepted (9000)**: 9115 AIP, 0101 FCI, 0201 SDA
+      record, 0301 VSDC record, 0401 PDOL — ~24 app-data tags built straight from
+      the Visa VPA profile (OutputFile_..._A0000000031010_DI_VisaDebit.xml, VIS
+      1.6.3/VCPS 2.2.4) using the STANDARD EMV template-70 SFI-record layout. KEY
+      INSIGHT: unlike MC, Visa needs NO trace and NO proprietary A0xx config — the
+      VPA profile + standard record layout is enough for the plaintext application
+      data; install params are inferable (C900). Tools: apps/card-analyze (read-only
+      ATR + SELECT + GET STATUS enumeration, GP legacy len-prefixed format + module
+      AIDs), apps/perso-live-visa (preflight default; --commit installs+writes;
+      inferred DGI set). REMAINING for a full Visa card (same classes as MC + one):
+      (1) keys — Visa card keys + ICC RSA hit the same secret-loading (GeGKOS) gap,
+      AND no Visa IMKs in keys/uat_keystore.txt (only MC IMKs); (2) AFL correctness
+      — our record grouping is a GUESS, the real AFL/record split needs the Visa
+      perso spec; (3) SET STATUS to lock. Fold Visa VIS/VCPS perso spec + Visa UAT
+      IMKs into the bureau ask. Card left with a Visa instance + records written,
+      NOT locked, additive (BIXAPP/others untouched). Commits: card-analyze 4fa4e3c,
+      perso-live-visa 3c3534f/daee1ab/5c5591f.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-15"
+    tags: [visa, vsdc, live-perso, 5-of-5-dgis, vpa-profile, standard-record-layout, C900-install, no-trace-needed, visa-imks-gap, same-card-multi-app, bureau-ask]

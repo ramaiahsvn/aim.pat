@@ -77,6 +77,19 @@ loads keys via the Thales KMS `stdCPSEmvGeGKOSConfForSecretLoading` (a black box
 This is the SAME conversation as the issuer-RSA-key ask (Option A: the bureau does key loading + 9F46 signing;
 Option B: they give us the formats/keys to do it in our HSM).
 
+## ALSO ask for VISA (added 2026-07-15 after the live Visa test)
+
+The same UAT card also runs Visa (VSDC package loaded; same ISD key authenticates). A live attempt installed a
+Visa instance (`A0000000031010`, params `C900`) and **5/5 inferred plaintext DGIs were accepted** — built
+straight from the Visa VPA profile with the standard EMV record layout (no trace/proprietary config needed).
+To complete a Visa card we still need, from the bureau:
+- The **Visa VIS / VCPS Card Personalization specification** — the authoritative DGI/SFI-record layout + AFL
+  (our record grouping is currently a guess) and the Visa key-loading (secret-loading) format.
+- The **Visa UAT issuer master keys (IMKs)** — none are in our keystore (only the MC IMKs); needed to derive
+  the Visa card keys. Labels/KCVs only (PCI).
+So the request now covers BOTH schemes: M/Chip Advance (Perso Manual + secret-loading) and Visa (VIS/VCPS spec
++ Visa IMKs), plus the issuer RSA key.
+
 ## Decision needed (from the user / business)
 
 - Central perso topology: **bureau signs (Option A)** vs **our HSM signs (Option B)**? This is the fork that
