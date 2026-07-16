@@ -252,6 +252,13 @@ memories:
       /inheritance:r /grant:r <user>:F DACL (Windows, built-in tool, no crate;
       branch type-checks on macOS via cfg!(windows)). Applied to ceremony
       key-share files. security.md gap closed.
+      DASHBOARD REBUILT 2026-07-16: was Phase-2 static placeholder (hardcoded
+      "pHSM connected"). Now catalog::KeyCounts + pure key_counts(catalog,
+      today) (expiry-aware active/expired split) + dashboard_summary command
+      (ViewDashboard-gated) aggregating catalog/CA/IPK counts + HSM (backend/
+      transport/cache) + backup + last-8 audit. Dashboard.svelte = stat tiles
+      + HSM/Certificates/Backup cards + recent-activity table, 10s auto-refresh.
+      105 rust tests.
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
