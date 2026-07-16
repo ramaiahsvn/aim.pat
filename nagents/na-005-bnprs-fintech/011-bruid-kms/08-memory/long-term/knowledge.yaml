@@ -1,32 +1,77 @@
 # Long-Term Memory — Persistent Knowledge (LTP)
 # Survives across sessions. The agent's accumulated wisdom.
+# STRICT: no key VALUES ever — IDs/labels/aliases/KCV refs only.
 
-# Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: >
+      Mission: re-implement the Gemalto KMS v3 feature set (spec:
+      docs/KMS_359_RMpdf.pdf in the FE repo, D1245808D, 460 pp) on the BNPRS
+      pHSM backend, migrating the C++17/Qt client trp1003.phsm.kms.fe to Rust
+      (Tauri 2 + Svelte frontend). Security-first: secrets never cross the IPC
+      boundary into JS; zeroize/secrecy types; RBAC re-checked in the Rust
+      command layer; sanitised append-only audit. Roadmap:
+      docs/rust-migration/ROADMAP.md on ai_dev.
+    created_at: "2026-07-16"
+    last_accessed: "2026-07-16"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.99
+    source: "session-20260716"
+    tags: [mission, rust, tauri, gemalto-kms]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: project_context
+    content: >
+      Repos. FE (ours, writable): gitlab.bnprs.ai/TRP1003/trp1003.phsm.kms.fe
+      (project id 232), local /Users/bnprs/BPR/GitRepos2/TRP1003_pHsm/
+      trp1003.phsm.kms.fe, work on ai_dev branch. Backend (READ-ONLY, never
+      write): trp1003.phsm.kms — FM firmware bnprs/fm/ (SafeNet
+      ProtectToolkit 7, FM number 0x201), host stubs bnprs/host/, public C
+      API bnprs/include/bnprs.h + fmhost.h (fm_cmd enum). Host<->FM
+      transport: PTK7 Message Dispatch API (md.h -> libethsm.so/ethsm.dll).
+    created_at: "2026-07-16"
+    last_accessed: "2026-07-16"
+    access_count: 1
+    confidence: 0.99
+    source: "session-20260716"
+    tags: [repos, gitlab, hsm-fm, read-only-backend]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: technical_knowledge
+    content: >
+      HSM integration decision (owner-approved 2026-07-16): NO runtime dlopen
+      of libBprHsmHost.dll (Qt app's QLibrary approach is retired). Phase 1a:
+      statically compile bnprs/host/*.c into the Rust binary via cc crate
+      (out-of-tree build, zero writes to backend repo) + bindgen over bnprs.h.
+      Phase 1b end-state: pure-Rust FM client speaking the fm_cmd protocol
+      directly over MD_Initialize/MD_SendReceive FFI; C stubs (~1.6k LoC)
+      remain the verification oracle in integration tests. Vendor libethsm is
+      the only permitted non-Rust runtime dependency.
+    created_at: "2026-07-16"
+    last_accessed: "2026-07-16"
+    access_count: 1
+    confidence: 0.95
+    source: "session-20260716"
+    tags: [hsm, ffi, bindgen, static-link, security]
 
-# Pruning rules
+  - id: mem-004
+    type: technical_knowledge
+    content: >
+      Build host pat-m4p: rustc/cargo 1.95 via Homebrew (no rustup — fine for
+      desktop builds), Node 26 + pnpm for the Tauri/Svelte frontend. Qt app
+      builds with CMake 3.21+/Qt6. C++ src/ tree stays as reference until
+      Rust reaches parity (Phase 2 exit criterion), then removed in one
+      commit. Out of scope unless requested: Gemalto licensing (ch.2),
+      SafeNet HSM admin (ch.4), Tachograph (App. F/G), Windows Log Server
+      (App. H).
+    created_at: "2026-07-16"
+    last_accessed: "2026-07-16"
+    access_count: 1
+    confidence: 0.95
+    source: "session-20260716"
+    tags: [toolchain, build, scope]
+
 pruning:
   max_entries: 500
   stale_after_days: 90
