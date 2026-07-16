@@ -273,9 +273,16 @@ memories:
       checksum = SHA-256 of cert body. UI truncates to 12 hex + full tooltip.
       108 rust tests. NOTE: DER-encoded P10 + PKCS#7 chain PARSING still
       placeholder (needs der/x509 crate); only the check-value HASH is now real.
+      PER-SCHEME CERT REPORT DONE 2026-07-16: kms-domain::report::
+      certificate_report(ca,ipk) -> Vec<CertSchemeRow> grouped by scheme (CA
+      keys total/endorsed/pending + issuer certs total/active/in-progress),
+      sorted. Commands certificate_report + export_certificate_report
+      (ManageCas; -> exports/cert-report-<stamp>.json). UI: report table +
+      export in CA & Certificates view. 109 rust tests.
       REMAINING (all need external specs/hardware): CT6/OGDC binary, MKDATA,
-      per-scheme report panes, real PKCS#7/DER P10, FFI fuzz + signed installers
-      (P7), Phase 1b (vendor libethsm).
+      real DER-encoded P10 + PKCS#7 chain parsing (needs der/x509 crate + HSM
+      SIGNING op we don't have), FFI fuzz + signed installers (P7), Phase 1b
+      (vendor libethsm).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
