@@ -84,12 +84,19 @@ memories:
       PEK import; decode returns masked+length only), Settings (persisted
       ~/.bnprs-kms/config.json; audit at ~/.bnprs-kms/audit.log — every
       service now writes audit). HSM trait gained delete_principal /
-      change_password / decrypt_pinblock (mock + real.rs). Role-aware nav.
-      61 rust tests green, clippy -D warnings clean, runtime-verified.
+      change_password / decrypt_pinblock (mock + real.rs). PHASE 2 COMPLETE
+      2026-07-16: CAVV + QiChallenge ported (generate_cavv /
+      encrypt_qi_challenge on HsmBackend; real.rs returns
+      CKR_FUNCTION_NOT_SUPPORTED — both were optional dlopen symbols with no
+      static-API equivalent yet), panels added to Key Management view. Qt
+      src/ + ENTIRE CMake build system DELETED (src tests cmake resources
+      packaging scripts CMakeLists.txt CMakePresets.json .clang-format);
+      README rewritten for Rust/Tauri. Repo is now Rust-only. Role-aware nav.
+      63 rust tests green, clippy -D warnings clean, runtime-verified.
       Mock demo logins: operator/auditor (User store), admin/so1-3 (Admin
-      store), password bnprs-demo (mock ignores passwords). PENDING: Qt
-      src/ deletion (CAVV + QiChallenge panels not yet ported), Phase 1b
-      (vendor libethsm LINK + pure-Rust FM client), Phases 3-7.
+      store), password bnprs-demo (mock ignores passwords). PENDING: Phase 3
+      (KMS setup + master-key ceremony), Phase 1b (vendor libethsm LINK +
+      pure-Rust FM client over MD_SendReceive), Phases 4-7.
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
