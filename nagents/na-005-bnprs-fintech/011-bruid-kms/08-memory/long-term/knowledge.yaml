@@ -259,6 +259,15 @@ memories:
       transport/cache) + backup + last-8 audit. Dashboard.svelte = stat tiles
       + HSM/Certificates/Backup cards + recent-activity table, 10s auto-refresh.
       105 rust tests.
+      ACTIVATION + MODULUS 2026-07-16: key_counts splits Active into expired/
+      scheduled(activation_date>today)/active; KeyCounts += scheduled.
+      catalog::rsa_modulus(role,id) (ViewKeys, RSA-only, public modulus).
+      export_rsa_modulus cmd -> exports/modulus-<label>-<stamp>.txt. UI: Key
+      Admin effective status (Active/Scheduled/Expired) + Modulus button on RSA
+      keys; Dashboard Scheduled tile. 106 rust tests. Scheduling is display/
+      count only (mock does no crypto with keys). REMAINING (all need external
+      specs/hardware): CT6/OGDC binary, MKDATA, per-scheme report panes, real
+      PKCS#7/DER, FFI fuzz + signed installers (P7), Phase 1b (vendor libethsm).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
