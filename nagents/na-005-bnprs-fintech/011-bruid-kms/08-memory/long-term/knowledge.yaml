@@ -238,6 +238,17 @@ memories:
       unattended scheduled backup exec, encrypted bundles. OVERALL REMAINING:
       CT6/OGDC binary, MULTOS modulus, MKDATA, per-scheme reports, real
       PKCS#7/DER, FFI fuzz + signed installers (P7), Phase 1b (vendor libethsm).
+      CROSS-PLATFORM 2026-07-16: fixed data_dir() for Windows (%APPDATA%\
+      bnprs-kms; was HOME-only -> fell to CWD on Windows). Uses cfg!(windows)
+      so both branches type-check on macOS. App IS Windows-ready (Tauri/
+      WebView2). CANNOT build Windows .exe on this Mac: no rustup (Homebrew
+      rustc, only aarch64-apple-darwin std) + Tauri doesn't cross-compile
+      macOS->Windows. GET WINDOWS BUILD via GitLab CI .gitlab-ci.yml (added,
+      glab-lint-valid): check stage = cargo test+clippy (core/hsm/domain),
+      svelte-check+vite, cargo audit; build stage = windows-build (runner
+      tag 'windows') -> self-contained kms-app.exe + best-effort NSIS/MSI via
+      tauri-cli. Windows ACL on ceremony key-share files still cfg(unix)-only
+      (follow-up, needs windows crate DACL).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
