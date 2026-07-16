@@ -174,8 +174,24 @@ memories:
       symmetric import, key-profiles export, MULTOS modulus export, MKDATA,
       per-scheme CA/cert report panes, real PKCS#7/ASN.1 + DER P10, transport
       mode (ch4), KMS server run modes/service + log/key-cache config (ch6-9),
-      change KMS Key Card PIN. PENDING: continue RM long tail, Phase 7
-      (hardening/release), Phase 1b (vendor libethsm — needs real HSM env).
+      change KMS Key Card PIN.
+      PHASE 4b TRANSFER DONE 2026-07-16: key transfer. kms-hsm
+      import_key_cleartext/wrap_key_under_transport/unwrap_key_under_transport
+      (mock abstracts key material as KCV; wrap=KCV XOR transport-mask,
+      reversible so export->import preserves KCV; real NOT_SUPPORTED). catalog
+      KeyContainer/ContainerEntry (serde); import_symmetric_cleartext,
+      import_key_under_transport, export_keys (TransportKeys-gated, skips
+      asym/value-deleted -> KeyContainer), import_container, transport_hsm_label
+      (verifies Transport nature+Active). App: exports/keys-<stamp>.json
+      write/list/read (traversal-guarded); 5 commands. UI: Key Admin cleartext+
+      wrapped create modes + Key transfer panel (checkbox-select, export under
+      transport key, import container into context). 101 rust tests, clippy
+      clean. On-disk adds ~/.bnprs-kms/exports/. Native JSON container
+      round-trips fully; CT6/OGDC vendor BINARY formats still TODO. PENDING:
+      CT6/OGDC parsing, key-profiles export, MULTOS modulus, MKDATA, transport
+      mode (ch4), server/service+log/key-cache config (ch6-9), per-scheme
+      report panes, real PKCS#7/DER, Phase 7 (hardening/release), Phase 1b
+      (vendor libethsm — needs real HSM env).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
