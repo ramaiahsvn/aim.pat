@@ -153,9 +153,29 @@ memories:
       backups/kms-backup-<UTC>.json}. DEFERRED 6b: server run modes/service
       integration, remote log appenders, key-cache generation wiring,
       scheduled/encrypted backups. STATUS: Phases 0,2,3,4a,5a,6a COMPLETE.
-      PENDING: Phase 7 (hardening/release: cargo audit/deny, fuzz, packaging,
-      MR ai_dev->bp_dev), deferred 4b/5b/6b, Phase 1b (vendor libethsm LINK +
-      pure-Rust FM client — needs real HSM env, not mock).
+      PHASE 4b/5b BULK COMPLETE 2026-07-16 (user asked "add all features of
+      RM"): asymmetric + transport + IPK certs. kms-hsm import_key_by_parts
+      (XOR) + generate_asymmetric(label,rsa,bits)->(public,kcv). catalog:
+      KeyAlgorithm += Rsa2048/4096,EccP256/384 (is_asymmetric/is_rsa),
+      KeyNature += Transport,Isk, matrix updated, KeyEntry.public_hex,
+      KeyStatus::ValueDeleted; create_asymmetric_key/create_key_by_parts/
+      import_public_key/delete_key_value. NEW MODULE kms-domain::ipk =
+      IssuerCertificate/IpkStore/IpkService: import-without-request (banking->
+      Active, X509->Imported), generate P10 request (PLACEHOLDER PEM envelope
+      w/ own base64 — NOT real DER), import-signed-cert, SO1->SO2->SO3
+      endorse (X509), revoke/delete; ManageCertificates-gated. Persisted
+      ~/.bnprs-kms/ipk.json; IpkStore in BackupBundle (serde default).
+      UI: Key Admin +RSA/ECC/transport/ISK/by-parts/import-public/del-value;
+      NEW Issuer Certificates view. 99 rust tests, clippy clean.
+      IMPORTANT: RM is ~460pp/HUNDREDS of features — this is a big BATCH not
+      the whole manual. Full inventory in
+      08-memory/long-term/reference_rm_feature_inventory.md. LONG TAIL still
+      TODO: multi-key export/import (container/CT6/OGDC), transport-wrapped
+      symmetric import, key-profiles export, MULTOS modulus export, MKDATA,
+      per-scheme CA/cert report panes, real PKCS#7/ASN.1 + DER P10, transport
+      mode (ch4), KMS server run modes/service + log/key-cache config (ch6-9),
+      change KMS Key Card PIN. PENDING: continue RM long tail, Phase 7
+      (hardening/release), Phase 1b (vendor libethsm — needs real HSM env).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
