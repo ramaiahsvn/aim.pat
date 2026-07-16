@@ -72,6 +72,30 @@ memories:
     source: "session-20260716"
     tags: [toolchain, build, scope]
 
+  - id: mem-005
+    type: project_context
+    content: >
+      Progress (as of 2026-07-16, all on ai_dev of trp1003.phsm.kms.fe).
+      Living status doc = docs/rust-migration/ROADMAP.md (source of truth).
+      DONE: Phase 0 (kms-core security primitives, 29 tests), Phase 1a
+      (kms-hsm: HsmBackend trait, threaded HsmController, MockHsm, build.rs
+      static-compiles bnprs/host via cc+bindgen, real.rs FFI wrapper) +
+      real.rs compile/type-check VERIFIED in a linux/amd64 Docker
+      (rust:1-bookworm) container, Phase 2 (kms-domain services + kms-app
+      Tauri 2 shell + Svelte 5 UI: login/dashboard/key-management; app
+      builds + runtime smoke test passes). 46 rust tests green. PENDING:
+      Phase 1b (full vendor libethsm LINK + pure-Rust FM client over
+      MD_SendReceive), Phase 2 parity views (full user mgmt, audit-log
+      view, PIN-block, settings) then delete Qt src/, Phases 3-7.
+      Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
+      (excluded from workspace default-members; needs no rustup).
+    created_at: "2026-07-16"
+    last_accessed: "2026-07-16"
+    access_count: 1
+    confidence: 0.98
+    source: "session-20260716"
+    tags: [progress, roadmap, status]
+
 pruning:
   max_entries: 500
   stale_after_days: 90
