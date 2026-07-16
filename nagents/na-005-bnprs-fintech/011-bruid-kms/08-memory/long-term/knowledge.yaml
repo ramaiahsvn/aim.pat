@@ -92,11 +92,23 @@ memories:
       src/ + ENTIRE CMake build system DELETED (src tests cmake resources
       packaging scripts CMakeLists.txt CMakePresets.json .clang-format);
       README rewritten for Rust/Tauri. Repo is now Rust-only. Role-aware nav.
-      63 rust tests green, clippy -D warnings clean, runtime-verified.
-      Mock demo logins: operator/auditor (User store), admin/so1-3 (Admin
-      store), password bnprs-demo (mock ignores passwords). PENDING: Phase 3
-      (KMS setup + master-key ceremony), Phase 1b (vendor libethsm LINK +
-      pure-Rust FM client over MD_SendReceive), Phases 4-7.
+      PHASE 3 COMPLETE 2026-07-16: KMS setup + master-key ceremony (RM ch.3).
+      HsmBackend master-key ops (generate/export/import components, activate,
+      state; MasterKeyState enum). Mock = real by-parts state machine
+      (XOR-split components reconstruct key); real.rs wires generate_lmk/
+      export_lmk, CKR_FUNCTION_NOT_SUPPORTED for import/activate/state.
+      CeremonyService = guided single-ceremony state machine, generate+import
+      modes, DUAL/TRIPLE CONTROL (part N authorised by SON — mirrors pHSM host
+      per-part SO login), RunMasterKeyCeremony-gated. Generate-mode components
+      written to trusted-path file ~/.bnprs-kms/ceremony/<label>-partN.key
+      (0600), NEVER returned to webview. KmsSettings (name/identifier/
+      ceremony_parts) on AppConfig. UI: Master-Key Ceremony view (SO stepper).
+      73 rust tests, clippy clean, app builds+runs. DEFERRED: ceremony state
+      not persisted across restarts (in-memory). Mock demo logins:
+      operator/auditor (User store), admin/so1-3 (Admin store, also the
+      ceremony SOs), password bnprs-demo (mock ignores passwords). PENDING:
+      Phase 4 (Key Administration Module), Phase 1b (vendor libethsm LINK +
+      pure-Rust FM client over MD_SendReceive), Phases 5-7.
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
