@@ -206,6 +206,24 @@ memories:
       TODO: CT6/OGDC binary parsing, MULTOS modulus, MKDATA, per-scheme report
       panes, real PKCS#7/DER P10, server run modes/service+log/key-cache (ch6-9
       6b), Phase 7 (hardening/release), Phase 1b (vendor libethsm).
+      PHASE 7 HARDENING MOSTLY DONE 2026-07-16: cargo audit = 0 vulnerabilities
+      (434 crates; 17 unmaintained/unsound advisories all Tauri transitive
+      Linux-GUI gtk-rs/glib/atk/gdk + build proc-macros + unic-* — acknowledged
+      in .cargo/audit.toml so 'cargo audit -D warnings' passes). Code review:
+      command/state I/O paths panic-free (map_err->CommandError), forbid(
+      unsafe_code) on core/domain/app (FFI-only kms-hsm), no println/eprintln/
+      dbg in prod, release profile panic=abort/lto/strip fail-closed. HARDENED
+      HSM WORKER: each job wrapped in catch_unwind so FFI-path panic fails one
+      call not the whole worker (+1 test). docs/security.md: appended Rust/Tauri
+      Phase-7 section. RELEASE BUILD VERIFIED: pnpm ui build + cargo build -p
+      kms-app --release = self-contained 4.5MB binary, runs WITHOUT dev server
+      (release bundles ui/dist; debug loads devUrl :5173 — that's why debug UI
+      goes blank if vite dies). 103 rust tests (100 default+3 app). cargo-audit
+      installed at ~/.cargo/bin. REMAINING P7: FFI decoder fuzz, signed
+      installers (Tauri bundler, needs certs), MR ai_dev->bp_dev (owner call).
+      OVERALL REMAINING: CT6/OGDC binary, MULTOS modulus, MKDATA, per-scheme
+      reports, real PKCS#7/DER, ch6-9 server/service config (6b), Phase 1b
+      (vendor libethsm — needs real HSM env).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
