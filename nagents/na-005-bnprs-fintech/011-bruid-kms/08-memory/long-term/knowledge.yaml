@@ -119,10 +119,26 @@ memories:
       audit.log, catalog.json, ceremony/*.key (all under ~/.bnprs-kms/).
       DEFERRED to Phase 4b: by-parts symmetric create, RSA/ECC, transport
       keys, multi-key import/export (container/CT6/OGDC), MKDATA, key-profiles
-      export. Mock demo logins: operator/auditor (User store), admin/so1-3
-      (Admin store, also ceremony SOs), password bnprs-demo. PENDING: Phase 4b,
-      Phase 5 (CA & certificate mgmt), Phase 1b (vendor libethsm LINK +
-      pure-Rust FM client), Phases 6-7.
+      export. PHASE 5a COMPLETE 2026-07-16: CA & certificate management (RM
+      ch.5). kms-domain::ca = CertAuthority/CaKey/CaStore (all PUBLIC data —
+      CA public keys not secret), CertScheme (13: Visa/MC/Girocard/JCB/Amex/
+      Interac/UnionPay/Discover/ERCA/MSCA/MULTOS/NSPK/X509), HashAlgo,
+      CaKeyStatus (Pending/Endorsed/Revoked). CaService: CA CRUD + CA
+      public-key import (ManageCas=Admin; RID 10hex/index 2hex/modulus
+      128-512hex/exp 3|65537 validation + display check value), SO1->SO2->SO3
+      ENDORSEMENT workflow (triple control, in-order, inline SO auth like
+      ceremony; Pending->Endorsed after 3rd), revoke/expiry/delete. Persisted
+      ~/.bnprs-kms/ca.json. UI: CA & Certificates view (Admin-only). 85 rust
+      tests, clippy clean. On-disk state: config.json, audit.log, catalog.json,
+      ca.json, ceremony/*.key. DEFERRED 5b: PKCS#7 chains + consistency,
+      issuer public-key certs (P10 request/import), per-scheme reports, real
+      SHA check values, HSM load of endorsed keys. RBAC note: Endorse perm is
+      SO-only but endorsement is DRIVEN by Admin session (ManageCas) with
+      inline SO credential providing authority — same pattern as ceremony.
+      Mock demo logins: operator/auditor (User store), admin/so1-3 (Admin
+      store, also ceremony+endorsement SOs), password bnprs-demo. PENDING:
+      Phase 4b, Phase 5b, Phase 6 (server/ops), Phase 1b (vendor libethsm
+      LINK + pure-Rust FM client), Phase 7 (hardening/release).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
