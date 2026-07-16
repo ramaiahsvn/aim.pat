@@ -192,6 +192,20 @@ memories:
       mode (ch4), server/service+log/key-cache config (ch6-9), per-scheme
       report panes, real PKCS#7/DER, Phase 7 (hardening/release), Phase 1b
       (vendor libethsm — needs real HSM env).
+      CH4 + CARD-PIN + PROFILES DONE 2026-07-16: kms-hsm transport_mode/
+      set_transport_mode (mock bool) + change_key_card_pin (mock default
+      "0000", verifies old+min-length; real NOT_SUPPORTED). catalog
+      export_key_profiles (ViewKeys, non-secret KeyEntry metadata). AppState
+      now holds direct Arc<HsmController> `hsm` for admin ops. App:
+      write_key_profiles -> exports/key-profiles-<stamp>.json; commands
+      get/set_transport_mode + change_key_card_pin (ManageConfig-gated+audited)
+      + export_key_profiles. UI: System & Ops HSM-admin card (transport toggle
+      + change-card-PIN form); Key Admin Export-profiles button. 102 rust tests.
+      Ch4 transport mode DONE (SafeNet HSM admin proper stays out of scope).
+      STATUS: Phases 0,2,3,4a,5a,6a COMPLETE; 4b/5b MOSTLY; Ch4 done. STILL
+      TODO: CT6/OGDC binary parsing, MULTOS modulus, MKDATA, per-scheme report
+      panes, real PKCS#7/DER P10, server run modes/service+log/key-cache (ch6-9
+      6b), Phase 7 (hardening/release), Phase 1b (vendor libethsm).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
