@@ -279,10 +279,16 @@ memories:
       sorted. Commands certificate_report + export_certificate_report
       (ManageCas; -> exports/cert-report-<stamp>.json). UI: report table +
       export in CA & Certificates view. 109 rust tests.
+      AUDIT CSV EXPORT DONE 2026-07-16: kms-core::audit::to_csv (RFC4180,
+      quoted, doubles internal quotes) + escaping test. export_audit(limit)
+      cmd (ViewAudit) -> exports/audit-<stamp>.csv. UI: Export CSV button in
+      Audit Log view. 110 rust tests.
       REMAINING (all need external specs/hardware): CT6/OGDC binary, MKDATA,
       real DER-encoded P10 + PKCS#7 chain parsing (needs der/x509 crate + HSM
       SIGNING op we don't have), FFI fuzz + signed installers (P7), Phase 1b
-      (vendor libethsm).
+      (vendor libethsm). ~/.bnprs-kms/exports/ now holds: keys-*, key-profiles-*,
+      modulus-*, cert-report-*, audit-*.csv. TEST COUNT ~110 (core 34, hsm 15,
+      domain 58, app 3).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
