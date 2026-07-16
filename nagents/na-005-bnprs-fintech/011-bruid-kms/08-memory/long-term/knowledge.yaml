@@ -103,12 +103,26 @@ memories:
       written to trusted-path file ~/.bnprs-kms/ceremony/<label>-partN.key
       (0600), NEVER returned to webview. KmsSettings (name/identifier/
       ceremony_parts) on AppConfig. UI: Master-Key Ceremony view (SO stepper).
-      73 rust tests, clippy clean, app builds+runs. DEFERRED: ceremony state
-      not persisted across restarts (in-memory). Mock demo logins:
-      operator/auditor (User store), admin/so1-3 (Admin store, also the
-      ceremony SOs), password bnprs-demo (mock ignores passwords). PENDING:
-      Phase 4 (Key Administration Module), Phase 1b (vendor libethsm LINK +
-      pure-Rust FM client over MD_SendReceive), Phases 5-7.
+      PHASE 4a COMPLETE 2026-07-16: Key Administration Module (RM ch.5).
+      HsmBackend generate_key(label, key_bits) for symmetric working keys
+      (mock deterministic; real.rs → zmk_generate). kms-domain::catalog =
+      Issuer/KeyContext/KeyEntry/Catalog models (serde, KCV tail only, NO
+      secrets), KeyNature (ZMK/TMK/TPK/ZPK/PEK/BDK/CVK/KEK/DEK) + KeyAlgorithm
+      (TDES2/3,AES128/256) with reviewed nature→algorithm matrix in code.
+      CatalogService: issuer+context CRUD (ManageIssuers), key create/edit-
+      dates/revoke/suspend/set-default/delete (ManageKeys/ViewKeys), KEY
+      VERSIONS via version-qualified HSM labels LABEL#vN (distinct KCVs; new
+      version NOT auto-default), cascade-delete guards. Catalog PERSISTED to
+      ~/.bnprs-kms/catalog.json (saved per mutation). UI: Key Administration
+      view (issuers→contexts master-detail + keys table). 79 rust tests,
+      clippy clean, app builds+runs. On-disk state now: config.json,
+      audit.log, catalog.json, ceremony/*.key (all under ~/.bnprs-kms/).
+      DEFERRED to Phase 4b: by-parts symmetric create, RSA/ECC, transport
+      keys, multi-key import/export (container/CT6/OGDC), MKDATA, key-profiles
+      export. Mock demo logins: operator/auditor (User store), admin/so1-3
+      (Admin store, also ceremony SOs), password bnprs-demo. PENDING: Phase 4b,
+      Phase 5 (CA & certificate mgmt), Phase 1b (vendor libethsm LINK +
+      pure-Rust FM client), Phases 6-7.
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
