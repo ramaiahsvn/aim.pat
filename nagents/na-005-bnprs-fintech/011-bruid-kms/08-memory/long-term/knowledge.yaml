@@ -224,6 +224,20 @@ memories:
       OVERALL REMAINING: CT6/OGDC binary, MULTOS modulus, MKDATA, per-scheme
       reports, real PKCS#7/DER, ch6-9 server/service config (6b), Phase 1b
       (vendor libethsm — needs real HSM env).
+      PHASE 6b PARTIAL DONE 2026-07-16: kms-hsm key_cache_count/clear_key_cache
+      (mock key_cache label-set grown by every key op via cache_and_store
+      helper, flushed on clear; persistent keys map survives; real NOT_SUPP).
+      OpsSettings += log_level (error/warn/info/debug), remote_log_endpoint,
+      auto_backup_interval_days (0=off), last_backup_at (all serde-default).
+      update_config now runs ops.validate()+kms.validate(). create_backup
+      stamps last_backup_at. Commands key_cache_count/clear_key_cache
+      (ManageConfig+audited). UI System & Ops: cache count+flush, log-level/
+      remote-endpoint/auto-backup fields, last-backup + next-due(overdue) line.
+      104 rust tests. 6b REMAINING: KMS server run modes/OS-service (server is
+      separate process, mostly N/A for client console), live remote-log wiring,
+      unattended scheduled backup exec, encrypted bundles. OVERALL REMAINING:
+      CT6/OGDC binary, MULTOS modulus, MKDATA, per-scheme reports, real
+      PKCS#7/DER, FFI fuzz + signed installers (P7), Phase 1b (vendor libethsm).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
