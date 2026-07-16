@@ -265,9 +265,17 @@ memories:
       export_rsa_modulus cmd -> exports/modulus-<label>-<stamp>.txt. UI: Key
       Admin effective status (Active/Scheduled/Expired) + Modulus button on RSA
       keys; Dashboard Scheduled tile. 106 rust tests. Scheduling is display/
-      count only (mock does no crypto with keys). REMAINING (all need external
-      specs/hardware): CT6/OGDC binary, MKDATA, per-scheme report panes, real
-      PKCS#7/DER, FFI fuzz + signed installers (P7), Phase 1b (vendor libethsm).
+      count only (mock does no crypto with keys).
+      REAL SHA CHECK VALUES 2026-07-16: added pure-Rust sha1+sha2 (RustCrypto,
+      no unsafe; cargo audit still clean, 435 crates). kms-core::hash sha1_hex/
+      sha256_hex + NIST KATs. CA check value = REAL HASH(RID||index||modulus||
+      exponent) per hash_algo (SHA-1 40hex/SHA-256 64hex, EMV convention); IPK
+      checksum = SHA-256 of cert body. UI truncates to 12 hex + full tooltip.
+      108 rust tests. NOTE: DER-encoded P10 + PKCS#7 chain PARSING still
+      placeholder (needs der/x509 crate); only the check-value HASH is now real.
+      REMAINING (all need external specs/hardware): CT6/OGDC binary, MKDATA,
+      per-scheme report panes, real PKCS#7/DER P10, FFI fuzz + signed installers
+      (P7), Phase 1b (vendor libethsm).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
