@@ -136,9 +136,26 @@ memories:
       SO-only but endorsement is DRIVEN by Admin session (ManageCas) with
       inline SO credential providing authority — same pattern as ceremony.
       Mock demo logins: operator/auditor (User store), admin/so1-3 (Admin
-      store, also ceremony+endorsement SOs), password bnprs-demo. PENDING:
-      Phase 4b, Phase 5b, Phase 6 (server/ops), Phase 1b (vendor libethsm
-      LINK + pure-Rust FM client), Phase 7 (hardening/release).
+      store, also ceremony+endorsement SOs), password bnprs-demo.
+      PHASE 6a COMPLETE 2026-07-16: server-side & ops (RM ch.6-9). kms-core
+      OpsSettings (key_cache_enabled/size, log_retention_days) on AppConfig
+      (+PartialEq/Eq). kms-domain::backup = BackupBundle (versioned snapshot
+      of config+catalog+CA — ALL non-secret; validate rejects unknown schema;
+      summary counts) + now_rfc3339/now_file_stamp; CatalogService::replace /
+      CaService::replace for restore. kms-app: backups dir + write/list/read
+      (path-traversal guarded), AppState.hsm_backend name; 4 commands
+      (system_info, create/list/restore_backup — BackupRestore=Admin-gated +
+      audited; restore REPLACES config+catalog+ca, re-applies idle timeout).
+      Backups EXCLUDE secrets: key material stays in HSM, audit log excluded;
+      restore is metadata-only (does NOT recreate HSM key objects). UI: System
+      & Ops view. 90 rust tests (87 default + 3 app). On-disk now:
+      ~/.bnprs-kms/{config.json,audit.log,catalog.json,ca.json,ceremony/*.key,
+      backups/kms-backup-<UTC>.json}. DEFERRED 6b: server run modes/service
+      integration, remote log appenders, key-cache generation wiring,
+      scheduled/encrypted backups. STATUS: Phases 0,2,3,4a,5a,6a COMPLETE.
+      PENDING: Phase 7 (hardening/release: cargo audit/deny, fuzz, packaging,
+      MR ai_dev->bp_dev), deferred 4b/5b/6b, Phase 1b (vendor libethsm LINK +
+      pure-Rust FM client — needs real HSM env, not mock).
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
