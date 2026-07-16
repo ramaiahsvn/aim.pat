@@ -104,7 +104,16 @@ registry:
     created_by: "bnprs"
 
   # code 011 reassigned from rnd-fintech to bruid-kms — deliberate policy
-  # exception authorised by bnprs 2026-07-16 (see below). rnd-fintech moved to 013.
+  # exception authorised by bnprs 2026-07-16. rnd-fintech moved to 013 (see below).
+  - code: "011"
+    name: "bruid-kms"
+    label: "bruid-kms"
+    role: "BRUID Key Management System"
+    path: "011-bruid-kms"
+    status: "active"
+    created_at: "2026-07-16"
+    created_by: "bnprs"
+    note: "Code 011 reassigned from rnd-fintech (moved to 013) on 2026-07-16 — owner-authorised policy exception to the permanent-code rule."
 
   - code: "012"
     name: "bpr1003-mpos-libs-usage"
