@@ -7,7 +7,7 @@
 
 agent:
   name: "rnd-fintech"
-  code: "011"
+  code: "013"
   group: "na-005-bnprs-fintech"
   version: "1.0.0"
   description: "<What this agent does>"

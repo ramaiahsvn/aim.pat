@@ -19,8 +19,9 @@ na-005-bnprs-fintech has 12 active agents (codes 001–012):
 - 008 bruid-dprep — BRUID Data Preparation: 74-field central blob + 52-field instant hex assembly; CVV/PVV/ICVV/Track/Pinblock computation; PCI-DSS SAD handling
 - 009 bruid-cperso — BRUID Central Personalization: bureau batch issuance; HSM (FM/HOST/HostJNI); BprQiEmv DLL (v2.50.x); Gemalto/Kona/GND variants
 - 010 bruid-iperso — BRUID Instant Issuance: branch counter; 52-field hex; remote SupervisorAuthentication via kms.bnprs.ai; 8 Android vendors; re-perso support
-- 011 rnd-fintech — Fintech R&D (bpr.rnd): EMV PIN block (ISO 9564-1 F0), DUKPT key management, GlobalPlatform CPS demonstrator, Menta PURE docs, chip perso scripts (Gemalto/eDinar), supervisor key traces, ISO 19794-2 biometric templates; contains UAT/test keys — treat as sensitive
+- 011 bruid-kms — (reserved; scaffolding pending) BRUID key management. Code 011 reassigned from rnd-fintech on 2026-07-16 (owner-authorised policy exception); rnd-fintech moved to 013.
 - 012 bpr1003-mpos-libs-usage — BPR1003 mPOS C++ Libraries: PatPOS client-side libraries for mobile point-of-sale (Android + Linux). Active work: mPos.Lib migration replacing old `mPosXxxController → ContactCardImpl → qiemv/qiScript.so` path with new `PcscCardReader → BprPcSc.so` path (matches sunmi.11.2 structure). 6 device library modules migrated (pax, feitian, wizar, nexGo, ciontek, futronic); test app changes complete for pax/MainActivity.java, pending for feitian/wizar/nexGo/ciontek/futronic. hyf and idemia not yet in scope. Work log: `08-memory/long-term/mpos-lib-migration-20260222.md`
+- 013 rnd-fintech — Fintech R&D (bpr.rnd): EMV PIN block (ISO 9564-1 F0), DUKPT key management, GlobalPlatform CPS demonstrator, Menta PURE docs, chip perso scripts (Gemalto/eDinar), supervisor key traces, ISO 19794-2 biometric templates; contains UAT/test keys — treat as sensitive. (Formerly code 011.)
 
 **Why:** Full BNPRS fintech card stack — ICBA biometric smart card issuance and verification product, plus R&D documentation.
 

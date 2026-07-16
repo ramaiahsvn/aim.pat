@@ -103,14 +103,8 @@ registry:
     created_at: "2026-05-27"
     created_by: "bnprs"
 
-  - code: "011"
-    name: "rnd-fintech"
-    label: "rnd-fintech"
-    role: "Fintech Research and Development"
-    path: "011-rnd-fintech"
-    status: "active"
-    created_at: "2026-05-27"
-    created_by: "bnprs"
+  # code 011 reassigned from rnd-fintech to bruid-kms — deliberate policy
+  # exception authorised by bnprs 2026-07-16 (see below). rnd-fintech moved to 013.
 
   - code: "012"
     name: "bpr1003-mpos-libs-usage"
@@ -120,6 +114,16 @@ registry:
     status: "active"
     created_at: "2026-05-28"
     created_by: "bnprs"
+
+  - code: "013"
+    name: "rnd-fintech"
+    label: "rnd-fintech"
+    role: "Fintech Research and Development"
+    path: "013-rnd-fintech"
+    status: "active"
+    created_at: "2026-05-27"
+    created_by: "bnprs"
+    note: "Formerly code 011; moved to 013 on 2026-07-16 so 011 could be reassigned to bruid-kms (owner-authorised policy exception)."
 
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Transaction and payment agents

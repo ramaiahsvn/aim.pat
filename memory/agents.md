@@ -56,7 +56,7 @@
 | 008  | na-005 | bruid-dprep | BRUID Data Preparation (74-field central blob / 52-field instant hex) | active | 2026-05-27 |
 | 009  | na-005 | bruid-cperso | BRUID Central Personalization (bureau batch, HSM, BprQiEmv DLL) | active | 2026-05-27 |
 | 010  | na-005 | bruid-iperso | BRUID Instant Issuance Solution (branch counter, remote kms.bnprs.ai auth) | active | 2026-05-27 |
-| 011  | na-005 | rnd-fintech | Fintech Research and Development (EMV, DUKPT, CPS, BRUID, biometric templates) | active | 2026-05-27 |
+| 013  | na-005 | rnd-fintech | Fintech Research and Development (EMV, DUKPT, CPS, BRUID, biometric templates) — moved from 011 on 2026-07-16 | active | 2026-05-27 |
 | 012  | na-005 | bpr1003-mpos-libs-usage | BPR1003 mPOS C++ Libraries — PatPOS client-side libs (Android/Linux); migrating qiemv→BprPcSc path across 6 device modules | active | 2026-05-28 |
 | 001  | na-006 | bpr1002-mgate-prod | BPR M-Gate Production (API/Mobile Gateway) | active | 2026-05-27 |
 | 002  | na-006 | bpr1004-utms-prod | BPR UTMS Production (Unified Transaction Management System) | active | 2026-05-27 |
