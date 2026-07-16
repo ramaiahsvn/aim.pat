@@ -77,18 +77,22 @@ memories:
     content: >
       Progress (as of 2026-07-16, all on ai_dev of trp1003.phsm.kms.fe).
       Living status doc = docs/rust-migration/ROADMAP.md (source of truth).
-      DONE: Phase 0 (kms-core security primitives, 29 tests), Phase 1a
-      (kms-hsm: HsmBackend trait, threaded HsmController, MockHsm, build.rs
-      static-compiles bnprs/host via cc+bindgen, real.rs FFI wrapper) +
-      real.rs compile/type-check VERIFIED in a linux/amd64 Docker
-      (rust:1-bookworm) container, Phase 2 (kms-domain services + kms-app
-      Tauri 2 shell + Svelte 5 UI: login/dashboard/key-management; app
-      builds + runtime smoke test passes). 46 rust tests green. PENDING:
-      Phase 1b (full vendor libethsm LINK + pure-Rust FM client over
-      MD_SendReceive), Phase 2 parity views (full user mgmt, audit-log
-      view, PIN-block, settings) then delete Qt src/, Phases 3-7.
+      DONE: Phase 0 (kms-core security primitives), Phase 1a (kms-hsm
+      bridge; real.rs FFI compile-verified in linux/amd64 Docker), Phase 2
+      shell + ALL parity views: login/dashboard/key-mgmt + Users & Roles,
+      Audit Log (filter), PIN Block (ISO 9564-1 format-0 encode/decode +
+      PEK import; decode returns masked+length only), Settings (persisted
+      ~/.bnprs-kms/config.json; audit at ~/.bnprs-kms/audit.log — every
+      service now writes audit). HSM trait gained delete_principal /
+      change_password / decrypt_pinblock (mock + real.rs). Role-aware nav.
+      61 rust tests green, clippy -D warnings clean, runtime-verified.
+      Mock demo logins: operator/auditor (User store), admin/so1-3 (Admin
+      store), password bnprs-demo (mock ignores passwords). PENDING: Qt
+      src/ deletion (CAVV + QiChallenge panels not yet ported), Phase 1b
+      (vendor libethsm LINK + pure-Rust FM client), Phases 3-7.
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
-      (excluded from workspace default-members; needs no rustup).
+      (excluded from workspace default-members; needs no rustup). Dev run:
+      vite dev server must be up (devUrl :5173) or use --release.
     created_at: "2026-07-16"
     last_accessed: "2026-07-16"
     access_count: 1
