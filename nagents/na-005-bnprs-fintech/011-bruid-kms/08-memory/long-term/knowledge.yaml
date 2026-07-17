@@ -292,6 +292,31 @@ memories:
       Build kms-app: `pnpm --dir ui build` then `cargo build -p kms-app`
       (excluded from workspace default-members; needs no rustup). Dev run:
       vite dev server must be up (devUrl :5173) or use --release.
+      WINDOWS .EXE BUILT ON CI 2026-07-17: GitLab CI windows-build job (runner
+      id 14 'cPerso Windows build runner' = EC2 i-03563f4ad6ca9abf0 'patwin-runner'
+      m5.4xlarge, acct 891963159778 ap-south-2 profile bnprs, admin via SSM no RDP)
+      produced target/release/kms-app.exe (PE32+ x64, 4.8MB) — pipeline artifact
+      kms-windows-<sha>.zip. Runner setup needed (all via SSM Run Command,
+      PowerShell -EncodedCommand base64): (1) grow EBS vol-042455a91b756bafe
+      30->100GB + Resize-Partition (was disk-full 0x80070070); (2) install VCTools
+      C++ workload — base AMI had only .NET workload; headless MODIFY of existing
+      BuildTools FAILS (vs_installer --wait=exit87 invalid, no --wait=async no-op);
+      WORKING PATH = FRESH bootstrapper install to NEW path: vs_BuildTools.exe
+      --installPath C:\VS2022BT --add Microsoft.VisualStudio.Workload.VCTools
+      --includeRecommended --quiet --norestart --wait (via .bat/cmd, Unblock-File
+      first); rustc auto-finds it via vswhere; (3) Rust 1.97 + Node 20 machine-wide
+      (CARGO_HOME/RUSTUP_HOME C:\rust\*), pnpm = STANDALONE pnpm.exe in C:\nodejs
+      (corepack sig-check broken in Node 20.18 — deleted corepack pnpm shims);
+      (4) git core.longpaths=true + LongPathsEnabled=1 + CARGO_HOME off workspace
+      (C:\cargo) — else pnpm node_modules/cargo registry blow past 260-char and
+      git checkout fails. .gitlab-ci.yml: windows-build needs:[] (Linux check
+      stage has no runner), tags:[windows], CARGO_HOME C:\cargo. Runner 14 enabled
+      on project 232.
+      REMINDER (todo #41): idle-stop EventBridge rule mces2-win-runner-idle-stop
+      (ap-south-2, profile bnprs) is DISABLED until ~2026-07-20 (user wants runner
+      up 3 days). RE-ENABLE then: aws events enable-rule --name
+      mces2-win-runner-idle-stop --region ap-south-2 --profile bnprs. Instance is
+      m5.4xlarge (~$0.77/hr) — costs accrue while up.
     created_at: "2026-07-16"
     last_accessed: "2026-07-16"
     access_count: 1
