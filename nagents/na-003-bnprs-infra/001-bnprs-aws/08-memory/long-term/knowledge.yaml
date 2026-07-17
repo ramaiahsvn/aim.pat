@@ -257,3 +257,72 @@ pruning:
     confidence: 0.97
     source: "session-2026-06-14"
     tags: [mgate, bpr1002, frankfurt, eu-central-1, terraform, destroy, teardown, cost, eip]
+
+  - id: mem-008
+    type: project_context
+    content: >-
+      2026-07-15: NEW India mGate stack adapted + committed (NOT applied). Repo
+      gitlab.bnprs.ai/BPR1002/india/bpr1002.mgate.iaac, branch bp_rel (commit
+      115ceb1). India repos were empty scaffolds seeded from the Iraq/mGate code,
+      so the "India" tfvars were still the Iraq config (eu-central-1, project
+      mgate, restore snapshot, plaintext secrets). Adapted platform/prod ONLY for
+      THIS account (891963159778) / ap-south-2, project mgate-in: self-allocate
+      NAT EIPs in modules/network/vpc (dropped cross-account bootstrap/eip remote
+      state), create GuardDuty detector (none existed), fresh empty DB (no
+      snapshot), REMOVED vpn.tf (needs ap-south-2 OpenVPN AMI + keypair + EIP to
+      re-enable), backend -> s3 bucket mgate-in-prod-terraform-state (ap-south-2,
+      NOT yet created). terraform plan = 76 add / 0 / 0, validated; db.r5.large +
+      aurora-mysql 8.0.3.10.3 confirmed orderable in ap-south-2. Est ~$400-530/mo
+      (vs the old eu-central-1 r5.xlarge ~$650/mo, see mem-004). APPLIED 2026-07-15:
+      79/79 resources live. State bucket mgate-in-prod-terraform-state (ap-south-2,
+      versioned/encrypted/private); backend.tf needed skip_region_validation=true
+      (TF 1.5.7 S3 backend rejects newer ap-south-2). VPC vpc-0df1c91378fb9bab8; Aurora
+      mgate-in-prod-db.cluster-cloqia2c22vp.ap-south-2.rds.amazonaws.com:3306 (db
+      mgate_prod/user mgate_prod, secret mgate-in-prod/db/credentials); ECS cluster
+      mgate-in-prod-ecs-cluster; NAT egress IPs 16.113.17.34 + 16.113.60.29 (whitelist
+      with vendors); GuardDuty 8ed527b066014e1c834b5e12976aa9ca. CloudTrail failed the
+      first pass (InsufficientS3BucketPolicyException — S3 policy propagation race) then
+      succeeded on immediate re-apply. Services (ECS tasks), appconfig, vendor-config
+      NOT deployed (separate stacks, still eu-central-1/mgate, not India-adapted).
+      backend.tf skip_region_validation change not yet committed.
+      SECURITY: the India repo (bp_rel history + bp_dev + CR branches) and the
+      Iraq GitHub repos (github.com/ISCQI/bpr1002.mgate.*) contain COMMITTED
+      PLAINTEXT secrets copied from real mGate prod. This session rotated the ones
+      we generate (db/jwt/encryption/password-secret-key -> random_password in
+      prod+uat; removed redundant portalbackend password_secret_key; untracked
+      platform/uat/tfplan). qi_key REFACTORED (commit 113a7d5): moved from a
+      plaintext QI_KEY container env to a platform Secrets Manager secret
+      (qi-key.tf -> output qi_key_secret_arn -> portalbackend secrets[] valueFrom;
+      exec-role GetSecretValue granted); value = var.qi_key out-of-band else random
+      placeholder, so the REAL QiNotify key must be supplied at apply via
+      TF_VAR_qi_key. AppConfig mail/subscriber passwords WIRED to Secrets Manager
+      (commit 984bab4): bootstrap/appconfig prod+uat secrets.tf creates SM secrets
+      for spring.mail.password / mail.encrypted.password / subscriber.default.password;
+      AppConfig content sourced from the effective value (var out-of-band else random);
+      plaintext stripped from tfvars. BIG UNRESOLVED FINDING (uncovered 2026-07-15,
+      NOT yet fixed): bootstrap/appconfig/{prod,uat}/main.tf local vendor_properties
+      holds ~28 LIVE third-party vendor creds in PLAINTEXT (VENDOR_ CMS/EMMV/QIMV/
+      Asiacell/Commpeak/Mitto/Infobip/Vonage/Zain/Sinch/LucidPlus/ITPGateway/FortyTwo
+      — client secrets, passwords, bearer tokens/JWTs) PLUS portalbackend_2fa_password
+      "123456789" and appconfig_mail_encrypted_username. vendor_properties was
+      REFACTORED (commit 36c054a): bootstrap/appconfig prod+uat now read the ~38
+      vendor keys from bootstrap/vendor-config's Secrets Manager secret via
+      terraform_remote_state + aws_secretsmanager_secret_version (exact 38-key set)
+      — de-duplicated, no vendor plaintext in appconfig; also fixed uat's commented-
+      out vendor_properties (undeclared error resolved). STILL TODO: the plaintext
+      now lives ONLY in bootstrap/vendor-config/{prod,uat}/main.tf (the secret_string
+      jsonencode) — move THAT out-of-band next; portalbackend_2fa_password
+      "123456789" + appconfig_mail_encrypted_username still committed in appconfig;
+      rotate the live vendor creds at each provider.
+      (uat main.tf also has a PRE-EXISTING structural bug: vendor_properties /
+      servicesdb_properties declared inside malformed nested locals -> 'undeclared'
+      validate error; India uat appconfig never validated/applied.) ALL leaked
+      values remain retrievable from git history; the LIVE mGate prod secrets
+      (different account, 403 to bnprs profile) must be rotated by that account's
+      owner. History purge (filter-repo, all branches + Iraq repos) still pending.
+    created_at: "2026-07-15"
+    last_accessed: "2026-07-15"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-15"
+    tags: [mgate, bpr1002, india, ap-south-2, terraform, mgate-in, secrets, rotation, security, plan]
