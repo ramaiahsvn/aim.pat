@@ -312,11 +312,35 @@ memories:
       git checkout fails. .gitlab-ci.yml: windows-build needs:[] (Linux check
       stage has no runner), tags:[windows], CARGO_HOME C:\cargo. Runner 14 enabled
       on project 232.
-      REMINDER (todo #41): idle-stop EventBridge rule mces2-win-runner-idle-stop
-      (ap-south-2, profile bnprs) is DISABLED until ~2026-07-20 (user wants runner
-      up 3 days). RE-ENABLE then: aws events enable-rule --name
-      mces2-win-runner-idle-stop --region ap-south-2 --profile bnprs. Instance is
-      m5.4xlarge (~$0.77/hr) — costs accrue while up.
+      WINDOWS INSTALLER (NSIS setup.exe) BUILT 2026-07-17: bundle target set via
+      committed crates/kms-app/tauri.ci.json (build.beforeBuildCommand:"" so
+      `cargo tauri build` doesn't re-run pnpm with a workspace-relative path that
+      mis-resolves in the nested CI checkout; bundle.targets:["nsis"]). CI installer
+      step: `cargo tauri build --config tauri.ci.json`. ROOT CAUSE of long installer
+      saga = WOW64 REDIRECTION: gitlab-runner runs as LocalSystem whose LOCALAPPDATA
+      is C:\Windows\System32\config\systemprofile\...; tauri's makensis (and WiX
+      candle) are 32-bit, so their System32 file access is redirected to SysWOW64
+      where the toolset didn't exist -> "Unable to start child process error 0x2" /
+      0xC0000135 DLL-not-found / candle 0x80131700. FIX (manual, on runner, persists
+      on C: across reboots; lost only if AMI rebuilt): (a) choco install nsis (gives
+      working makensis v3.12 at 'C:\Program Files (x86)\NSIS'); (b) copy it into
+      BOTH C:\Windows\System32\config\systemprofile\AppData\Local\tauri\NSIS AND the
+      SysWOW64\config\systemprofile\... MIRROR, plus download nsis_tauri_utils.dll
+      v0.5.3 into Plugins\x86-unicode of both. The 32-bit makensis reads the SysWOW64
+      mirror at runtime, so it works even though tauri re-extracts the broken 3.11
+      into System32 each build ("NSIS directory missing files. Recreating it."). Also
+      installed .NET 3.5 (DISM NetFx3) + VC++2013 + VC++2015-2022 on the runner.
+      Produced 'BNPRS KMS_0.1.0_x64-setup.exe' (1.5MB, auto-installs WebView2). MSI/
+      WiX left unsolved (candle 0x80131700 same WOW64 cause) — NSIS chosen instead.
+      Proper permanent fix would be running the runner as a normal user (not SYSTEM).
+      REMINDER (todo #41): win-runner auto-stop DISABLED until ~2026-07-20 (user wants
+      runner up 3 days). NOTE the repeated stops came from the GitLab PIPELINE WEBHOOK
+      (Lambda win-runner-control stops the box on terminal pipeline status), NOT the
+      EventBridge rule. Two undo steps: (1) aws lambda delete-function-concurrency
+      --function-name win-runner-control --profile bnprs --region ap-south-2 (I set
+      reserved-concurrent-executions=0 as the real kill-switch); (2) aws events
+      enable-rule --name mces2-win-runner-idle-stop --region ap-south-2 --profile
+      bnprs; then stop the instance. m5.4xlarge (~$0.77/hr) — costs accrue while up.
     created_at: "2026-07-16"
     last_accessed: "2026-07-16"
     access_count: 1
