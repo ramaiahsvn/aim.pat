@@ -261,6 +261,28 @@ memories:
     confidence: 1.0
     tags: [project-create, BPR2004, circletech, protected-branch, master, group-122, project-249]
 
+  - id: mem-021
+    type: operation
+    content: >
+      2026-07-18 brute-force incident + hardening. IPs 80.97.45.81 (RO) then 103.172.202.17 fired 13
+      failed web logins against username root (16:40-16:43 UTC), tripping GitLab's Devise auto-lock
+      (10 fails -> 10 min lock) and the "account locked" email to ramaiah@bnprs.in. No successful
+      login from either IP — password held; no compromise. NOTE: a lock-flagged account's API calls
+      return 403 "Your account has been blocked." even when state=active — root's PAT ($GITLAB_PAT)
+      went 403 until `User.find_by(username:"root").unlock_access!` via gitlab-rails runner (also
+      resets failed_attempts). Hardening applied via PUT /application/settings:
+      require_admin_two_factor_authentication=true (admins only — root + GitLab-Admin-Bot; aim1001
+      agent accounts untouched; PATs/glab unaffected; 48h grace, TOTP enrollment prompted at next
+      root web sign-in), throttle_protected_paths_enabled=true (10 POST/min per IP on
+      sign_in/password paths — verified live: 11th POST returns 429), and
+      throttle_unauthenticated_web_enabled=true (3600 req/h per IP). max_login_attempts /
+      failed_login_attempts_unlock_period_in_minutes left at default (10 fails / 10 min). Attack
+      traffic is expected background noise while 16.112.21.84:80/443 is world-open; fail2ban or SG
+      allowlisting of the web UI remain open options.
+    created_at: "2026-07-18"
+    confidence: 1.0
+    tags: [security, brute-force, root-lock, 2fa, rack-attack, rate-limit, application-settings]
+
 # Pruning rules
 pruning:
   max_entries: 500

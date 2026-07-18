@@ -454,6 +454,22 @@ External uptime monitoring still **pending** an UptimeRobot Main API key. Plan: 
 (`https://gitlab.bnprs.ai` + `http://16.112.21.84`) and email alert contact `ramaiah@bnprs.in`,
 5-min interval, free tier. Key → `01-dendrite/secrets/secrets.yaml` (git-ignored).
 
+### Sign-in Brute-Force Protection (configured 2026-07-18)
+
+After a bot brute-forced `root` (13 failed logins from 80.97.45.81 + 103.172.202.17 → auto-lock
++ "account locked" email; no successful login), these were enabled via `PUT /api/v4/application/settings`:
+
+| Setting | Value | Effect |
+|---------|-------|--------|
+| `require_admin_two_factor_authentication` | `true` | 2FA mandatory for admins only (root, GitLab-Admin-Bot); 48h grace; TOTP enrollment prompted at next web sign-in; PATs/`glab` unaffected |
+| `throttle_protected_paths_enabled` | `true` | 10 POST/min per IP on sign-in/password paths → 429 (verified live) |
+| `throttle_unauthenticated_web_enabled` | `true` | 3600 req/h per IP for anonymous web traffic |
+
+**Gotcha:** while an account is lock-flagged, its API calls return 403 `Your account has been blocked.`
+(even with `state=active`). Unlock: `docker exec gitlab gitlab-rails runner
+'User.find_by(username: "root").unlock_access!'` — also resets `failed_attempts`.
+Account lock threshold stays at the CE default (10 fails / 10-min auto-unlock).
+
 ### Zoho OAuth Token Refresh
 
 rclone handles refresh automatically. If auth fails after long inactivity, re-authorize using the steps in the Zoho WorkDrive Integration section above.
@@ -461,6 +477,8 @@ rclone handles refresh automatically. If auth fails after long inactivity, re-au
 ## Pending Actions
 
 - [x] Disk-full alerting via `disk-alert.sh` (hourly cron, 85% threshold) — done 2026-06-08
+- [x] Sign-in hardening: admin 2FA enforcement + protected-path/unauthenticated throttles — done 2026-07-18
+- [ ] Root TOTP enrollment — user must complete the 2FA setup prompt at next root web sign-in (48h grace)
 - [ ] Set up UptimeRobot to monitor **both** `https://gitlab.bnprs.ai` and `http://16.112.21.84`
   → alert `ramaiah@bnprs.in` on down — blocked on Main API key from user
 
