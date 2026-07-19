@@ -108,6 +108,39 @@ memories:
     source: "session-2026-07-19"
     tags: [superqi, rotation, secrets-manager, vendor-config, ignore-changes, security]
 
+  - id: mem-005
+    type: deployment
+    content: >
+      2026-07-19 portal deployed end-to-end (India). FRONTEND: Vite/React app from
+      india/bpr1002.mgate.web bp_rel built locally (pat-m4p; circletech gotcha applies: run
+      `node node_modules/vite/bin/vite.js build`), published to S3 mgate-in-prod-portal-frontend
+      + CloudFront E3HYNWICM1A2AI = https://mgate.bnprs.in (us-east-1 cert c0e79565; Route53
+      record created by the India bootstrap/portal-frontend stack, 14 res). Frankfurt
+      portal-frontend stack DESTROYED first (14 res — it held the mgate.bnprs.in alias;
+      CloudFront aliases are globally unique). .env.production: VITE_BASEURL
+      https://portal-api.mgate.bnprs.in/apis/iportal/, Keycloak = aandhipay.in/UTMS/mGATE (per
+      dev wiring; swap when India realm exists). BACKEND became healthy only after a
+      config-completeness pass: enumerated ALL @Value placeholders in the portal source
+      (grep '@Value("${...}")') and reconciled vs AppConfig profile + task-def env — one-crash-
+      per-boot peeling (websiteLink, then aws.s3.bucket) is the WRONG way; enumerate first.
+      Added to portalBackend AppConfig: websiteLink, aws.s3.bucket=mgate-in-prod-receipts
+      (bucket created, private; task-role S3 write grant still TODO), aws.s3.receipt.path
+      (India URL), itp.gateway.bulk.url, paypal.*/razorpay.* EMPTY placeholders (PSP features
+      off until business supplies creds). ecs.tf: +5 vendor secrets (CMS_TENANT_ID,
+      QIMV_MULE_CLIENT_ID/SECRET, QIMV_MW_USERNAME/PASSWORD) from vendor-config. DNS:
+      portal-api.mgate.bnprs.in -> portalbackend ALB. VERIFIED: frontend 200, /actuator/health
+      200, ECS healthy. Commits 766706b (iaac) + fbcc49e (web). DEBT found: web repo
+      .env.uat committed bearer tokens; portal application.properties committed dev DB creds
+      (mz_dev@18.61.247.87) + keycloak admin client secret fallback. MONITORING gotcha:
+      after a task-def change, check crash logs from the NEW task's own stream (old streams
+      stay "latest" and report stale crashes).
+    created_at: "2026-07-19"
+    last_accessed: "2026-07-19"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-19"
+    tags: [portal, frontend, cloudfront, mgate.bnprs.in, appconfig, value-placeholders, receipts, debt]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
