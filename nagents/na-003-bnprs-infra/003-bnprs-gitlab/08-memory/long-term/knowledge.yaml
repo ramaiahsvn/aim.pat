@@ -283,6 +283,25 @@ memories:
     confidence: 1.0
     tags: [security, brute-force, root-lock, 2fa, rack-attack, rate-limit, application-settings]
 
+  - id: mem-022
+    type: operation
+    content: >
+      2026-07-19: Created BPR1003/bpr1003.patpos.middleware (project ID 250, private) in group
+      "BPR1003 - mPOS" (group ID 6, 10th project). Initialized with README on master + org
+      .gitlab-ci.yml (check_approvals via include BPR1000/ci-templates:approval-check.yml, copied
+      from bpr1003.patpos.core). Branches master/bp_dev/bp_rel/ai_dev all protected 40/40, force
+      push off; MR settings remove_source_branch_after_merge + only_allow_merge_if_pipeline_succeeds.
+      Members: Maintainer(40) jranjithk (kumar@bnprs.in, uid 3), doddamurali (krishna@bnprs.in,
+      uid 4); Developer(30) VenkatBorusu (venkataratnam.borusu@, uid 20), suneelvalavala34
+      (suneel.valavala@, uid 18), Santoshkumar (santosh.chilukuri@, uid 16). Convention notes:
+      user lookup via admin GET /users?search=<email>; project bootstrap order = create(readme,
+      default_branch=master) -> commit CI to master -> branch bp_dev/bp_rel/ai_dev -> re-protect
+      all 4 -> MR settings -> members. zsh gotcha: bare "===" in a command line triggers
+      =-expansion ("== not found") — quote it.
+    created_at: "2026-07-19"
+    confidence: 1.0
+    tags: [project-create, BPR1003, patpos-middleware, project-250, members, protected-branches, ci-template]
+
 # Pruning rules
 pruning:
   max_entries: 500
