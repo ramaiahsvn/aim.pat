@@ -14,6 +14,41 @@ memories:
     tags: [terraform, destroy, mgate, aws, eu-central-1, bpr1002, iaac]
     detail_file: "terraform-destroy-report-20260317.md"
 
+  - id: mem-002
+    type: deployment
+    content: >
+      2026-07-19 India services rollout, phase 1 (operator-approved plan: bootstrap now, services
+      after images; keep mgate-prod-* names; API domain api.mgate.bnprs.in).
+      (a) DESTROYED Frankfurt bootstrap ecr/gitlab-ci/iam-appconfig (49 res, eu-central-1, acct
+      891963159778) to free account-global IAM names; states backed up to
+      mgate-bnprs-prod-terraform-state/state-backup-20260719/. NOTE: those stacks owned BOTH OIDC
+      providers (github + gitlab.bnprs.ai) — recreated same-ARN by the India stacks. Destroy-order
+      lesson: gitlab-ci reads ecr state; destroy gitlab-ci FIRST or repoint its remote-state key at
+      the backup. (b) APPLIED India bootstrap in ap-south-2: ecr two-pass (gitlab_ci_role_arn ""
+      then unset; coalesce wrapped in try), gitlab-ci (create_oidc_provider=true, ported from IQ
+      working tree), sqs (24: ITPSQS_01..04+BULK, ITPCore/CBCore/CTCore FIFO+dlq), vendor-config,
+      appconfig (empty-string mail creds must be null -> placeholder secrets), iam-appconfig.
+      IAM role policies now scope to cluster mgate-in-prod-ecs-cluster; ECS service names
+      <service>-prod unchanged. (c) All 15 services/*/prod India-adapted + plan-verified (~194 res,
+      committed 8814bc1 bp_rel BPR1002/india/bpr1002.mgate.iaac). GOTCHA: 13 services had NO region
+      in tfvars -> var default eu-central-1 -> IllegalLocationConstraintException on remote-state
+      reads; fixed by explicit region tfvars. TF 1.5.7 needs skip_region_validation in EVERY
+      s3 remote-state config block for ap-south-2, not just backend.tf. (d) ACM ap-south-2 certs
+      ISSUED via Route53 (zone Z04234212M3SJ07Y70SGQ): api.mgate.bnprs.in (df684416, maingateway)
+      + *.mgate.bnprs.in (623a1971, callbackapplication/portalbackend). (e) HOLD: services apply
+      blocked on container images — no images exist anywhere (ITP ECR destroyed 3/17, Frankfurt
+      repos were empty); CI must push to 891963159778.dkr.ecr.ap-south-2.amazonaws.com/mgate-prod-*
+      (role ARNs unchanged; pipelines change region only). Handoff:
+      07-axon-terminals/deliverables/2026-07-19-india-ci-image-handoff.md. Also pending: real
+      secret values (mail/subscriber/vendor-config placeholders), Iraq-seeded AppConfig content
+      review, vendor NAT whitelist 16.113.17.34/16.113.60.29, ALB DNS records after apply.
+    created_at: "2026-07-19"
+    last_accessed: "2026-07-19"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-19"
+    tags: [india, ap-south-2, bootstrap, services, ecr, oidc, acm, terraform, hold-for-images]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context

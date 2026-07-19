@@ -326,3 +326,24 @@ pruning:
     confidence: 0.97
     source: "session-2026-07-15"
     tags: [mgate, bpr1002, india, ap-south-2, terraform, mgate-in, secrets, rotation, security, plan]
+
+  - id: mem-009
+    type: project_context
+    content: >
+      2026-07-19: mGate India phase 2 — bootstrap live in ap-south-2 (see na-006/001
+      bpr1002-mgate-prod mem-002 for full detail). Frankfurt bootstrap ecr/gitlab-ci/
+      iam-appconfig DESTROYED (they owned both OIDC providers; recreated same-ARN by India
+      stacks, policies now ap-south-2/mgate-in-prod-ecs-cluster). Remaining Frankfurt
+      leftovers in eu-central-1: eip (3.74.90.58), portal-frontend CloudFront, s3 state
+      bucket (+ state-backup-20260719/), sqs, appconfig — dead weight, candidates for a
+      later cleanup pass. New ap-south-2 spend: bootstrap ~free (ECR/SQS/AppConfig/SM);
+      services stacks planned (~194 res, 3 ALBs + Fargate, est +$300-500/mo) but NOT
+      applied — held for CI images. ACM ap-south-2: api.mgate.bnprs.in df684416 +
+      *.mgate.bnprs.in 623a1971, both ISSUED, validation CNAMEs in bnprs.in zone
+      Z04234212M3SJ07Y70SGQ.
+    created_at: "2026-07-19"
+    last_accessed: "2026-07-19"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-19"
+    tags: [mgate, bpr1002, india, ap-south-2, bootstrap, frankfurt-cleanup, acm, cost]
