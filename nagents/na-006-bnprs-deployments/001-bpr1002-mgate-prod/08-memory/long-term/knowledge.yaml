@@ -83,6 +83,31 @@ memories:
     source: "session-2026-07-19"
     tags: [india, ap-south-2, services, live, ecs, pipelines, plaintext-secrets, appconfig, dns]
 
+  - id: mem-004
+    type: operation
+    content: >
+      2026-07-19 SuperQi credential rotation (India side). New RSA-2048 keypairs (prod+uat)
+      generated on pat-m4p; new PRIVATE keys written directly to the mgate-prod/vendor/config
+      Secrets Manager secret (version 1a0d58cd..., 42 keys intact) — never committed anywhere;
+      local key files deleted after. vendor-config/{prod,uat}/main.tf: SuperQi private-key
+      literals replaced with ROTATED-2026-07-19 placeholders and secret_string frozen via
+      lifecycle ignore_changes (secret value now managed out-of-band; plan verified "No
+      changes"; commit 9ba26c7). All 14 ECS services force-new-deployed to pick up the new
+      version. Client IDs unchanged (vendor-assigned). PUBLIC keys for vendor registration:
+      07-axon-terminals/deliverables/2026-07-19-superqi-public-keys.md. ROTATION IS INCOMPLETE
+      UNTIL: (1) user registers the new public keys with SuperQi (old leaked keys valid at the
+      vendor until replaced!); (2) Iraq live prod (other account) rotates separately — its
+      owner; (3) the OTHER ~24 vendor creds in vendor-config main.tf remain committed
+      plaintext (known debt, out of this rotation's scope). India SuperQi calls will fail
+      signature until vendor registration — acceptable: NAT IPs not vendor-whitelisted yet,
+      no live SuperQi traffic.
+    created_at: "2026-07-19"
+    last_accessed: "2026-07-19"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-19"
+    tags: [superqi, rotation, secrets-manager, vendor-config, ignore-changes, security]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context

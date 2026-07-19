@@ -1,0 +1,30 @@
+# SuperQi key rotation 2026-07-19 — PUBLIC keys for vendor registration
+
+Register these with SuperQi (replace the currently registered public keys).
+Client IDs unchanged: PROD 2024092012345606610001, UAT 2026020876015788987689.
+
+## PROD public key
+```
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjMWkkCLp1bBFsIlVZglD
+Qg4weIgsAgpItVxbz6s9VhJwfOoUrHP3kzYFYSCaTBoCjUwKhJIm5f/86TDZNdDB
+LnurTasGEGSBmMI1tRsThqt4A+Kk4fb7q98+LiXuVHPXhYZqUKLQsdxdnAZXqli2
+4W9zkeW6QdzZ8d3kU83i1d4nMgqUkv+J7usU00AUNFSH8z8k5E4zUkUfG0bkD0c6
+JCU5Wf7W0xN88cbyEGwgKLecbKPVyQXOFk2i+Sht+Ux+dbFax6jdehMTfloZjzOT
+chQJkAUSzsbDthM1Mm2r6ZL93rGVBiH0LpWzMlR8nzt6GE2VMXtjiFMiiWmeoQ89
+ZQIDAQAB
+-----END PUBLIC KEY-----
+```
+
+## UAT public key
+```
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2DWOW0u+nxyRsklWGcbJ
+SMHOdobUGsmbqHc6mXtf65EucoFJHXuMyfFD4VN7nGaMna8lq/9+BRZ+CZcZoTD9
+ebkIyDpHAxzUZMo6Hb0EIHFZ0JQqJeh4cRZme2ksV71avchepUK12gVOC7b6mDI1
+IJpZb5xNcYQKlb3IE7GjLQz2Z1JVayDsHiqy+/p7xwJoTAu1fmvJeyLXm1rPghyA
+6Xr+EvUjY0WoNPQ8z1Yc0y8woIJW5CdritPQcDexKM+pl95bSFowqUZ1xIcyAEmb
+uoAv6Fq+AuzSKAvA2fKyCVIJmv1fbtM8+64LJ6oBLAWhiShrsg2UvjTyKMn0/NZ2
+6wIDAQAB
+-----END PUBLIC KEY-----
+```
