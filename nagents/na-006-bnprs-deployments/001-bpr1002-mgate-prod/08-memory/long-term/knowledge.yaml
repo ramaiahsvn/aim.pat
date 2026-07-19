@@ -49,6 +49,40 @@ memories:
     source: "session-2026-07-19"
     tags: [india, ap-south-2, bootstrap, services, ecr, oidc, acm, terraform, hold-for-images]
 
+  - id: mem-003
+    type: deployment
+    content: >
+      2026-07-19 India services rollout, phase 2 — ALL 15 services/*/prod stacks APPLIED; mGate
+      India production is LIVE in ap-south-2. Images: GitLab CI pipelines on
+      BPR1002/india/bpr1002.mgate.api (2755, tag 6216592...) + api.portal (2757, tag e83596e...)
+      + a follow-up (2759, tag 8709e97...) for servicesdb+cloudwatch — those two had NO build jobs
+      in the Iraq pipeline and cloud-watch had no Dockerfile (wrote one, temurin-21-jre). OIDC
+      trust re-pointed to project_path wildcard BPR1002/india/bpr1002.mgate.api* (bp_rel);
+      runner 4 "RM PC" (tag rmpc, WSL docker) enabled on both projects; org approval-check
+      include kept in both CI files; deploy jobs when:manual (Terraform creates services with
+      pinned image_tag; CI deploy takes over for updates). GOTCHAS: (1) pushing a CI file
+      auto-triggers a duplicate pipeline alongside an API-triggered one — the dup (2756) silently
+      double-booked the runner; (2) canceling excess jobs flips the PIPELINE status to
+      canceled even when kept jobs succeed — check job status, not pipeline status. INCIDENT
+      during apply: 10 of 15 ecs.tf files carried COMMITTED PLAINTEXT SuperQi vendor creds
+      (client ids + RSA PRIVATE KEYS, prod+uat) as container env vars, colliding with the
+      Secrets Manager secrets[] entries (ECS rejects duplicate names). Removed ALL plaintext
+      (commit 1232ff3); values remain in git history — vendor-side rotation still required
+      (extends the 2026-07-15 vendor-plaintext finding). INCIDENT 2: servicesdb-prod
+      crash-looped on missing ${PushQueueUrl} — the "commented unnecessary configurations"
+      appconfig cleanup had dropped PushQueueName/Url from servicesdb_properties; restored
+      (= main_channel_4, commit d02d7f3) + force-new-deployment. Final state: 14 ECS services
+      (maingateway 4/4 with autoscaling 4-12, 13 others 1/1), 3 ALBs, sqs-scaler lambda.
+      DNS: api.mgate.bnprs.in -> maingateway-prod-alb (alias, zone Z04234212M3SJ07Y70SGQ);
+      HTTPS verified (TLS OK, app 403 on bare request = WAF/auth as expected). ALB hostnames
+      for callbackapplication/portalbackend (covered by *.mgate.bnprs.in cert) not yet assigned.
+    created_at: "2026-07-19"
+    last_accessed: "2026-07-19"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-19"
+    tags: [india, ap-south-2, services, live, ecs, pipelines, plaintext-secrets, appconfig, dns]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
