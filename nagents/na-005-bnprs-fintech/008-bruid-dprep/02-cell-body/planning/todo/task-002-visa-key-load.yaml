@@ -15,7 +15,10 @@ task:
     into the engine runtime keystore (persoengine/keys/uat_keystore.txt, git-ignored, currently
     MC-only) and deriving the per-card Visa UDKs the same way MC's were derived (EMV Option A).
     This is an INTERNAL load step — the external bureau ask is CLOSED.
-  status: pending
+  status: done   # 2026-07-20 — all 3 subtasks complete: ZMK/IMK decrypt + KCV validated (Visa clear-IMK KCV
+                 # 944A44); keystore loaded under VISA-IMK-AC/SMI/SMC (round-trip + loader confirmed); UDK
+                 # derivation validated engine-equivalent (MC regression 655857; Visa UDK KCV 3E425F). Seam
+                 # handed to bruid-cperso task-002 (Visa VSDC perso). No key values committed (PCI).
   priority: high
   created_at: "2026-07-20"
   source: "rnd-cperso na-100/003 delegation; Visa IMKs delivered to Resources/UAT_Keys.txt 2026-07-20"
@@ -37,9 +40,15 @@ subtasks:
       3 bytes of 3DES(key, 8x00)) and RECORD THE KCVs ONLY (non-secret) for the audit trail; compare
       against the bureau's stated KCVs if provided. Watch the single-length degenerate case (UAT MC IMK
       was K1==K2 -> 3DES==single DES); confirm whether the Visa IMK is full double-length.
-    status: pending
+    status: done   # 2026-07-20 — VALIDATED. ZMK reconstructed (P1^P2^P3, KCV A85DE2 matches Final KCV;
+                   # component KCVs 6DB2A2/CCC0E4/E24E54 all match). MC IMK regression decrypt -> clear KCV
+                   # 82E136 (matches mem-011, confirms method). VISA IMK decrypt under ZMK -> clear-IMK KCV
+                   # 944A44 (MATCHES the bureau's stated kcv). DEGENERATE-CASE ANSWER: the Visa IMK is FULL
+                   # DOUBLE-LENGTH (K1!=K2) — unlike the MC IMK (K1==K2, single-length) — so handle as true
+                   # 3DES, do NOT collapse to single DES. Key values never printed/stored (KCVs only).
     priority: high
     verification: "KCV method KAT: 3DES-ECB(zeros, key 0123456789ABCDEF)=D5D44F. Record clear Visa IMK KCVs; never store key values."
+    result: "Visa clear-IMK KCV = 944A44 (full double-length, K1!=K2); ZMK KCV A85DE2; MC regression KCV 82E136."
 
   - id: "task-002.2"
     subject: "Add the Visa IMKs to the engine keystore under distinct Visa labels"
@@ -48,7 +57,12 @@ subtasks:
       DO NOT collide with the MC set — e.g. VISA-IMK-AC / VISA-IMK-SMI / VISA-IMK-SMC. The engine loads
       keys BY LABEL only; no key values in any committed file. Confirm the keystore loader resolves the
       new labels (keystore-gated test).
-    status: pending
+    status: done   # 2026-07-20 — Visa clear IMK appended to persoengine/keys/uat_keystore.txt (git-ignored)
+                   # under 3 labels VISA-IMK-AC / VISA-IMK-SMI / VISA-IMK-SMC (one IMK value used for AC/SMI/SMC,
+                   # same pattern as MC). Round-trip verified: KCV recomputed from the stored value = 944A44 for
+                   # all 3 [MATCH], full double-length. Loader compatibility CONFIRMED against BprCryptHsm::
+                   # load_keystore (hsm.cpp:93): strips '#' comments, parses 'LABEL HEX', import_test_key
+                   # validates 16-byte 2TDEA length — our lines parse identically. Not committed (key value, PCI).
     priority: high
     depends_on: "task-002.1"
 
@@ -60,9 +74,16 @@ subtasks:
       (OutputFile_..._A0000000031010_DI_VisaDebit.xml, VIS 1.6.3/VCPS 2.2.4). Emit UDK-AC/SMI/SMC and
       their KCVs; hand the derivation seam to bruid-cperso for the encrypted Visa key DGIs (8000/8001).
       Keys by label only; record KCVs only.
-    status: pending
+    status: done   # 2026-07-20 — derivation VALIDATED engine-equivalent. Method (EMV Option A: ZL=rightmost-16
+                   # of PAN||PSN BCD, ZR=ZL^FF, MK=DES3(IMK,ZL)||DES3(IMK,ZR), odd parity) cross-checked by MC
+                   # REGRESSION: MC UDK for PAN 5413330089020011 PSN 00 -> KCV 655857, exactly matching mem-011
+                   # (which itself matched the KAT-anchored engine derive_udk). Visa UDK-AC/SMI/SMC derived from
+                   # VISA-IMK-* -> KCV 3E425F (synthetic test PAN 4000...02 PSN 00; all three identical since one
+                   # shared UAT IMK, same as MC). Seam ready for bruid-cperso: derive_udk("VISA-IMK-AC",pan,psn).
+                   # Production UDKs derived per REAL card PAN at perso time. KCVs only; no key values stored.
     priority: high
     depends_on: "task-002.2"
+    result: "Method engine-equivalent (MC regression KCV 655857); Visa UDK KCV 3E425F for synthetic PAN; seam = derive_udk(VISA-IMK-*)."
 
 # ---- Guardrails ----
 guardrails:
