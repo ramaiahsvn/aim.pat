@@ -58,7 +58,16 @@ subtasks:
       the VSDC 2.9.2 perso manual and the Visa VPA profile: correct SFI/record numbering, template-70
       layout, and the AIP/AFL (tag 82/94) so GPO returns a valid AFL that drives READ RECORD. Verify
       against the manual's worked example, as was done for the MC GFCX17.0 manual §10.
-    status: pending
+    status: done   # 2026-07-20 — AFL/GPO/records spec-anchored (was a guess). DELIVERABLE:
+                   # 07-axon-terminals/deliverables/2026-07-20-visa-vsdc-record-afl-layout.md (VSDC 2.9.2 §3.14
+                   # GPO answers + §3.16 [SFI][rec] + VPA profile; manual worked example). KEY FINDINGS: AIP+AFL
+                   # live in the GPO-ANSWER DGIs (9104 contact / 9115/9117 qVSDC), NOT in a readable record;
+                   # AFL = 080101001001040018010201 (SFI1 r1 | SFI2 r1-4 | SFI3 r1-2, r1 in SDA); AIPs 3800/0020/
+                   # 2020 from the profile. IMPLEMENTED in perso-live-visa: replaced the bare "9115 AIP=0020" with
+                   # 9102 FCI + 9104/9115/9117 GPO answers (AIP+AFL) + 0101(70>61) + 0201(SFI2)/0301(SFI3, SDA).
+                   # Compiles+links. Offline-verified: AIP byte1.bit7=0 + contactless byte2.bit6=1 all OK; AFL
+                   # decodes to valid SFI/record ranges. Per-card data (PAN/expiry/PSN/name/tracks/ODA certs) +
+                   # full qVSDC data bundle + live GPO/READ-RECORD confirmation deferred to task-002.4.
     priority: high
 
   - id: "task-002.3"
