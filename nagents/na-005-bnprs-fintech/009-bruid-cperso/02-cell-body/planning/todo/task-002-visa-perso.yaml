@@ -101,7 +101,22 @@ subtasks:
       last-block marker; ISD-directed SET STATUS to PERSONALIZED/SECURED after re-SELECT+re-auth on the
       ISD). Self-verify like the MC card: GPO -> AIP/AFL, AFL-driven READ RECORD returns PAN/cardholder/
       track2/cert chain, and VERIFY PIN -> 9000. Card left additive (BIXAPP/MC instance untouched).
-    status: in_progress   # 2026-07-20 — LIVE on the UAT card: 14/14 Visa DGIs accepted (perso-live-visa --commit).
+    status: blocked   # 2026-07-20 UPDATE-2 — DATA LOAD 16/16 but APPLET FINALIZE FAILED + card now SECURED.
+                      # Progress: added PIN (8010 DEK-wrapped + 9010 PTC/PTL), per-card PAN/track2/name in 0201,
+                      # AFL matched to written records, DGI 9200 (mandatory IDD). All 16 data DGIs -> 9000.
+                      # BLOCKER: no working VSDC applet END-OF-PERSO trigger found — data DGI w/ P1.b8=1 -> 6A80,
+                      # empty STORE DATA P1.b8=1 -> 6A88. So the applet stayed SELECTABLE (GPO 6D00, not personalized).
+                      # MY ERROR: the finalize set card->SECURED (ISD SET STATUS 80F08007/800F -> 9000, IRREVERSIBLE)
+                      # BEFORE confirming the applet was personalized. Post-SECURED, plain-SCP02 can no longer perso
+                      # the applet: applet EXT AUTH -> 6985, STORE DATA -> 6982 (C-MAC now required); INSTALL/DELETE
+                      # -> 6985. So the Visa applet is STUCK selectable-but-unpersonalized on THIS card. MC + BIX
+                      # unaffected (already personalized before). CODE FIXED: perso-live-visa now gates card->SECURED
+                      # on a passing GPO (never secures an unpersonalized applet). RECOVERY PATH (needs work): (1) solve
+                      # the VSDC end-of-perso trigger (likely a dedicated finalize DGI, à la MC's AD14 — not empty/data);
+                      # (2) add SCP02 SECURE MESSAGING (C-MAC, security level 01/03) to the applet perso path so a
+                      # SECURED card can still be personalized (engine has hsm::scp02::cmac). Then perso a FRESH Visa
+                      # card end-to-end. See knowledge mem-025.
+    prior_status_note: in_progress   # 2026-07-20 — LIVE on the UAT card: 14/14 Visa DGIs accepted (perso-live-visa --commit).
                           # Card reachable (ACS ACR39U), Visa GP ISD A000000003000000 VISA2-authenticates (seq
                           # 0005), INSTALL[make selectable] A0000000031010 (params C900) -> 9000, applet SCP02 ->
                           # 9000. STORE DATA keys-first ALL 9000: 8000 (Visa UDKs), 9000 (KCVs — card validated the

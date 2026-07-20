@@ -587,3 +587,36 @@ pruning:
     confidence: 0.96
     source: "session-2026-07-15"
     tags: [mc-rebuild, crypto-confirmed, skudek, crt-padding-fix, a004, worked-example, dgi-order, visa1-vs-visa2, 8000-6a80-is-context]
+
+  - id: mem-025
+    type: project_context
+    content: >-
+      2026-07-20 — VISA (VSDC) LIVE: 16/16 DGIs loaded but APPLET FINALIZE FAILED and
+      the card is now SECURED (setback + lesson). Built the full Visa perso in
+      perso-live-visa (bpr.cpp): keys-first 8000 (Visa UDKs, KCV 3E425F)/9000 KCVs/8010
+      DEK-wrapped PIN(1234)/9010 PTC-PTL, 8201-8205 ICC RSA CRT priv key, then 9102 FCI
+      (A5 template {50,87,9F38} per §3.13 — NOT 6F/84), 9104/9115/9117 GPO answers
+      (AIP 3800/0020/2020 + AFL), 0101/0201(+PAN/track2/name)/0301 records, 9200 IDD.
+      ALL 16 -> 9000 live on the UAT card (Visa2 ISD auth, INSTALL A0000000031010 params
+      C900). THE BLOCKER: no working VSDC APPLET END-OF-PERSO trigger — a data DGI with
+      P1.b8=1 -> 6A80; an EMPTY STORE DATA P1.b8=1 -> 6A88. So the applet stayed
+      SELECTABLE (GPO -> 6D00, not personalized). MISTAKE: the app then set card->SECURED
+      (ISD SET STATUS 80F0800700/80F0800F00 -> 9000, IRREVERSIBLE) WITHOUT first confirming
+      the applet was personalized. Post-SECURED, plain-SCP02 can no longer perso the applet:
+      applet EXT AUTH -> 6985, STORE DATA -> 6982, INSTALL/DELETE -> 6985 (C-MAC now
+      mandatory). Net: the Visa applet is STUCK selectable-but-unpersonalized on this card;
+      MC + BIX are unaffected (personalized before SECURED). LESSONS: (1) finalize + VERIFY
+      the applet PERSONALIZED (GPO != 6D00) BEFORE card->SECURED — never secure an
+      unpersonalized applet (code now gates SECURED on a passing GPO); (2) the VSDC applet
+      needs a DEDICATED end-of-perso finalize DGI (cf. MC's AD14, mem-024) — empty/data
+      P1.b8=1 do not work; find it in the VSDC/GeneralOS spec. RECOVERY: add SCP02 SECURE
+      MESSAGING (C-MAC, sec level 01/03; engine has hsm::scp02::cmac) so a SECURED card can
+      still be personalized, + solve the finalize DGI, then perso a FRESH Visa card. The
+      key/ODA/record framework is PROVEN (16/16 load); only applet finalize + post-SECURED
+      C-MAC remain.
+    created_at: "2026-07-20"
+    last_accessed: "2026-07-20"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-20"
+    tags: [visa, vsdc, 16-of-16-load, applet-finalize-failed, end-of-perso-trigger, 6A80, 6A88, card-secured-too-early, 6985, 6982, cmac-needed, setback, lesson, recovery-path]
