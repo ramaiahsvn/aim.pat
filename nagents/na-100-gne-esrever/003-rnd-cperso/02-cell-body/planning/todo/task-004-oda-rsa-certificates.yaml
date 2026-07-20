@@ -9,7 +9,11 @@
 task:
   id: "task-004"
   subject: "EMV Offline Data Authentication — RSA key path + issuer/ICC certificates (SDA/DDA/CDA)"
-  status: in_progress          # 2026-07-15: ENGINE builder DONE (perso::oda, bpr.cpp b63fdbd); real 9F46 gated on the issuer RSA key (task-004.1)
+  status: in_progress          # 2026-07-15: MASTERCARD ODA DONE LIVE — full M/Chip card personalized end-to-end,
+                               # all 41 DGIs incl. ICC+issuer+CA cert chain -> 9000, card functional (GPO/READ/VERIFY PIN);
+                               # secret-loading gap was DGI ORDERING, not crypto (see knowledge mem-016). Remaining: real
+                               # 9F46 with the REAL issuer key is OPTIONAL (UAT uses a self-signed test chain); Visa ODA
+                               # (task-004.5/.6) + terminal-side verification still open.
   priority: high
   created_at: "2026-07-13"
   source: "gap found during live MC card perso attempt (task-003 context)"
@@ -63,7 +67,18 @@ subtasks:
       public key under the test CA) so the card chains self-consistently. Only a card that must chain to the
       REAL 0404 needs the real issuer key from the bureau.
       Update handoff-na005-008-perso-engine-bureau-keys.md: MOVE the issuer-RSA ask from grc-kms to the bureau.
-    status: pending
+    status: mostly_resolved   # 2026-07-15 — the SECRET-LOADING half of this ask is CLOSED (knowledge mem-016/017):
+                              # the 9 encrypted-key-DGI 6A80s were DGI ORDERING (keys-region-first + AD14-last), not an
+                              # unknown key-block format. The delivered PURE + M/Chip Advance manuals CONFIRMED the engine's
+                              # key crypto (3DES-ECB under SKUDEK = SCP02 session DEK). MasterCard is personalized end-to-end
+                              # with a SELF-SIGNED TEST issuer key + regenerated DGI 0404 — no bureau dependency for UAT.
+                              # STILL OPEN (narrowed): (1) the REAL issuer RSA key — needed ONLY for a card that must chain to
+                              # the REAL 0404 (production BIN), not UAT; decision fork A (bureau signs 9F46) vs B (HSM->HSM
+                              # transfer) unchanged; (2) VISA UAT IMKs — NOT in keys/uat_keystore.txt (only MC IMKs); this is
+                              # DELIVERED 2026-07-20: bureau added Visa IMK-AC/SMI/SMC to Resources/UAT_Keys.txt, encrypted
+                              # under the same ZMK (KCV A85DE2) as MC. Bureau ask CLOSED. Remaining is an INTERNAL load step
+                              # (bruid-dprep): ZMK-decrypt + validate KCVs + add to the engine keystore under Visa labels, then
+                              # bruid-cperso derives Visa UDKs (see task-004 Visa + knowledge mem-018).
     priority: high
 
   - id: "task-004.2"
@@ -123,6 +138,11 @@ subtasks:
       Personalize a test card with the full chain (test CAPK -> test issuer key -> per-card ICC keys);
       at an offline terminal: recover issuer PK from tag 90, ICC PK from tag 9F46, challenge card,
       verify the ICC signature. Card must authenticate offline without a clone passing.
+      2026-07-15 UPDATE: the ISSUANCE half is DONE for MasterCard — a functional M/Chip card is
+      personalized with the full self-signed test chain LIVE (ICC + issuer + CA cert DGIs 0401-0404
+      all accepted 9000; READ RECORD returns the certs). So only the ACCEPTANCE half remains: rnd-mpos
+      loads the matching test CAPK (task-004.5) and runs the offline DDA/CDA challenge. Visa ODA is a
+      separate future pass, folded under the Visa perso work (knowledge mem-018).
     status: pending
     priority: medium
     depends_on: ["task-004.4", "task-004.5"]

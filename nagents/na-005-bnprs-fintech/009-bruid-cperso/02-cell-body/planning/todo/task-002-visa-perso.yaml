@@ -1,0 +1,89 @@
+# Task — Visa (VSDC) central perso: complete the Visa card end-to-end
+#
+# Handed off 2026-07-20 from rnd-cperso (na-100/003, planner). Follows the MasterCard
+# completion (this agent's knowledge mem-023/mem-024: full M/Chip card personalized +
+# functional). Visa is the second of the four applets (MC/Visa/PURE/BIX); MC + Visa first.
+# See rnd-cperso knowledge mem-018 + task-004; this agent's mem-020 (Visa live result).
+
+task:
+  id: "task-002"
+  subject: "Complete Visa (VSDC) central perso end-to-end — keys, AFL/records, ODA, lock"
+  description: >
+    A Visa VSDC instance was already installed and given 5/5 plaintext DGIs live on the UAT card
+    (mem-020): INSTALL[make selectable] instance A0000000031010 from module A0000000031056, priv 00,
+    params C900 -> 9000; applet SCP02 (same ISD key) -> 9000; DGIs 9115/0101/0201/0301/0401 accepted.
+    What remained was keys (no Visa IMKs), AFL correctness, and lock. The Visa IMKs are now DELIVERED
+    (bruid-dprep task-002) and the VSDC 2.9.2 perso manual is on disk (Resources/Perso Manual and LoA/).
+    Apply the MasterCard lessons (keys-region-first ordering, finalize control, DEK-wrap) to Visa and
+    produce a fully functional Visa card.
+  status: pending
+  priority: high
+  created_at: "2026-07-20"
+  source: "rnd-cperso na-100/003 delegation; Visa IMKs delivered 2026-07-20; VSDC 2.9.2 manual received"
+  tags: [visa, vsdc, central-perso, live-perso, key-dgis, afl, oda, set-status, vis-1.6.3, vcps-2.2.4]
+
+# ---- Prereqs / inputs (all now available) ----
+prereqs:
+  visa_imks:     "bruid-dprep task-002 — Visa IMKs loaded to keystore under Visa labels + UDK derivation seam"
+  vsdc_manual:   "Resources/Perso Manual and LoA/VSDC2.9.2_Personalization_Manual_v1.3.pdf (AFL/record layout, DGI order)"
+  visa_profile:  "OutputFile_..._A0000000031010_DI_VisaDebit.xml (VIS 1.6.3 / VCPS 2.2.4)"
+  card_state:    "UAT Gemalto multi-app card — Visa GP ISD A000000003000000, ISD key C277BA/VISA2/KVN01, VSDC pkg A00000000310 loaded"
+  mc_reference:  "mem-023/024 — keys-first ordering, drop last-block marker mid-stream, ISD-directed SET STATUS finalize"
+
+subtasks:
+  - id: "task-002.1"
+    subject: "Encrypted Visa key DGIs — 8000/8001 UDKs + KCVs, DEK-wrapped under the VISA2 session DEK"
+    detail: >
+      Consume bruid-dprep's Visa UDK-AC/SMI/SMC; build 8000/8001 (16B each, 3DES-ECB no-pad under SKUDEK
+      = the SCP02 session DEK, per PURE/M-Chip manual §9 — same crypto proven for MC) + the 9000/9001 3B
+      KCVs after the key blocks. Apply the MC ORDERING lesson: send the KEY REGION FIRST (mem-023) to
+      avoid downstream config/record DGIs poisoning the keys. Keys by label only.
+    status: pending
+    priority: high
+
+  - id: "task-002.2"
+    subject: "Fix AFL / SFI-record grouping per the VSDC 2.9.2 manual"
+    detail: >
+      The current 0201/0301/0401 record split is a GUESS (mem-020). Rebuild the SFI records + AFL from
+      the VSDC 2.9.2 perso manual and the Visa VPA profile: correct SFI/record numbering, template-70
+      layout, and the AIP/AFL (tag 82/94) so GPO returns a valid AFL that drives READ RECORD. Verify
+      against the manual's worked example, as was done for the MC GFCX17.0 manual §10.
+    status: pending
+    priority: high
+
+  - id: "task-002.3"
+    subject: "Visa ODA — ICC RSA keypair + 9F46 (self-signed test issuer for UAT)"
+    detail: >
+      Reuse perso::oda (proven for MC): generate the ICC RSA keypair, build the ICC PK cert (9F46) +
+      9F47/9F48 per EMV Book 2 §6.4, DEK-wrap the ICC private key. For UAT use a SELF-SIGNED test issuer
+      key + a Visa TEST CAPK and regenerate the issuer PK cert DGI so the card chains self-consistently
+      (same UAT shortcut as MC — no bureau dependency). Confirm the Visa profile's ODA tag set (8F/90/
+      9F32/9F46/9F47/9F48/9F49/9F4A) and DGI placement from the VSDC manual.
+    status: pending
+    priority: medium
+    depends_on: "task-002.2"
+
+  - id: "task-002.4"
+    subject: "Finalize/lock the Visa instance (SET STATUS) + full live perso"
+    detail: >
+      Assemble the full Visa perso stream (keys-first, then config/records, ODA, PIN), run perso-live-visa
+      --commit end-to-end, then lock via the finalize path that worked for MC (drop the mid-stream
+      last-block marker; ISD-directed SET STATUS to PERSONALIZED/SECURED after re-SELECT+re-auth on the
+      ISD). Self-verify like the MC card: GPO -> AIP/AFL, AFL-driven READ RECORD returns PAN/cardholder/
+      track2/cert chain, and VERIFY PIN -> 9000. Card left additive (BIXAPP/MC instance untouched).
+    status: pending
+    priority: high
+    depends_on: ["task-002.1", "task-002.2", "task-002.3"]
+
+# ---- Guardrails ----
+guardrails:
+  - "Key values NEVER in any committed file — labels/KCVs only; DEK-wrapped key DGIs are non-secret ciphertext but derive from git-ignored keys."
+  - "--commit is destructive to the card; read-only preflight first; stop-on-first-error so a partial card never continues."
+  - "PCI: synthetic/test PANs only; never commit real cardholder data or key values; fail-closed key-value gate on every commit; ramaiahsvn token for bpr.cpp."
+
+# ---- Cross-refs ----
+see_also:
+  - "bruid-dprep task-002 (Visa key load + UDK derivation — upstream)"
+  - "this agent task-001 + knowledge mem-020 (Visa live), mem-021 (manuals), mem-023/024 (MC complete — the pattern to follow)"
+  - "rnd-cperso knowledge mem-018, task-004 (planner record)"
+  - "rnd-cperso mc-advance-dgi-map.md (DGI decode); VSDC 2.9.2 manual (Visa DGI order/AFL)"

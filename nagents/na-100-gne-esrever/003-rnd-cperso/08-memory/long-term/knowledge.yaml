@@ -289,6 +289,81 @@ memories:
     confidence: 1.0
     tags: [perso-entry-resolved, c9-params, C9050111000105, install-make-selectable, validated-on-card, thales-mda-trace, milestone]
 
+  - id: mem-016
+    type: milestone
+    content: >
+      2026-07-15: ✅ MASTERCARD PERSO COMPLETE — full M/Chip Advance card personalized
+      end-to-end and PROVEN 100% FUNCTIONAL live on a factory-fresh Gemalto card (implementation
+      by bruid-cperso; see na-005/009 knowledge.yaml mem-022/mem-023/mem-024). ALL 41 STORE DATA
+      DGIs -> 9000 (CRT, both keysets, KCVs, PIN, ICC+issuer+CA certs, records, config); card
+      finalized SELECTABLE->PERSONALIZED->SECURED via ISD SET STATUS (80F0800700 then 80F0800F00,
+      re-SELECT+re-auth on the ISD; applet SET STATUS gives 6D00 per trace). Card is OPERATIONAL:
+      GPO returns AIP/AFL, AFL-driven READ RECORD returns PAN/cardholder/track2/ICC+issuer PK
+      certs, and VERIFY PIN -> 9000. 94/94 unit tests. IMPORTANT — this SUPERSEDES mem-015's
+      "secret-loading gap" and the task-004.1 bureau ask for MC: the 9 encrypted-key-DGI 6A80s
+      were DGI ORDERING, not crypto/DEK. Fixes (bpr.cpp 4ebc546, 42564e5): (1) send the KEY REGION
+      FIRST (stable_partition: A004,8010,8201-8205,A006,A016,8000,9000,8001,9103) — config/record
+      DGIs sent before the RSA/keyset DGIs were POISONING them (proven by a --crt-only isolation
+      run); (2) DGI AD14 is the END-OF-PERSO finalize control — send it as the last STORE DATA
+      (P1.b8=1), not before the ICC CRT; (3) 9010 PIN-Related-Data = 2-byte PTC||PTL (=0303),
+      + DEK-wrapped 8010 PIN. Key crypto was already spec-correct (confirmed vs GFCX17.0 M/Chip
+      Advance manual §9: 3DES-ECB under SKUDEK = SCP02 session DEK; ISO 9797-1 method-2 padding
+      on RSA CRT DGIs). NET: MasterCard needs NOTHING further from the bureau. Visa is next.
+    created_at: "2026-07-15"
+    confidence: 0.99
+    tags: [mastercard-complete, full-perso-live, all-41-dgis, gpo-read-verify-pass, keys-first-order, ad14-finalize, secret-loading-was-ordering, mem-015-superseded, milestone]
+
+  - id: mem-017
+    type: reference
+    content: >
+      2026-07-15: BUREAU PERSO MANUALS + LoA received (Resources/Perso Manual and LoA/):
+      MChipAdvance_applet_GFCX17.0_ReferenceManual_v1.2.pdf, VSDC2.9.2_Personalization_Manual_v1.3.pdf,
+      PURE_GFCX17.0_Personalization_Manual_v1.2.pdf, CLOA-THAL240705-241107(a).pdf (Card LoA),
+      LBTHAL05819_Letter. SCOPE (user 2026-07-15): the card program spans FOUR applets — MasterCard
+      (M/Chip Advance), Visa (VSDC), PURE (Thales platform), BIX (BNPRS BIXAPP); FIRST FOCUS =
+      MasterCard + Visa. The PURE manual (§3.9 + §6.1.2) and the M/Chip Advance manual (§9) RESOLVED
+      the old secret-loading question and CONFIRMED the engine's key crypto is correct: DGI
+      8000/8001 = diversified AC||SMI||SMC UDKs (16B each), 8010 = PIN, 8201-8205 = ICC CRT RSA,
+      8301-8305 = ICC PIN-enc RSA, 8401-8405 = contactless ICC RSA, 9000/9001 = 3B KCVs; encryption
+      = 3DES-ECB NO padding under SKUDEK; SKUDEK = the standard SCP02 session DEK. So there is no
+      unknown proprietary key-block format — the remaining work is following each manual's DGI
+      catalog/order. CAVEAT: manuals are GFCX17.0 but our card/trace is GCX7_5 — reconcile the D0xx
+      (manual) vs A0xx (GCX7_5 Operas trace) DGI schemes. VISA2 diversification also verified live
+      (bruid-cperso mem-016): reproduces the live gp.jar session's card + host cryptograms
+      byte-for-byte; real session DEK fully derivable in-engine.
+    created_at: "2026-07-15"
+    confidence: 0.97
+    tags: [perso-manuals, LoA, four-applets, mc-visa-priority, PURE-manual, secret-loading-resolved, skudek-is-session-dek, GFCX17-vs-GCX7_5, visa2-verified]
+
+  - id: mem-018
+    type: project_context
+    content: >
+      2026-07-15: VISA (VSDC) is the NEXT target — partial live result on the SAME multi-app UAT
+      card (implementation bruid-cperso mem-020). The card is a Gemalto GP JavaCard (ATR 3BFE13):
+      Visa GP ISD AID A000000003000000 authenticates with the SAME UAT ISD key (C277BA/VISA2/KVN01);
+      VSDC package loaded (A00000000310, modules A0000000031056/A000000003104D) but no Visa instance
+      was pre-installed. perso-live-visa --commit: INSTALL[make selectable] instance A0000000031010
+      from module A0000000031056, priv 00, params C900 (empty C9; MC's C9050111000105 -> 6A80,
+      Visa-wrong as expected) -> 9000; SELECT -> 9000; applet SCP02 -> 9000; and 5/5 inferred
+      plaintext DGIs accepted (9115 AIP, 0101 FCI, 0201 SDA record, 0301 VSDC record, 0401 PDOL),
+      built from the Visa VPA profile (VIS 1.6.3/VCPS 2.2.4) with the STANDARD EMV template-70
+      record layout — no trace and no proprietary A0xx config needed (cleaner than MC). THREE gaps
+      remain for a full Visa card: (1) KEYS — Visa card keys + ICC RSA use the same (now understood)
+      secret-loading path. UPDATE 2026-07-20: the bureau DELIVERED the Visa IMK-AC/SMI/SMC — added to
+      Resources/UAT_Keys.txt (GitRepos2/TRP1002_cPerso/trp1002.cperso.thales/Resources/), encrypted
+      under the SAME ZMK (KCV A85DE2) as the MC set. So the Visa-IMK bureau ask is CLOSED. Remaining
+      loading step (bruid-dprep): ZMK-decrypt the Visa IMKs, validate clear KCVs, and add them to the
+      engine runtime keystore (persoengine/keys/uat_keystore.txt, still MC-only) under Visa labels —
+      same flow that produced the MC clear-IMK KCV 82E136 (mem-011); then bruid-cperso derives the
+      Visa UDKs and loads the encrypted Visa key DGIs. (2) AFL correctness — the current record
+      grouping is a GUESS, needs the VSDC 2.9.2 perso spec (already delivered, mem-017) to set the
+      real AFL/record split; (3) SET STATUS to lock. rnd-cperso role: design/review the Visa stream
+      against VSDC 2.9.2; coordinate the Visa-IMK ask to the bureau; implementation stays with
+      bruid-cperso (central) / bruid-iperso (instant).
+    created_at: "2026-07-15"
+    confidence: 0.97
+    tags: [visa, vsdc, next-target, 5-of-5-dgis, C900-install, visa-imks-delivered, imk-load-pending, afl-correctness, set-status, vsdc-2.9.2-spec, planner-review]
+
 # Pruning rules
 pruning:
   max_entries: 500

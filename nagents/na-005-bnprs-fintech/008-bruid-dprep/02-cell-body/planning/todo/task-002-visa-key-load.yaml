@@ -1,0 +1,78 @@
+# Task — Visa (VSDC) UAT key loading + UDK derivation (data-prep / HSM side)
+#
+# Handed off 2026-07-20 from rnd-cperso (na-100/003, planner). Sibling of the MasterCard
+# key path already proven in task-001 (P3a UDK/KCV, P3d SCP02). See rnd-cperso knowledge
+# mem-018 + task-004; and na-005/009 bruid-cperso knowledge mem-020 (Visa live result).
+
+task:
+  id: "task-002"
+  subject: "Load the Visa UAT IMKs into the engine keystore + derive Visa UDKs (dprep/HSM side)"
+  description: >
+    The perso bureau DELIVERED the Visa issuer master keys (IMK-AC/SMI/SMC) on 2026-07-20,
+    appended to Resources/UAT_Keys.txt (GitRepos2/TRP1002_cPerso/trp1002.cperso.thales/Resources/),
+    ENCRYPTED under the same ZMK as the MasterCard set (ZMK KCV A85DE2). This unblocks the Visa
+    card keys, which hit the same secret-loading path as MC. bruid-dprep owns getting those keys
+    into the engine runtime keystore (persoengine/keys/uat_keystore.txt, git-ignored, currently
+    MC-only) and deriving the per-card Visa UDKs the same way MC's were derived (EMV Option A).
+    This is an INTERNAL load step — the external bureau ask is CLOSED.
+  status: pending
+  priority: high
+  created_at: "2026-07-20"
+  source: "rnd-cperso na-100/003 delegation; Visa IMKs delivered to Resources/UAT_Keys.txt 2026-07-20"
+  tags: [visa, vsdc, uat-keys, imk, zmk, udk, kcv, keystore, dprep, hsm, pci]
+
+# ---- Provenance (non-secret facts only) ----
+provenance:
+  bureau_file: "GitRepos2/TRP1002_cPerso/trp1002.cperso.thales/Resources/UAT_Keys.txt"
+  visa_line:   "UAT Visa IMK AC, SMI, SMC, Encrypted under ZMK A85DE2"
+  mc_line:     "UAT MC IMK AC, SMI, SMC, Encrypted under ZMK A85DE2 (already loaded)"
+  zmk_kcv:     "A85DE2 (reconstructed from components P1^P2^P3, KCVs 6DB2A2/CCC0E4/E24E54 — see rnd-cperso mem-011)"
+
+subtasks:
+  - id: "task-002.1"
+    subject: "ZMK-decrypt the Visa IMK-AC/SMI/SMC and validate clear KCVs"
+    detail: >
+      3DES-decrypt the three Visa IMKs under the reconstructed ZMK (KCV A85DE2) — same procedure that
+      produced the MC clear-IMK KCV 82E136 (rnd-cperso mem-011). Compute each clear IMK's KCV (leftmost
+      3 bytes of 3DES(key, 8x00)) and RECORD THE KCVs ONLY (non-secret) for the audit trail; compare
+      against the bureau's stated KCVs if provided. Watch the single-length degenerate case (UAT MC IMK
+      was K1==K2 -> 3DES==single DES); confirm whether the Visa IMK is full double-length.
+    status: pending
+    priority: high
+    verification: "KCV method KAT: 3DES-ECB(zeros, key 0123456789ABCDEF)=D5D44F. Record clear Visa IMK KCVs; never store key values."
+
+  - id: "task-002.2"
+    subject: "Add the Visa IMKs to the engine keystore under distinct Visa labels"
+    detail: >
+      Append the clear Visa IMKs to persoengine/keys/uat_keystore.txt (git-ignored) using labels that
+      DO NOT collide with the MC set — e.g. VISA-IMK-AC / VISA-IMK-SMI / VISA-IMK-SMC. The engine loads
+      keys BY LABEL only; no key values in any committed file. Confirm the keystore loader resolves the
+      new labels (keystore-gated test).
+    status: pending
+    priority: high
+    depends_on: "task-002.1"
+
+  - id: "task-002.3"
+    subject: "Derive Visa per-card UDKs (EMV Option A) from the Visa IMKs"
+    detail: >
+      Reuse hsm::IHsmClient derive_udk (EMV Book 2 Annex A1.4.1 Option A — proven for MC in task-001
+      P3a) with the Visa IMK labels for a test PAN/PSN from the Visa VPA profile
+      (OutputFile_..._A0000000031010_DI_VisaDebit.xml, VIS 1.6.3/VCPS 2.2.4). Emit UDK-AC/SMI/SMC and
+      their KCVs; hand the derivation seam to bruid-cperso for the encrypted Visa key DGIs (8000/8001).
+      Keys by label only; record KCVs only.
+    status: pending
+    priority: high
+    depends_on: "task-002.2"
+
+# ---- Guardrails ----
+guardrails:
+  - "NEVER store key values (IMK, ZMK, UDK, session keys) in any committed file — labels/KCVs/ARNs only."
+  - "uat_keystore.txt is git-ignored; the fail-closed key-value commit gate must stay green."
+  - "Visa cardholder/PAN data is PCI — synthetic/test PANs only in examples; never commit real PANs."
+
+# ---- Cross-refs ----
+see_also:
+  - "bruid-cperso task-002 (Visa perso execution — consumes these keys)"
+  - "task-001 P3a (UDK/KCV) + P3d (SCP02) — MC key path this mirrors"
+  - "rnd-cperso knowledge mem-011 (ZMK/IMK validation), mem-018 (Visa plan), task-004"
+  - "hsm-crypto-planner.md (HSM/crypto plan of record)"
