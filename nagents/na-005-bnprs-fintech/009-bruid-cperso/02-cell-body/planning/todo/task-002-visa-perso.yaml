@@ -101,7 +101,21 @@ subtasks:
       last-block marker; ISD-directed SET STATUS to PERSONALIZED/SECURED after re-SELECT+re-auth on the
       ISD). Self-verify like the MC card: GPO -> AIP/AFL, AFL-driven READ RECORD returns PAN/cardholder/
       track2/cert chain, and VERIFY PIN -> 9000. Card left additive (BIXAPP/MC instance untouched).
-    status: pending
+    status: in_progress   # 2026-07-20 — LIVE on the UAT card: 14/14 Visa DGIs accepted (perso-live-visa --commit).
+                          # Card reachable (ACS ACR39U), Visa GP ISD A000000003000000 VISA2-authenticates (seq
+                          # 0005), INSTALL[make selectable] A0000000031010 (params C900) -> 9000, applet SCP02 ->
+                          # 9000. STORE DATA keys-first ALL 9000: 8000 (Visa UDKs), 9000 (KCVs — card validated the
+                          # keyset), 8201-8205 (ICC RSA CRT priv key), then 9102 FCI, 9104/9115/9117 GPO answers
+                          # (AIP+AFL), 0101/0201/0301 records. The 9102 6A80 was a FORMAT bug (had 6F/84 wrapper;
+                          # fixed to A5 proprietary template {50,87,9F38} per §3.13) -> now 9000. The MC secret-
+                          # loading lesson transferred: Visa keys loaded FIRST TRY. Card left UNLOCKED, additive.
+                          # REMAINING for full functionality (not yet done): (a) PIN DGIs 8010 (ISO2, DEK-wrapped)
+                          # + 9010 (PTC||PTL) per §3.10/3.11; (b) ODA public certs 9F46/9F47/9F48 + 8F/90/9F32/92
+                          # in SFI3 rec1-2 (record split for >255B) with real PAN; (c) FINALIZE — applet last
+                          # STORE DATA P1.bit8=1, then Card Manager -> GP SECURED (SET STATUS 80F08007/80F0800F);
+                          # (d) self-verify GPO/READ RECORD/VERIFY PIN. NOTE: card->SECURED is CARD-WIDE +
+                          # IRREVERSIBLE (disables applet loading for MC/BIX too, forces C-MAC) — needs explicit
+                          # user go-ahead before running. bpr.cpp 9102 fix committed with this milestone.
     priority: high
     depends_on: ["task-002.1", "task-002.2", "task-002.3"]
 
