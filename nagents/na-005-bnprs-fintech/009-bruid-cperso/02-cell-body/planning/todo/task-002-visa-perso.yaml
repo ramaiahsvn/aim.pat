@@ -78,7 +78,18 @@ subtasks:
       key + a Visa TEST CAPK and regenerate the issuer PK cert DGI so the card chains self-consistently
       (same UAT shortcut as MC — no bureau dependency). Confirm the Visa profile's ODA tag set (8F/90/
       9F32/9F46/9F47/9F48/9F49/9F4A) and DGI placement from the VSDC manual.
-    status: pending
+    status: done   # 2026-07-20 — Visa ODA reuses perso::oda UNCHANGED (proven for MC). PLACEMENT confirmed from
+                   # VSDC 2.9.2: §3.12 = ICC RSA key in CRT form -> DGI 8201-8205 (CA=(Q-1)modP, CD2, CD1, CQ=Q,
+                   # CP=P), ISO 9797-1 method-2 pad, 3DES-ECB DEK-wrapped under SKUDEK — IDENTICAL to MC; 8301-8305
+                   # = ICC PIN RSA key (same form). §3.16 = public ODA tags 8F/90/9F32/92/9F46/9F47/9F48/9F4A live
+                   # in the SFI3 SDA readable record (9F49 only for DDA-not-CDA). Visa RSA max: CA 1984 / issuer
+                   # 1976 / ICC 1952 bits, 32-bit steps, ICC<=issuer. IMPLEMENTED: build_visa_icc_privkey_dgis()
+                   # in perso-live-visa generates the ICC keypair (full-length CRT) + emits 8201-8205 keys-first.
+                   # Compiles+links. VERIFIED by the engine oda tests (9/9 pass): IccPrivateKeyCrtDgis,
+                   # UatTestCaChainSelfConsistent (self-signed test CA->issuer->ICC chain recovers), Certificate
+                   # RecoversAndHashVerifies. REMAINING for .4: place the cert tags in SFI3 rec1-2 with per-card
+                   # PAN/expiry, and split across records (issuer+ICC certs exceed the 255-byte STORE DATA Lc, so
+                   # SFI3 rec1/rec2 per the AFL) + a Visa test CAPK on the terminal side (rnd-mpos, task-004.5).
     priority: medium
     depends_on: "task-002.2"
 
