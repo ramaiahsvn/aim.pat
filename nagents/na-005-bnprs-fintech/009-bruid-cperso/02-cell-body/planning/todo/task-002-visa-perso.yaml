@@ -32,13 +32,23 @@ prereqs:
 
 subtasks:
   - id: "task-002.1"
-    subject: "Encrypted Visa key DGIs — 8000/8001 UDKs + KCVs, DEK-wrapped under the VISA2 session DEK"
+    subject: "Encrypted Visa key DGIs — DGI 8000 (KeyAC||KeyI||KeyC) + 9000 KCVs, DEK-wrapped under SKUDEK"
     detail: >
-      Consume bruid-dprep's Visa UDK-AC/SMI/SMC; build 8000/8001 (16B each, 3DES-ECB no-pad under SKUDEK
-      = the SCP02 session DEK, per PURE/M-Chip manual §9 — same crypto proven for MC) + the 9000/9001 3B
-      KCVs after the key blocks. Apply the MC ORDERING lesson: send the KEY REGION FIRST (mem-023) to
-      avoid downstream config/record DGIs poisoning the keys. Keys by label only.
-    status: pending
+      Consume bruid-dprep's Visa UDK-AC/SMI/SMC; build the encrypted key DGIs, DEK-wrapped (3DES-ECB
+      no-pad under SKUDEK = the SCP02 session DEK), keys-first per the MC ordering lesson (mem-023).
+      SPEC CORRECTION (VSDC 2.9.2 manual §3.8/§3.9, read 2026-07-20): Visa uses a SINGLE DGI 8000 =
+      KeyAC||KeyI||KeyC (3x16B) + DGI 9000 = KCV(AC)||KCV(I)||KCV(C) (3x3B) — NOT the 8000/8001 +
+      9000/9001 inferred from MC. No A006/A016/9103 (those are MC-specific). The applet validates 8000
+      against 9000 (KCV check) — our 9000 is computed from the same UDKs, so it is self-consistent.
+    status: done   # 2026-07-20 — IMPLEMENTED + offline-verified. build_visa_key_dgis() added to
+                   # persoengine/apps/perso-live-visa/main.cpp: derives Visa UDKs from the keystore
+                   # (VISA-IMK-AC/SMI/SMC, EMV Option A), builds DGI 8000 via seq::build_key_dgi (each key
+                   # DEK-wrapped) + DGI 9000 (kcv3 of each UDK), and PREPENDS them keys-first before the
+                   # config/record DGIs. Compiles+links (perso-live-visa, PERSOENGINE_BUILD_PCSC=ON).
+                   # Offline crypto verification (test DEK + real Visa UDKs): 8000 len=0x30/round-trips to
+                   # KeyAC/KeyI/KeyC; 9000 len=0x09, KCVs=3E425F (matches task-002.3); 9000 validates 8000.
+                   # LIVE run against the card deferred to task-002.4. PAN currently synthetic (4000...02) —
+                   # .4 sets it to the card's real Track2/5A PAN. Keys by label; no key values stored.
     priority: high
 
   - id: "task-002.2"
