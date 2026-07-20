@@ -16,7 +16,9 @@ task:
     (bruid-dprep task-002) and the VSDC 2.9.2 perso manual is on disk (Resources/Perso Manual and LoA/).
     Apply the MasterCard lessons (keys-region-first ordering, finalize control, DEK-wrap) to Visa and
     produce a fully functional Visa card.
-  status: pending
+  status: done   # 2026-07-20 — ✅ COMPLETE. All 4 subtasks done; a fully functional Visa (VSDC) card was
+                 # personalized end-to-end and self-verified (GPO/READ RECORD/VERIFY PIN) on the UAT card, and
+                 # SECURED. Keys/PIN/ODA/GPO/AFL/records/mandatory-CRM all proven live. See knowledge mem-026.
   priority: high
   created_at: "2026-07-20"
   source: "rnd-cperso na-100/003 delegation; Visa IMKs delivered 2026-07-20; VSDC 2.9.2 manual received"
@@ -101,7 +103,20 @@ subtasks:
       last-block marker; ISD-directed SET STATUS to PERSONALIZED/SECURED after re-SELECT+re-auth on the
       ISD). Self-verify like the MC card: GPO -> AIP/AFL, AFL-driven READ RECORD returns PAN/cardholder/
       track2/cert chain, and VERIFY PIN -> 9000. Card left additive (BIXAPP/MC instance untouched).
-    status: blocked   # 2026-07-20 UPDATE-2 — DATA LOAD 16/16 but APPLET FINALIZE FAILED + card now SECURED.
+    status: done   # 2026-07-20 UPDATE-3 — ✅ FULLY FUNCTIONAL VISA CARD personalized end-to-end on a FRESH
+                   # UAT card (the earlier card was over-secured; user swapped in a fresh OP_READY one). 19/19 DGIs
+                   # -> 9000, applet PERSONALIZED, card SECURED, self-verify ALL PASS: GPO returns AIP 3800 + AFL
+                   # 080101001001010018010101; AFL-driven READ SFI1/2/3 rec1 -> 9000; PAN 4000000000000002 /
+                   # Name "VISA TEST CARD" / Track2 read back; VERIFY PIN 1234 -> 9000. THE FINALIZE FIX (was the
+                   # blocker): end-of-perso = the LAST REAL DGI carrying P1.b8=1 — but ONLY works once ALL mandatory
+                   # DGIs are present. The missing mandatory DGIs were 0E01 + 3001 (§3.6 internal CRM: "(0D01 or
+                   # 0E01) AND (3000 or 3001)") and 9200 (§3.15 IDD). With those added, sending the last DGI (9200)
+                   # with P1=80 transitions SELECTABLE->PERSONALIZED cleanly (earlier 6A80/6A88 were mandatory-data
+                   # missing, NOT a trigger-mechanics problem). Full stream (19): keys-first 8000/9000/8010/9010 +
+                   # 8201-8205, then 9102/9104/9115/9117/0101/0201/0301/0E01/3001/9200(P1=80). Card SECURED only
+                   # AFTER GPO confirmed personalized (the gate held). See knowledge mem-026. bpr.cpp committed.
+    prior_status_note_2: blocked   # 2026-07-20 UPDATE-2 — first card: 16/16 loaded but no mandatory 0E01/3001, applet
+                      # never personalized, card SECURED prematurely -> stuck (needs C-MAC). Superseded by UPDATE-3.
                       # Progress: added PIN (8010 DEK-wrapped + 9010 PTC/PTL), per-card PAN/track2/name in 0201,
                       # AFL matched to written records, DGI 9200 (mandatory IDD). All 16 data DGIs -> 9000.
                       # BLOCKER: no working VSDC applet END-OF-PERSO trigger found — data DGI w/ P1.b8=1 -> 6A80,

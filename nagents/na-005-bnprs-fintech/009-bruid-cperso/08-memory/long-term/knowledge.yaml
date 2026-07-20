@@ -620,3 +620,37 @@ pruning:
     confidence: 0.97
     source: "session-2026-07-20"
     tags: [visa, vsdc, 16-of-16-load, applet-finalize-failed, end-of-perso-trigger, 6A80, 6A88, card-secured-too-early, 6985, 6982, cmac-needed, setback, lesson, recovery-path]
+
+  - id: mem-026
+    type: milestone
+    content: >-
+      2026-07-20 — 🏆 FULLY FUNCTIONAL VISA (VSDC) CARD personalized end-to-end and
+      self-verified (updates mem-025's setback). On a FRESH OP_READY UAT card
+      (A0000000031010 pre-selectable; the first card had been over-secured — see
+      mem-025), perso-live-visa --commit loaded 19/19 DGIs -> 9000, transitioned the
+      applet SELECTABLE->PERSONALIZED, set the card SECURED, and self-verified: GPO ->
+      9000 returning AIP 3800 + AFL 080101001001010018010101 (format-1 tag 80 template);
+      AFL-driven READ SFI1/SFI2/SFI3 rec1 -> 9000; PAN 4000000000000002 / Name "VISA TEST
+      CARD" / Track2 read back; VERIFY PIN 1234 -> 9000. THE FINALIZE SOLUTION (mem-025's
+      open blocker): the VSDC end-of-perso trigger is the LAST REAL DGI carrying P1.b8=1
+      (80 E2 80 <seq> <len> <dgi>) — there is NO separate/empty finalize DGI. It ONLY
+      succeeds once ALL MANDATORY DGIs are present; the missing ones were 0E01 + 3001
+      (§3.6 internal card-risk-mgmt CRM: mandatory = "(0D01 or 0E01) AND (3000 or 3001)",
+      flat TLV sequence of 57/5F20/5F34/9F36/9F51/9F52/9F56/9F57, NOT template 70) and
+      9200 (§3.15 DKI/CVN/IDD). Earlier 6A80 (data DGI P1=80) and 6A88 (empty P1=80) were
+      BOTH "mandatory data still missing", not trigger mechanics. Full 19-DGI stream,
+      keys-first: 8000/9000/8010/9010 + 8201-8205 (ICC RSA CRT), then 9102 FCI (A5 tmpl),
+      9104/9115/9117 GPO answers (AIP 3800/0020/2020 + AFL), 0101/0201(PAN,track2,name)/
+      0301, 0E01, 3001, 9200(P1.b8=1). Card->SECURED (ISD SET STATUS 80F0800700 then
+      80F0800F00) ONLY AFTER a GPO confirmed PERSONALIZED — the safety gate added after
+      mem-025 held. Visa now joins MasterCard (mem-024) as a proven fully-functional card;
+      both MC + Visa (first-focus applets) DONE. Remaining Visa polish (non-blocking):
+      real per-card data (vs synthetic 4000...02), the ODA public cert chain in SFI3
+      rec1-2 for offline terminal auth, and a C-MAC perso path to rescue an over-secured
+      card. bpr.cpp perso-live-visa carries the full flow.
+    created_at: "2026-07-20"
+    last_accessed: "2026-07-20"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-20"
+    tags: [SOLVED, visa-fully-functional, vsdc, gpo-read-verify-pass, 19-of-19, end-of-perso-last-dgi-p1-80, mandatory-0E01-3001-9200, secured, gate-held, mc-and-visa-done, milestone]
