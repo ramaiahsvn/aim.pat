@@ -167,16 +167,17 @@ subtasks:
     status: step1_passed_step2_exe_delivered   # 2026-07-21 — STEP 1 ✅ transport validated on real hardware
                       # (TeamViewer probe: TP9000.dll loaded; IC_PowerOnEx nMode=2 -> ATR 3B6E00008031...9000; SELECT
                       # MC A000000004000000 -> 9000 + full 103B FCI; eject OK => whole Tp9000Channel path works).
+                      # BITNESS: the passing probe was the WIN64 exe (user confirmed) -> the kiosk TP9000.dll is 64-BIT.
                       # NOT-a-bug: SELECT Visa A000000003000000 -> 6A82 (card in feeder is MC-only; ATR 3B6E0000 vs
-                      # the multi-app UAT card's 3BFE13, no Visa ISD). STEP 2 EXE NOW BUILT + DELIVERED: perso-live-visa
-                      # -win32.exe cross-compiled LOCALLY on pat-m4p (mingw i686, static) — per the build policy the
-                      # bpr.cpp SOURCE was NOT copied to the winrunner (user declined 2026-07-21). Self-contained x86
-                      # exe (4.45MB; OpenSSL libcrypto cross-built + pugixml + engine linked in; imports = Windows
-                      # system DLLs only incl. WinSCard/CRYPT32; TP9000.dll runtime-loaded). sha256 a4cf7721...
-                      # Sent to user. REMAINING (user/hardware): run on the host from a dir with TP9000.dll +
-                      # keys\uat_keystore.txt, load a FRESH OP_READY multi-app UAT card (3BFE13, Visa pkg), then
-                      # perso-live-visa-win32.exe --transport tp9000 (preflight) -> --commit --transport tp9000;
-                      # expect 19/19 DGIs + self-verify per mem-026.
+                      # the multi-app UAT card's 3BFE13, no Visa ISD). STEP 2 EXE NOW BUILT + DELIVERED:
+                      # perso-live-visa-WIN64.exe cross-compiled LOCALLY on pat-m4p (mingw x86_64, static) — per the
+                      # build policy the bpr.cpp SOURCE was NOT copied to the winrunner (user declined 2026-07-21).
+                      # Self-contained x86-64 exe (4.59MB; OpenSSL libcrypto cross-built + pugixml + engine linked in;
+                      # imports = Windows system DLLs only incl. WinSCard/CRYPT32; TP9000.dll runtime-loaded). sha256
+                      # 9d4f8cb8... (the earlier win32 live exe was WRONG bitness — discarded). Sent to user. REMAINING
+                      # (user/hardware): run on the host from a dir with TP9000.dll + keys\uat_keystore.txt, load a
+                      # FRESH OP_READY multi-app UAT card (3BFE13, Visa pkg), then perso-live-visa-win64.exe
+                      # --transport tp9000 (preflight) -> --commit --transport tp9000; expect 19/19 DGIs + self-verify.
     priority: medium
     depends_on: ["task-002.3", "task-002.4"]
 
@@ -185,10 +186,13 @@ subtasks:
     subject: "How the Windows exes are built locally (mingw-w64, no source on winrunner)"
     detail: >
       Per the build policy (mem-003: kiosk external / no bpr.cpp source on the winrunner), Windows perso exes are
-      cross-compiled on pat-m4p with mingw-w64 (i686 = 32-bit, matching the kiosk's 32-bit TP9000.dll), statically
-      linked so the kiosk gets ONE self-contained file.
-      DEPS built/obtained locally: (1) OpenSSL libcrypto — download openssl-3.0.16 src, `./Configure mingw
-      --cross-compile-prefix=i686-w64-mingw32- no-shared no-tests no-asm` then `make -j build_libs` -> libcrypto.a;
+      cross-compiled on pat-m4p with mingw-w64, statically linked so the kiosk gets ONE self-contained file.
+      BITNESS: the kiosk TP9000.dll is 64-BIT (win64 probe loaded it) -> use x86_64-w64-mingw32 for perso-live-visa.
+      (i686 also works for the probe/PC-SC; pick the arch to MATCH the target DLL.) GOTCHA: build each arch's
+      OpenSSL in its OWN fresh dir — re-tarring over a prior build leaves stale .obj of the other arch that make
+      re-archives (i386 objs -> leading-underscore symbols -> undefined refs at x64 link).
+      DEPS built/obtained locally: (1) OpenSSL libcrypto — download openssl-3.0.16 src, `./Configure <mingw|mingw64>
+      --cross-compile-prefix=<i686|x86_64>-w64-mingw32- no-shared no-tests no-asm` then `make -j build_libs` -> libcrypto.a;
       (2) pugixml v1.14 single source (pugixml.cpp/.hpp/.hpp); (3) glog -> tiny stderr shim header (no real glog).
       COMPILE (one g++ invocation): i686-w64-mingw32-g++ -std=c++17 -O2 -DNDEBUG -DPERSOENGINE_HAVE_TP9000
       -DPCSC_PLATFORM_WINDOWS -DPCSC_COMMON_EXPORTS -static -static-libgcc -static-libstdc++, includes = persoengine

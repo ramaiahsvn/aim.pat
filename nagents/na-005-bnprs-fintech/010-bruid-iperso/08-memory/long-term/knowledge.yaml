@@ -66,7 +66,8 @@ memories:
     type: milestone
     content: >
       2026-07-21: ✅ TP9000 FEEDER TRANSPORT VALIDATED ON REAL HARDWARE (task-002.5 Step 1). Ran the prebuilt
-      perso-tp9000-probe (win32) on the Windows perso host via TeamViewer against a live TP9000 feeder. Output:
+      perso-tp9000-probe **(win64 — user confirmed it was the 64-bit exe, so the kiosk TP9000.dll is 64-BIT)**
+      on the Windows perso host via TeamViewer against a live TP9000 feeder. Output:
       "TP9000.dll loaded and resolved"; "powered on (mode=2), ATR=3B6E000080318066B0840C016E0183009000"; SELECT
       MC card-manager A000000004000000 -> SW=9000 with a full 103-byte FCI (6F67 8408 A000000004000000 A55B...
       9F6E06 19810314 0100 9F6501FF); eject OK. This PROVES the whole Tp9000Channel path end-to-end: LoadLibrary
@@ -104,7 +105,12 @@ memories:
       **Why:** BRUID is patented IP; keep its source off shared/build boxes. **How to apply:** for any Windows
       perso binary, cross-compile on pat-m4p (mingw i686, static) and ship only the exe; never scp/clone bpr.cpp
       to the winrunner or the kiosk. Deps to solve locally for perso-live-visa: OpenSSL libcrypto + pugixml +
-      persoengine_bprcrypt for mingw (glog -> stderr shim, winscard from mingw). [[mem-001]] [[mem-002]]
+      persoengine_bprcrypt for mingw (glog -> stderr shim, winscard from mingw). BITNESS CORRECTION 2026-07-21:
+      the kiosk TP9000.dll is **64-BIT** (the win64 probe loaded it — user confirmed) — NOT 32-bit as first
+      assumed. So perso-live-visa is built **x86_64** (x86_64-w64-mingw32, static). GOTCHA hit + fixed: when
+      cross-building OpenSSL for x64, do a CLEAN extract — re-tarring over a prior i686 build dir leaves stale
+      i386 .obj files that `make` re-archives (symptom: libcrypto has leading-underscore i386 symbols ->
+      undefined refs at x64 link). Build each arch in its own fresh dir. [[mem-001]] [[mem-002]]
     created_at: "2026-07-21"
     last_accessed: "2026-07-21"
     access_count: 1
