@@ -364,6 +364,30 @@ memories:
     confidence: 0.97
     tags: [visa, vsdc, next-target, 5-of-5-dgis, C900-install, visa-imks-delivered, imk-load-pending, afl-correctness, set-status, vsdc-2.9.2-spec, planner-review]
 
+  - id: mem-019
+    type: technical_knowledge
+    content: >
+      2026-07-21: TP9000 (Pointman) transport — task-005 opened (planning). The perso engine
+      (bpr.cpp/src/BprCardEmv/persoengine) transmits over ONE transport: PC/SC (BprPcScChannel,
+      PERSOENGINE_BUILD_PCSC) — all live MC+Visa perso used it. A SECOND transport is now needed: the
+      Pointman TP9000 motorized card FEEDER, whose vendor DLL (TP9000.dll) drives the chip contacts
+      DIRECTLY, not via winscard/pcsclite. GROUND TRUTH: a partial wrapper ALREADY EXISTS at
+      bpr.cpp/src/BprPcSc/tp9k/tp9k.{h,cpp} (class Tp9000Card, Windows-only, LoadLibrary+GetProcAddress):
+      exports CheckFeeder/Card_Insert/IC_ContactOn/IC_PowerOn/IC_Input/Card_Eject; PatTp9000_Transmit
+      (IC_Input) is FUNCTIONAL but ATR/Open/Close are STUBBED/commented-out. The OLD BprCardQi/BprCardEmv
+      already dispatch by slot (PatCard_Transmit, BprCardQi.cpp:267): PAT_SLOT_TP9000=-1 -> feeder,
+      PAT_SLOT_HOST=-2 -> KMS host, >=0 -> PC/SC reader; matches MCES2 BprMces2Config.xml Perso/UserCardSlot
+      (-1=TP9000). The NEW persoengine has ZERO TP9000 code (apps hard-construct BprPcScChannel,
+      perso-live-visa/main.cpp:257). DESIGN: add perso::driver::Tp9000Channel : ICardChannel (card_tp9000.
+      {hpp,cpp}) wrapping Tp9000Card, transmit()=IC_Input + the SAME 61xx/6Cxx resolution as BprPcScChannel;
+      guard PERSOENGINE_BUILD_TP9000 + WIN32 (mirrors PERSOENGINE_BUILD_PCSC, CMakeLists.txt:41); add a
+      --transport pcsc|tp9000 factory to the live apps. NO engine-core change (seam = ICardChannel, card.hpp:29).
+      WINDOWS-ONLY -> cannot bench on pat-m4p; needs the Windows perso host + a real TP9000. Likely owner
+      bruid-iperso (010, instant/feeder) with bruid-cperso (009). Full breakdown: task-005-tp9000-transport.yaml.
+    created_at: "2026-07-21"
+    confidence: 0.95
+    tags: [tp9000, pointman, transport, icardchannel, feeder, tp9k-wrapper-exists, windows-only, slot--1, task-005, iperso, persoengine-gap]
+
 # Pruning rules
 pruning:
   max_entries: 500

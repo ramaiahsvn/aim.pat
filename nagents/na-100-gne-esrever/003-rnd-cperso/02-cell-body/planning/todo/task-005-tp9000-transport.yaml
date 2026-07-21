@@ -1,0 +1,183 @@
+# Task — Pointman TP9000 card-feeder transport for the perso engine
+#
+# Opened 2026-07-21. The perso engine (bpr.cpp/src/BprCardEmv/persoengine) currently
+# transmits APDUs over ONE transport only: PC/SC (BprPcScChannel, behind
+# PERSOENGINE_BUILD_PCSC). All live MC + Visa perso ran through it (rnd-cperso mem-016/mem-018;
+# bruid-cperso mem-024/mem-026). We now need a SECOND transport: the Pointman TP9000 motorized
+# card feeder/dispenser, whose vendor DLL owns the reader hardware directly and does NOT go
+# through winscard/pcsclite. A partial legacy wrapper already exists; this task designs the
+# clean integration behind the engine's ICardChannel seam and hands implementation to BRUID.
+
+task:
+  id: "task-005"
+  subject: "Add a Pointman TP9000 ICardChannel transport (feeder-fed instant/counter issuance)"
+  status: planning            # rnd-cperso design/review; implementation delegated (see owners)
+  priority: medium
+  created_at: "2026-07-21"
+  source: "user request 2026-07-21 — integrate the Pointman (Tp9k) interface alongside PC/SC"
+  owner: "rnd-cperso (na-100/003) — design/plan; implementation delegated to na-005 BRUID (see per-subtask)"
+  tags: [tp9000, pointman, transport, icardchannel, feeder, instant-perso, iperso, windows-only, perso-engine]
+
+# ---- Why it matters (one line) ----
+why: >
+  Bureau perso uses fixed PC/SC readers; instant/counter issuance uses a motorized card FEEDER that
+  pulls blanks from a hopper, personalizes, then ejects. The TP9000 is that feeder — it needs its own
+  APDU transport because the vendor DLL drives the chip contacts directly, not through PC/SC.
+
+# ---- What already exists (ground truth, verified 2026-07-21) ----
+existing_code:
+  legacy_wrapper:
+    path: "bpr.cpp/src/BprPcSc/tp9k/tp9k.{h,cpp}"
+    class: "Tp9000Card"
+    nature: >
+      Windows-only wrapper around Pointman's proprietary TP9000.dll (LoadLibrary + GetProcAddress).
+      NOT a PC/SC reader — the vendor DLL owns the hardware. It is a card FEEDER/DISPENSER.
+    dll_exports_used:
+      CheckFeeder:   "int(int* pStatus) — hopper/feeder status"
+      Card_Insert:   "int() — pull a blank from the hopper into the contact station"
+      IC_ContactOn:  "int() — drop contacts onto the chip"
+      IC_PowerOn:    "int(cno, uint* pRXSize, LPCBYTE pRXData) — cold reset / return ATR"
+      IC_Input:      "int(cno, uint TXSize, LPCBYTE TX, uint* pRXSize, LPCBYTE RX) — TRANSMIT one APDU"
+      Card_Eject:    "int(nOption) — eject the finished card"
+    public_methods:
+      PatTp9000_ATR:      "STUB — returns literal 'Pointman ATR need to implement' (no real ATR decode)"
+      PatTp9000_Open:     "PARTIAL — LoadLibrary + resolve exports OK; IC_ContactOn/IC_PowerOn calls COMMENTED OUT"
+      PatTp9000_Transmit: "FUNCTIONAL — cno=0, wraps IC_Input (send APDU -> RX buffer)"
+      PatTp9000_Close:    "STUB — Card_Eject COMMENTED OUT"
+    limitation: >
+      Windows-only (afx.h/windows.h, __stdcall, LoadLibrary; TP9000.dll is a Win32 DLL). Cannot run on
+      pat-m4p/pcsclite where the MC/Visa dev runs happened — only on the Windows perso host.
+  legacy_dispatch:
+    where: "bpr.cpp/src/BprCardQi/BprCardQi.cpp:267 PatCard_Transmit()"
+    pattern: >
+      Slot-based transport switch already used by the OLD BprCardQi/BprCardEmv modules:
+        userCardSlot == PAT_SLOT_HOST(-2)  -> PatHost_Transmit_Common (KMS host callback)
+        userCardSlot == PAT_SLOT_TP9000(-1) -> PatTp9000_Transmit_Common (the feeder)
+        else (>=0)                          -> PatPcSc_Transmit_Common (numbered PC/SC reader)
+      Constants: BprCardQi.h:100  #define PAT_SLOT_TP9000 -1 / PAT_SLOT_HOST -2.
+    runtime_config: >
+      Matches MCES2 BprMces2Config.xml -> Perso/UserCardSlot (-1 = TP9000, >=0 = PC/SC slot).
+      So the -1==TP9000 convention is already established across the stack.
+  perso_engine_gap:
+    finding: >
+      The NEW persoengine has ZERO TP9000 references. It implements ONE ICardChannel — BprPcScChannel
+      (card_bprpcsc.{hpp,cpp}, guarded by PERSOENGINE_BUILD_PCSC). The live apps hard-construct it:
+      apps/perso-live-visa/main.cpp:257  `drv::BprPcScChannel ch;` (same in perso-live). No transport
+      selection point exists yet.
+
+# ---- The seam we build against (no engine-core changes needed) ----
+seam:
+  interface: "perso::driver::ICardChannel (card.hpp:29) — virtual ApduResponse transmit(const Bytes& capdu)"
+  contract: >
+    transmit() must return the FINAL data+SW, resolving 61xx (GET RESPONSE) and 6Cxx (re-issue with exact
+    Le) internally — exactly as BprPcScChannel::transmit() does. run_store_data()/the sequencer only ever
+    see ICardChannel, so a second implementation is a drop-in; NO change to tlv/profile/sequencer/oda.
+
+# ---- DESIGN: add a Tp9000Channel implementation ----
+design:
+  new_class: "perso::driver::Tp9000Channel : public ICardChannel"
+  files:
+    - "persoengine/include/persoengine/card_tp9000.hpp"
+    - "persoengine/src/card_tp9000.cpp"
+  wraps: "bpr.cpp Tp9000Card (src/BprPcSc/tp9k) — reuse, don't reinvent the DLL binding"
+  lifecycle:
+    connect:  "PatTp9000_Open() -> (feeder) CheckFeeder -> Card_Insert if no card present -> IC_ContactOn -> IC_PowerOn (capture ATR)"
+    transmit: "IC_Input(cno=0, capdu) -> raw response; THEN apply the SAME 61xx/6Cxx resolution loop as BprPcScChannel (the vendor DLL does raw I/O, so chaining is OUR responsibility)"
+    atr:      "expose atr() from IC_PowerOn's RX buffer (replaces the 'need to implement' stub)"
+    close:    "Card_Eject(option) on success; leave-in-station option for QA re-read before eject"
+  build_guard:
+    cmake_option: "PERSOENGINE_BUILD_TP9000 (default OFF) — mirrors PERSOENGINE_BUILD_PCSC (CMakeLists.txt:41)"
+    platform: "WINDOWS ONLY. Gate the sources on WIN32; on non-Windows the option is a no-op (TP9000.dll unavailable). Pairs with the existing winscard-vs-pcsclite backend split (CMakeLists.txt:55-64)."
+  app_wiring:
+    change: >
+      Replace the hard-coded `drv::BprPcScChannel ch;` in perso-live / perso-live-visa with a
+      transport factory selected by a flag: `--transport pcsc|tp9000` (default pcsc), or reuse the
+      slot convention (-1 => tp9000). Return std::unique_ptr<drv::ICardChannel>. Everything downstream
+      (open_ch, STORE DATA stream, SET STATUS, self-verify) is unchanged.
+    example: >
+      std::unique_ptr<drv::ICardChannel> ch =
+        (transport == "tp9000") ? drv::make_tp9000_channel()   // #ifdef PERSOENGINE_BUILD_TP9000
+                                : drv::make_pcsc_channel(reader);
+
+# ---- SUBTASKS ----
+subtasks:
+  - id: "task-005.1"
+    subject: "Finish the legacy Tp9000Card wrapper (un-stub ATR/Open/Close)"
+    owner: "bruid-iperso (na-005/010) — instant/feeder owner; or cpp-pcsc-all (na-005/005) as the BprPcSc module owner"
+    detail: >
+      In bpr.cpp/src/BprPcSc/tp9k: implement real ATR decode in PatTp9000_ATR (return the IC_PowerOn RX
+      bytes, not the literal string); re-enable the IC_ContactOn/IC_PowerOn calls in PatTp9000_Open and
+      the Card_Eject call in PatTp9000_Close (currently commented out). Add error-code mapping so a feeder
+      jam / no-card / power-on failure surfaces distinctly (don't collapse to -1). Keep it Windows-only.
+    status: pending
+    priority: high
+
+  - id: "task-005.2"
+    subject: "Implement perso::driver::Tp9000Channel : ICardChannel in the perso engine"
+    owner: "bruid-iperso (na-005/010) central-of-instant; review by rnd-cperso"
+    detail: >
+      New card_tp9000.{hpp,cpp} wrapping Tp9000Card. transmit() = IC_Input + the SAME 61xx/6Cxx resolution
+      as BprPcScChannel::transmit() (copy that loop — the vendor DLL gives raw I/O with no auto-chaining).
+      Provide connect(feed+contact+power) and atr(). Guard behind PERSOENGINE_BUILD_TP9000 + WIN32 in
+      CMakeLists.txt, mirroring the PERSOENGINE_BUILD_PCSC block (line 41). No engine-core edits.
+    status: pending
+    priority: high
+    depends_on: "task-005.1"
+
+  - id: "task-005.3"
+    subject: "Transport selection in the live apps (perso-live / perso-live-visa)"
+    owner: "bruid-cperso (na-005/009) + bruid-iperso (na-005/010)"
+    detail: >
+      Replace the hard-coded BprPcScChannel construction (perso-live-visa/main.cpp:257) with a factory:
+      --transport pcsc|tp9000 (default pcsc) returning unique_ptr<ICardChannel>. Preserve the -1==TP9000
+      slot convention for parity with MCES2 BprMces2Config.xml. Everything downstream is transport-agnostic.
+    status: pending
+    priority: medium
+    depends_on: "task-005.2"
+
+  - id: "task-005.4"
+    subject: "Feeder-lifecycle sequencing (batch semantics for instant issuance)"
+    owner: "bruid-iperso (na-005/010)"
+    detail: >
+      Instant issuance is per-card feed->perso->verify->eject, not a fixed reader. Define: when to
+      Card_Insert (per card), where the perso stream runs, the QA read-back BEFORE eject (self-verify:
+      GPO/READ RECORD/VERIFY PIN as in mem-026), and eject-good vs divert-reject. Map to the domain model
+      (iperso = central DataPrep -> APDU script pushed to kiosk; the feeder is the kiosk's card handler).
+    status: pending
+    priority: medium
+    depends_on: "task-005.2"
+
+  - id: "task-005.5"
+    subject: "Bench-verify on the Windows perso host with a real TP9000"
+    owner: "bruid-iperso (na-005/010) + bruid-cperso (na-005/009)"
+    detail: >
+      Cannot be tested on pat-m4p (Windows-only DLL). On the Windows host with a TP9000 + blanks: confirm
+      feeder status, insert, ATR, an end-to-end perso (reuse the proven Visa/MC stream), self-verify, eject.
+      Watch for: IC_Input RX buffer sizing, T=0/T=1 behaviour vs PC/SC, and no double-open contention if a
+      PC/SC session is also present.
+    status: pending
+    priority: medium
+    depends_on: ["task-005.3", "task-005.4"]
+
+# ---- Open questions for the user / vendor ----
+open_questions:
+  - "Which issuance flow is the target — instant/counter (iperso, feeder-per-card) or in-bureau (cperso) using the TP9000 as its reader? Sets the primary owner (iperso vs cperso)."
+  - "TP9000.dll bitness + version on the perso host (x86 vs x64) — must match the host process; our Windows persoengine build target."
+  - "Contactless via TP9000? The legacy wrapper is contact-only (IC_* exports). If dual-interface perso is needed, confirm the vendor CL API."
+  - "T=0 vs T=1 and max APDU/RX buffer through IC_Input — affects the 61xx/6Cxx handling and any extended-length use."
+
+# ---- Guardrails ----
+guardrails:
+  - "No engine-core changes — Tp9000Channel sits behind ICardChannel; tlv/profile/sequencer/oda untouched."
+  - "Windows-only: gate all TP9000 sources on WIN32 + PERSOENGINE_BUILD_TP9000; keep the default OFF so pat-m4p builds/tests stay hardware-free."
+  - "PCI: same as PC/SC — synthetic/test PANs only, never log TRACK/PIN/CVV, DEK-wrapped key DGIs only; the transport does not change the data path."
+  - "Feeder actions (Card_Insert/Card_Eject) move physical cards — a reject/divert path must exist so a failed card is never ejected as good."
+
+# ---- Cross-refs ----
+see_also:
+  - "bpr.cpp/src/BprPcSc/tp9k/tp9k.{h,cpp} (Tp9000Card, the wrapper to reuse/finish)"
+  - "bpr.cpp/src/BprCardQi/BprCardQi.cpp:267 PatCard_Transmit (the existing slot-based dispatch pattern)"
+  - "persoengine/include/persoengine/card.hpp (ICardChannel seam) + card_bprpcsc.{hpp,cpp} (the PC/SC sibling to mirror)"
+  - "persoengine CMakeLists.txt:41 PERSOENGINE_BUILD_PCSC (the option block to mirror for TP9000)"
+  - "bruid-cperso CLAUDE.md (Perso/UserCardSlot -1 = TP9000) + mem-024/mem-026 (proven MC/Visa streams to run over the feeder)"
+  - "domain model: rnd-cperso knowledge mem-008 (central vs instant perso; kiosk = untrusted, script-driven)"
