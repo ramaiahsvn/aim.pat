@@ -17,7 +17,9 @@ task:
     seam (card.hpp:29). WINDOWS-ONLY — bench-tested on the Windows perso host, not pat-m4p.
   status: in_progress   # 2026-07-21 — core + app factory implemented; TRANSPORT PROVEN ON REAL HARDWARE via the
                         # read-only probe (TeamViewer: DLL load, EMV ATR, MC SELECT 9000+FCI, eject — see task-002.5).
-                        # Only Step 2 (live Visa perso on the host) + optional 002.4 remain.
+                        # Step-2 LIVE exe (perso-live-visa-win32.exe) now cross-compiled locally (mingw, no source on
+                        # winrunner) + delivered; awaiting the user's live run on a fresh multi-app UAT card. Optional
+                        # 002.4 (executor eject/reject) still deferred.
                         # DECISION (user 2026-07-21): DO NOT modify the legacy tp9k (Tp9000Card) — it works
                         # for BprCardQi/BprCardEmv. Instead a SELF-CONTAINED _v2 wrapper was added. DONE: 002.1 (v2
                         # wrapper), 002.2 (Tp9000Channel), 002.3 (CMake option + probe app + shared --transport
@@ -162,19 +164,42 @@ subtasks:
       were macOS, so a Windows core build is new); (2) live feeder behaviour — feed, ATR, IC_Input RX sizing
       (512B), IC_PowerOnEx EMV-mode T=0/T=1, eject; (3) no PC/SC double-open contention. NEXT: run the runbook
       on the Windows perso host with a TP9000 + fresh OP_READY UAT card; capture stdout to this subtask.
-    status: step1_passed   # 2026-07-21 — ✅ TRANSPORT VALIDATED ON REAL HARDWARE (TeamViewer, Windows perso host,
-                      # win32 exe). perso-tp9000-probe output: TP9000.dll loaded+resolved; IC_PowerOnEx nMode=2 ->
-                      # ATR 3B6E000080318066B0840C016E0183009000; SELECT MC card-mgr A000000004000000 -> SW=9000 +
-                      # full 103B FCI (6F67 8408 A000000004000000 A55B ... 9F6E06 19810314 0100 9F6501FF); eject OK.
-                      # => the whole Tp9000Channel path (DLL bind, feed, EMV cold reset, IC_Input transmit, response
-                      # assembly, eject) WORKS end-to-end. NOT-a-bug: SELECT Visa A000000003000000 -> 6A82 (applet
-                      # absent) — the card in the feeder is a DIFFERENT card than the multi-app UAT card: its ATR is
-                      # 3B6E0000... (UAT multi-app card = 3BFE13) and it has NO Visa ISD. Looks MC-card-manager-only.
-                      # REMAINING (Step 2, live perso): build perso-live-visa on the host (OpenSSL/pugixml via
-                      # build-tp9000.ps1) + load the correct multi-app UAT card (3BFE13, Visa pkg) into the feeder,
-                      # then perso-live-visa --commit --transport tp9000; expect 19/19 DGIs per mem-026.
+    status: step1_passed_step2_exe_delivered   # 2026-07-21 — STEP 1 ✅ transport validated on real hardware
+                      # (TeamViewer probe: TP9000.dll loaded; IC_PowerOnEx nMode=2 -> ATR 3B6E00008031...9000; SELECT
+                      # MC A000000004000000 -> 9000 + full 103B FCI; eject OK => whole Tp9000Channel path works).
+                      # NOT-a-bug: SELECT Visa A000000003000000 -> 6A82 (card in feeder is MC-only; ATR 3B6E0000 vs
+                      # the multi-app UAT card's 3BFE13, no Visa ISD). STEP 2 EXE NOW BUILT + DELIVERED: perso-live-visa
+                      # -win32.exe cross-compiled LOCALLY on pat-m4p (mingw i686, static) — per the build policy the
+                      # bpr.cpp SOURCE was NOT copied to the winrunner (user declined 2026-07-21). Self-contained x86
+                      # exe (4.45MB; OpenSSL libcrypto cross-built + pugixml + engine linked in; imports = Windows
+                      # system DLLs only incl. WinSCard/CRYPT32; TP9000.dll runtime-loaded). sha256 a4cf7721...
+                      # Sent to user. REMAINING (user/hardware): run on the host from a dir with TP9000.dll +
+                      # keys\uat_keystore.txt, load a FRESH OP_READY multi-app UAT card (3BFE13, Visa pkg), then
+                      # perso-live-visa-win32.exe --transport tp9000 (preflight) -> --commit --transport tp9000;
+                      # expect 19/19 DGIs + self-verify per mem-026.
     priority: medium
     depends_on: ["task-002.3", "task-002.4"]
+
+  # ---- Local Windows cross-compile recipe (reproducible; source stays on pat-m4p) ----
+  - id: "task-002.6"
+    subject: "How the Windows exes are built locally (mingw-w64, no source on winrunner)"
+    detail: >
+      Per the build policy (mem-003: kiosk external / no bpr.cpp source on the winrunner), Windows perso exes are
+      cross-compiled on pat-m4p with mingw-w64 (i686 = 32-bit, matching the kiosk's 32-bit TP9000.dll), statically
+      linked so the kiosk gets ONE self-contained file.
+      DEPS built/obtained locally: (1) OpenSSL libcrypto — download openssl-3.0.16 src, `./Configure mingw
+      --cross-compile-prefix=i686-w64-mingw32- no-shared no-tests no-asm` then `make -j build_libs` -> libcrypto.a;
+      (2) pugixml v1.14 single source (pugixml.cpp/.hpp/.hpp); (3) glog -> tiny stderr shim header (no real glog).
+      COMPILE (one g++ invocation): i686-w64-mingw32-g++ -std=c++17 -O2 -DNDEBUG -DPERSOENGINE_HAVE_TP9000
+      -DPCSC_PLATFORM_WINDOWS -DPCSC_COMMON_EXPORTS -static -static-libgcc -static-libstdc++, includes = persoengine
+      /include + BprPcSc + AprCommon/BprCrypt + pugixml + openssl/include + glogshim; sources = the 9 core cpp +
+      des/des3 + pugixml.cpp + BprPcSc {context,reader,card,error,backend_winscard} + card_bprpcsc + tp9k_v2 +
+      card_tp9000 + the app main; link libcrypto.a -lwinscard -lws2_32 -lcrypt32 -lbcrypt.
+      KEY GOTCHA: define -DPCSC_COMMON_EXPORTS or the pcsc headers (export.h) default to __declspec(dllimport) on
+      Windows -> _imp__ undefined refs on a static link. The probe (perso-tp9000-probe) is the same recipe minus
+      OpenSSL/pugixml (it only needs tp9k_v2 + card_tp9000 + perso_driver + tlv + main).
+    status: done   # 2026-07-21 — recipe proven: both perso-tp9000-probe (32/64) and perso-live-visa-win32 built this way.
+    priority: low
 
 # ---- Open questions (see task-005; two now resolved 2026-07-21) ----
 open_questions:

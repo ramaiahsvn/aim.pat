@@ -86,6 +86,32 @@ memories:
     source: "session-2026-07-21"
     tags: [tp9000, hardware-validated, transport-proven, probe-pass, teamviewer, atr-3B6E, mc-select-9000, fci, visa-6A82-card-lacks-visa, eject-ok, task-002.5-step1, milestone]
 
+  - id: mem-003
+    type: feedback
+    content: >
+      2026-07-21: WHERE iPerso Windows binaries are BUILT vs RUN (user directives — two separate rules).
+      (1) The KIOSK (Windows perso host with the TP9000 feeder) is EXTERNAL + UNTRUSTED — NEVER run a
+      build/toolchain there; it only EXECUTES pre-built exes (matches the iperso threat model: untrusted public
+      kiosk). (2) Do NOT copy BRUID/bpr.cpp SOURCE onto the WINRUNNER EC2 either (user declined this 2026-07-21
+      when asked) — that box is shared build infra and the source should not land there ad-hoc. So Windows
+      binaries that NEED the bpr.cpp source (e.g. perso-live-visa) are cross-compiled LOCALLY on pat-m4p with
+      mingw-w64, producing a self-contained exe that is then delivered to the kiosk. (The mingw route already
+      works: the perso-tp9000-probe.exe was cross-compiled this way, mem-001/mem-002.) The winrunner
+      (i-03563f4ad6ca9abf0 'patwin-runner', acct 891963159778, ap-south-2, profile bnprs, SSM-only; has git +
+      MSVC VS2022BT + VS-bundled CMake/Ninja + choco) stays reserved for the sanctioned MCES2 GitLab CI (which
+      clones its OWN repo) — not for ad-hoc bpr.cpp builds. BITNESS: the kiosk TP9000.dll is 32-bit (the win32
+      probe loaded it), so build perso-live-visa x86 static.
+      **Why:** BRUID is patented IP; keep its source off shared/build boxes. **How to apply:** for any Windows
+      perso binary, cross-compile on pat-m4p (mingw i686, static) and ship only the exe; never scp/clone bpr.cpp
+      to the winrunner or the kiosk. Deps to solve locally for perso-live-visa: OpenSSL libcrypto + pugixml +
+      persoengine_bprcrypt for mingw (glog -> stderr shim, winscard from mingw). [[mem-001]] [[mem-002]]
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-21"
+    tags: [build-policy, kiosk-external-no-build, no-source-on-winrunner, bruid-ip, mingw-local-build, pat-m4p, x86-static, perso-live-visa, user-directive]
+
 # Pruning rules
 pruning:
   max_entries: 500
