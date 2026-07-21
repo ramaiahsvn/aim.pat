@@ -160,8 +160,13 @@ subtasks:
       were macOS, so a Windows core build is new); (2) live feeder behaviour — feed, ATR, IC_Input RX sizing
       (512B), IC_PowerOnEx EMV-mode T=0/T=1, eject; (3) no PC/SC double-open contention. NEXT: run the runbook
       on the Windows perso host with a TP9000 + fresh OP_READY UAT card; capture stdout to this subtask.
-    status: blocked   # 2026-07-21 — code compile-verified for Windows (mingw x-compile) + runbook ready;
-                      # the actual hardware bench needs the Windows perso host + a physical TP9000 (user/hardware).
+    status: blocked   # 2026-07-21 — code compile-verified for Windows (mingw x-compile) + runbook ready +
+                      # PREBUILT PROBE EXE DELIVERED. Standalone perso-tp9000-probe.exe (32+64-bit) cross-compiled
+                      # on pat-m4p (mingw-w64, statically linked; deps KERNEL32+UCRT only; TP9000.dll loaded at
+                      # runtime) and sent to the user for a TeamViewer test — no host toolchain needed for the
+                      # read-only probe. sha256 win32 3f25ade5..., win64 ee65eeb6.... So Step 1 (transport smoke
+                      # test) can run NOW on the host. The hardware bench (feed/ATR/SELECT/eject observed) + the
+                      # full live Visa perso (Step 2, needs a host OpenSSL/pugixml build) remain user/hardware-gated.
     priority: medium
     depends_on: ["task-002.3", "task-002.4"]
 

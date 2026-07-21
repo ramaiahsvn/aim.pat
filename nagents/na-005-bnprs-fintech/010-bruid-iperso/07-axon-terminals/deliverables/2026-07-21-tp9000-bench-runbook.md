@@ -60,6 +60,16 @@ cmake --build build-win --config Release
 Targets produced: `persoengine_tp9000`, **`perso-tp9000-probe`**, and `perso-live-visa`
 (now linked with `PERSOENGINE_HAVE_TP9000` so it accepts `--transport tp9000`).
 
+## Prebuilt probe exe (no Windows toolchain needed) — delivered 2026-07-21
+For a TeamViewer test WITHOUT setting up MSVC/vcpkg/CMake on the host, a standalone
+**`perso-tp9000-probe.exe`** was cross-compiled on pat-m4p (mingw-w64, statically linked) and sent to the
+user — 32-bit + 64-bit. Only deps are KERNEL32 + the UCRT (OS-provided on Win10/11/Server2016+); `TP9000.dll`
+is loaded at RUNTIME (not linked). Match the exe bitness to the DLL (start with win32 — the MCES2 host is x86).
+- SHA-256 win32 `3f25ade5327a247d32dc68ec08656bfc49450e27c63b40214dd70b8f05cedb72`
+- SHA-256 win64 `ee65eeb65a072450e6445fb5d295e76813c8e43d19785a01aabb2d70277598ea`
+Put the exe next to `TP9000.dll` + run it (see the shipped `README-tp9000-probe.txt`). This covers Step 1
+below without a host build. The full live perso (Step 2) still needs the host build (OpenSSL/pugixml).
+
 ## Step 1 — read-only smoke probe (non-destructive)
 ```powershell
 cd build-win\Release          # or wherever the exe + TP9000.dll + .\keys live

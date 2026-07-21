@@ -32,9 +32,14 @@ memories:
       i686 (32-bit) and x86_64 (64-bit); only benign -Wcast-function-type on the GetProcAddress cast. Legacy
       tp9k.cpp does NOT x-compile (needs MFC/afx.h) -> confirms untouched + v2 avoids MFC. Bench RUNBOOK
       delivered: 07-axon-terminals/deliverables/2026-07-21-tp9000-bench-runbook.md (vcpkg deps, CMake flags,
-      read-only probe then live Visa --transport tp9000, expected vs mem-026). 002.4 (eject/reject-into-executor)
-      DEFERRED per user. STILL BLOCKED: the physical bench needs the Windows perso host + a real TP9000 (and a
-      first-ever Windows build of the persoengine CORE: pugixml/OpenSSL/glog — all prior live runs were macOS).
+      read-only probe then live Visa --transport tp9000, expected vs mem-026). PREBUILT PROBE EXE delivered
+      2026-07-21: perso-tp9000-probe.exe cross-compiled on pat-m4p with mingw-w64 (32+64-bit, statically linked;
+      imports KERNEL32+UCRT only; TP9000.dll loaded at RUNTIME so not needed to link). Minimal object set (probe
+      pulls NO OpenSSL/pugixml/winscard): tp9k_v2 + card_tp9000 + perso_driver(select_apdu) + tlv + main, glog
+      replaced by a stderr shim. Sent to user for a TeamViewer smoke test — no host toolchain needed. sha256
+      win32 3f25ade5..., win64 ee65eeb6.... 002.4 (eject/reject-into-executor) DEFERRED per user. STILL BLOCKED:
+      the physical bench needs the Windows perso host + a real TP9000; the full live Visa exe still needs a
+      first-ever Windows build of the persoengine CORE (pugixml/OpenSSL/glog — all prior live runs were macOS).
       VENDOR SPEC: bpr.cpp/docs/'Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc' (rev 4.1.2.5).
       Contact-only (RF module is Mifare-block-only). Planner: rnd-cperso task-005 + mem-019.
     created_at: "2026-07-21"
