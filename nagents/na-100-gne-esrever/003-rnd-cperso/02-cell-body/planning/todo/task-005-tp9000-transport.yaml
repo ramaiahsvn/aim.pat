@@ -11,7 +11,9 @@
 task:
   id: "task-005"
   subject: "Add a Pointman TP9000 ICardChannel transport (feeder-fed instant/counter issuance)"
-  status: planning            # rnd-cperso design/review; implementation delegated (see owners)
+  status: delegated           # 2026-07-21 — HANDED OFF to bruid-iperso (na-005/010): task-002-tp9000-transport.yaml
+                              # + input 01-dendrite/inputs/2026-07-21-tp9000-transport-handoff.md. rnd-cperso now
+                              # holds design/review only. Implementation + bench-verify on the Windows host with bruid-iperso.
   priority: medium
   created_at: "2026-07-21"
   source: "user request 2026-07-21 — integrate the Pointman (Tp9k) interface alongside PC/SC"
