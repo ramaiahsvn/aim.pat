@@ -27,10 +27,16 @@ memories:
       no-op for PC/SC). TP9000 side gated by PERSOENGINE_HAVE_TP9000 so no Win32 leak on macOS. perso-live-visa
       wired: --commit + --transport pcsc|tp9000 (any order), mark_good only after 'VISA PERSO COMPLETE'.
       Verified on pat-m4p: perso-live-visa builds green; bad --transport rejected; tp9000 on a non-TP9000 build
-      -> clear 'rebuild -DPERSOENGINE_BUILD_TP9000=ON on Windows'. REMAINING: wire eject/reject-after-readback
-      into the kiosk executor (task-001.2); bench on the Windows host with a real TP9000 (task-002.5). VENDOR
-      SPEC: bpr.cpp/docs/'Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc' (rev 4.1.2.5). Contact-only
-      (RF module is Mifare-block-only). Planner: rnd-cperso task-005 + mem-019.
+      -> clear 'rebuild -DPERSOENGINE_BUILD_TP9000=ON on Windows'. 002.5 COMPILE-DE-RISKED 2026-07-21: mingw-w64
+      cross-compile against REAL windows.h -> tp9k_v2.cpp + card_tp9000.cpp + tp9000-probe compile CLEAN on both
+      i686 (32-bit) and x86_64 (64-bit); only benign -Wcast-function-type on the GetProcAddress cast. Legacy
+      tp9k.cpp does NOT x-compile (needs MFC/afx.h) -> confirms untouched + v2 avoids MFC. Bench RUNBOOK
+      delivered: 07-axon-terminals/deliverables/2026-07-21-tp9000-bench-runbook.md (vcpkg deps, CMake flags,
+      read-only probe then live Visa --transport tp9000, expected vs mem-026). 002.4 (eject/reject-into-executor)
+      DEFERRED per user. STILL BLOCKED: the physical bench needs the Windows perso host + a real TP9000 (and a
+      first-ever Windows build of the persoengine CORE: pugixml/OpenSSL/glog — all prior live runs were macOS).
+      VENDOR SPEC: bpr.cpp/docs/'Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc' (rev 4.1.2.5).
+      Contact-only (RF module is Mifare-block-only). Planner: rnd-cperso task-005 + mem-019.
     created_at: "2026-07-21"
     last_accessed: "2026-07-21"
     access_count: 1

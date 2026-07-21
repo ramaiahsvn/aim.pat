@@ -47,9 +47,13 @@ approach:
   files_modified:
     - "bpr.cpp/.../apps/perso-live-visa/main.cpp (uses the factory; --transport pcsc|tp9000; mark_good on success)"
   build_status: >
-    macOS default build VERIFIED green (94/94 tests; perso-cli + libpersoengine built; no tp9000 target with
-    the option OFF). The Windows tp9000 path is code-complete but UNBUILT/UNTESTED here (needs the Win32
-    TP9000.dll + a feeder — task-002.5). clang-on-macOS flags windows.h/BYTE in the tp9000 files: EXPECTED noise.
+    macOS default build VERIFIED green (94/94 tests; perso-cli + libpersoengine + perso-live-visa built; no
+    tp9000 target with the option OFF). WINDOWS PATH COMPILE-VERIFIED 2026-07-21 via mingw-w64 cross-compile
+    against real Windows headers: tp9k_v2.cpp + card_tp9000.cpp + tp9000-probe/main.cpp compile clean on BOTH
+    32-bit (i686) and 64-bit (x86_64); only a benign -Wcast-function-type on the GetProcAddress cast. Legacy
+    tp9k.cpp does NOT cross-compile (needs MFC/afx.h) — proves it is untouched + v2 avoids MFC. Not yet done:
+    full persoengine CORE Windows build (deps) + the physical feeder bench (task-002.5, blocked on hardware).
+    clang-on-macOS flags windows.h/BYTE in the tp9000 files: EXPECTED noise.
 
 # ---- Scope confirmation ----
 scope:
@@ -144,11 +148,20 @@ subtasks:
   - id: "task-002.5"
     subject: "Bench-verify on the Windows perso host with a real TP9000"
     detail: >
-      Cannot run on pat-m4p (Win32 DLL). On the Windows host + a TP9000 + blanks: build with
-      -DPERSOENGINE_BUILD_TP9000=ON, run perso-tp9000-probe (feed/ATR/SELECT/eject), then an end-to-end perso
-      reusing the proven Visa/MC stream, self-verify, eject. Watch: IC_Input RX buffer sizing (probe uses 512B),
-      IC_PowerOnEx EMV-mode T=0/T=1 negotiation, and no double-open contention if a PC/SC session is also present.
-    status: pending
+      Cannot run on pat-m4p (Win32 DLL + physical feeder). COMPILE DE-RISKED 2026-07-21: cross-compiled the
+      never-before-built Win32 transport with mingw-w64 against REAL Windows headers — tp9k_v2.cpp,
+      card_tp9000.cpp, tp9000-probe/main.cpp ALL compile clean on BOTH i686 (32-bit) and x86_64 (64-bit);
+      only a benign -Wcast-function-type on the GetProcAddress cast (same idiom the legacy tp9k uses). The
+      legacy tp9k.cpp does NOT cross-compile (needs MFC/afx.h) — confirms it is untouched and my v2 avoids MFC
+      by design. RUNBOOK DELIVERED: 07-axon-terminals/deliverables/2026-07-21-tp9000-bench-runbook.md (prereqs,
+      vcpkg deps, CMake -DPERSOENGINE_BUILD_TP9000=ON, Step 1 read-only probe, Step 2 live Visa --transport
+      tp9000, expected outputs vs mem-026, what-to-watch). STILL UNPROVEN until the bench (BLOCKED on Windows
+      host + hardware): (1) the persoengine CORE built on Windows (pugixml/OpenSSL/glog — all prior live runs
+      were macOS, so a Windows core build is new); (2) live feeder behaviour — feed, ATR, IC_Input RX sizing
+      (512B), IC_PowerOnEx EMV-mode T=0/T=1, eject; (3) no PC/SC double-open contention. NEXT: run the runbook
+      on the Windows perso host with a TP9000 + fresh OP_READY UAT card; capture stdout to this subtask.
+    status: blocked   # 2026-07-21 — code compile-verified for Windows (mingw x-compile) + runbook ready;
+                      # the actual hardware bench needs the Windows perso host + a physical TP9000 (user/hardware).
     priority: medium
     depends_on: ["task-002.3", "task-002.4"]
 
