@@ -1,30 +1,46 @@
 # Long-Term Memory — Persistent Knowledge (LTP)
 # Survives across sessions. The agent's accumulated wisdom.
 
-# Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: technical_knowledge
+    content: >-
+      2026-07-20 — SELF-CONTAINED cross-platform BprFace native build (resolves the long-standing
+      "na-004 must ship a self-contained macOS/Linux BprFace" blocker; previously the macOS dylib
+      linked system Homebrew OpenCV). KEY ARCHITECTURE FACTS: BprFace inference is via OpenCV's DNN
+      module (cv::dnn reads the ONNX model) — there is NO separate ONNX Runtime dep; the ONLY heavy
+      dependency to bundle is OpenCV. In bpr.cpp/CMakeLists.txt, macOS is classified as PROJECTTYPE=
+      SO_Linux (no dedicated APPLE type); the SO_Linux non-MINGW path links ${OpenCV_LIBS} — so if
+      OpenCV_DIR points at a STATIC OpenCV, the resulting dylib/.so is self-contained WITH NO CMake
+      change (just pass -DOpenCV_DIR=<static build>). Windows (MINGW) already whole-archives static
+      OpenCV into libBprFaceDeps.dll. RECIPE (matches the Windows opencv4100 = OpenCV 4.10.0):
+      source at bpr.cpp/.deps/opencv-src (v4.10.0); build dirs under bpr.cpp/.deps/opencv-build/<plat>/.
+      Configure: BUILD_SHARED_LIBS=OFF; BUILD_LIST=core,dnn,imgproc,imgcodecs,objdetect,highgui,videoio,
+      calib3d,features2d,flann; bundle 3rdparty static: BUILD_ZLIB/JPEG/PNG/TIFF/WEBP/OPENJPEG/PROTOBUF=ON,
+      WITH_PROTOBUF=ON. CRITICAL — disable every EXTERNAL optional dep or the static libs still reference
+      Homebrew/system dylibs and the BprFace link is NOT self-contained: WITH_EIGEN=OFF, WITH_OPENEXR=OFF,
+      WITH_TBB=OFF, WITH_IPP=OFF, WITH_LAPACK=OFF, WITH_GDAL=OFF, WITH_JASPER=OFF, WITH_OPENVINO=OFF,
+      WITH_GSTREAMER=OFF, WITH_OBSENSOR=OFF (Orbbec depth-cam SDK — the LAST one that leaked in on macOS),
+      WITH_ADE=OFF + BUILD_opencv_gapi=OFF (gapi/ade caused a find_package FATAL: "imported target ade
+      references libade.a which does not exist"), WITH_FREETYPE/HARFBUZZ/TESSERACT=OFF, WITH_GTK/QT=OFF.
+      Then build BprFace: cmake -S . -B build-face-<plat> -DOUTFILENAME=BprFace -DPROJECTTYPE=SO_Linux
+      -DOpenCV_DIR=<static>/install/lib/cmake/opencv4 -DCMAKE_BUILD_TYPE=Release. VERIFY self-containment:
+      macOS `otool -L` must show only /System/Library/Frameworks + /usr/lib/lib{System,c++,objc} +
+      @rpath/libBprFace (Accelerate/AVFoundation are always-present system frameworks — OK); Linux `ldd`
+      must show no opencv and no "not found". RESULT (macOS arm64): libBprFace.2.24.115.dylib, 16 MB,
+      FULLY SELF-CONTAINED, exports the full T12 API (Bpr_FaceDetect_T12_*, Bpr_FaceRecog_T12_*,
+      Bpr_FaceQuality_T12_*). Staged to bpr.cpp/build/bnprs-libs/BprFace/v2.24.115/macos/. Linux x64 built
+      the same way in Docker (ubuntu:22.04, linux/amd64 — EMULATED on arm64, so slow) via
+      .deps/build-face-linux.sh. Prior static OpenCV builds exist for windows-32/64 + linux-arm64
+      (.deps/opencv-build/). Downstream: na-003/010 bnprs-lib-multisdk wraps this native (Maven/NuGet/Go);
+      with OpenCV folded into the single dylib/.so there is no separate libBprFaceDeps on macOS/Linux —
+      the wrapper embeds libBprFace + bpr.model.onnx only.
+    created_at: "2026-07-20"
+    last_accessed: "2026-07-20"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
-
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
-
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+    confidence: 0.98
+    source: "session-2026-07-20"
+    tags: [bprface, native-build, self-contained, opencv-4.10.0-static, macos, linux, cmake, dnn-not-onnxruntime, WITH-flags, multisdk-handoff]
 
 # Pruning rules
 pruning:

@@ -1,30 +1,99 @@
 # Long-Term Memory — Persistent Knowledge (LTP)
-# Survives across sessions. The agent's accumulated wisdom.
+# Survives across sessions. The agent's accumulated wisdom (wrapper builder, na-003/010).
+#
+# >>> MEMORY INDEX — read these on session load (deliverables + recipes live in 08-memory/long-term/):
+#   - gitlab-publish-auth.md               — per-format publish auth for project 230 (generic/nuget/maven/go)
+#   - bprcardqi-2.56.5-license-wrappers.md — BprCardQi 2.56.5 BGL-license wrappers (win-x64) + .NET FW / Go lessons
+#   - bprface-2.24.115-linux-wrappers.md   — BprFace 2.24.115 Linux wrappers (Maven/NuGet/Go), PUBLISHED;
+#                                            native+model co-extraction + Go /v2 lesson
+# Design refs (lib-forge): multi-language-packaging.md, wrapper-builder-agent-spec.md.
 
-# Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: >-
+      WRAPPED-LIB INDEX (what this agent has built/published; wrapper version == native SemVer):
+      • BprFace 2.24.115 — Maven/JNA + NuGet/PInvoke + Go/purego, platforms linux-x64 + linux-arm64,
+        BUILT + LOAD-verified + PUBLISHED 2026-07-21 to project 230 (maven ai/bnprs:nativesdk-bprface,
+        nuget Bnprs.NativeSdk.BprFace, go …/go/bprface/v2). Self-contained natives (from cpp-face na-004/001)
+        + bpr.model.onnx embedded, co-extracted at load. See bprface-2.24.115-linux-wrappers.md.
+      • BprFace 2.24.114 — the pilot; nuget+maven YANKED 2026-06-01 (kept as record). Superseded by 2.24.115.
+      • BprCardQi 2.56.5 — BGL license wrappers (all 3 SDKs), win-x64 only, provisional (PE not load-testable
+        on macOS host). Native BprCardQi 2.56.6/2.56.7 wrappers also staged locally; 2.56.8 native unwrapped.
+      • Native staging: cpp-face/na-005 domain agents build; this agent consumes from lib-forge Generic
+        registry (proj 230) or build/bnprs-libs/. Windows natives for CardQi/Face/ICBA pre-existing.
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.97
+    source: "session-2026-07-21"
+    tags: [wrapped-lib-index, bprface, bprcardqi, published, provisional, native-staging]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: reference
+    content: >-
+      PER-FORMAT PUBLISH AUTH (GitLab CE 18.9, project 230; verified end-to-end). Native binaries +
+      model → GENERIC: PUT …/packages/generic/<pkg>/<ver>/<path>, header PRIVATE-TOKEN:$GITLAB_PAT (201).
+      NUGET → HTTP BASIC ONLY: curl --user root:$GITLAB_PAT --form package=@x.nupkg …/packages/nuget/ (201);
+      a PRIVATE-TOKEN header 401s. MAVEN → PUT jar + pom to …/packages/maven/<group-path>/<artifact>/<ver>/<file>,
+      header Private-Token:$GITLAB_PAT (200). GO → NO upload endpoint: commit the module into project 230's
+      git repo under go/<lib>/ + push a SemVer tag go/<lib>/vX.Y.Z; the GitLab Go proxy serves it (go get via
+      GOPROXY=direct + git insteadOf auth works). Consumers use read-only deploy token bnprs-libs-readonly.
+      Full detail: gitlab-publish-auth.md.
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-21"
+    tags: [publish-auth, generic, nuget-basic, maven-private-token, go-git-tag, project-230]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: technical_knowledge
+    content: >-
+      MODEL CO-EXTRACTION (BprFace, critical for any lib whose native loads a sibling data file): the
+      native resolves its model (bpr.model.onnx — a 75 MB encrypted TLV blob) via ITS OWN library
+      directory (dladdr). JNA/P-Invoke/purego extract only the native to a temp dir, so the model would
+      be missing. Every wrapper loader MUST extract the native AND the model to the SAME temp dir before
+      load. Impl: Maven BprFaceNative.get() (Native.load(absPath)); NuGet static-ctor + NativeLibrary.
+      SetDllImportResolver — hence net8.0 NOT netstandard2.0 (resolver is .NET 6+); Go go:embed + Dlopen.
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-21"
+    tags: [model-co-extraction, loader, jna, pinvoke, purego, net8-not-netstandard, dladdr]
+
+  - id: mem-004
+    type: technical_knowledge
+    content: >-
+      GO MAJOR-VERSION /vN SUFFIX (corrects the nucleus naming scheme). The nucleus lists the Go path as
+      …/go/<lib-lower>, but all these libs are 2.x and Go REQUIRES the module path to end in /v2 for any
+      version ≥ v2.0.0 — else `go get` fails "module path must match major version …/v2". Real path:
+      go.mod `module …/go/<lib>/v2`; consumers import …/go/<lib>/v2 (package name unchanged); git tag stays
+      go/<lib>/vX.Y.Z. Apply /v2 to EVERY Go wrapper here (BprCardQi, BprFace, …). Also (pilot): purego.Dlopen
+      /RTLD_* are unix-only (Windows needs a windows.LoadLibrary split loader); RegisterLibFunc is cross-platform.
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-21"
+    tags: [go-modules, v2-suffix, naming-scheme-correction, purego, split-loader]
+
+  - id: mem-005
+    type: technical_knowledge
+    content: >-
+      SELF-CONTAINED NATIVES CHANGED THE LEAF (2026-07-21). cpp-face (na-004/001) now ships a self-contained
+      libBprFace.{so,dylib} with OpenCV 4.10.0 STATICALLY bundled — so there is NO separate libBprFaceDeps /
+      opencv / ffmpeg to embed anymore. Per-platform wrapper leaf = ONE native + bpr.model.onnx (was: lib +
+      deps + opencv + ffmpeg + model). BprFace inference is OpenCV-DNN, NOT a separate ONNX Runtime. Verify a
+      native is self-contained before wrapping: macOS otool -L (only system frameworks/@rpath), Linux ldd (no
+      opencv, no "not found"). Windows still uses the split BprFaceDeps.dll (MINGW whole-archive).
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-21"
+    tags: [self-contained-native, no-deps-lib, opencv-static, opencv-dnn, verify-otool-ldd]
 
 # Pruning rules
 pruning:
