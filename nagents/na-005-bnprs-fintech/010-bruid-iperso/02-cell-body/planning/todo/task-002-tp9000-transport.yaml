@@ -15,8 +15,10 @@ task:
     wrapping the existing (partial) bpr.cpp Tp9000Card wrapper, so perso-live / the kiosk executor can
     drive a feeder, selectable alongside PC/SC. No engine-core changes; drop-in behind the ICardChannel
     seam (card.hpp:29). WINDOWS-ONLY — bench-tested on the Windows perso host, not pat-m4p.
-  status: in_progress   # 2026-07-21 — core + app factory implemented on pat-m4p (code-complete, bench-pending on
-                        # Windows). DECISION (user 2026-07-21): DO NOT modify the legacy tp9k (Tp9000Card) — it works
+  status: in_progress   # 2026-07-21 — core + app factory implemented; TRANSPORT PROVEN ON REAL HARDWARE via the
+                        # read-only probe (TeamViewer: DLL load, EMV ATR, MC SELECT 9000+FCI, eject — see task-002.5).
+                        # Only Step 2 (live Visa perso on the host) + optional 002.4 remain.
+                        # DECISION (user 2026-07-21): DO NOT modify the legacy tp9k (Tp9000Card) — it works
                         # for BprCardQi/BprCardEmv. Instead a SELF-CONTAINED _v2 wrapper was added. DONE: 002.1 (v2
                         # wrapper), 002.2 (Tp9000Channel), 002.3 (CMake option + probe app + shared --transport
                         # factory wired into perso-live-visa). In progress: 002.4 (eject/reject primitives done;
@@ -160,13 +162,17 @@ subtasks:
       were macOS, so a Windows core build is new); (2) live feeder behaviour — feed, ATR, IC_Input RX sizing
       (512B), IC_PowerOnEx EMV-mode T=0/T=1, eject; (3) no PC/SC double-open contention. NEXT: run the runbook
       on the Windows perso host with a TP9000 + fresh OP_READY UAT card; capture stdout to this subtask.
-    status: blocked   # 2026-07-21 — code compile-verified for Windows (mingw x-compile) + runbook ready +
-                      # PREBUILT PROBE EXE DELIVERED. Standalone perso-tp9000-probe.exe (32+64-bit) cross-compiled
-                      # on pat-m4p (mingw-w64, statically linked; deps KERNEL32+UCRT only; TP9000.dll loaded at
-                      # runtime) and sent to the user for a TeamViewer test — no host toolchain needed for the
-                      # read-only probe. sha256 win32 3f25ade5..., win64 ee65eeb6.... So Step 1 (transport smoke
-                      # test) can run NOW on the host. The hardware bench (feed/ATR/SELECT/eject observed) + the
-                      # full live Visa perso (Step 2, needs a host OpenSSL/pugixml build) remain user/hardware-gated.
+    status: step1_passed   # 2026-07-21 — ✅ TRANSPORT VALIDATED ON REAL HARDWARE (TeamViewer, Windows perso host,
+                      # win32 exe). perso-tp9000-probe output: TP9000.dll loaded+resolved; IC_PowerOnEx nMode=2 ->
+                      # ATR 3B6E000080318066B0840C016E0183009000; SELECT MC card-mgr A000000004000000 -> SW=9000 +
+                      # full 103B FCI (6F67 8408 A000000004000000 A55B ... 9F6E06 19810314 0100 9F6501FF); eject OK.
+                      # => the whole Tp9000Channel path (DLL bind, feed, EMV cold reset, IC_Input transmit, response
+                      # assembly, eject) WORKS end-to-end. NOT-a-bug: SELECT Visa A000000003000000 -> 6A82 (applet
+                      # absent) — the card in the feeder is a DIFFERENT card than the multi-app UAT card: its ATR is
+                      # 3B6E0000... (UAT multi-app card = 3BFE13) and it has NO Visa ISD. Looks MC-card-manager-only.
+                      # REMAINING (Step 2, live perso): build perso-live-visa on the host (OpenSSL/pugixml via
+                      # build-tp9000.ps1) + load the correct multi-app UAT card (3BFE13, Visa pkg) into the feeder,
+                      # then perso-live-visa --commit --transport tp9000; expect 19/19 DGIs per mem-026.
     priority: medium
     depends_on: ["task-002.3", "task-002.4"]
 

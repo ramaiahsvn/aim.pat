@@ -62,6 +62,30 @@ memories:
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
 
+  - id: mem-002
+    type: milestone
+    content: >
+      2026-07-21: ✅ TP9000 FEEDER TRANSPORT VALIDATED ON REAL HARDWARE (task-002.5 Step 1). Ran the prebuilt
+      perso-tp9000-probe (win32) on the Windows perso host via TeamViewer against a live TP9000 feeder. Output:
+      "TP9000.dll loaded and resolved"; "powered on (mode=2), ATR=3B6E000080318066B0840C016E0183009000"; SELECT
+      MC card-manager A000000004000000 -> SW=9000 with a full 103-byte FCI (6F67 8408 A000000004000000 A55B...
+      9F6E06 19810314 0100 9F6501FF); eject OK. This PROVES the whole Tp9000Channel path end-to-end: LoadLibrary
+      bind, feed+contact, IC_PowerOnEx nMode=2 (EMV) cold reset + real ATR, IC_Input APDU transmit, response/FCI
+      assembly, Card_EjectEx. So the design (self-contained tp9k_v2 + Tp9000Channel mirroring BprPcScChannel)
+      works on the vendor DLL. NOT-a-bug observation: SELECT Visa A000000003000000 -> 6A82 (applet absent) — the
+      card in the feeder is a DIFFERENT card than our multi-app UAT card: ATR 3B6E0000... vs the UAT card's 3BFE13,
+      and it carries NO Visa ISD (looks MC-card-manager-only, i.e. a plain/factory MC card). Implication for Step 2
+      (live perso): load the correct multi-app UAT card (3BFE13, Visa+MC+BIX packages) into the feeder. REMAINING:
+      build perso-live-visa on the host (OpenSSL/pugixml via scripts/build-tp9000.ps1 — first-ever Windows core
+      build) then perso-live-visa --commit --transport tp9000 on a FRESH OP_READY multi-app card; expect 19/19
+      DGIs per mem-026. See mem-001 (impl) + task-002.5.
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-21"
+    tags: [tp9000, hardware-validated, transport-proven, probe-pass, teamviewer, atr-3B6E, mc-select-9000, fci, visa-6A82-card-lacks-visa, eject-ok, task-002.5-step1, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500
