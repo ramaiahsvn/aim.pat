@@ -21,8 +21,32 @@ task:
   source: "rnd-cperso na-100/003 delegation (task-005); user request 2026-07-21"
   tags: [tp9000, pointman, transport, icardchannel, feeder, iperso, kiosk-executor, windows-only, perso-engine, scp02]
 
+# ---- Scope confirmation ----
+scope:
+  confirmed_2026_07_21: >
+    User CONFIRMED this is the INSTANT/KIOSK (iperso) transport — NOT cperso. bruid-iperso owns it.
+    Corroborated by the vendor spec (POINTMAN TP9000.DLL is a card printer/encoder = instant-issuance
+    device) and this agent's existing Pointman kiosk integration (input 2026-07-13). The TP9000 is the
+    transport for the kiosk executor (task-001.2).
+
+# ---- Vendor spec (authoritative API reference — READ FIRST) ----
+vendor_spec:
+  doc: "bpr.cpp/docs/Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc"
+  title: "POINTMAN — Card Printer Standard User Library Specifications (TP9000.DLL) API, rev 4.1.2.5 (2024-07-08)"
+  key_api_facts:
+    - "IC_PowerOnEx(cno=0, *rxSize, rxData, nMode=2) -> ATR; nMode 1=ISO / 2=EMV. USE EMV for payment perso (wrapper currently calls plain IC_PowerOn, no mode)."
+    - "IC_Input(cno=0, tx, *rxSize, rx) = one APDU exchange (raw; NO auto-chaining — 61xx/6Cxx handling is ours). IC_MultiAPDU batches N APDUs but per-APDU is better for STORE DATA error localization."
+    - "GetTPKStatus is the current status call; CheckFeeder is DEPRECATED ('Not using for TPK') — move the wrapper's CheckFeeder call to GetTPKStatus."
+    - "Feed/eject: Card_Insert/InsertEx, Card_EjectEx (Full-eject), IC_Eject(0)=front/hopper, CheckStackerCard. cno sockets: 0=Main, 1=SIM, 2/3=SAM."
+  contactless_finding: >
+    CONTACT-ONLY scope confirmed. The RF module in this DLL rev is Mifare block-ops only (RF_Read/Write/
+    Authenticate/Increment/Decrement + RF_PowerOnEx/ATS) — there is NO ISO14443-4 (T=CL) APDU-exchange
+    function. Contactless EMV perso would need a newer Pointman DLL or IC-socket routing — escalate only
+    if dual-interface perso is required.
+
 # ---- Prereqs / inputs ----
 prereqs:
+  vendor_doc:    "bpr.cpp/docs/Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc — READ FIRST (authoritative API)"
   design:        "rnd-cperso task-005-tp9000-transport.yaml (canonical design + open questions)"
   wrapper:       "bpr.cpp/src/BprPcSc/tp9k/tp9k.{h,cpp} — class Tp9000Card (partial: transmit works; ATR/Open/Close stubbed)"
   seam:          "persoengine/include/persoengine/card.hpp — ICardChannel (transmit -> ApduResponse, resolves 61xx/6Cxx)"
@@ -34,10 +58,12 @@ subtasks:
   - id: "task-002.1"
     subject: "Finish the legacy Tp9000Card wrapper (un-stub ATR / Open / Close)"
     detail: >
-      In bpr.cpp/src/BprPcSc/tp9k: PatTp9000_ATR returns the real IC_PowerOn RX bytes (not the literal
-      'Pointman ATR need to implement'); re-enable the IC_ContactOn/IC_PowerOn calls in PatTp9000_Open and
-      Card_Eject in PatTp9000_Close (currently commented out); map feeder jam / no-card / power-on failure
-      to distinct error codes (not a blanket -1). Windows-only; keep the existing __stdcall DLL binding.
+      In bpr.cpp/src/BprPcSc/tp9k (per the vendor spec): PatTp9000_ATR returns the real ATR bytes from
+      IC_PowerOnEx (not the literal 'Pointman ATR need to implement'); re-enable IC_ContactOn + power-on in
+      PatTp9000_Open using IC_PowerOnEx(cno=0, nMode=2 EMV) (not plain IC_PowerOn), and Card_EjectEx in
+      PatTp9000_Close (currently commented out); replace the CheckFeeder call with GetTPKStatus (CheckFeeder
+      is deprecated for TPK); map feeder jam / no-card / power-on failure to distinct error codes (not a
+      blanket -1). Windows-only; keep the existing __stdcall DLL binding.
     status: pending
     priority: high
 
@@ -86,12 +112,12 @@ subtasks:
     priority: medium
     depends_on: ["task-002.3", "task-002.4"]
 
-# ---- Open questions (block build; confirm with user/vendor — see task-005) ----
+# ---- Open questions (see task-005; two now resolved 2026-07-21) ----
 open_questions:
-  - "Confirm this is the INSTANT/kiosk (iperso) transport, not in-bureau (cperso) — sets scope."
-  - "TP9000.dll bitness + version on the perso host (x86/x64) — must match the host process."
-  - "Contactless perso via TP9000? Wrapper is contact-only (IC_*). If needed, obtain the vendor CL API."
-  - "T=0 vs T=1 and max APDU/RX buffer through IC_Input — affects 61xx/6Cxx handling + extended length."
+  - "RESOLVED: iperso (instant/kiosk) transport, not cperso — user confirmed + vendor spec (printer/encoder)."
+  - "RESOLVED: contact-only — the TP9000.dll RF module is Mifare-block-only (no T=CL APDU pipe)."
+  - "OPEN: TP9000.dll bitness + version on the perso host (x86/x64) — must match the host process (spec is rev 4.1.2.5; confirm deployed DLL)."
+  - "OPEN: T=0 vs T=1 and max APDU/RX buffer through IC_Input — use IC_PowerOnEx nMode=2 (EMV) for protocol negotiation; affects 61xx/6Cxx + extended length."
 
 # ---- Guardrails ----
 guardrails:
@@ -102,6 +128,7 @@ guardrails:
 
 # ---- Cross-refs ----
 see_also:
+  - "bpr.cpp/docs/Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc (POINTMAN TP9000.DLL API rev 4.1.2.5 — READ FIRST)"
   - "rnd-cperso task-005-tp9000-transport.yaml (canonical design) + knowledge mem-019"
   - "01-dendrite/inputs/2026-07-21-tp9000-transport-handoff.md (this handoff)"
   - "this agent task-001 (kiosk executor task-001.2 — the TP9000 is its transport) + input 2026-07-13-pointman-kiosk-integration-v1.3.md"

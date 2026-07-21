@@ -83,10 +83,10 @@ design:
     - "persoengine/src/card_tp9000.cpp"
   wraps: "bpr.cpp Tp9000Card (src/BprPcSc/tp9k) — reuse, don't reinvent the DLL binding"
   lifecycle:
-    connect:  "PatTp9000_Open() -> (feeder) CheckFeeder -> Card_Insert if no card present -> IC_ContactOn -> IC_PowerOn (capture ATR)"
+    connect:  "PatTp9000_Open() -> GetTPKStatus (NOT CheckFeeder — deprecated) -> Card_Insert if no card present -> IC_ContactOn -> IC_PowerOnEx(cno=0, nMode=2 EMV) capturing ATR"
     transmit: "IC_Input(cno=0, capdu) -> raw response; THEN apply the SAME 61xx/6Cxx resolution loop as BprPcScChannel (the vendor DLL does raw I/O, so chaining is OUR responsibility)"
-    atr:      "expose atr() from IC_PowerOn's RX buffer (replaces the 'need to implement' stub)"
-    close:    "Card_Eject(option) on success; leave-in-station option for QA re-read before eject"
+    atr:      "expose atr() from the IC_PowerOnEx RX buffer (replaces the 'need to implement' stub)"
+    close:    "Card_EjectEx on success; a reject/divert eject for a failed card; leave-in-station option for QA re-read before eject"
   build_guard:
     cmake_option: "PERSOENGINE_BUILD_TP9000 (default OFF) — mirrors PERSOENGINE_BUILD_PCSC (CMakeLists.txt:41)"
     platform: "WINDOWS ONLY. Gate the sources on WIN32; on non-Windows the option is a no-op (TP9000.dll unavailable). Pairs with the existing winscard-vs-pcsclite backend split (CMakeLists.txt:55-64)."
@@ -161,12 +161,34 @@ subtasks:
     priority: medium
     depends_on: ["task-005.3", "task-005.4"]
 
+# ---- Vendor spec (authoritative API reference) ----
+vendor_spec:
+  doc: "bpr.cpp/docs/Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc"
+  title: "POINTMAN — Card Printer Standard User Library Specifications (TP9000.DLL) API, rev 4.1.2.5 (2024-07-08)"
+  device_class: >
+    It is a CARD PRINTER / ENCODER (print + magstripe + IC + optional RF on one motorized path) — i.e. an
+    INSTANT-ISSUANCE device. This is the ground for the iperso scoping below.
+  key_api_facts:
+    - "IC_PowerOn(cno, *rxSize, rxData) -> ATR in rxData. cno: 0=Main, 1=Mobile SIM, 2/3=SAM sockets. (Implements the ATR stub.)"
+    - "IC_PowerOnEx(cno, ..., nMode) — nMode 1=ISO, 2=EMV. USE nMode=2 (EMV) for payment perso; the current wrapper calls plain IC_PowerOn (no mode)."
+    - "IC_Input(cno, txSize, tx, *rxSize, rx) = one APDU exchange (what the wrapper uses). IC_MultiAPDU batches N APDUs (count||LV list) — optional optimization; per-APDU is better for STORE DATA error localization."
+    - "IC_Input2 / IC_PowerOnEx2 add nDev (1=Internal, 2=External) for CMM/external IFM."
+    - "Card feed/eject: Card_Insert/InsertEx, Card_Eject/EjectEx (Full-eject param), IC_Eject(0)=front/hopper, CheckStackerCard. GetTPKStatus = sensor/path/stacker status (anti-skimming field)."
+    - "CheckFeeder is DEPRECATED for TPK ('Not using for TPK') — the wrapper's CheckFeeder call should move to GetTPKStatus."
+    - "IFM under the hood may itself be a PCSC reader (e.g. GemCore POS Pro USB) but is exposed ONLY via the TPK IC_* API, not winscard — so our transport still goes through TP9000.dll."
+  contactless_finding: >
+    The RF module in this DLL rev is MIFARE BLOCK-OPS ONLY: RF_CardInsert / RF_PowerOnEx(+ATS) /
+    RF_Read / RF_Write / RF_Increment / RF_Decrement / RF_Authenticate. There is NO general ISO14443-4
+    (T=CL) APDU-exchange function (no RF_Input/RF_APDU). => Contactless EMV perso is NOT supported by
+    TP9000.dll as-is; CONTACT-ONLY is the correct scope. Escalate to Pointman if dual-interface perso is
+    ever required (need a newer DLL with a T=CL APDU pipe, or route CL through the IC socket).
+
 # ---- Open questions for the user / vendor ----
 open_questions:
-  - "Which issuance flow is the target — instant/counter (iperso, feeder-per-card) or in-bureau (cperso) using the TP9000 as its reader? Sets the primary owner (iperso vs cperso)."
-  - "TP9000.dll bitness + version on the perso host (x86 vs x64) — must match the host process; our Windows persoengine build target."
-  - "Contactless via TP9000? The legacy wrapper is contact-only (IC_* exports). If dual-interface perso is needed, confirm the vendor CL API."
-  - "T=0 vs T=1 and max APDU/RX buffer through IC_Input — affects the 61xx/6Cxx handling and any extended-length use."
+  - "RESOLVED 2026-07-21 (user): this IS the iperso (instant/kiosk) transport, NOT cperso. Primary owner = bruid-iperso (na-005/010). Confirmed by the vendor spec (a card printer/encoder = instant-issuance device) and the existing Pointman kiosk integration (bruid-iperso input 2026-07-13)."
+  - "RESOLVED 2026-07-21 (vendor spec): contactless is Mifare-block-only in this DLL rev — CONTACT-ONLY scope. Revisit with Pointman only if dual-interface EMV perso is needed."
+  - "OPEN: TP9000.dll bitness + version on the perso host (x86 vs x64) — must match the host process; our Windows persoengine build target. (Spec is rev 4.1.2.5; confirm the deployed DLL matches.)"
+  - "OPEN: T=0 vs T=1 and max APDU/RX buffer through IC_Input — affects 61xx/6Cxx handling + any extended-length use. Consider IC_PowerOnEx nMode=2 (EMV) for correct protocol negotiation."
 
 # ---- Guardrails ----
 guardrails:
@@ -177,6 +199,7 @@ guardrails:
 
 # ---- Cross-refs ----
 see_also:
+  - "bpr.cpp/docs/Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc (POINTMAN TP9000.DLL API, rev 4.1.2.5 — authoritative vendor reference)"
   - "bpr.cpp/src/BprPcSc/tp9k/tp9k.{h,cpp} (Tp9000Card, the wrapper to reuse/finish)"
   - "bpr.cpp/src/BprCardQi/BprCardQi.cpp:267 PatCard_Transmit (the existing slot-based dispatch pattern)"
   - "persoengine/include/persoengine/card.hpp (ICardChannel seam) + card_bprpcsc.{hpp,cpp} (the PC/SC sibling to mirror)"

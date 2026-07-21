@@ -382,11 +382,19 @@ memories:
       {hpp,cpp}) wrapping Tp9000Card, transmit()=IC_Input + the SAME 61xx/6Cxx resolution as BprPcScChannel;
       guard PERSOENGINE_BUILD_TP9000 + WIN32 (mirrors PERSOENGINE_BUILD_PCSC, CMakeLists.txt:41); add a
       --transport pcsc|tp9000 factory to the live apps. NO engine-core change (seam = ICardChannel, card.hpp:29).
-      WINDOWS-ONLY -> cannot bench on pat-m4p; needs the Windows perso host + a real TP9000. Likely owner
-      bruid-iperso (010, instant/feeder) with bruid-cperso (009). Full breakdown: task-005-tp9000-transport.yaml.
+      WINDOWS-ONLY -> cannot bench on pat-m4p; needs the Windows perso host + a real TP9000. SCOPE CONFIRMED
+      2026-07-21 (user): this is the IPERSO (instant/kiosk) transport, NOT cperso — owner bruid-iperso (010);
+      HANDED OFF (task-002-tp9000-transport.yaml + input 2026-07-21-tp9000-transport-handoff.md). VENDOR SPEC
+      (authoritative): bpr.cpp/docs/'Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc' = POINTMAN Card
+      Printer TP9000.DLL API rev 4.1.2.5 (a printer/encoder = instant-issuance device). Spec facts: power-on
+      = IC_PowerOnEx(cno=0,nMode=2 EMV) returns ATR (nMode 1=ISO/2=EMV); IC_Input = one raw APDU (NO
+      auto-chaining -> 61xx/6Cxx ours); IC_MultiAPDU batches; status = GetTPKStatus (CheckFeeder DEPRECATED
+      'Not using for TPK'); sockets cno 0=Main/1=SIM/2-3=SAM; Card_EjectEx (Full-eject). CONTACTLESS RESOLVED
+      = CONTACT-ONLY: the RF module is Mifare-block-only (RF_Read/Write/Auth + RF_PowerOnEx/ATS), NO ISO14443-4
+      T=CL APDU pipe -> CL EMV perso needs a newer Pointman DLL. Full breakdown: task-005-tp9000-transport.yaml.
     created_at: "2026-07-21"
-    confidence: 0.95
-    tags: [tp9000, pointman, transport, icardchannel, feeder, tp9k-wrapper-exists, windows-only, slot--1, task-005, iperso, persoengine-gap]
+    confidence: 0.97
+    tags: [tp9000, pointman, nuvia-tpk-spec, transport, icardchannel, feeder, tp9k-wrapper-exists, windows-only, slot--1, task-005, iperso-confirmed, contact-only, emv-mode-poweron, persoengine-gap, delegated]
 
 # Pruning rules
 pruning:

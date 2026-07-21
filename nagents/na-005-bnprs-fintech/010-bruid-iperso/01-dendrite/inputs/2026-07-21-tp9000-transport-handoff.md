@@ -3,6 +3,13 @@
 **Routed by:** na-100/003 rnd-cperso · **Date:** 2026-07-21 · **Priority:** MEDIUM · **Status:** OPEN
 **Planner record:** rnd-cperso `task-005-tp9000-transport.yaml` (+ rnd-cperso knowledge mem-019)
 **Implementation task (this agent):** `02-cell-body/planning/todo/task-002-tp9000-transport.yaml`
+**Vendor spec (READ FIRST):** `bpr.cpp/docs/Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc`
+— POINTMAN "Card Printer Standard User Library Specifications (TP9000.DLL)", rev 4.1.2.5 (2024-07-08).
+
+## Scope — CONFIRMED (user, 2026-07-21)
+This is the **iperso (instant/kiosk) transport — NOT cperso**. bruid-iperso owns it. Corroborated by the
+vendor spec (TP9000.DLL is a **card printer/encoder** = an instant-issuance device) and this agent's
+existing Pointman kiosk integration (input `2026-07-13-pointman-kiosk-integration-v1.3.md`).
 
 ## Why this is yours
 The **Pointman TP9000 is the kiosk's card-handling hardware** — the motorized feeder that pulls a blank,
@@ -42,6 +49,18 @@ selectable alongside the existing PC/SC transport. **No engine-core changes** �
    BEFORE eject** (GPO/READ RECORD/VERIFY PIN as in your MC/Visa proofs) → eject-good vs **divert-reject**.
 5. **Bench-verify on the Windows perso host** with a real TP9000 (cannot be tested on pat-m4p — Win32 DLL).
 
+## Vendor-spec facts to build to (from the TP9000.DLL API doc)
+- **Power-on:** use `IC_PowerOnEx(cno=0, …, nMode=2)` — **EMV mode** (nMode 1=ISO / 2=EMV). The ATR comes
+  back in the RX buffer (implements the wrapper's ATR stub). The current wrapper calls plain `IC_PowerOn`.
+- **Transmit:** `IC_Input(cno=0, …)` is one raw APDU exchange with **no auto-chaining** — so 61xx/6Cxx
+  handling is ours (mirror `BprPcScChannel`). `IC_MultiAPDU` can batch, but per-APDU is better for STORE
+  DATA error localization.
+- **Status:** use **`GetTPKStatus`**, not `CheckFeeder` — the spec marks CheckFeeder "Not using for TPK".
+- **Sockets:** `cno` 0=Main, 1=SIM, 2/3=SAM. Feed/eject: `Card_Insert/InsertEx`, `Card_EjectEx` (Full-eject).
+- **Contactless = NOT in scope (confirmed).** The RF module in this DLL rev is **Mifare block-ops only**
+  (`RF_Read/Write/Authenticate/…` + `RF_PowerOnEx`/ATS) — there is **no ISO14443-4 (T=CL) APDU pipe**. So
+  contact-only. If dual-interface EMV perso is ever needed, escalate to Pointman for a newer DLL.
+
 ## Constraints / gotchas
 - **Windows-only.** `TP9000.dll` is a Win32 DLL; this transport can't build/run on pat-m4p (pcsclite).
   Keep the CMake option default OFF so Mac builds + unit tests stay hardware-free.
@@ -50,12 +69,13 @@ selectable alongside the existing PC/SC transport. **No engine-core changes** �
   transport does not touch the data path.
 - A **reject/divert path** must exist so a failed card is never ejected as a good card.
 
-## Open questions (answer before build — see task-005 open_questions)
-1. Target flow: **instant/counter (iperso, feeder-per-card)** vs in-bureau (cperso) using the TP9000 as its
-   reader? Confirms this is iperso's.
-2. `TP9000.dll` **bitness + version** on the perso host (x86/x64) — must match the host process.
-3. **Contactless?** The wrapper is contact-only (`IC_*`). If dual-interface perso is needed, get the vendor CL API.
-4. **T=0 vs T=1** and max APDU/RX buffer through `IC_Input` — affects 61xx/6Cxx handling + extended length.
+## Open questions (see task-005; two resolved 2026-07-21)
+1. ~~iperso vs cperso~~ — **RESOLVED: iperso** (user + vendor spec).
+2. `TP9000.dll` **bitness + version** on the perso host (x86/x64) — must match the host process (spec is
+   rev 4.1.2.5; confirm the deployed DLL). **OPEN.**
+3. ~~Contactless?~~ — **RESOLVED: contact-only** (RF module is Mifare-block-only, no T=CL APDU pipe).
+4. **T=0 vs T=1** and max APDU/RX buffer through `IC_Input` — use `IC_PowerOnEx nMode=2` (EMV) for protocol
+   negotiation; affects 61xx/6Cxx handling + extended length. **OPEN.**
 
 ## Cross-refs
 - rnd-cperso `task-005-tp9000-transport.yaml` (canonical design) + knowledge mem-019.
