@@ -15,11 +15,37 @@ task:
     wrapping the existing (partial) bpr.cpp Tp9000Card wrapper, so perso-live / the kiosk executor can
     drive a feeder, selectable alongside PC/SC. No engine-core changes; drop-in behind the ICardChannel
     seam (card.hpp:29). WINDOWS-ONLY — bench-tested on the Windows perso host, not pat-m4p.
-  status: pending
+  status: in_progress   # 2026-07-21 — core implemented on pat-m4p (code-complete, bench-pending on Windows).
+                        # DECISION (user 2026-07-21): DO NOT modify the legacy tp9k (Tp9000Card) — it works for
+                        # BprCardQi/BprCardEmv. Instead a SELF-CONTAINED _v2 wrapper was added. Done: 002.1 (v2
+                        # wrapper), 002.2 (Tp9000Channel). In progress: 002.3/002.4 (CMake option + probe app +
+                        # eject/reject done; perso-live-visa --transport factory + executor wiring remain). Pending:
+                        # 002.5 (Windows-host bench — cannot run on pat-m4p). Default macOS build stays green (94/94
+                        # tests; tp9000 target absent unless PERSOENGINE_BUILD_TP9000=ON on WIN32).
   priority: medium
   created_at: "2026-07-21"
   source: "rnd-cperso na-100/003 delegation (task-005); user request 2026-07-21"
-  tags: [tp9000, pointman, transport, icardchannel, feeder, iperso, kiosk-executor, windows-only, perso-engine, scp02]
+  tags: [tp9000, pointman, transport, icardchannel, feeder, iperso, kiosk-executor, windows-only, perso-engine, scp02, v2-wrapper]
+
+# ---- Implementation approach (DECIDED 2026-07-21) ----
+approach:
+  legacy_untouched: >
+    The existing bpr.cpp/src/BprPcSc/tp9k/tp9k.{h,cpp} (class Tp9000Card) is LEFT AS-IS — it is in use by
+    BprCardQi/BprCardEmv. We do NOT finish/refactor it. (An earlier edit to it was reverted per user.)
+  v2_wrapper: >
+    New self-contained wrapper bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.{h,cpp} — class bprpcsc::tp9k::Tp9000CardV2.
+    RAII; applies the vendor spec properly: EMV cold reset (IC_PowerOnEx nMode=2) with real ATR capture,
+    GetTPKStatus for card position (not deprecated CheckFeeder), explicit eject (Card_EjectEx) vs reject-bin
+    divert (Card_Control 0x36), Get_Status error detail. Used ONLY by the perso engine.
+  files_added:
+    - "bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.h + tp9k_v2.cpp (Tp9000CardV2 — Windows-only)"
+    - "bpr.cpp/src/BprCardEmv/persoengine/include/persoengine/card_tp9000.hpp + src/card_tp9000.cpp (Tp9000Channel : ICardChannel)"
+    - "bpr.cpp/src/BprCardEmv/persoengine/apps/tp9000-probe/main.cpp (read-only feed+ATR+SELECT+eject smoke probe)"
+    - "persoengine/CMakeLists.txt: option PERSOENGINE_BUILD_TP9000 (WIN32-only; builds persoengine_tp9000 + perso-tp9000-probe)"
+  build_status: >
+    macOS default build VERIFIED green (94/94 tests; perso-cli + libpersoengine built; no tp9000 target with
+    the option OFF). The Windows tp9000 path is code-complete but UNBUILT/UNTESTED here (needs the Win32
+    TP9000.dll + a feeder — task-002.5). clang-on-macOS flags windows.h/BYTE in the tp9000 files: EXPECTED noise.
 
 # ---- Scope confirmation ----
 scope:
@@ -56,58 +82,62 @@ prereqs:
 
 subtasks:
   - id: "task-002.1"
-    subject: "Finish the legacy Tp9000Card wrapper (un-stub ATR / Open / Close)"
+    subject: "Self-contained v2 wrapper (Tp9000CardV2) — NOT a rewrite of the legacy Tp9000Card"
     detail: >
-      In bpr.cpp/src/BprPcSc/tp9k (per the vendor spec): PatTp9000_ATR returns the real ATR bytes from
-      IC_PowerOnEx (not the literal 'Pointman ATR need to implement'); re-enable IC_ContactOn + power-on in
-      PatTp9000_Open using IC_PowerOnEx(cno=0, nMode=2 EMV) (not plain IC_PowerOn), and Card_EjectEx in
-      PatTp9000_Close (currently commented out); replace the CheckFeeder call with GetTPKStatus (CheckFeeder
-      is deprecated for TPK); map feeder jam / no-card / power-on failure to distinct error codes (not a
-      blanket -1). Windows-only; keep the existing __stdcall DLL binding.
-    status: pending
+      DECISION (user 2026-07-21): do NOT touch the legacy tp9k (in use by BprCardQi/BprCardEmv). Added a
+      new self-contained wrapper bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.{h,cpp} = class bprpcsc::tp9k::Tp9000CardV2
+      (RAII, Windows-only). open() = GetTPKStatus (feed only if no card) -> Card_Insert -> IC_ContactOn ->
+      IC_PowerOnEx(cno=0, nMode=2 EMV) capturing the real ATR. transmit() = IC_Input (raw, no chaining).
+      eject() = Card_EjectEx; reject() = Card_Control(0x36) reject-bin divert; close() = IC_PowerOff +
+      FreeLibrary. Vendor errors pulled via Get_Status into lastError(). Loads TP9000.dll next to the exe.
+    status: done   # 2026-07-21 — implemented (tp9k_v2.h/.cpp). Windows-only; bench-pending (task-002.5).
     priority: high
 
   - id: "task-002.2"
     subject: "Tp9000Channel : ICardChannel in the perso engine"
     detail: >
-      New persoengine/{include/persoengine/,src/}card_tp9000.{hpp,cpp}: class perso::driver::Tp9000Channel
-      wrapping Tp9000Card. transmit() = IC_Input + the SAME 61xx (GET RESPONSE) / 6Cxx (re-issue exact Le)
-      resolution loop as BprPcScChannel::transmit() — the vendor DLL is raw I/O, so chaining is ours.
-      Expose atr() from IC_PowerOn and a connect() that does the feed+contact+power sequence. Guard sources
-      on PERSOENGINE_BUILD_TP9000 + WIN32, mirroring the PERSOENGINE_BUILD_PCSC block in CMakeLists.txt.
-      NO edits to tlv/profile/sequencer/oda.
-    status: pending
+      persoengine/{include/persoengine/,src/}card_tp9000.{hpp,cpp}: class perso::driver::Tp9000Channel
+      wrapping Tp9000CardV2. transmit() = Tp9000CardV2::transmit + the SAME 61xx (GET RESPONSE) / 6Cxx
+      (re-issue exact Le) resolution loop as BprPcScChannel::transmit() (copied verbatim). ctor does the
+      feed+EMV cold reset (throws on failure); atr() exposes the captured ATR; eject()/reject() surface the
+      feeder lifecycle. NO edits to tlv/profile/sequencer/oda.
+    status: done   # 2026-07-21 — implemented (card_tp9000.hpp/.cpp), mirrors card_bprpcsc verbatim. macOS
+                   # default build verified green (94/94 tests); the tp9000 path itself is Windows-only (002.5).
     priority: high
     depends_on: "task-002.1"
 
   - id: "task-002.3"
-    subject: "Transport factory in the live apps (perso-live / perso-live-visa / kiosk executor)"
+    subject: "Build wiring (CMake option + probe app) + live-app transport factory"
     detail: >
-      Replace the hard-coded `drv::BprPcScChannel ch;` (perso-live-visa/main.cpp:257) with a factory:
-      --transport pcsc|tp9000 (default pcsc) returning std::unique_ptr<drv::ICardChannel>. Keep the
-      -1==TP9000 slot convention for parity with MCES2 BprMces2Config.xml Perso/UserCardSlot. Everything
-      downstream (open_ch, STORE DATA stream, SET STATUS, self-verify) is transport-agnostic and unchanged.
-    status: pending
+      DONE: option PERSOENGINE_BUILD_TP9000 (WIN32-only, default OFF) builds persoengine_tp9000
+      (tp9k_v2.cpp + card_tp9000.cpp) + a read-only smoke app perso-tp9000-probe (feed+ATR+SELECT+eject;
+      --reject-test exercises the reject bin). REMAINING: replace the hard-coded `drv::BprPcScChannel ch;`
+      (perso-live-visa/main.cpp:257) with a --transport pcsc|tp9000 factory returning unique_ptr<ICardChannel>
+      (keep the -1==TP9000 slot convention). Note: the base ICardChannel has no reader()/atr(); the factory
+      needs a small shim so the apps' ATR print + eject/reject hooks work across both transports.
+    status: in_progress   # CMake option + probe app done; perso-live-visa --transport factory still to wire.
     priority: medium
     depends_on: "task-002.2"
 
   - id: "task-002.4"
     subject: "Feeder lifecycle for instant issuance (batch/kiosk semantics)"
     detail: >
-      Per-card feed->perso->verify->eject (not a fixed reader): when to Card_Insert (per card), run the
-      perso stream, read-back QA BEFORE eject (self-verify GPO/READ RECORD/VERIFY PIN, as in the MC/Visa
-      proofs), then eject-good vs DIVERT-REJECT. Wire into the kiosk executor (task-001.2). A failed card
-      must NEVER be ejected as good. Map to the instant-perso trust model (central script-gen -> kiosk exec).
-    status: pending
+      Per-card feed->perso->verify->eject (not a fixed reader). PRIMITIVES DONE: Tp9000Channel ctor feeds +
+      powers; eject() (good) and reject() (divert to bin) implemented. REMAINING: wire into the kiosk
+      executor (task-001.2) — run the perso stream, read-back QA BEFORE the eject decision (self-verify
+      GPO/READ RECORD/VERIFY PIN as in the MC/Visa proofs), eject-good vs reject on any failure. A failed
+      card must NEVER be ejected as good. Map to the instant-perso trust model (central script-gen->kiosk exec).
+    status: in_progress   # eject/reject primitives done; executor read-back-then-eject/reject decision remains.
     priority: medium
     depends_on: "task-002.2"
 
   - id: "task-002.5"
     subject: "Bench-verify on the Windows perso host with a real TP9000"
     detail: >
-      Cannot run on pat-m4p (Win32 DLL). On the Windows host + a TP9000 + blanks: feeder status, insert,
-      ATR, an end-to-end perso reusing the proven Visa/MC stream, self-verify, eject. Watch: IC_Input RX
-      buffer sizing, T=0/T=1 vs PC/SC, and no double-open contention if a PC/SC session is also present.
+      Cannot run on pat-m4p (Win32 DLL). On the Windows host + a TP9000 + blanks: build with
+      -DPERSOENGINE_BUILD_TP9000=ON, run perso-tp9000-probe (feed/ATR/SELECT/eject), then an end-to-end perso
+      reusing the proven Visa/MC stream, self-verify, eject. Watch: IC_Input RX buffer sizing (probe uses 512B),
+      IC_PowerOnEx EMV-mode T=0/T=1 negotiation, and no double-open contention if a PC/SC session is also present.
     status: pending
     priority: medium
     depends_on: ["task-002.3", "task-002.4"]

@@ -37,10 +37,18 @@ selectable alongside the existing PC/SC transport. **No engine-core changes** �
 - The **new persoengine has ZERO TP9000 code** — the live apps hard-construct `BprPcScChannel`
   (`apps/perso-live-visa/main.cpp:257`). That's the gap.
 
+## STATUS 2026-07-21 — core implemented (code-complete; Windows-bench pending)
+Done: **002.1** (self-contained `Tp9000CardV2` — the legacy `Tp9000Card` is **left untouched** per user, since
+BprCardQi/BprCardEmv use it) and **002.2** (`Tp9000Channel`). CMake option + probe app done (002.3 part);
+eject/reject primitives done (002.4 part). Remaining: `perso-live-visa --transport` factory, executor
+read-back→eject/reject wiring, and the Windows-host bench (002.5). macOS default build verified green (94/94).
+
 ## What to build (detail in task-002 subtasks)
-1. **Finish `Tp9000Card`** — real ATR decode; re-enable `IC_ContactOn`/`IC_PowerOn` in Open and
-   `Card_Eject` in Close; distinct error codes for jam / no-card / power-on fail. Keep Windows-only.
-2. **`Tp9000Channel : ICardChannel`** (`card_tp9000.{hpp,cpp}`) wrapping `Tp9000Card`:
+1. ~~Finish `Tp9000Card`~~ → **DONE differently:** the legacy wrapper is **not modified**. A self-contained
+   **`bprpcsc::tp9k::Tp9000CardV2`** (`tp9k_v2.{h,cpp}`) was added: `open()` = GetTPKStatus→Card_Insert→
+   IC_ContactOn→`IC_PowerOnEx(nMode=2 EMV)`+ATR; `transmit()` = IC_Input; `eject()`/`reject()` (Card_EjectEx /
+   Card_Control 0x36); Get_Status error detail. Windows-only.
+2. **`Tp9000Channel : ICardChannel`** (`card_tp9000.{hpp,cpp}`) wrapping **`Tp9000CardV2`**:
    `transmit()` = `IC_Input` **+ the SAME 61xx/6Cxx resolution loop as `BprPcScChannel::transmit()`**
    (the vendor DLL does raw I/O — chaining is ours). Guard `PERSOENGINE_BUILD_TP9000` + `WIN32`,
    mirroring the `PERSOENGINE_BUILD_PCSC` block (`persoengine/CMakeLists.txt:41`).

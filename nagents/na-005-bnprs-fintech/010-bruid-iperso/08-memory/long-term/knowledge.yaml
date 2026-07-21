@@ -4,14 +4,33 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: technical_knowledge
+    content: >
+      2026-07-21: TP9000 (Pointman) feeder transport for the perso engine — task-002 core implemented
+      (code-complete, Windows-bench pending). CONTEXT: the perso engine (bpr.cpp/src/BprCardEmv/persoengine)
+      transmitted over PC/SC only (BprPcScChannel); the Pointman TP9000 is the kiosk's motorized card FEEDER
+      whose vendor DLL (TP9000.dll) drives the chip contacts directly, NOT via winscard — it's the transport
+      for OUR kiosk executor (task-001.2). KEY DECISION (user): do NOT modify the legacy tp9k (Tp9000Card) —
+      BprCardQi/BprCardEmv depend on it; an earlier edit to tp9k.h was reverted. Instead added a SELF-CONTAINED
+      _v2: bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.{h,cpp} = class bprpcsc::tp9k::Tp9000CardV2 (RAII, Windows-only):
+      open()=GetTPKStatus(feed only if no card)->Card_Insert->IC_ContactOn->IC_PowerOnEx(cno=0,nMode=2 EMV)
+      capturing real ATR; transmit()=IC_Input (raw, no chaining); eject()=Card_EjectEx; reject()=Card_Control
+      (0x36 reject-bin); close()=IC_PowerOff+FreeLibrary; errors via Get_Status. Then the channel:
+      persoengine/card_tp9000.{hpp,cpp} = perso::driver::Tp9000Channel : ICardChannel, transmit() copies
+      BprPcScChannel's 61xx/6Cxx loop VERBATIM; ctor feeds+EMV-resets (throws on fail); atr()/eject()/reject()
+      exposed. CMake: option PERSOENGINE_BUILD_TP9000 (WIN32-only, default OFF) -> persoengine_tp9000 +
+      perso-tp9000-probe (read-only feed+ATR+SELECT+eject; --reject-test). NO engine-core change (tlv/profile/
+      sequencer/oda untouched). VERIFIED: macOS default build green, 94/94 tests, tp9000 target absent when OFF.
+      REMAINING: perso-live-visa --transport pcsc|tp9000 factory (base ICardChannel lacks reader()/atr() — needs
+      a shim); wire eject/reject-after-readback into the kiosk executor; bench on the Windows host with a real
+      TP9000 (task-002.5). VENDOR SPEC: bpr.cpp/docs/'Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc'
+      (rev 4.1.2.5). Contact-only (RF module is Mifare-block-only). Planner: rnd-cperso task-005 + mem-019.
+    created_at: "2026-07-21"
+    last_accessed: "2026-07-21"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.97
+    source: "session-2026-07-21"
+    tags: [tp9000, pointman, tp9k-v2, transport, icardchannel, feeder, iperso, kiosk-executor, windows-only, legacy-untouched, emv-mode-poweron, eject-reject, task-002, macos-build-green, bench-pending]
 
   # Example entries:
   # - id: mem-002
