@@ -21,10 +21,16 @@ memories:
       exposed. CMake: option PERSOENGINE_BUILD_TP9000 (WIN32-only, default OFF) -> persoengine_tp9000 +
       perso-tp9000-probe (read-only feed+ATR+SELECT+eject; --reject-test). NO engine-core change (tlv/profile/
       sequencer/oda untouched). VERIFIED: macOS default build green, 94/94 tests, tp9000 target absent when OFF.
-      REMAINING: perso-live-visa --transport pcsc|tp9000 factory (base ICardChannel lacks reader()/atr() — needs
-      a shim); wire eject/reject-after-readback into the kiosk executor; bench on the Windows host with a real
-      TP9000 (task-002.5). VENDOR SPEC: bpr.cpp/docs/'Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc'
-      (rev 4.1.2.5). Contact-only (RF module is Mifare-block-only). Planner: rnd-cperso task-005 + mem-019.
+      FACTORY DONE (002.3): shared apps/common/card_transport.hpp = perso::app::CardTransport wraps either
+      channel behind a plain ICardChannel&, label() shows reader/ATR, and the feeder DISPOSITION is RAII —
+      default divert-to-reject, mark_good()=>eject, applied in the dtor (correct on every return + exceptions;
+      no-op for PC/SC). TP9000 side gated by PERSOENGINE_HAVE_TP9000 so no Win32 leak on macOS. perso-live-visa
+      wired: --commit + --transport pcsc|tp9000 (any order), mark_good only after 'VISA PERSO COMPLETE'.
+      Verified on pat-m4p: perso-live-visa builds green; bad --transport rejected; tp9000 on a non-TP9000 build
+      -> clear 'rebuild -DPERSOENGINE_BUILD_TP9000=ON on Windows'. REMAINING: wire eject/reject-after-readback
+      into the kiosk executor (task-001.2); bench on the Windows host with a real TP9000 (task-002.5). VENDOR
+      SPEC: bpr.cpp/docs/'Specification for Nuvia TPK DLL_4 1 2 5(E)_20240708.doc' (rev 4.1.2.5). Contact-only
+      (RF module is Mifare-block-only). Planner: rnd-cperso task-005 + mem-019.
     created_at: "2026-07-21"
     last_accessed: "2026-07-21"
     access_count: 1

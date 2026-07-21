@@ -15,13 +15,14 @@ task:
     wrapping the existing (partial) bpr.cpp Tp9000Card wrapper, so perso-live / the kiosk executor can
     drive a feeder, selectable alongside PC/SC. No engine-core changes; drop-in behind the ICardChannel
     seam (card.hpp:29). WINDOWS-ONLY — bench-tested on the Windows perso host, not pat-m4p.
-  status: in_progress   # 2026-07-21 — core implemented on pat-m4p (code-complete, bench-pending on Windows).
-                        # DECISION (user 2026-07-21): DO NOT modify the legacy tp9k (Tp9000Card) — it works for
-                        # BprCardQi/BprCardEmv. Instead a SELF-CONTAINED _v2 wrapper was added. Done: 002.1 (v2
-                        # wrapper), 002.2 (Tp9000Channel). In progress: 002.3/002.4 (CMake option + probe app +
-                        # eject/reject done; perso-live-visa --transport factory + executor wiring remain). Pending:
-                        # 002.5 (Windows-host bench — cannot run on pat-m4p). Default macOS build stays green (94/94
-                        # tests; tp9000 target absent unless PERSOENGINE_BUILD_TP9000=ON on WIN32).
+  status: in_progress   # 2026-07-21 — core + app factory implemented on pat-m4p (code-complete, bench-pending on
+                        # Windows). DECISION (user 2026-07-21): DO NOT modify the legacy tp9k (Tp9000Card) — it works
+                        # for BprCardQi/BprCardEmv. Instead a SELF-CONTAINED _v2 wrapper was added. DONE: 002.1 (v2
+                        # wrapper), 002.2 (Tp9000Channel), 002.3 (CMake option + probe app + shared --transport
+                        # factory wired into perso-live-visa). In progress: 002.4 (eject/reject primitives done;
+                        # kiosk-executor read-back->eject/reject decision remains). Pending: 002.5 (Windows-host bench
+                        # — cannot run on pat-m4p). Default macOS build stays green (94/94 tests; perso-live-visa
+                        # builds; tp9000 target absent unless PERSOENGINE_BUILD_TP9000=ON on WIN32).
   priority: medium
   created_at: "2026-07-21"
   source: "rnd-cperso na-100/003 delegation (task-005); user request 2026-07-21"
@@ -40,8 +41,11 @@ approach:
   files_added:
     - "bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.h + tp9k_v2.cpp (Tp9000CardV2 — Windows-only)"
     - "bpr.cpp/src/BprCardEmv/persoengine/include/persoengine/card_tp9000.hpp + src/card_tp9000.cpp (Tp9000Channel : ICardChannel)"
+    - "bpr.cpp/src/BprCardEmv/persoengine/apps/common/card_transport.hpp (perso::app::CardTransport — --transport factory + RAII eject/reject disposition)"
     - "bpr.cpp/src/BprCardEmv/persoengine/apps/tp9000-probe/main.cpp (read-only feed+ATR+SELECT+eject smoke probe)"
-    - "persoengine/CMakeLists.txt: option PERSOENGINE_BUILD_TP9000 (WIN32-only; builds persoengine_tp9000 + perso-tp9000-probe)"
+    - "persoengine/CMakeLists.txt: option PERSOENGINE_BUILD_TP9000 (WIN32-only; builds persoengine_tp9000 + perso-tp9000-probe; links PERSOENGINE_HAVE_TP9000 into perso-live-visa/perso-live)"
+  files_modified:
+    - "bpr.cpp/.../apps/perso-live-visa/main.cpp (uses the factory; --transport pcsc|tp9000; mark_good on success)"
   build_status: >
     macOS default build VERIFIED green (94/94 tests; perso-cli + libpersoengine built; no tp9000 target with
     the option OFF). The Windows tp9000 path is code-complete but UNBUILT/UNTESTED here (needs the Win32
@@ -109,13 +113,19 @@ subtasks:
   - id: "task-002.3"
     subject: "Build wiring (CMake option + probe app) + live-app transport factory"
     detail: >
-      DONE: option PERSOENGINE_BUILD_TP9000 (WIN32-only, default OFF) builds persoengine_tp9000
+      DONE: (a) option PERSOENGINE_BUILD_TP9000 (WIN32-only, default OFF) builds persoengine_tp9000
       (tp9k_v2.cpp + card_tp9000.cpp) + a read-only smoke app perso-tp9000-probe (feed+ATR+SELECT+eject;
-      --reject-test exercises the reject bin). REMAINING: replace the hard-coded `drv::BprPcScChannel ch;`
-      (perso-live-visa/main.cpp:257) with a --transport pcsc|tp9000 factory returning unique_ptr<ICardChannel>
-      (keep the -1==TP9000 slot convention). Note: the base ICardChannel has no reader()/atr(); the factory
-      needs a small shim so the apps' ATR print + eject/reject hooks work across both transports.
-    status: in_progress   # CMake option + probe app done; perso-live-visa --transport factory still to wire.
+      --reject-test exercises the reject bin). (b) SHARED factory apps/common/card_transport.hpp — class
+      perso::app::CardTransport wraps either BprPcScChannel or Tp9000Channel behind a plain ICardChannel&,
+      exposes a display label() (reader/ATR), and carries the feeder DISPOSITION as RAII: default = divert to
+      reject bin; mark_good() => eject as good; applied in the destructor so it is correct on every return
+      path AND on exceptions (no-op for PC/SC). The TP9000 side is gated by PERSOENGINE_HAVE_TP9000 (set by
+      CMake when BUILD_TP9000 is ON) so no Win32 header leaks into the macOS/Linux build. (c) perso-live-visa
+      wired: parses --commit + --transport pcsc|tp9000 (any order), builds via the factory, marks good only
+      after "VISA PERSO COMPLETE". VERIFIED on pat-m4p: perso-live-visa builds green (PC/SC, TP9000 off);
+      --transport bogus -> clear reject; --transport tp9000 on a non-TP9000 build -> "rebuild with
+      -DPERSOENGINE_BUILD_TP9000=ON on Windows". perso-live can adopt the same factory (CMake already wires it).
+    status: done   # 2026-07-21 — factory + perso-live-visa --transport done and macOS-verified; Windows link pending 002.5.
     priority: medium
     depends_on: "task-002.2"
 
