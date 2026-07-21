@@ -38,6 +38,16 @@ behaviour (feed / ATR / IC_Input RX sizing / T=0-vs-T=1 / eject).
    must be at `.\keys\uat_keystore.txt` in the working dir (as on macOS). NEVER commit key values.
 
 ## Build (from `bpr.cpp/src/BprCardEmv/persoengine`)
+**Easiest — the helper script** (`scripts/build-tp9000.ps1`) turns on both transports and builds the probe
++ perso-live-visa:
+```powershell
+.\scripts\build-tp9000.ps1                    # 32-bit Release (default)
+.\scripts\build-tp9000.ps1 -Arch x64          # 64-bit
+.\scripts\build-tp9000.ps1 -Arch x64 -Probe   # build, then run the read-only probe
+```
+It needs `$env:VCPKG_ROOT` set (or pass `-VcpkgRoot <path>`); run `-Clean` to reconfigure from scratch.
+
+**Or the raw CMake** it wraps:
 ```powershell
 # 32-bit example (use -A x64 + the x64 vcpkg triplet for 64-bit)
 cmake -S . -B build-win -A Win32 `
