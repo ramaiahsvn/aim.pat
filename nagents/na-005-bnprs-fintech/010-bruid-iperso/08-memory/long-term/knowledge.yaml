@@ -137,8 +137,16 @@ memories:
       the tunnel, eject, result ok. DELIVERED for the kiosk team: 07-axon-terminals/deliverables/
       2026-07-22-kiosk-agent-build-guide.md + mock_kiosk.py. RECOVERY: finalize (SET STATUS->SECURED) is the
       LAST gated step (GPO must pass) so a mid-session link drop is re-attemptable/rejectable, never a silently
-      bad card. REMAINING (task-003): wire dPrep decode into the bureau, run the full live Visa/MC perso over
-      RemoteChannel, TLS/mTLS, and the kiosk agent (kiosk team). See task-003-remote-apdu-bureau.yaml.
+      bad card. KIOSK AGENT BUILT BY US (user 2026-07-22): perso-kiosk-agent (C++) runs in the background on
+      the kiosk + exposes a LOCAL TRIGGER endpoint (127.0.0.1:9098); the kiosk team calls it with one JSON
+      {dpiB64 (encrypted DPI), hardwareId, transport, hardware} and gets one JSON result — they do NOT
+      implement the protocol or card I/O. The agent tunnels to the bureau + relays APDUs to the local card
+      (TP9000 v2 / PC/SC / mock; 61/6C resolved locally). Cross-platform sockets (apps/common/ndjson_conn.hpp:
+      POSIX + Winsock — winsock cross-compiles for Windows x86_64). FULL LOOP verified on pat-m4p: trigger
+      (KIOSK-DXB-014, mock) -> agent -> bureau -> relay SELECT (MC 9000+FCI, Visa 6A82) -> eject -> result ok.
+      Integration/trigger guide (rev 2) + C#/shell snippets shipped. REMAINING (task-003): wire dPrep decode
+      into the bureau, full live Visa/MC perso over RemoteChannel, TLS/mTLS, Windows x86_64 package, real-card
+      bench. See task-003-remote-apdu-bureau.yaml.
     created_at: "2026-07-22"
     last_accessed: "2026-07-22"
     access_count: 1

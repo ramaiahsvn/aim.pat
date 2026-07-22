@@ -1,114 +1,101 @@
-# Kiosk Agent — Build Guide (remote-APDU iPerso)
+# Kiosk Agent — Integration & Trigger Guide (remote-APDU iPerso)
 
-**For:** the Kiosk team · **From:** na-005/010 bruid-iperso · **Date:** 2026-07-22 · **Status:** UAT
+**For:** the Kiosk team · **From:** na-005/010 bruid-iperso · **Date:** 2026-07-22 (rev 2) · **Status:** UAT
 
-## The model
+> **Update (rev 2):** BNPRS builds and ships the **Kiosk Agent** (`perso-kiosk-agent`, C++). The kiosk team
+> does **not** implement the perso protocol or the card I/O — the agent does all of that. You only need to
+> **(1) run the agent** in the background and **(2) trigger a session** over its local endpoint, passing the
+> encrypted DPI + the kiosk's hardware details.
 
-iPerso now runs like cPerso, but the **card is remote**. The **Bureau** (a trusted server with the
-on-prem HSM + perso engine) does dPrep and drives the *entire* personalization LIVE. Your **Kiosk agent**
-is a thin, secure **relay**: it holds no keys, no scripts, no data at rest — it just passes APDUs between
-the Bureau and the card on its local reader/feeder.
+## The picture
 
 ```
-   KIOSK AGENT (you build this)                 BUREAU (pat-m4p for UAT; real bureau later)
-   ┌───────────────────────────┐   NDJSON/TCP   ┌──────────────────────────────────────────┐
-   │ 1. connect out + auth      │◄──────────────►│ perso-bureau : engine + HSM + keys        │
-   │ 2. submit perso request    │   (TLS in prod)│  - dPrep (decode embossing / DPI)          │
-   │ 3. open local card         │                │  - ISD SCP02, INSTALL, STORE DATA, verify  │
-   │ 4. relay each APDU ↔ card  │                │  - decides eject vs reject                 │
-   │ 5. eject / reject          │                └──────────────────────────────────────────┘
-   └───────────────────────────┘
-        │ local card I/O
-        ▼  TP9000 v2 feeder  OR  PC/SC reader
-       [ the card ]
+  KIOSK MACHINE (Windows)                                   BUREAU (pat-m4p for UAT; real bureau later)
+  ┌───────────────────────────────────────────┐            ┌──────────────────────────────────────────┐
+  │ your kiosk software                         │            │ perso-bureau: engine + HSM + keys          │
+  │        │ (1) TRIGGER: 127.0.0.1:9098         │            │  dPrep, SCP02, INSTALL, STORE DATA, verify │
+  │        ▼   JSON { dpiB64, hardwareId, ... }  │            └──────────────────────────────────────────┘
+  │  perso-kiosk-agent  (BNPRS-built, background)│◄── NDJSON/TCP ──►  (agent connects OUT to the bureau)
+  │        │ relays APDUs                         │   (TLS in prod)
+  │        ▼ local card: TP9000 v2 / PC/SC        │
+  │      [ the card ]                             │
+  └───────────────────────────────────────────┘
 ```
 
-**You provide:** the relay agent + the local card channel (TP9000 v2 or PC/SC).
-**Bureau provides:** all crypto, keys, and the APDU stream. Keys are provided to the Bureau separately —
-never to the Kiosk.
+The agent is a thin relay: it holds **no keys, no script, no data at rest**. All crypto + keys live at the
+Bureau (keys are provided to the Bureau separately — never to the kiosk).
 
-## Transport & protocol
+## 1. Run the agent (background service)
 
-- **Wire:** newline-delimited JSON (**NDJSON**) over a TCP socket — one JSON object per line (`\n`).
-  Trivial to implement in C#/.NET, Java, or Python.
-- **Direction:** the Kiosk **connects out** to the Bureau (Kiosk may be behind NAT). UAT Bureau =
-  `pat-m4p-ip:9099`.
-- **Security:** **UAT** = plain TCP + a shared `token` in the `hello`. **PROD** = TLS 1.2+ with **mutual
-  auth** (client fleet cert — same pattern as the existing `k3_fleet_pfx` → `kms.bnprs.ai`). Design the
-  socket layer so TLS is a drop-in (wrap the stream); do not hardcode plaintext.
-- **Hex:** all APDUs are uppercase hex strings (command incl. Lc/Le; response = data ‖ SW1 ‖ SW2).
+```
+perso-kiosk-agent --bureau-host <bureau-ip> --bureau-port 9099 --token <uat-token> --listen 9098
+```
+- Runs in the foreground listening on `127.0.0.1:9098` — deploy it as a **Windows service** / background
+  process (auto-start, auto-restart). It connects OUT to the Bureau per session, so the kiosk can sit
+  behind NAT; only outbound to the Bureau is needed.
+- Bitness: 64-bit (matches the kiosk `TP9000.dll`). `TP9000.dll` must be next to the exe (for `--transport
+  tp9000`). PC/SC needs no extra DLL.
+- **UAT** uses `--token`; **PROD** replaces it with a TLS client fleet cert (mutual auth) — same
+  `k3_fleet_pfx` pattern as `kms.bnprs.ai`. (The Bureau enforces it.)
 
-### Message flow (each line is one JSON object with a `type`)
+## 2. Trigger a session (what your software does)
 
-| # | Direction | `type` | Fields | Kiosk action |
-|---|-----------|--------|--------|--------------|
-| 1 | K → B | `hello` | `token`, `kioskId`, `agentVersion`, `capabilities:["tp9000","pcsc"]` | connect + authenticate |
-| 2 | B → K | `hello_ack` | `protocol`, `server`, `sessionId` | proceed |
-| 3 | K → B | `perso_request` | `channel:"iperso"`, `transport:"tp9000"\|"pcsc"`, `inputType:"dpi"\|"embossing"`, `inputB64` | submit the job + input |
-| 4 | B → K | `card_open` | `transport` | open the LOCAL card channel (feed + power on) |
-| 5 | K → B | `card_opened` \| `card_error` | `atr` (hex) \| `detail` | report ATR or failure |
-| 6 | B → K | `apdu` | `seq` (int), `capdu` (hex) | **transmit to the card, get the response** |
-| 7 | K → B | `apdu_response` \| `apdu_error` | `seq`, `rapdu` (hex) \| `detail` | return the card's response |
-| … | | | | (6–7 repeat for the whole perso stream) |
-| 8 | B → K | `card_finish` | `disposition:"eject"\|"reject"` | eject a good card / divert a failed one |
-| 9 | K → B | `card_finished` | `ok` | confirm |
-| 10 | B → K | `result` | `status:"ok"\|"fail"`, `detail` | show outcome; close |
+Open a TCP connection to `127.0.0.1:9098`, send **one JSON object + `\n`**, read **one JSON result + `\n`**,
+close. That's the whole integration.
 
-Any side may send `{"type":"error","detail":"..."}` and close on a fatal problem.
+### Request
+```json
+{ "dpiB64":     "<base64 of the ENCRYPTED DPI RequestPerso XML>",
+  "hardwareId": "KIOSK-DXB-014",
+  "transport":  "tp9000",
+  "inputType":  "dpi",
+  "hardware":   { "serial":"TP9K-88231", "model":"Pointman TP9000", "os":"Win11", "location":"DXB-T1" } }
+```
+- `dpiB64` — the encrypted DPI as you received it. The Bureau decrypts it (keys are Bureau-side); **the
+  kiosk never sees the DEK**.
+- `hardwareId` / `hardware` — the kiosk's unique identity + details (used for auth/audit at the Bureau).
+- `transport` — `tp9000` (feeder) or `pcsc` (reader). `inputType` — `dpi` (or `embossing`).
 
-## What your agent must do
+### Result
+```json
+{ "status": "ok", "detail": "...", "atr": "3BFE13...", "bureau": { ...full bureau result... } }
+```
+`status` is `ok` or `fail`; on failure `detail` explains (auth, card_open, apdu error, rejected, etc.).
 
-1. **Connect + `hello`** with the token (UAT) / present the client cert (PROD). Wait for `hello_ack`.
-2. **Send `perso_request`** with the chosen `transport` and the base64 of the issuer input (the DPI XML for
-   iPerso, or the embossing file). The Bureau decodes + decrypts it (keys are Bureau-side).
-3. **On `card_open`:** open your LOCAL card channel and return the `atr`:
-   - **TP9000 v2 feeder:** load `TP9000.dll` (64-bit — matches the kiosk DLL), feed a blank, contacts on,
-     EMV cold reset (`IC_PowerOnEx nMode=2`), read the ATR. (Reference: `tp9k_v2` / `Tp9000Channel` in
-     bpr.cpp — same call sequence.)
-   - **PC/SC:** connect to the reader, `SCardStatus` for the ATR.
-4. **On each `apdu`:** transmit `capdu` to the card and return the exact response as `rapdu`.
-   - **CRITICAL — resolve chaining locally.** Handle `61xx` (GET RESPONSE `00 C0 00 00 xx`) and `6Cxx`
-     (re-issue with Le = xx) on the Kiosk so you return the **final** data ‖ SW. The Bureau relays raw and
-     does NOT chain. (Both `BprPcScChannel` and `Tp9000Channel` in bpr.cpp already do exactly this — copy
-     that loop.)
-   - Preserve `seq` in the reply.
-5. **On `card_finish`:** `eject` (good → stacker/front) or `reject` (divert to the reject bin —
-   `Card_Control 0x36`). Confirm with `card_finished`.
-6. **On `result`:** display success/failure to the operator.
+### Example (any language; here C#-ish and shell)
+```csharp
+using var tcp = new TcpClient("127.0.0.1", 9098);
+using var ns  = tcp.GetStream();
+var req = JsonSerializer.Serialize(new { dpiB64, hardwareId="KIOSK-DXB-014", transport="tp9000", inputType="dpi" }) + "\n";
+ns.Write(Encoding.UTF8.GetBytes(req));
+string result = new StreamReader(ns).ReadLine();   // one JSON line
+```
+```bash
+printf '{"dpiB64":"...","hardwareId":"KIOSK-DXB-014","transport":"tp9000","inputType":"dpi"}\n' | nc 127.0.0.1 9098
+```
 
-## Error & recovery rules
+A ready-to-run reference client (`mock_kiosk.py` shows the same trigger shape) is in this folder.
 
-- A dropped connection mid-session may leave a **half-personalized card**. The Bureau only finalizes
-  (SET STATUS → SECURED) as the **last** step after a passing GPO, so a drop before that leaves an
-  un-secured card that can be re-attempted; a drop after leaves a card to **reject**. If you lose the link
-  after `card_open` and before `result`, **reject the card** and let the operator retry.
-- Return `apdu_error`/`card_error` with a `detail` on any local failure — never fabricate a `9000`.
-- Never log full PAN / Track / CVV / PIN. APDU payloads are sensitive (SAD) — treat the whole channel as
-  PCI data: TLS in prod, no persistence, no plaintext logs of card data.
+## What the agent does for you (so you don't have to)
 
-## Build steps (Kiosk agent)
+- Connects to the Bureau, authenticates, submits your DPI + hardware details.
+- Opens the local card channel (TP9000 v2 feed + EMV cold reset, or PC/SC connect) on the Bureau's cue.
+- Relays every APDU to the card and **resolves 61xx/6Cxx locally**.
+- Ejects a good card / diverts a failed one to the reject bin, on the Bureau's instruction.
+- Returns the final result to your trigger call.
 
-1. **Pick your stack** — C#/.NET is fine (and matches the perso-host tooling). Java/Python also work; the
-   protocol is language-neutral.
-2. **Socket + NDJSON layer:** connect to the Bureau; read/write one JSON object per line. Make the stream
-   pluggable so PROD can wrap it in TLS (with a client cert).
-3. **Local card channel** — implement both, selected by `transport`:
-   - TP9000 v2 (feeder): P/Invoke `TP9000.dll` — `GetTPKStatus`, `Card_Insert`, `IC_ContactOn`,
-     `IC_PowerOnEx(nMode=2)`, `IC_Input`, `Card_EjectEx`, `Card_Control(0x36)`. Match the DLL bitness
-     (64-bit). Reference impl: `bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.*`.
-   - PC/SC: `SCardConnect` / `SCardTransmit` / `SCardStatus` (WinSCard on Windows; PCSC-lite elsewhere).
-   - Both must resolve `61xx`/`6Cxx` locally (see step 4 above).
-4. **State machine:** hello → perso_request → (card_open→opened) → loop(apdu↔apdu_response) → card_finish →
-   result. Keep it single-session, single-card for UAT.
-5. **Test against the UAT Bureau** on pat-m4p: run `perso-bureau <port> <token>` there; point your agent at
-   its IP. The Bureau currently drives a **read-only SELECT sequence** (proves the relay) — you should see
-   two `apdu` messages and a `result`. Full live perso turns on next (same protocol, more APDUs).
-6. **PROD:** switch the socket to TLS + present the fleet client cert; the Bureau enforces mutual auth.
+## Your responsibilities
+
+1. **Deploy + keep the agent running** (background/service; auto-restart). One session (one card) at a time.
+2. **Trigger** with the encrypted DPI + hardware details; show the operator the `status`.
+3. **Feed/collect cards** at the TP9000; the agent drives the chip. (If a session fails, the agent rejects
+   the card — retry with a fresh trigger.)
+4. **Network:** allow outbound from the agent to the Bureau; in PROD install the kiosk fleet cert.
+5. Never log the `dpiB64` or any card data — treat the trigger payload + results as PCI-sensitive.
 
 ## Reference
 
-- Bureau: `bpr.cpp/src/BprCardEmv/persoengine/apps/perso-bureau/main.cpp` (protocol authority + `RemoteChannel`).
-- Local card channels to mirror: `bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.*` (TP9000 v2) and
-  `persoengine/src/card_bprpcsc.cpp` (PC/SC) — both show the exact ATR + transmit + 61/6C chaining logic.
-- A minimal mock kiosk (Python, canned responses) used to validate the protocol is available on request.
-- iPerso architecture + this model: bruid-iperso task-003 (remote-APDU) + knowledge.
+- Agent: `bpr.cpp/src/BprCardEmv/persoengine/apps/perso-kiosk-agent/main.cpp` (BNPRS-built).
+- Bureau: `.../apps/perso-bureau/main.cpp`. Shared wire: `.../apps/common/ndjson_conn.hpp`.
+- Reference trigger client: `mock_kiosk.py` (this folder).
+- Model + status: bruid-iperso task-003 (remote-APDU) + knowledge mem-004.

@@ -8,9 +8,13 @@
 task:
   id: "task-003"
   subject: "Remote-APDU Bureau/Kiosk perso (RemoteChannel + kiosk relay + NDJSON protocol)"
-  status: in_progress   # 2026-07-22 — tunnel PROVEN on pat-m4p (bureau drove a read-only SELECT sequence over
-                        # RemoteChannel; mock kiosk relayed; result ok). Kiosk build guide delivered. Full dPrep +
-                        # live perso wire-up + TLS/mTLS + kiosk agent (kiosk team) remain.
+  status: in_progress   # 2026-07-22 — tunnel PROVEN + KIOSK AGENT BUILT BY US. perso-kiosk-agent (C++,
+                        # cross-platform: POSIX + Winsock; PC/SC now, TP9000 v2 on Windows) runs in the
+                        # background, exposes a LOCAL TRIGGER endpoint (127.0.0.1:9098) the kiosk team calls with
+                        # {dpiB64, hardwareId, transport}, tunnels to the bureau, relays APDUs to the local card,
+                        # returns the result. FULL LOOP verified on pat-m4p (trigger -> agent -> bureau -> mock
+                        # card relay -> result ok). Winsock path cross-compiles for Windows x86_64. Remaining:
+                        # dPrep wire-up + full live perso + TLS/mTLS + Windows package + real-card bench.
   priority: high
   created_at: "2026-07-22"
   owner: "bruid-iperso (na-005/010) — iPerso domain; RemoteChannel lands in the BprCardEmv lib (cpp-card-emv 003)"
@@ -82,10 +86,24 @@ subtasks:
     priority: medium
 
   - id: "task-003.6"
-    subject: "Kiosk agent implementation (KIOSK TEAM) — relay + local card channels"
-    detail: "Per the build guide: socket/NDJSON, TP9000 v2 + PC/SC local channels (61/6C resolved locally), state machine, TLS in prod. Owned by the kiosk team; bruid-iperso supports."
-    status: pending
+    subject: "Kiosk agent — BUILT BY US (perso-kiosk-agent) + kiosk-team trigger integration"
+    detail: >
+      DECISION (user 2026-07-22): WE build the kiosk agent in C++; the kiosk team only triggers it. Agent =
+      apps/perso-kiosk-agent/main.cpp: background service, LOCAL TRIGGER endpoint (127.0.0.1:9098, one JSON
+      request {dpiB64, hardwareId, transport, hardware} -> one JSON result), bureau tunnel (hello ->
+      perso_request -> relay), local card via TP9000 v2 / PC/SC / mock (61/6C resolved by the local channel).
+      Cross-platform socket layer (apps/common/ndjson_conn.hpp: POSIX + Winsock). KIOSK TEAM only: run the
+      agent (Windows service) + call the trigger with the encrypted DPI + hardware details (see the
+      integration guide). Reference C# + shell trigger snippets shipped.
+    status: done   # 2026-07-22 — agent built; full loop verified on pat-m4p (mock transport); winsock x-compiles
+                   # for Windows x86_64. Integration/trigger guide delivered. (Real-card bench + Windows package next.)
     priority: high
+
+  - id: "task-003.7"
+    subject: "Windows package of the agent (x86_64 static) + real-card bench"
+    detail: "Cross-compile perso-kiosk-agent for Windows x86_64 (mingw static, matching the 64-bit TP9000.dll; same recipe as task-002.6) and bench with a real TP9000 feeder + card end-to-end from a kiosk trigger."
+    status: pending
+    priority: medium
 
 # ---- Guardrails ----
 guardrails:
