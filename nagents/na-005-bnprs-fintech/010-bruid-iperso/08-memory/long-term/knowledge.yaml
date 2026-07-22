@@ -387,6 +387,35 @@ memories:
     source: "session-2026-07-22b"
     tags: [bureau-concurrency, per-card-tunnel, multithreaded-bureau, max-workers, worker-pool, backpressure, thread-per-connection, tls-handshake-in-worker, session-tagged-logs, orchestrator-log-interleave-followon, fleet-harness-verified]
 
+  - id: mem-012
+    type: technical_knowledge
+    content: >
+      2026-07-22 (cont.): PER-SESSION LOG SEAM added to the orchestrator (bpr.cpp 6adb6c6) — closes the
+      follow-on from the multithreaded bureau (mem-011), so concurrent LIVE persos no longer interleave their
+      trace on stdout. DESIGN: VisaPersoConfig gained an optional PersoLogger =
+      std::function<void(const std::string&)>. run_visa_perso routes its ENTIRE trace through a private
+      logf(fmt,...) (printf-style, __attribute__((format(printf,1,2))) checked; 2-pass vsnprintf so long lines
+      like GPO/cert hex aren't truncated) that emits to a thread_local sink pointer `t_log`, set for the call's
+      duration by a LogScope RAII guard at the top of run_visa_perso. THREAD_LOCAL is the trick: the ~35 print
+      sites live in free-function helpers (show/open_ch/build_*), and threading a logger param through all of
+      them would be noise — instead each helper calls logf(), which finds the current thread's sink. Because
+      the bureau runs each session on its own thread, concurrent calls each route to their own sink with zero
+      plumbing. Unset logger (default) -> std::fputs to stdout, BYTE-IDENTICAL to the old std::printf output
+      (fputs of vsnprintf(fmt,args) == printf(fmt,args)), so perso-live-visa standalone is unchanged. BUREAU
+      sink: cfg.log = [sid](const std::string& s){ lock g_log; emit leading '\n's, then "[bureau S<id>] ", then
+      the rest } — tags every orchestrator line and keeps blank-line separators clean. All bureau output (BLOG
+      macro + this sink) shares the one g_log mutex, so nothing interleaves. VERIFIED on pat-m4p: 95/95 tests
+      green; two concurrent commit sessions (fleet_commit_test.py, mock cards forcing a clean ISD-auth abort)
+      -> every orchestrator line (mode/[ISD] SELECT/SELECT failed) carries [S1] or [S2], fully attributable, no
+      interleaving. Plain + TLS builds green. So the bureau concurrency story is now complete end-to-end:
+      thread-per-connection + worker cap + backpressure (mem-011) AND clean per-session logs (this). [[mem-011]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [per-session-logger, persologger-callback, thread-local-log-sink, logf, logscope-raii, orchestrator-log-attribution, byte-identical-default, concurrent-live-perso-clean-logs, follow-on-closed]
+
 # Pruning rules
 pruning:
   max_entries: 500
