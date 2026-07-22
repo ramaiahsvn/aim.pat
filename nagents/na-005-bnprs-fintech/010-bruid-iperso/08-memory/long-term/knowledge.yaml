@@ -416,6 +416,32 @@ memories:
     source: "session-2026-07-22b"
     tags: [per-session-logger, persologger-callback, thread-local-log-sink, logf, logscope-raii, orchestrator-log-attribution, byte-identical-default, concurrent-live-perso-clean-logs, follow-on-closed]
 
+  - id: mem-013
+    type: project
+    content: >
+      2026-07-22 (cont.): SHIPPED the Windows kiosk-agent DISTRIBUTION PACKAGE — both exes + the fleet-cert
+      setup. Delivered perso-kiosk-agent-win-x64-2026-07-22.zip (4.3 MB, also in ~/Downloads) containing:
+      perso-kiosk-agent.exe (plain UAT, SHA aeb0dc2db1161767dfeff1b4bec126e774cf311aa08daf387aa4ce4f206a8566)
+      + perso-kiosk-agent-tls.exe (PROD mutual TLS, static OpenSSL, SHA
+      6171a10b933510879436180a8d866a2fb63a93fa624985ec312620f305250d72); README.txt (which exe, prereqs, run,
+      bench order); CSHARP-HOST-REFERENCE.md (launch + trigger from C#); fleet-certs/FLEET-CERT-SETUP.md +
+      fleet-certs/gen-fleet-certs.sh; SHA256SUMS.txt. NOTE the exe SHAs differ run-to-run (PE header timestamp
+      -> non-reproducible) — always ship WITH the matching SHA256SUMS.txt. FLEET PKI SCRIPT (gen-fleet-certs.sh,
+      also committed to bpr.cpp 7faaa8a as scripts/gen-fleet-certs.sh): one openssl run makes root CA + bureau
+      server cert + one cert PER kiosk with CN=hardwareId; distribute least-privilege (bureau gets
+      bureau.pem/.key+ca.pem; each kiosk gets ONLY its kiosk-<ID>.pem/.key+ca.pem; ca.key stays OFFLINE, never
+      shipped). Verified the script end-to-end (CA+bureau+2 kiosks, openssl verify OK, CN=hardwareId). Package
+      docs also copied into this agent's deliverables (2026-07-22-kiosk-agent-win-package-README.txt,
+      2026-07-22-fleet-cert-setup.md, gen-fleet-certs.sh). Every SOFTWARE item on task-003 is now done +
+      packaged; the ONLY remaining work is the physical bench (real TP9000 + UAT card on the Windows host),
+      which closes the 003.4 live run + 003.7 real-card bench together. [[mem-009]] [[mem-010]] [[mem-008]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [windows-package-shipped, both-exes, fleet-cert-setup, gen-fleet-certs, sha256sums, pe-nonreproducible-sha, csharp-host-ref, distribution-zip, task-003-software-complete, bench-only-remaining]
+
 # Pruning rules
 pruning:
   max_entries: 500
