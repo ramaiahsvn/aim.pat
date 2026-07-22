@@ -65,6 +65,19 @@ subtasks:
                    # extract on the next MC touch (Visa was the 003.4 driver).
     priority: medium
 
+  - id: "task-001.7"
+    subject: "dPrep: print + magstripe output builder (move from perso-bureau app into bpr::emv::dprep)"
+    detail: >
+      2026-07-22 (bruid-iperso task-003.10, bpr.cpp ed9503c): after a successful perso the bureau returns
+      result.output {print{cardholderName,pan,panMasked,expiry}, magstripe{track1 ISO7813 Format B, track2}}
+      for the kiosk's printer + magstripe encoder. The derivation (build_perso_output) currently lives in the
+      perso-bureau APP over CardholderData. FOLLOW-ON for this library: move it into bpr::emv::dprep as a pure,
+      unit-tested function (struct out, no nlohmann in the lib) + expose over the C ABI so any host builds the
+      identical output. Reconcile the exact track name (SURNAME/GIVEN) + discretionary layout with a REAL MENTA
+      DPI's embossing fields + the kiosk encoder/printer spec.
+    status: pending
+    priority: medium
+
   - id: "task-001.4"
     subject: "Build the iPerso script-emitter + kiosk-executor modules"
     detail: >

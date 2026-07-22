@@ -8,7 +8,14 @@
 task:
   id: "task-003"
   subject: "Remote-APDU Bureau/Kiosk perso (RemoteChannel + kiosk relay + NDJSON protocol)"
-  status: in_progress   # 2026-07-22 — tunnel PROVEN + KIOSK AGENT BUILT BY US. perso-kiosk-agent (C++,
+  status: proven_live_real_card   # 2026-07-22 — CORE PROVEN END-TO-END ON A REAL CARD OVER THE INTERNET.
+                        # The remote-APDU iPerso model works live: kiosk (103.106.181.48, Windows perso-kiosk-
+                        # agent-tls.exe) -> internet -> TLS mutual auth -> dedicated AWS Linux bureau
+                        # (98.130.14.127, Graviton/systemd, mem-014) -> TP9000 feeder -> real Visa card:
+                        # ISD SCP02 ✓ + 18/20 DGIs written (mem-015). Print+magstripe output on success added
+                        # (mem-016). ALL software subtasks done; remaining is a FRESH card for a finalized 20/20
+                        # + the deferred Windows-Service host (003.8). Full history below.
+                        # ---- 2026-07-22 — tunnel PROVEN + KIOSK AGENT BUILT BY US. perso-kiosk-agent (C++,
                         # cross-platform: POSIX + Winsock; PC/SC now, TP9000 v2 on Windows) runs in the
                         # background, exposes a LOCAL TRIGGER endpoint (127.0.0.1:9098) the kiosk team calls with
                         # {dpiB64, hardwareId, transport}, tunnels to the bureau, relays APDUs to the local card,
@@ -90,7 +97,14 @@ subtasks:
       Drive the complete perso (INSTALL -> STORE DATA keys-first -> end-of-perso trigger -> GPO gate ->
       SET STATUS -> self-verify) over the RemoteChannel instead of a local reader. Drop-in once the cPerso
       orchestration is callable (cpp-card-emv task-001.3). Expect 19/19 DGIs per bruid-cperso mem-026.
-    status: wired_bench_pending   # 2026-07-22 (bpr.cpp 4270c9b) — WIRED + tunnel-proven; real-card run pending.
+    status: proven_real_card   # 2026-07-22 — PROVEN LIVE ON A REAL CARD over the internet (bureau session S6,
+                   # mem-015): kiosk (103.106.181.48) -> TLS -> AWS bureau (98.130.14.127) -> TP9000 -> real Visa
+                   # card: ISD SCP02 auth ✓, 18/20 DGIs written (all keys 8000/9000/8010 + RSA ICC chain
+                   # 8201-8205 + records). 2 rejects (0301 S3R1 6A88, 9200 IDD 6A80) BECAUSE the test card was
+                   # already personalized (INSTALL couldn't create a fresh instance) -> bureau correctly did NOT
+                   # finalize (guardrail). REMAINING: a FRESH OP_READY multi-app card for a clean 20/20 + secured
+                   # (fresh-card availability at the kiosk, not code); optional 0301/9200 robustness on re-perso.
+                   # ORIGINAL WIRING (bpr.cpp 4270c9b): the proven Visa flow extracted to perso::orchestrator::
                    # cpp-card-emv 001.3 done: the proven Visa flow extracted to perso::orchestrator::
                    # run_visa_perso(ICardChannel&, VisaPersoConfig) in the core lib (verbatim; 95/95 tests green).
                    # perso-bureau run_perso() drives it over the RemoteChannel on commit:true; disposition
@@ -179,6 +193,50 @@ subtasks:
       the console app.
     status: console_done_service_deferred   # 2026-07-22 — console sample delivered + verified; service variant on hold (user).
     priority: low
+
+  - id: "task-003.9"
+    subject: "Deploy the bureau to a reachable server so REMOTE kiosks connect (not pat-m4p behind NAT)"
+    detail: >
+      pat-m4p is behind NAT (LAN 192.168.1.40 / WAN 49.238.33.227) so it can't be an internet-reachable
+      server. User chose a dedicated AWS instance over a tunnel. NO bpr.cpp source on the instance (user rule,
+      global feedback mem): built the Linux bureau in a LOCAL Docker ubuntu:24.04 container with the source
+      MOUNTED READ-ONLY, shipped only the binary.
+    status: done   # 2026-07-22 (mem-014) — LIVE + internet-verified. Graviton t4g.small, arm64 Ubuntu 24.04,
+                   # acct bnprs 891963159778 ap-south-2, id i-00eb79ff8e9e1788b, PUBLIC IP 98.130.14.127,
+                   # SG sg-061425921af1f1451 (9099 scoped to kiosk 103.106.181.48 + pat-m4p; SSH to pat-m4p only),
+                   # key pair perso-bureau-key (pem in scratchpad). systemd perso-bureau.service (Restart=always)
+                   # --tls (fleet PKI) --max-workers 8 --keystore (TEST keys). Verified: kiosk TLS handshake +
+                   # preflight + live perso (18/20). TEARDOWN when done: terminate instance + delete SG + key pair.
+    priority: high
+
+  - id: "task-003.10"
+    subject: "Return print + magstripe output to the kiosk on successful perso (instant-issuance handoff)"
+    detail: >
+      After a successful chip perso the kiosk needs the physical-card-production data to drive its printer +
+      magstripe encoder. On res.complete the bureau assembles result.output {print{cardholderName,pan,
+      panMasked,expiry}, magstripe{track1 ISO7813-FormatB, track2}} from the DPI-decoded CardholderData; the
+      agent surfaces it at result.output. Success-gated, over TLS, PCI (values never logged; kiosk transient).
+    status: done   # 2026-07-22 (bpr.cpp ed9503c, mem-016) — bureau + agent updated, EC2 redeployed, Windows exe
+                   # + trigger.ps1 + OUTPUT-SCHEMA.md + C# sample shipped. FOLLOW-ONs below (followups block).
+    priority: high
+
+# ---- Open follow-ups (2026-07-22) ----
+followups:
+  - "FRESH-CARD 20/20: run a live perso on a fresh (never-personalized) multi-app Visa card for a clean
+     20/20 + secured=1 (the 18/20 on S6 was a used/already-personalized card). Card availability at the kiosk,
+     not code. Closes the 003.4/003.7 real-card bench fully."
+  - "0301 S3R1 (6A88) + 9200 IDD (6A80): OPTIONAL robustness — make these DGIs succeed even when re-perso'ing
+     a used/secured Visa instance (only matters if fresh cards are scarce)."
+  - "PRINT/MAGSTRIPE derivation -> move from the bureau app into the LIBRARY (bpr::emv::dprep) with a unit test
+     + expose over the C ABI so any host builds the identical output (cpp-card-emv task). Reconcile the exact
+     track name (SURNAME/GIVEN) + discretionary layout against a REAL MENTA DPI's embossing fields + the
+     kiosk's encoder/printer spec."
+  - "DPI cardholder field-name conventions (EMB_PAN/CARD_HOLDER_NAME/…) are best-guess from the KAT fixture —
+     reconcile with a real MENTA DPI (also flagged in mem-007)."
+  - "MC (MasterCard) perso in the bureau: the orchestrator is Visa-only (run_visa_perso); extract/​wire the MC
+     flow if MC cards must be personalized via the bureau (still needs cards whose keys match the keystore)."
+  - "task-003.8: Windows Service / IHostedService host variant (deferred by user; console app for now)."
+  - "TEARDOWN: terminate the UAT bureau EC2 (i-00eb79ff8e9e1788b) + delete SG/key pair when benching is done."
 
 # ---- Guardrails ----
 guardrails:
