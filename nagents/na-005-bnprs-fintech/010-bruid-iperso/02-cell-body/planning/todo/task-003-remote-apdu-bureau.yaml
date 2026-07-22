@@ -167,6 +167,19 @@ subtasks:
                    # TP9000 (user hardware step, same as the task-002.5 probe bench). Can't wine-smoke on macOS.
     priority: medium
 
+  - id: "task-003.8"
+    subject: "Kiosk-side integration host: C# console sample (done) -> Windows Service variant (deferred)"
+    detail: >
+      The kiosk software launches the agent + triggers cards. DONE 2026-07-22: a buildable .NET 8 console
+      sample (KioskController: KioskAgentHost launch/supervise + PersoClient trigger) — verified end-to-end
+      (launch -> preflight -> OK -> shutdown), shipped as a zip + committed under this agent's deliverables
+      (07-axon-terminals/deliverables/KioskController-csharp-sample/). DEFERRED by user (2026-07-22): wrap the
+      host as a WINDOWS SERVICE / IHostedService (StartAsync -> host.Start(); StopAsync -> DisposeAsync) so the
+      agent runs unattended at boot; the trigger call (PersoClient) is unchanged. For now the team tests with
+      the console app.
+    status: console_done_service_deferred   # 2026-07-22 — console sample delivered + verified; service variant on hold (user).
+    priority: low
+
 # ---- Guardrails ----
 guardrails:
   - "Keys are BUREAU-side only; never sent to the Kiosk. The Kiosk holds nothing at rest."
