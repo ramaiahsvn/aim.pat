@@ -159,8 +159,12 @@ subtasks:
                    # (TP9000.dll runtime-loaded NOT linked; no OpenSSL/pugixml/winscard/libstdc++/winpthread —
                    # fully static). SHA-256 a7f3f221d87d1308c5ceb09bf72d909eaa735c07ed625f1c2e82a8b789b7e51b, 3.1 MB.
                    # Shipped perso-kiosk-agent.exe + README (bench order: mock/preflight -> tp9000/preflight ->
-                   # tp9000/commit). REMAINING: the real-card bench on the Windows host with a live TP9000 (user
-                   # hardware step, same as the task-002.5 probe bench). Can't wine-smoke on macOS (no wine).
+                   # tp9000/commit). TLS-ENABLED Windows exe ALSO BUILT + SHIPPED 2026-07-22 (bpr.cpp c6e0262):
+                   # cross-built a static mingw OpenSSL 3.4.1 (Configure mingw64 no-shared -> libssl.a/libcrypto.a)
+                   # and added --tls to build-kiosk-agent-win.sh; TLS exe = PE32+ x86-64 with OpenSSL STATICALLY
+                   # linked (no libssl/libcrypto DLL; only OS DLLs KERNEL32/WS2_32/CRYPT32/ADVAPI32/USER32+UCRT),
+                   # SHA 575a3ab6...5bb7, 9.6 MB. REMAINING: the real-card bench on the Windows host with a live
+                   # TP9000 (user hardware step, same as the task-002.5 probe bench). Can't wine-smoke on macOS.
     priority: medium
 
 # ---- Guardrails ----

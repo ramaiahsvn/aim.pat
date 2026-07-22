@@ -321,6 +321,37 @@ memories:
     source: "session-2026-07-22b"
     tags: [task-003.7, kiosk-agent-windows-exe, mingw-cross-build, static-x86_64, minimal-relay-source-set, glog-shim-committed, imports-verified, shipped-to-user, plain-uat-no-tls, bench-pending, milestone]
 
+  - id: mem-010
+    type: technical_knowledge
+    content: >
+      2026-07-22 (cont.): TLS-ENABLED Windows kiosk agent BUILT + SHIPPED (bpr.cpp c6e0262) — the follow-on
+      flagged in mem-009. The blocker was a static mingw OpenSSL (mem-003 noted OpenSSL-for-mingw had been
+      built before but that scratch was gone). RECIPE (works, ~1 min build): download openssl-3.4.1 source
+      (official SHA 002a2d6b...197df3, verified), extract to a FRESH dir (mem-003 gotcha: stale i686 .obj in a
+      reused dir break an x64 link), then `./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32-
+      no-shared no-tests no-docs no-module` + `make -j build_libs` -> libcrypto.a (8.8M) + libssl.a (1.5M) in
+      the source root, generated headers in ./include. Extended scripts/build-kiosk-agent-win.sh with a --tls
+      flag (+ OPENSSL_MINGW env pointing at that dir): adds -DPERSOENGINE_HAVE_TLS, -I<ossl>/include, links the
+      two static .a FIRST then the Win32 libs OpenSSL needs (-lcrypt32 -lbcrypt; ws2_32 already there). RESULT:
+      PE32+ x86-64, OpenSSL STATICALLY linked — objdump shows NO libssl/libcrypto DLL, only OS DLLs
+      KERNEL32/WS2_32/CRYPT32/ADVAPI32/USER32 + UCRT stubs (CRYPT32+ADVAPI32 = OpenSSL cert-store/RNG on
+      Windows; USER32 pulled by OpenSSL; all OS-present). No libstdc++/libgcc/winpthread (fully static). TP9000.dll
+      still runtime-loaded. SHA-256 575a3ab667a5843155ac589da0c0086a733b8f64ee20da7147cebbf375db5bb7, 9.6 MB (vs
+      3.1 MB plain). The plain build (no --tls) is byte-for-behaviour unchanged (regression: still imports only
+      KERNEL32+WS2_32). Run: perso-kiosk-agent.exe --bureau-host X --bureau-port 9099 --tls --cert kiosk.pem
+      --key kiosk.key --ca ca.pem. Fleet-cert loading uses the PEM files passed (NOT the Windows system store),
+      so behaviour == the macOS build verified in mem-008 (fleet ok; plain + rogue rejected). Shipped
+      perso-kiosk-agent.exe (TLS) + README-perso-kiosk-agent-TLS.txt; TLS runbook §6 documents the OpenSSL
+      cross-build + --tls. NOTE: do NOT commit the mingw OpenSSL binaries (third-party, huge) — the Configure
+      recipe lives in the build-script header + runbook §6. Runtime proof (handshake on a real Windows host)
+      folds into the same hardware bench. [[mem-008]] [[mem-009]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [tls-windows-exe, static-mingw-openssl, openssl-3.4.1-cross-build, build-libs-recipe, --tls-flag, openssl-static-linked, no-dll-leak, shipped-to-user, plain-build-regression-ok, bench-pending]
+
 # Pruning rules
 pruning:
   max_entries: 500

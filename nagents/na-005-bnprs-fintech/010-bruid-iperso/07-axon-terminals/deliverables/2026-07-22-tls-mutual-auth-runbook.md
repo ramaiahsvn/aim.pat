@@ -73,3 +73,27 @@ So:
 
 The agent enforces this: any bureau-link failure while a card is open triggers a local
 `reject()` and a `{"status":"fail","detail":"link lost: …"}` result to the kiosk.
+
+## 6. Windows kiosk agent with TLS (static OpenSSL)
+
+The Windows `perso-kiosk-agent.exe` can be built WITH TLS baked in — OpenSSL is **statically
+linked**, so there is no `libssl`/`libcrypto` DLL to ship. One-time, cross-build a static
+mingw OpenSSL on pat-m4p:
+
+```bash
+# in a FRESH openssl-3.x source dir (clean per arch — stale i686 objects break an x64 link)
+./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32- no-shared no-tests no-docs no-module
+make -j build_libs        # -> libssl.a + libcrypto.a in the source root; headers in ./include
+```
+
+Then build the TLS agent (bpr.cpp `scripts/build-kiosk-agent-win.sh`):
+
+```bash
+OPENSSL_MINGW=/path/to/openssl-mingw scripts/build-kiosk-agent-win.sh out-dir --tls
+```
+
+The result imports only OS DLLs (KERNEL32/WS2_32/CRYPT32/ADVAPI32/USER32 + UCRT) — OpenSSL
+and the C++ runtime are fully static. Run it exactly as §3 above with `--tls --cert --key
+--ca`. The fleet cert loading uses the PEM files you pass (not the Windows system store), so
+behaviour matches the macOS build verified in §4.
+
