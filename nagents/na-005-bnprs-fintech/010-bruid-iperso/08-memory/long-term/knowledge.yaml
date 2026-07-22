@@ -442,6 +442,39 @@ memories:
     source: "session-2026-07-22b"
     tags: [windows-package-shipped, both-exes, fleet-cert-setup, gen-fleet-certs, sha256sums, pe-nonreproducible-sha, csharp-host-ref, distribution-zip, task-003-software-complete, bench-only-remaining]
 
+  - id: mem-014
+    type: project
+    content: >
+      2026-07-22: DEDICATED LINUX BUREAU deployed to AWS so a REMOTE kiosk can reach it (pat-m4p is behind NAT:
+      LAN 192.168.1.40 / WAN 49.238.33.227, so it can't be a public server without a tunnel — user chose a
+      dedicated EC2 instead). USER RULE (now feedback mem, global): do NOT put bpr.cpp source on ANY deploy
+      instance — cross-compile/build locally, ship ONLY the binary. So the bureau was built in a LOCAL Docker
+      ubuntu:24.04 container with the bpr.cpp source MOUNTED READ-ONLY (source never left pat-m4p): cmake -S
+      persoengine -DPERSOENGINE_BUILD_TLS=ON -DPERSOENGINE_BUILD_PCSC=OFF -DPERSOENGINE_BUILD_TP9000=OFF ->
+      perso-bureau. Docker on Apple Silicon builds ARM64 by default, so the binary is aarch64 -> deployed to a
+      GRAVITON instance to match (native, cheaper). INSTANCE (acct bnprs 891963159778, ap-south-2):
+      id i-00eb79ff8e9e1788b, name perso-bureau-uat, t4g.small, arm64 Ubuntu 24.04 (ami-0feea81f640baa6fb),
+      PUBLIC IP 98.130.14.127, subnet subnet-09e2d5aba53db13f0, vpc-0d80a4677ec5ae84d. SG sg-061425921af1f1451
+      (perso-bureau-sg): inbound 9099 from the kiosk 103.106.181.48/32 + pat-m4p 49.238.33.227/32; SSH 22 from
+      pat-m4p only. SSH key pair 'perso-bureau-key' (private key in pat-m4p scratchpad perso-bureau-key.pem —
+      needed to manage/terminate; recreate access via a new key or SSM if lost). DEPLOY: scp'd the arm64
+      binary + uat_keystore.txt (TEST keys) + fleet certs to ~/bureau; apt-installed libpugixml1v5 (only
+      runtime dep beyond default; libssl3 present); runs as systemd unit perso-bureau.service (Restart=always)
+      = perso-bureau --port 9099 --token <in scratchpad/bureau-token.txt> --max-workers 8 --tls --cert/key/ca
+      --keystore. VERIFIED END-TO-END over the internet: TLS kiosk agent on pat-m4p -> 98.130.14.127:9099 ->
+      "kiosk connected from 49.238.33.227 (TLS, cert-verified)" -> preflight ok. FLEET PKI generated with
+      scripts/gen-fleet-certs.sh (CA + bureau + kiosk-KIOSK-DXB-014). DELIVERED to user: kiosk-bureau-
+      connection.zip (kiosk cert/key + ca.pem + CONNECTION.txt with IP/port/token/run-cmd). CAVEATS: UAT only
+      (test keys + test certs; PROD = HSM-backed bureau + real PKI); SG scoped to the current kiosk WAN IP
+      (update the rule if it changes); teardown = terminate i-00eb79ff8e9e1788b + delete sg + key pair when
+      done. [[mem-008]] [[mem-013]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-22b"
+    tags: [linux-bureau-ec2, graviton-t4g, arm64, docker-build-source-ro, no-source-on-instance, systemd-service, tls-mutual-auth-live, internet-verified, sg-scoped-to-kiosk, i-00eb79ff8e9e1788b, 98.130.14.127, teardown-noted]
+
 # Pruning rules
 pruning:
   max_entries: 500
