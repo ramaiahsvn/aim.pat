@@ -96,8 +96,12 @@ subtasks:
                    # (guardrail: never eject-as-good on failure). REMAINING: the real 19/19-DGI live run needs the
                    # multi-app UAT card (3BFE13) in a local PC/SC reader or the TP9000 feeder on the kiosk — no
                    # reader attached to pat-m4p now (same hardware-bench gate as task-002.5 step 2). --commit is
-                   # user-authorized per session. Follow-on: thread the DpiRecord's per-card fields into
-                   # VisaPersoConfig (bureau still uses the proven synthetic PAN/name set).
+                   # user-authorized per session. DPI CARDHOLDER THREADING DONE 2026-07-22 (bpr.cpp b4f826e):
+                   # VisaPersoConfig.card (CardholderData) now drives PAN/name/expiry/PSN/track2 in DGIs
+                   # 0201/0E01/3001 + the UDK diversifier + the ODA cert PAN; bureau card_from_dpi() maps the
+                   # decrypted DpiRecord (EMB_PAN/CARD_HOLDER_NAME/...) onto it, defaults reproduce the synthetic
+                   # card byte-for-byte. Tunnel-verified the mapping (KAT DPI -> PAN=<from DPI> nameLen=7); the
+                   # real DGI build with the DPI PAN needs the live card (auth must pass).
     priority: high
     depends_on: "task-003.3"
 

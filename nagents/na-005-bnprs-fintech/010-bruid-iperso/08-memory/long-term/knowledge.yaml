@@ -222,6 +222,37 @@ memories:
     source: "session-2026-07-22b"
     tags: [task-003.4-wired, orchestrator-extract, cpp-card-emv-001.3-done, run-visa-perso, remotechannel-live, commit-flag, tunnel-loop-proven, 95-tests-green, reject-on-fail-guardrail, real-card-bench-pending, dpirecord-threading-next, milestone]
 
+  - id: mem-007
+    type: technical_knowledge
+    content: >
+      2026-07-22 (cont.): DPI CARDHOLDER DATA now THREADS into the live Visa perso (bpr.cpp b4f826e, pushed) —
+      the last open item on task-003.4. Added perso::orchestrator::CardholderData {pan, name, expiryYYMM,
+      serviceCode, psn, track2Disc} as a field of VisaPersoConfig. The orchestrator builds the per-card tags
+      from it via helpers: bcd_pan (5A), track2 (57 = PAN 'D' YYMM serviceCode zero-fill F-pad), expiry_yymmdd
+      (5F24 = YYMM+"31"), name_ascii (5F20, trunc 26), psn_byte (5F34), pan_padded10 (ODA ICC cert PAN, BCD +
+      0xFF to 10B). These replace the hardcoded literals in DGIs 0201/0E01/3001 AND feed the UDK diversifier
+      (derive_udk(card.pan, card.psn)) AND the ODA issuer/ICC cert PAN+expiry — so PAN now flows consistently
+      to records, transaction keys, and the cert chain. KEY INVARIANT: the CardholderData DEFAULTS reproduce
+      the proven synthetic test card BYTE-FOR-BYTE (verified numerically: pan "4000000000000002" -> 5A
+      4000000000000002; track2 -> 4000000000000002D29122010000000000000F; 5F24 291231; 5F20 "VISA TEST CARD  "
+      = 56495341...2020), so perso-live-visa run standalone (defaults) is unchanged — 95/95 tests still green.
+      BUREAU: card_from_dpi(DpiRecord) maps decrypted fields onto CardholderData with fallbacks —
+      pan<-{EMB_PAN,PAN,CARD_NUMBER}, name<-{CARD_HOLDER_NAME,EMB_NAME,NAME}, expiry<-{EMB_EXPIRY,EXPIRY_DATE,
+      EXPIRY}, serviceCode<-SERVICE_CODE, psn<-{PAN_SEQUENCE,PSN}, track2Disc<-TRACK2_DISCRETIONARY; any absent
+      field keeps the default (a minimal DPI still personalizes). Threaded into VisaPersoConfig.card on the
+      commit path. PCI: PAN/name logged only as present/length ("PAN=<from DPI> nameLen=7"), NEVER the value.
+      Tunnel-verified on pat-m4p with the KAT fixture DPI (EMB_PAN=4111.., CARD_HOLDER_NAME="ALI A A"): bureau
+      logged "per-card data mapped — PAN=<from DPI> nameLen=7 expiry=2912". The actual DGI build with the DPI
+      PAN needs the live card (mock can't SCP02-auth so the build path isn't reached over the mock). NOTE the
+      DPI field-name conventions above are best-guess (the KAT fixture only carries EMB_PAN + CARD_HOLDER_NAME);
+      reconcile against a REAL MENTA DPI's embossing.* field names when one is available. [[mem-005]] [[mem-006]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-22b"
+    tags: [dpi-cardholder-threading, cardholderdata, per-card-dgi, task-003.4, byte-identical-defaults, card-from-dpi, pci-mask, field-name-conventions-tentative, real-card-build-pending]
+
 # Pruning rules
 pruning:
   max_entries: 500
