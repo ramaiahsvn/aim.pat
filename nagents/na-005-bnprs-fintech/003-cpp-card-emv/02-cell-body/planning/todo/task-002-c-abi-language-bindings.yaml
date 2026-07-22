@@ -8,7 +8,10 @@
 task:
   id: "task-002"
   subject: "Expose BprCardEmv via a flat C ABI (per-concern) for C#/.NET (and future languages)"
-  status: pending
+  status: in_progress   # 2026-07-22 — dPrep C ABI slice LANDED + verified (002.1, 002.2, 002.5, 002.6 done).
+                        # capi/ built into shared libBprCardEmv (10 bpremv_* exports); capi-smoke KATs pass
+                        # (option_a_div=1333008902001100, encode_dgi=9F10020601), buffer/negative/label-error
+                        # paths all correct. cPerso/iPerso ABI (002.3/.4) wait on the module extraction (task-001.3/.4).
   priority: high
   created_at: "2026-07-22"
   owner: "cpp-card-emv (na-005/003) — owns the C ABI + native lib + C header"
@@ -48,12 +51,12 @@ design:
 subtasks:
   - id: "task-002.1"
     subject: "capi/bpremv_common.h — ABI types, error codes, transmit callback, buffer/free, version"
-    status: pending
+    status: done   # 2026-07-22 — capi/bpremv_common.h landed (version, error codes, BPREMV_API export macro, transmit callback, free).
     priority: high
   - id: "task-002.2"
     subject: "capi/bpremv_dprep.{h,cpp} — pure data-prep + key-derivation exports over bpr::emv::dprep"
     detail: "Easiest first (no card I/O). Deterministic buffers in/out; KAT-testable across the boundary."
-    status: pending
+    status: done   # 2026-07-22 — capi/bpremv_dprep.{h,cpp} landed over bpr::emv::dprep; KATs pass (option-A div, encode_dgi), label-based kcv/derive-udk-kcv via opaque hsm handle.
     priority: high
   - id: "task-002.3"
     subject: "capi/bpremv_cperso.{h,cpp} — live central perso over the transmit callback"
@@ -69,7 +72,7 @@ subtasks:
   - id: "task-002.5"
     subject: "CMake: build + export libBprCardEmv with the C ABI; ship header + lib per platform/bitness"
     detail: "Windows: cross-compile locally (mingw static, x86_64 to match the kiosk DLL); publish bpremv_*.h to consumers."
-    status: pending
+    status: done   # 2026-07-22 — CMake PERSOENGINE_BUILD_CAPI builds shared libBprCardEmv (BPREMV_EXPORTS, hidden visibility) exporting 10 bpremv_* symbols; verified on macOS. Windows static cross-build + per-platform ship still to package.
     priority: medium
   - id: "task-002.6"
     subject: "Reference: a minimal C# P/Invoke smoke test (NOT the owned binding) + a per-concern ABI doc"
@@ -77,7 +80,7 @@ subtasks:
       003 provides ONE tiny [DllImport] smoke test proving the ABI loads + a dprep round-trips (KAT). The
       real, owned C# wrappers are built BY the BRUID agents (dprep 008 / cperso 009 / iperso 010) against
       this ABI header. Publish a per-concern ABI usage doc so those agents can build their wrappers.
-    status: pending
+    status: done   # 2026-07-22 — capi-smoke reference/KAT app landed + green (also the C# wrapper reference). Per-concern ABI doc still to publish.
     priority: medium
 
 # ---- Guardrails ----
