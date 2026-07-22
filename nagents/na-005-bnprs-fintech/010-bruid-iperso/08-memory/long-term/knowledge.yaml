@@ -352,6 +352,41 @@ memories:
     source: "session-2026-07-22b"
     tags: [tls-windows-exe, static-mingw-openssl, openssl-3.4.1-cross-build, build-libs-recipe, --tls-flag, openssl-static-linked, no-dll-leak, shipped-to-user, plain-build-regression-ok, bench-pending]
 
+  - id: mem-011
+    type: technical_knowledge
+    content: >
+      2026-07-22 (cont.): BUREAU TUNNEL / CONCURRENCY MODEL clarified + made multithreaded (bpr.cpp f89e100).
+      TWO facts. (1) The tunnel is ALREADY PER-CARD: the kiosk agent's run_session opens ONE outbound bureau
+      connection per trigger, does ONE card, and returns (connection closes on scope exit); the bureau accepts
+      a connection, runs exactly ONE perso_request, then the conn closes at the end of the loop body. So a kiosk
+      NEVER holds a persistent tunnel — even single-threaded, cards from different kiosks interleave FIFO and no
+      kiosk monopolizes the bureau. The single-threaded cost was purely THROUGHPUT (one card end-to-end at a
+      time), not fairness. (2) Made the bureau MULTITHREADED for scale: thread-per-connection with a bounded
+      WorkerPool capped by --max-workers (default 8; =1 == the old sequential bureau, backward compatible). A
+      worker slot is acquired BEFORE accept() so excess kiosks wait in the OS backlog (raised to max*4+8) =
+      natural backpressure, never refused. handle_session() runs each connection on a detached std::thread and
+      the TLS handshake moved INTO the worker (a slow/hostile peer can't block accept()). Thread-safety: NO
+      shared mutable state across sessions — each has its own per-connection RemoteChannel, the keystore is
+      re-read per call (keystore_lookup / BprCryptHsm::load_keystore), g_keystore is read-only after arg parse,
+      OpenSSL SSL_CTX is shared-but-thread-safe for per-thread SSL_accept. Logging: every bureau line now
+      carries [S<id>] under a stdout mutex (BLOG macro) so concurrent sessions stay attributable. KNOWN
+      FOLLOW-ON: perso::orchestrator::run_visa_perso logs its per-DGI trace via library-internal std::printf
+      (no session tag) so concurrent LIVE persos interleave those detail lines — the clean fix is a per-session
+      log sink threaded through the orchestrator (a VisaPersoConfig logger callback). VERIFIED on pat-m4p with a
+      fleet harness (scratchpad/fleet_test.py — N concurrent raw NDJSON kiosks, each holding card_open --delay
+      s): --max-workers 4 with 4x1s-hold kiosks -> 1.0s wall (CONCURRENT, all 4 authenticated up front);
+      --max-workers 1 -> 4.0s (SERIALIZED, 2nd kiosk not even accepted until the 1st frees its slot). Single
+      real-agent DPI loop unchanged; plain + TLS builds green. ndjson_conn listen_on() gained a backlog arg
+      (default 4; the kiosk agent's local trigger listener is unchanged). SIZING NOTE: a real bureau's true
+      ceiling is the HSM ops/sec + card STORE-DATA timing, so a modest cap (8-32) is the practical target, not
+      unbounded. [[mem-006]] [[mem-008]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [bureau-concurrency, per-card-tunnel, multithreaded-bureau, max-workers, worker-pool, backpressure, thread-per-connection, tls-handshake-in-worker, session-tagged-logs, orchestrator-log-interleave-followon, fleet-harness-verified]
+
 # Pruning rules
 pruning:
   max_entries: 500
