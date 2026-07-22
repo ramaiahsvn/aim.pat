@@ -16,8 +16,11 @@ task:
                         # card relay -> result ok). Winsock path cross-compiles for Windows x86_64.
                         # 2026-07-22 (resumed): dPrep WIRED into the bureau (003.3 done, bpr.cpp 2791357) —
                         # DPI decrypted by key label from the submitted inputB64, verified over the full loop.
-                        # Remaining: full live perso over RemoteChannel (003.4, needs cpp-card-emv 001.3
-                        # orchestration extract + the UAT card) + TLS/mTLS + Windows package + real-card bench.
+                        # 2026-07-22 (cont.): 003.4 WIRED (bpr.cpp 4270c9b) — Visa live flow extracted to
+                        # perso::orchestrator::run_visa_perso (cpp-card-emv 001.3 done); bureau drives it over
+                        # the RemoteChannel on commit:true; agent forwards the commit flag; full tunnel loop
+                        # proven on a mock card (clean reject on the mock's inability to SCP02-auth). Remaining:
+                        # the REAL-CARD live run (UAT card in a reader/feeder) + TLS/mTLS + Windows package.
   priority: high
   created_at: "2026-07-22"
   owner: "bruid-iperso (na-005/010) — iPerso domain; RemoteChannel lands in the BprCardEmv lib (cpp-card-emv 003)"
@@ -82,7 +85,19 @@ subtasks:
       Drive the complete perso (INSTALL -> STORE DATA keys-first -> end-of-perso trigger -> GPO gate ->
       SET STATUS -> self-verify) over the RemoteChannel instead of a local reader. Drop-in once the cPerso
       orchestration is callable (cpp-card-emv task-001.3). Expect 19/19 DGIs per bruid-cperso mem-026.
-    status: pending
+    status: wired_bench_pending   # 2026-07-22 (bpr.cpp 4270c9b) — WIRED + tunnel-proven; real-card run pending.
+                   # cpp-card-emv 001.3 done: the proven Visa flow extracted to perso::orchestrator::
+                   # run_visa_perso(ICardChannel&, VisaPersoConfig) in the core lib (verbatim; 95/95 tests green).
+                   # perso-bureau run_perso() drives it over the RemoteChannel on commit:true; disposition
+                   # follows the result (eject on complete, else reject); default stays read-only preflight.
+                   # perso-kiosk-agent forwards the trigger's commit flag. FULL TUNNEL LOOP verified on pat-m4p:
+                   # trigger(commit:true) -> agent -> bureau -> dPrep decode -> orchestrator relays real SCP02
+                   # SELECT over RemoteChannel -> mock can't auth -> clean abort -> card REJECTED, result fail
+                   # (guardrail: never eject-as-good on failure). REMAINING: the real 19/19-DGI live run needs the
+                   # multi-app UAT card (3BFE13) in a local PC/SC reader or the TP9000 feeder on the kiosk — no
+                   # reader attached to pat-m4p now (same hardware-bench gate as task-002.5 step 2). --commit is
+                   # user-authorized per session. Follow-on: thread the DpiRecord's per-card fields into
+                   # VisaPersoConfig (bureau still uses the proven synthetic PAN/name set).
     priority: high
     depends_on: "task-003.3"
 

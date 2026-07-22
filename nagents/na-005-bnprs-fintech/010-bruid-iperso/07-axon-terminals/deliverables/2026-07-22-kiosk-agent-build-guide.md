@@ -49,12 +49,17 @@ close. That's the whole integration.
   "hardwareId": "KIOSK-DXB-014",
   "transport":  "tp9000",
   "inputType":  "dpi",
+  "commit":     true,
   "hardware":   { "serial":"TP9K-88231", "model":"Pointman TP9000", "os":"Win11", "location":"DXB-T1" } }
 ```
 - `dpiB64` — the encrypted DPI as you received it. The Bureau decrypts it (keys are Bureau-side); **the
   kiosk never sees the DEK**.
 - `hardwareId` / `hardware` — the kiosk's unique identity + details (used for auth/audit at the Bureau).
 - `transport` — `tp9000` (feeder) or `pcsc` (reader). `inputType` — `dpi` (or `embossing`).
+- `commit` — **opt-in to the LIVE (destructive) perso**. `true` = the Bureau runs the full personalization
+  (INSTALL → STORE DATA → finalize → SECURED) and the agent ejects the card only if it completes, else
+  rejects it. Omit or `false` = a read-only **preflight** (SELECT sanity over the tunnel; the card is not
+  changed). Start with a preflight, then send `commit:true` for the real issuance.
 
 ### Result
 ```json

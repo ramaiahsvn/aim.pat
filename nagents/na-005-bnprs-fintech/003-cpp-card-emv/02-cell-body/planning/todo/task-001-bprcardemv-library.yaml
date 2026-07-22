@@ -55,7 +55,14 @@ subtasks:
       PERSONALIZED/SECURED -> self-verify flow currently lives in apps/perso-live-visa/main.cpp. Lift it into
       a cperso module (bpr::emv::cperso) so it is a library method, not app code. Keep the proven Visa/MC
       sequence (mem-016/mem-026 in bruid-cperso) byte-identical; apps become thin drivers.
-    status: pending
+    status: done   # 2026-07-22 (bpr.cpp 4270c9b) — Visa live flow extracted VERBATIM into the core lib:
+                   # include/persoengine/orchestrator.hpp + src/orchestrator.cpp = perso::orchestrator::
+                   # run_visa_perso(ICardChannel&, VisaPersoConfig) -> VisaPersoResult. perso-live-visa is now a
+                   # thin local-transport driver (same --commit/--transport CLI); perso-bureau drives the SAME
+                   # function over its RemoteChannel. APDU/DGI/ODA sequence byte-identical; 95/95 tests green.
+                   # NOTE: namespace is perso::orchestrator (not bpr::emv::cperso yet) — fold under the cperso
+                   # facade alias when task-001.1 facades are finalized. MC flow (perso-live) still app-inline;
+                   # extract on the next MC touch (Visa was the 003.4 driver).
     priority: medium
 
   - id: "task-001.4"

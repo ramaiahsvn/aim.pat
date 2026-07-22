@@ -185,6 +185,43 @@ memories:
     source: "session-2026-07-22b"
     tags: [task-003.3-done, dprep-in-bureau, dpi-load-xml, keystore-aes256, kat-fixture-loop, 95-tests-green, recovered-uncommitted-wip, next-live-perso-remotechannel, milestone]
 
+  - id: mem-006
+    type: milestone
+    content: >
+      2026-07-22 (same session, continued): task-003.4 WIRED + tunnel-proven (bpr.cpp 4270c9b, pushed) — the
+      full live perso now runs over the RemoteChannel. This required the cpp-card-emv 001.3 dependency, which I
+      also did: the proven Visa (VSDC) live flow was extracted VERBATIM out of apps/perso-live-visa/main.cpp
+      into the CORE persoengine lib as perso::orchestrator::run_visa_perso(drv::ICardChannel&,
+      VisaPersoConfig) -> VisaPersoResult (include/persoengine/orchestrator.hpp + src/orchestrator.cpp).
+      "Verbatim" = the ISD SCP02 auth -> INSTALL[make selectable] (the 3 inferred param tries) -> keys-first
+      STORE DATA stream (8000/9000/8010/9010 + 8201-8205 ICC-CRT + records incl. ODA certs) -> end-of-perso
+      P1.b8=1 on the last DGI -> GPO-6D00 gate -> SET STATUS 07/0F SECURED -> self-verify (GPO/AFL/READ
+      RECORD/VERIFY PIN) is byte-for-byte the proven flow; only per-step `return N` became a populated result
+      struct. Now THREE callers of ONE flow via pluggable ICardChannel: perso-live-visa (thin local driver,
+      same --commit/--transport CLI + feeder disposition), perso-bureau (drives it over RemoteChannel), and any
+      future transport. BUREAU wiring: run_perso() calls run_visa_perso over the RemoteChannel ONLY when the
+      perso_request carries commit:true (else read-only preflight SELECT); disposition follows the result —
+      card_finish disposition=eject on res.complete, else reject; keystore (ISD-KVN01 + VISA-IMK-* by label)
+      stays Bureau-side (cfg.keystore = g_keystore). AGENT: perso-kiosk-agent forwards the trigger's `commit`
+      flag into perso_request (was dropped before — that's why the first commit test came back "preflight").
+      VERIFIED on pat-m4p: 95/95 unit tests green; FULL TUNNEL LOOP with commit:true — trigger -> agent ->
+      bureau "mode=LIVE(--commit)" -> dPrep decrypt DPI -> run_visa_perso relays real SCP02 SELECT
+      A000000003000000 over the RemoteChannel -> mock card returns 6A82 (can't do SCP02) -> orchestrator clean
+      abort "ISD auth failed" exitCode 1 -> card_finish disposition=REJECT -> result fail. GUARDRAIL HELD: on
+      any failure the card is REJECTED, never ejected-as-good; SET STATUS SECURED stays gated behind a passing
+      GPO. Kiosk build guide updated with the `commit` field (preflight-first, then commit:true for real
+      issuance). REMAINING for a true 19/19-DGI live card: the multi-app UAT card (ATR 3BFE13, Visa+MC+BIX) in
+      a local PC/SC reader OR the TP9000 feeder on the kiosk — NO reader on pat-m4p now (perso-card-probe:
+      "no PC/SC readers available"), same hardware-bench gate as task-002.5 step 2. Also still to do: thread the
+      decoded DpiRecord's per-card fields (PAN/name/expiry/track2) into VisaPersoConfig — the bureau currently
+      runs the proven SYNTHETIC set (test PAN 4000...02). [[mem-004]] [[mem-005]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [task-003.4-wired, orchestrator-extract, cpp-card-emv-001.3-done, run-visa-perso, remotechannel-live, commit-flag, tunnel-loop-proven, 95-tests-green, reject-on-fail-guardrail, real-card-bench-pending, dpirecord-threading-next, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500
