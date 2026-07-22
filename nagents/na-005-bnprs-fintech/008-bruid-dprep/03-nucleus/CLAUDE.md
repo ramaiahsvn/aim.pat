@@ -16,6 +16,19 @@
 
 > Part of the **BRUID** platform — Patent-3 (India), BNPRS-owned.
 
+## BprCardEmv library — ownership boundary (set 2026-07-22)
+
+The EMV personalisation **engine code** — including the HSM/crypto seam (SCP02 session keys, UDK/PIN/KCV
+derivation, DEK) — lives in the **BprCardEmv** C++ library, **owned by cpp-card-emv (na-005/003)**. It is one
+shippable lib with independent namespaces `bpr::emv::{core,dprep,cperso,iperso}` and facade headers
+(`dprep.hpp`/`cperso.hpp`/`iperso.hpp`) under `bpr.cpp/src/BprCardEmv/persoengine`.
+
+This agent is the **dPrep requirement driver + consumer** of that library — **NOT its code owner**. When
+data-prep needs an engine method (profile parse, embossing, DPI channel, UDK/KCV derivation), raise it as a
+requirement TO cpp-card-emv (003); the method lands under `bpr::emv::dprep`. This agent keeps owning the
+**data-preparation domain**: identity / biometric / track / PIN / CVV formatting, the 74-field central blob
+and 52-field instant hex, QA, and the key-derivation REQUIREMENTS driven to the engine + KMS.
+
 ## What is BRUID dPrep
 
 **Data Preparation (dPrep)** is the pre-personalisation data processing layer of the BRUID platform. It transforms raw identity and biometric data from upstream sources into the structured format required by the BRUID card personalisation scripts.
@@ -82,6 +95,7 @@ Fields handled by dPrep that fall under PCI-DSS:
 
 ## Inter-Agent Dependencies
 
+- **003-cpp-card-emv** (na-005): **owns the BprCardEmv library** this agent consumes; dPrep engine methods land under `bpr::emv::dprep` (raise requirements here)
 - **007-bruid-applet** (na-005): Target applet — defines field format constraints
 - **009-bruid-cperso** (na-005): Consumes central perso blob produced here
 - **010-bruid-iperso** (na-005): Consumes instant perso hex produced here

@@ -16,6 +16,19 @@
 
 > Part of the **BRUID** platform — Patent-3 (India), BNPRS-owned.
 
+## BprCardEmv library — ownership boundary (set 2026-07-22)
+
+The EMV personalisation **engine code** lives in the **BprCardEmv** C++ library, **owned by cpp-card-emv
+(na-005/003)** — one shippable lib with independent namespaces `bpr::emv::{core,dprep,cperso,iperso}` and
+facade headers (`dprep.hpp`/`cperso.hpp`/`iperso.hpp`) under `bpr.cpp/src/BprCardEmv/persoengine`.
+
+This agent is the **cPerso requirement driver + consumer** of that library — **NOT its code owner**. When
+central perso needs an engine behaviour, raise it as a requirement TO cpp-card-emv (003); the method lands
+under `bpr::emv::cperso`. This agent keeps owning the **central-bureau domain**: MCES2 integration, on-site
+HSM, batch throughput, LOCK / QA gates, and PCI Card Production operations.
+(Historically this agent implemented directly in `persoengine/` — MasterCard + Visa proven live, see
+knowledge mem-016/mem-024/mem-026; that code is now consolidated under 003's stewardship.)
+
 ## What is BRUID cPerso
 
 **Central Personalisation (cPerso)** is the bureau/batch personalisation solution — the system that writes biometric identity data onto blank BRUID smart cards at a card manufacturing facility or central issuance bureau.
@@ -95,6 +108,7 @@ Legacy per-vendor DLLs (still present in old Z_RELEASE folders only):
 
 ## Inter-Agent Dependencies
 
+- **003-cpp-card-emv** (na-005): **owns the BprCardEmv library** this agent consumes; cPerso engine methods land under `bpr::emv::cperso` (raise requirements here)
 - **007-bruid-applet** (na-005): Target card applet
 - **008-bruid-dprep** (na-005): Provides 74-field perso blob input
 - **002-cpp-card-qi** (na-005): `libBprCardQi.dll` — the native QI layer P/Invoked by BprMces2 since 2026-06-10 (replaced `Bpr.QiScript.dll`); also runs instant perso directly (`StartEncoding_Instant_Perso_Direct`)

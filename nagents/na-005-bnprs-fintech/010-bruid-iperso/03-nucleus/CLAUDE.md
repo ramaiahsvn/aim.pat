@@ -16,6 +16,20 @@
 
 > Part of the **BRUID** platform — Patent-3 (India), BNPRS-owned.
 
+## BprCardEmv library — ownership boundary (set 2026-07-22)
+
+The EMV personalisation **engine code** lives in the **BprCardEmv** C++ library, **owned by cpp-card-emv
+(na-005/003)** — one shippable lib with independent namespaces `bpr::emv::{core,dprep,cperso,iperso}` and
+facade headers (`dprep.hpp`/`cperso.hpp`/`iperso.hpp`) under `bpr.cpp/src/BprCardEmv/persoengine`.
+
+This agent is the **iPerso requirement driver + consumer** of that library — **NOT its code owner**. When
+instant/kiosk perso needs an engine behaviour (script emitter, kiosk executor, TP9000 feeder transport),
+raise it as a requirement TO cpp-card-emv (003); the method lands under `bpr::emv::iperso`. This agent keeps
+owning the **instant-issuance domain**: the split-trust design (central script-gen → untrusted kiosk),
+remote supervisor auth (kms.bnprs.ai, 60s), TP9000 feeder integration, and Android/Windows terminal deploy.
+(Historically this agent implemented the TP9000 transport in `persoengine/` — task-002, validated live on the
+feeder; now consolidated under 003.)
+
 ## What is BRUID iPerso
 
 **Instant Issuance (iPerso)** is the real-time, counter/branch-level personalisation solution — the system that personalises and issues a BRUID smart card to a cardholder on-the-spot, in minutes, without needing to send the card to a central bureau.
@@ -104,6 +118,7 @@ Unlike cPerso (local HSM), iPerso uses **remote challenge-response**:
 
 ## Inter-Agent Dependencies
 
+- **003-cpp-card-emv** (na-005): **owns the BprCardEmv library** this agent consumes; iPerso engine methods (script emitter, kiosk executor, TP9000 transport) land under `bpr::emv::iperso` (raise requirements here)
 - **007-bruid-applet** (na-005): Target card applet
 - **008-bruid-dprep** (na-005): Provides 52-field hex data input
 - **002-cpp-card-qi** (na-005): Card slot management + fleet cert for kms auth
