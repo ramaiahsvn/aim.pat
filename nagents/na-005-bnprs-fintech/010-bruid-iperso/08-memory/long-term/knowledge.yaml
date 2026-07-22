@@ -154,6 +154,37 @@ memories:
     source: "session-2026-07-22"
     tags: [iperso-remote-apdu, bureau-kiosk, remote-channel, ndjson-protocol, tunnel-proven, mock-kiosk, kiosk-build-guide, supersedes-script-emitter, one-engine-pluggable-transport, task-003, milestone]
 
+  - id: mem-005
+    type: milestone
+    content: >
+      2026-07-22 (resumed after abrupt session close): task-003.3 DONE — dPrep WIRED into the Bureau
+      (bpr.cpp 2791357, pushed). The previous session left the wire-up UNCOMMITTED mid-flight; recovered
+      from the working tree, finished, verified, committed. WHAT LANDED: (1) dpi::GdDataProviderLoader::
+      load_xml() — parses the DPI from an in-memory string (the wire path; the encrypted/decrypted DPI never
+      touches disk on the server; load() and load_xml() share one internal parse_doc()); (2) perso-bureau:
+      keystore_lookup(label) over the git-ignored keys file (path = argv[3], default keys/uat_keystore.txt)
+      + dprep_dpi() runs on perso_request when inputType=dpi — decrypts inputB64 by <xd:KeyName> label, logs
+      field NAMES/counts ONLY (PCI), and any dPrep error returns a clean {"result","fail","dprep: ..."}
+      BEFORE card_open; (3) hsm::BprCryptHsm::import_test_key/load_keystore now accepts 32-byte AES-256
+      entries (DPI DEKs share the UAT keystore with the DES/3DES keys — this was the leftover breakage: 2
+      keystore-conditional tests failed once MENTA/DEK/DEV_DEK_02 was appended); DES call sites still reject
+      non-DES lengths at use time (split_key). VERIFIED on pat-m4p: 95/95 unit tests green (new
+      Dpi.LoadXmlInMemoryMatchesFile covers load_xml + bad-XML throw) + FULL LOOP with the C++ kiosk agent:
+      trigger {dpiB64=base64(tests/fixtures/dpi_sample.xml), transport=mock} -> perso-kiosk-agent -> bureau
+      "dPrep: DPI decrypted OK — dekLabel=TEST/DEK/KAT cardProgram=MC_PAYROLL plastic=MC_PAYROLL_RAF clear=2
+      secure=2" -> relay SELECTs -> result ok; garbage dpiB64 -> result fail (dprep: cannot parse). Keystore
+      note: TEST/DEK/KAT (the synthetic committed KAT constant from dpi_test.cpp — NOT a real key) appended
+      to the git-ignored uat_keystore.txt so the bureau can resolve the fixture's label. NEXT (003.4): full
+      live perso over RemoteChannel — needs cpp-card-emv task-001.3 (callable cPerso orchestration) + the
+      multi-app UAT card (3BFE13) in a local reader (transport=pcsc), and --commit is user-gated. Embossing
+      (cPerso-format) input parse in the bureau also still open. [[mem-004]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [task-003.3-done, dprep-in-bureau, dpi-load-xml, keystore-aes256, kat-fixture-loop, 95-tests-green, recovered-uncommitted-wip, next-live-perso-remotechannel, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500

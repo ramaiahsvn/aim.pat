@@ -13,8 +13,11 @@ task:
                         # background, exposes a LOCAL TRIGGER endpoint (127.0.0.1:9098) the kiosk team calls with
                         # {dpiB64, hardwareId, transport}, tunnels to the bureau, relays APDUs to the local card,
                         # returns the result. FULL LOOP verified on pat-m4p (trigger -> agent -> bureau -> mock
-                        # card relay -> result ok). Winsock path cross-compiles for Windows x86_64. Remaining:
-                        # dPrep wire-up + full live perso + TLS/mTLS + Windows package + real-card bench.
+                        # card relay -> result ok). Winsock path cross-compiles for Windows x86_64.
+                        # 2026-07-22 (resumed): dPrep WIRED into the bureau (003.3 done, bpr.cpp 2791357) —
+                        # DPI decrypted by key label from the submitted inputB64, verified over the full loop.
+                        # Remaining: full live perso over RemoteChannel (003.4, needs cpp-card-emv 001.3
+                        # orchestration extract + the UAT card) + TLS/mTLS + Windows package + real-card bench.
   priority: high
   created_at: "2026-07-22"
   owner: "bruid-iperso (na-005/010) — iPerso domain; RemoteChannel lands in the BprCardEmv lib (cpp-card-emv 003)"
@@ -63,7 +66,14 @@ subtasks:
       perso_request.inputB64 -> dPrep: DPI decrypt by key label (perso::dpi) or embossing parse
       (perso::embossing) -> the perso data. Keys from the Bureau keystore (provided separately). Needed for a
       real card (the demo uses a fixed SELECT sequence).
-    status: pending
+    status: done   # 2026-07-22 (resumed session) — bpr.cpp 2791357: dpi::load_xml() (in-memory, no disk),
+                   # bureau keystore label resolver (argv[3] path) + dprep_dpi() on inputType=dpi (field
+                   # NAMES/counts logged only), clean fail result on dPrep error. hsm keystore now accepts
+                   # 32-byte AES DEKs (DES lengths still enforced at use time). VERIFIED live on pat-m4p:
+                   # trigger -> perso-kiosk-agent (mock card) -> bureau decrypted the KAT fixture DPI
+                   # (TEST/DEK/KAT, MC_PAYROLL, 2 clear + 2 secure) -> relay -> result ok; garbage DPI ->
+                   # result fail. 95/95 unit tests green (new Dpi.LoadXmlInMemoryMatchesFile). Embossing
+                   # (cPerso input) parse in the bureau still open — folded into 003.4 prep.
     priority: high
 
   - id: "task-003.4"
