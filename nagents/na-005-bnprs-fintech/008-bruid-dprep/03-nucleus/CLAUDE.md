@@ -29,6 +29,12 @@ requirement TO cpp-card-emv (003); the method lands under `bpr::emv::dprep`. Thi
 **data-preparation domain**: identity / biometric / track / PIN / CVV formatting, the 74-field central blob
 and 52-field instant hex, QA, and the key-derivation REQUIREMENTS driven to the engine + KMS.
 
+**Consuming from C#/.NET (set 2026-07-22):** consumers may be non-C++ — starting with C#/.NET. The library is
+consumed via **P/Invoke over the C ABI** (`extern "C"`, owned by 003) — same pattern as `libBprCardQi` ←
+`BprMces2`. 003 ships the ABI + C header for `bpremv_dprep_*`; **this agent OWNS the C# wrapper for dPrep**
+(the managed binding over `bpremv_dprep_*`). dPrep exports are pure (buffers in/out — profile/embossing/DPI/
+UDK/KCV), so they P/Invoke cleanly with no card I/O. See cpp-card-emv task-002.
+
 ## What is BRUID dPrep
 
 **Data Preparation (dPrep)** is the pre-personalisation data processing layer of the BRUID platform. It transforms raw identity and biometric data from upstream sources into the structured format required by the BRUID card personalisation scripts.
@@ -105,6 +111,7 @@ Fields handled by dPrep that fall under PCI-DSS:
 
 ## Pending Actions
 
+- [ ] Build the dPrep **C# P/Invoke wrapper** over `bpremv_dprep_*` (depends on cpp-card-emv task-002 ABI)
 - [ ] Define BRUID dPrep source location (new repo or within bpr.cpp)
 - [ ] Implement CVV/PVV computation module (requires issuer key from KMS)
 - [ ] Implement pinblock generation (ISO 9564-1 Format 0)

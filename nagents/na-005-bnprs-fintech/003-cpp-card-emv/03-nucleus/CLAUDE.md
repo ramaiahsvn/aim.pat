@@ -78,6 +78,27 @@ BprCardEmv/                         ← the one shippable library (libBprCardEmv
 Rule: a concern's facade may depend on **core**, never on another concern's facade. dPrep must not pull
 cPerso/iPerso and vice-versa — that is what keeps them independently shippable.
 
+## Language bindings — C ABI (multi-language consumption, set 2026-07-22)
+
+BprCardEmv is C++, but consumers may be in other languages — **starting with C#/.NET**. Interop model
+(user, 2026-07-22): a flat **C ABI** (`extern "C"`) over the C++ facades, consumed via **P/Invoke** — the
+same proven pattern as `libBprCardQi` ← C# `BprMces2`.
+
+- **This agent (003) owns the C ABI**: a `capi/` layer exporting per-concern C functions
+  (`bpremv_dprep_*`, `bpremv_cperso_*`, `bpremv_iperso_*`) over the internal `bpr::emv::*` namespaces, plus
+  stable C headers. Ships `libBprCardEmv` (.dll/.so/.dylib) + headers per platform/bitness. The C++
+  namespaces stay INTERNAL; the C ABI is the language-agnostic public boundary (Python/Java can bind it later).
+- **The BRUID agents own their concern's C# binding**: bruid-dprep (008) → the C# wrapper for
+  `bpremv_dprep_*`, bruid-cperso (009) → cPerso, bruid-iperso (010) → iPerso. (Decision: 003 ships the ABI +
+  header only; each BRUID agent writes/owns its managed wrapper — keep the ABI itself the single source of truth.)
+- **Card I/O across the boundary**: data-prep functions are pure (buffers in / out, no I/O). Live paths take a
+  host **transmit callback** (`int(*)(void* ctx, const uint8_t* capdu, int len, uint8_t* rsp, int* rspLen)`)
+  so the C# host keeps its own reader/feeder — mirroring BprCardQi's `PatApduTransmitFn`. Standalone paths may
+  use the native ICardChannel (PC/SC / TP9000) directly.
+- **ABI rules**: primitives + length-prefixed byte buffers + `int* errorCode` out-params; no C++ types across
+  the boundary; explicit ownership/free for returned buffers; stable, versioned symbols; never a broken ABI
+  without a version bump. See task-002 (C ABI + language bindings).
+
 ## Dependencies (build)
 
 - **BprPcSc** (005-cpp-pcsc-all): PC/SC transport (Context/Card) — the cPerso reader path (`PERSOENGINE_BUILD_PCSC`)
@@ -117,6 +138,8 @@ verify  → GPO/AIP/AFL → READ RECORD → VERIFY PIN
 - [ ] Fold the legacy `BprCardEmv.h/.cpp` (`_pure_read_datafield`) into `core`
 - [ ] Publish a stable public API header set + a per-concern usage doc for consumers (the BRUID agents)
 - [ ] Track upstream deps (OpenSSL/pugixml) for the static ship builds (mingw x86_64)
+- [ ] Build the C ABI layer (`capi/bpremv_{dprep,cperso,iperso}.h/.cpp`) + transmit-callback seam (task-002)
+- [ ] Ship `libBprCardEmv` (.dll/.so) + C headers per platform/bitness; publish the ABI header to the BRUID agents
 
 ## Persona
 

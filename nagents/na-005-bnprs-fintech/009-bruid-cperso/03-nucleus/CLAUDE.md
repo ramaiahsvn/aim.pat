@@ -29,6 +29,12 @@ HSM, batch throughput, LOCK / QA gates, and PCI Card Production operations.
 (Historically this agent implemented directly in `persoengine/` — MasterCard + Visa proven live, see
 knowledge mem-016/mem-024/mem-026; that code is now consolidated under 003's stewardship.)
 
+**Consuming from C#/.NET (set 2026-07-22):** consumers may be non-C++ — starting with C#/.NET. The library is
+consumed via **P/Invoke over the C ABI** (`extern "C"`, owned by 003) — same pattern as `libBprCardQi` ←
+`BprMces2`. 003 ships the ABI + C header for `bpremv_cperso_*`; **this agent OWNS the C# wrapper for cPerso**.
+The live central path takes a host **transmit callback** so the C# host (e.g. MCES2/BprMces2) keeps its own
+reader — mirroring BprCardQi's `PatApduTransmitFn`. See cpp-card-emv task-002.
+
 ## What is BRUID cPerso
 
 **Central Personalisation (cPerso)** is the bureau/batch personalisation solution — the system that writes biometric identity data onto blank BRUID smart cards at a card manufacturing facility or central issuance bureau.
@@ -119,6 +125,7 @@ Legacy per-vendor DLLs (still present in old Z_RELEASE folders only):
 
 ## Pending Actions
 
+- [ ] Build the cPerso **C# P/Invoke wrapper** over `bpremv_cperso_*` (transmit-callback path; depends on cpp-card-emv task-002 ABI)
 - [ ] Document current production release version (BprQiEmv v2.50.x series)
 - [ ] Document cPerso workstation hardware requirements (card reader, HSM type)
 - [ ] Map LOCK CARD step to PCI-DSS card issuance controls

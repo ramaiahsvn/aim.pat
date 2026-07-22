@@ -1,0 +1,94 @@
+# Task — C ABI over BprCardEmv for multi-language consumption (C#/.NET first)
+#
+# Opened 2026-07-22 (user objective: let dPrep/cPerso/iPerso agents consume the library from C#/.NET, not
+# just C++). Decisions (user 2026-07-22): interop = flat C ABI (extern "C") + P/Invoke, mirroring how
+# libBprCardQi is consumed by C# BprMces2. Ownership: cpp-card-emv (003) owns + ships the C ABI + C header;
+# each BRUID agent owns its concern's C# wrapper (dprep->008, cperso->009, iperso->010).
+
+task:
+  id: "task-002"
+  subject: "Expose BprCardEmv via a flat C ABI (per-concern) for C#/.NET (and future languages)"
+  status: pending
+  priority: high
+  created_at: "2026-07-22"
+  owner: "cpp-card-emv (na-005/003) — owns the C ABI + native lib + C header"
+  tags: [c-abi, extern-c, pinvoke, csharp, dotnet, interop, bindings, dprep, cperso, iperso, shippable]
+
+# ---- Decisions (locked 2026-07-22) ----
+decisions:
+  mechanism: "C ABI (extern \"C\") over the C++ facades + P/Invoke. NOT C++/CLI, NOT SWIG. Matches libBprCardQi <- BprMces2."
+  ownership: "003 ships the C ABI + C header ONLY (single source of truth). Each BRUID agent writes/owns its concern's C# P/Invoke wrapper."
+  first_language: "C#/.NET. The ABI is language-agnostic — Python/Java can bind the same symbols later."
+
+# ---- Reference pattern (already in-house) ----
+reference:
+  bprcardqi: "src/BprCardQi — extern \"C\" StartEncoding_Instant_Perso_Mces2(..., PatApduTransmitFn transmit, void* ctx, ...); C# BprMces2 P/Invokes libBprCardQi.dll."
+  bprcardemv_legacy: "src/BprCardEmv/BprCardEmv.cpp already exports extern \"C\" McRead_CardNumber / McRead_ExpiryDate / PureRead_DataField."
+  gap: "the NEW persoengine is pure C++ namespaces (bpr::emv::*) with NO C ABI — this task adds it."
+
+# ---- C ABI design ----
+design:
+  layout: "persoengine/capi/ : bpremv_common.h (types, error codes, transmit callback, buffer/free), bpremv_dprep.{h,cpp}, bpremv_cperso.{h,cpp}, bpremv_iperso.{h,cpp}. One built lib libBprCardEmv exports all."
+  rules:
+    - "Only primitives + length-prefixed byte buffers + int* errorCode out-params cross the boundary — no C++ types."
+    - "Returned buffers: caller-owns with an explicit bpremv_free(), or fixed caller-provided buffers with in/out length."
+    - "Stable, versioned symbols; bpremv_abi_version(); never break the ABI without a version bump."
+    - "UTF-8 for strings; no exceptions cross the boundary (catch -> errorCode)."
+  transmit_callback: >
+    typedef int (*bpremv_transmit_fn)(void* ctx, const uint8_t* capdu, int capduLen, uint8_t* rsp, int* rspLen);
+    Live paths (cPerso live, iPerso kiosk executor) take (fn, ctx) so the C# host keeps its OWN reader/feeder
+    — mirrors BprCardQi PatApduTransmitFn. An internal adapter wraps it as a perso::driver::ICardChannel.
+    Standalone paths may instead use the native PC/SC / TP9000 channel directly.
+  surface_by_concern:
+    dprep:  "PURE (no card I/O): parse profile/embossing, build DGIs, derive UDK/PIN/KCV, DPI blob. buffers in/out."
+    cperso: "run central perso over a transmit callback (INSTALL/STORE DATA/SET STATUS/verify); consumes dPrep output."
+    iperso: "emit the card-bound SCP02 script (pure, no keys at edge) + kiosk executor over a transmit callback."
+
+# ---- Subtasks ----
+subtasks:
+  - id: "task-002.1"
+    subject: "capi/bpremv_common.h — ABI types, error codes, transmit callback, buffer/free, version"
+    status: pending
+    priority: high
+  - id: "task-002.2"
+    subject: "capi/bpremv_dprep.{h,cpp} — pure data-prep + key-derivation exports over bpr::emv::dprep"
+    detail: "Easiest first (no card I/O). Deterministic buffers in/out; KAT-testable across the boundary."
+    status: pending
+    priority: high
+  - id: "task-002.3"
+    subject: "capi/bpremv_cperso.{h,cpp} — live central perso over the transmit callback"
+    detail: "Wrap the extracted cperso orchestration (task-001.3) behind extern \"C\"; adapt (fn,ctx) -> ICardChannel."
+    status: pending
+    priority: medium
+    depends_on: "task-001.3"
+  - id: "task-002.4"
+    subject: "capi/bpremv_iperso.{h,cpp} — script emitter (pure) + kiosk executor over the callback"
+    status: pending
+    priority: medium
+    depends_on: "task-001.4"
+  - id: "task-002.5"
+    subject: "CMake: build + export libBprCardEmv with the C ABI; ship header + lib per platform/bitness"
+    detail: "Windows: cross-compile locally (mingw static, x86_64 to match the kiosk DLL); publish bpremv_*.h to consumers."
+    status: pending
+    priority: medium
+  - id: "task-002.6"
+    subject: "Reference: a minimal C# P/Invoke smoke test (NOT the owned binding) + a per-concern ABI doc"
+    detail: >
+      003 provides ONE tiny [DllImport] smoke test proving the ABI loads + a dprep round-trips (KAT). The
+      real, owned C# wrappers are built BY the BRUID agents (dprep 008 / cperso 009 / iperso 010) against
+      this ABI header. Publish a per-concern ABI usage doc so those agents can build their wrappers.
+    status: pending
+    priority: medium
+
+# ---- Guardrails ----
+guardrails:
+  - "No C++ types across the C ABI; no exceptions cross the boundary (catch -> errorCode)."
+  - "ABI stability: versioned; a breaking change requires a version bump + notice to the BRUID consumers."
+  - "PCI: the ABI must not expose or log PAN/PIN/CVV/track; key values never cross as plaintext (labels/KCV/DEK-wrapped only)."
+  - "Ship = cross-compile locally; never put bpr.cpp source on the winrunner/kiosk."
+
+# ---- Cross-refs ----
+see_also:
+  - "task-001 (library consolidation) — the C++ facades the C ABI wraps"
+  - "bpr.cpp src/BprCardQi (PatApduTransmitFn C ABI) + BprMces2 P/Invoke — the reference pattern"
+  - "bruid-{dprep,cperso,iperso} — own the C# wrappers per concern"

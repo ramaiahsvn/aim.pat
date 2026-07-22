@@ -30,6 +30,12 @@ remote supervisor auth (kms.bnprs.ai, 60s), TP9000 feeder integration, and Andro
 (Historically this agent implemented the TP9000 transport in `persoengine/` — task-002, validated live on the
 feeder; now consolidated under 003.)
 
+**Consuming from C#/.NET (set 2026-07-22):** consumers may be non-C++ — starting with C#/.NET. The library is
+consumed via **P/Invoke over the C ABI** (`extern "C"`, owned by 003) — same pattern as `libBprCardQi` ←
+`BprMces2`. 003 ships the ABI + C header for `bpremv_iperso_*`; **this agent OWNS the C# wrapper for iPerso**.
+The script emitter is pure (buffers out — no edge keys); the kiosk executor takes a host **transmit callback**
+for the TP9000 feeder. See cpp-card-emv task-002.
+
 ## What is BRUID iPerso
 
 **Instant Issuance (iPerso)** is the real-time, counter/branch-level personalisation solution — the system that personalises and issues a BRUID smart card to a cardholder on-the-spot, in minutes, without needing to send the card to a central bureau.
@@ -129,6 +135,7 @@ Unlike cPerso (local HSM), iPerso uses **remote challenge-response**:
 
 ## Pending Actions
 
+- [ ] Build the iPerso **C# P/Invoke wrapper** over `bpremv_iperso_*` (script emitter + kiosk executor; depends on cpp-card-emv task-002 ABI)
 - [ ] Define iPerso application deployment package for Android POS terminals
 - [ ] Document re-personalisation workflow (GetInsertOrUpdateData_Pat logic)
 - [ ] Test 60-second timeout handling — what if kms.bnprs.ai is unreachable?
