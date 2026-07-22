@@ -19,8 +19,11 @@ task:
                         # 2026-07-22 (cont.): 003.4 WIRED (bpr.cpp 4270c9b) — Visa live flow extracted to
                         # perso::orchestrator::run_visa_perso (cpp-card-emv 001.3 done); bureau drives it over
                         # the RemoteChannel on commit:true; agent forwards the commit flag; full tunnel loop
-                        # proven on a mock card (clean reject on the mock's inability to SCP02-auth). Remaining:
-                        # the REAL-CARD live run (UAT card in a reader/feeder) + TLS/mTLS + Windows package.
+                        # proven on a mock card (clean reject on the mock's inability to SCP02-auth).
+                        # 2026-07-22 (cont.): 003.5 DONE (bpr.cpp 76dd196) — TLS 1.2+ MUTUAL AUTH + drop recovery,
+                        # verified with a test fleet PKI (enrolled ok; plain + ROGUE cert rejected). Remaining:
+                        # the REAL-CARD live run (UAT card in a reader/feeder, 003.4 tail) + Windows x86_64
+                        # package (003.7). Only hardware-gated items left.
   priority: high
   created_at: "2026-07-22"
   owner: "bruid-iperso (na-005/010) — iPerso domain; RemoteChannel lands in the BprCardEmv lib (cpp-card-emv 003)"
@@ -111,7 +114,20 @@ subtasks:
       Wrap the socket in TLS 1.2+ with a client fleet cert (k3_fleet_pfx pattern; mutual auth enforced by the
       Bureau). Recovery: finalize (SET STATUS) is the LAST gated step, so a drop before it -> re-attemptable;
       after -> reject. Kiosk rejects the card on a lost link.
-    status: pending
+    status: done   # 2026-07-22 (bpr.cpp 76dd196). apps/common/tls.hpp (opt-in PERSOENGINE_HAVE_TLS): TlsContext
+                   # over OpenSSL — loads the fleet cert/key, pins the fleet CA, TLS>=1.2, requires+verifies the
+                   # peer cert BOTH ways (SSL_VERIFY_PEER|FAIL_IF_NO_PEER_CERT). ndjson_conn routes send/recv via
+                   # SSL_write/read when a handle is attached (void* ssl_ keeps it OpenSSL-free when off; new
+                   # accept_raw/release_fd wrap seam). bureau + agent gain --tls --cert --key --ca; CMake option
+                   # PERSOENGINE_BUILD_TLS + persoengine_enable_tls() links OpenSSL::SSL. DROP RECOVERY: any
+                   # bureau-link failure while a card is open -> agent rejects the card locally + link-lost result
+                   # (never eject a card the bureau didn't confirm complete); SET STATUS SECURED stays the last
+                   # gated step. VERIFIED on pat-m4p with a test fleet PKI (CA+bureau+kiosk+rogue): enrolled kiosk
+                   # -> handshake OK + loop over TLS; plain agent -> TLS bureau rejected; ROGUE self-signed cert ->
+                   # rejected (SSL_accept: certificate verify failed). Plain UAT loop unchanged; 95/95 tests green
+                   # in both builds. Deliverable: 07-axon-terminals/deliverables/2026-07-22-tls-mutual-auth-runbook.md
+                   # (fleet PKI gen + run + .pfx->.pem note). NOT YET: a mid-session-drop test with a REAL card
+                   # (mock reject is a no-op) — folds into the real-card bench.
     priority: medium
 
   - id: "task-003.6"

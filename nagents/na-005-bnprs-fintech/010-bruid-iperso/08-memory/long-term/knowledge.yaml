@@ -253,6 +253,42 @@ memories:
     source: "session-2026-07-22b"
     tags: [dpi-cardholder-threading, cardholderdata, per-card-dgi, task-003.4, byte-identical-defaults, card-from-dpi, pci-mask, field-name-conventions-tentative, real-card-build-pending]
 
+  - id: mem-008
+    type: milestone
+    content: >
+      2026-07-22 (cont.): task-003.5 DONE — TLS 1.2+ MUTUAL AUTH on the Bureau<->Kiosk channel + connection-drop
+      recovery (bpr.cpp 76dd196, pushed). DESIGN: TLS is OPT-IN (CMake option PERSOENGINE_BUILD_TLS -> defines
+      PERSOENGINE_HAVE_TLS + links OpenSSL::SSL); the UAT plain-TCP+token path is untouched and stays
+      OpenSSL-free (the Windows-mingw kiosk build keeps working without OpenSSL unless TLS is turned on).
+      apps/common/tls.hpp = perso::net::TlsContext (Server|Client role): loads this side's fleet cert+key (PEM),
+      pins the fleet CA, sets TLS1.2 minimum, and REQUIRES+VERIFIES the peer cert BOTH directions
+      (SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT + checks SSL_get_verify_result + SSL_get_peer_certificate).
+      accept(fd) (server) / connect(host,port) (client) do the handshake then return an NdjsonConn owning both
+      fd+SSL. ndjson_conn.hpp: send/recv branch to SSL_write/SSL_read when a handle is attached; the handle is
+      stored as `void* ssl_` so the header needs no OpenSSL types unless PERSOENGINE_HAVE_TLS — added
+      accept_raw()/release_fd() as the plain-vs-TLS wrap seam. Both apps gained --tls --cert --key --ca (bureau
+      = TLS server; agent = TLS client); bureau positional args unchanged for UAT. DROP RECOVERY (the second
+      half of 003.5): run_session now wraps the whole bureau exchange in try/catch — if the link fails while a
+      card is OPEN, the agent calls card->reject() locally and returns {"status":"fail","detail":"link lost:…"};
+      it NEVER ejects a card the bureau did not confirm complete. Since the bureau's SET STATUS->SECURED is the
+      LAST gated step, a drop before it just wastes the card (retry fresh), a drop after it = card already done.
+      VERIFIED on pat-m4p with a throwaway test fleet PKI (openssl: fleet CA + bureau cert + kiosk cert + a
+      rogue self-signed cert; certs in scratchpad, NOT committed): (1) enrolled kiosk (fleet-CA cert) ->
+      handshake OK, "connected from …(TLS, cert-verified)", perso loop runs over TLS, result ok; (2) PLAIN agent
+      -> TLS bureau -> rejected (no handshake); (3) ROGUE self-signed cert -> bureau "SSL_accept: certificate
+      verify failed". Plain UAT loop still works; 95/95 unit tests green in BOTH the plain and the TLS build.
+      Deliverable: 07-axon-terminals/deliverables/2026-07-22-tls-mutual-auth-runbook.md (fleet PKI generation,
+      run commands, .pfx->.pem for the k3_fleet_pfx pattern, verified-behaviour table, drop-recovery rules).
+      NOT covered: a mid-session drop test with a REAL card (mock reject() is a no-op) — folds into the
+      real-card bench. task-003 now has ONLY hardware-gated items left: the real-card live run (003.4 tail) +
+      the Windows x86_64 agent package (003.7). [[mem-006]] [[mem-007]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [task-003.5-done, tls-mutual-auth, fleet-cert, tlscontext, openssl-optional, drop-recovery, reject-on-link-loss, rogue-cert-rejected, 95-tests-green-both-builds, runbook-delivered, hardware-items-remain, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500
