@@ -289,6 +289,38 @@ memories:
     source: "session-2026-07-22b"
     tags: [task-003.5-done, tls-mutual-auth, fleet-cert, tlscontext, openssl-optional, drop-recovery, reject-on-link-loss, rogue-cert-rejected, 95-tests-green-both-builds, runbook-delivered, hardware-items-remain, milestone]
 
+  - id: mem-009
+    type: milestone
+    content: >
+      2026-07-22 (cont.): task-003.7 — the Windows x86_64 kiosk-agent EXE is BUILT + SHIPPED (bpr.cpp 8959c56);
+      only the physical bench remains. RECIPE (committed, reproducible): scripts/build-kiosk-agent-win.sh
+      cross-compiles on pat-m4p with x86_64-w64-mingw32-g++, fully static (-static -static-libgcc
+      -static-libstdc++). KEY INSIGHT: the kiosk agent only RELAYS APDUs, so it needs NONE of the heavy engine
+      deps — the minimal source set is just apps/perso-kiosk-agent/main.cpp + src/tlv.cpp + src/perso_driver.cpp
+      + src/card_tp9000.cpp + BprPcSc/tp9k/tp9k_v2.cpp, linked with -lws2_32 (winsock) and nlohmann-json
+      (header-only). Transports compiled in: mock + tp9000 (-DPERSOENGINE_HAVE_TP9000); PC/SC (winscard) and TLS
+      are OFF. tp9k_v2.cpp logs via glog -> committed a glog SHIM at persoengine/scripts/mingw/glog/logging.h
+      (LOG() discarded; google:: init/shutdown no-op) which REPLACES the earlier untracked .deps/glog-stub so
+      the build is self-contained. VERIFIED on pat-m4p: builds clean (no warnings) to a PE32+ x86-64 console
+      exe; objdump imports = KERNEL32 + WS2_32 + OS UCRT api-ms-win-crt-* stubs ONLY — TP9000.dll is
+      RUNTIME-loaded (LoadLibrary in tp9k_v2), NOT linked; NO OpenSSL/pugixml/winscard/libstdc++/libgcc/
+      libwinpthread imports (fully self-contained; runs on Win10/11/Server2016+ with no runtime install).
+      SHA-256 a7f3f221d87d1308c5ceb09bf72d909eaa735c07ed625f1c2e82a8b789b7e51b, 3.1 MB. SHIPPED to the user:
+      perso-kiosk-agent.exe + README-perso-kiosk-agent.txt (prereqs: 64-bit TP9000.dll next to the exe;
+      run --bureau-host/--bureau-port/--token; bench order mock/preflight -> tp9000/preflight -> tp9000/commit).
+      COULD NOT wine-smoke on macOS (no wine installed) — the runtime smoke + real-card end-to-end is the user's
+      Windows-host + TP9000 hardware step (same gate as the task-002.5 probe bench, which the user ran via
+      TeamViewer). NOTE: this exe is PLAIN-UAT (no TLS) — a TLS-enabled Windows kiosk build (003.5 on Windows)
+      needs a static mingw OpenSSL; that's a follow-on. task-003 is now COMPLETE except the physical bench,
+      which is the SAME single hardware session for both the 003.4 live-run tail and the 003.7 real-card bench.
+      [[mem-006]] [[mem-008]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [task-003.7, kiosk-agent-windows-exe, mingw-cross-build, static-x86_64, minimal-relay-source-set, glog-shim-committed, imports-verified, shipped-to-user, plain-uat-no-tls, bench-pending, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500

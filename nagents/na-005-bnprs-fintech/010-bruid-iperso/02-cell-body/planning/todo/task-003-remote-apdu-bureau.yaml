@@ -21,9 +21,11 @@ task:
                         # the RemoteChannel on commit:true; agent forwards the commit flag; full tunnel loop
                         # proven on a mock card (clean reject on the mock's inability to SCP02-auth).
                         # 2026-07-22 (cont.): 003.5 DONE (bpr.cpp 76dd196) — TLS 1.2+ MUTUAL AUTH + drop recovery,
-                        # verified with a test fleet PKI (enrolled ok; plain + ROGUE cert rejected). Remaining:
-                        # the REAL-CARD live run (UAT card in a reader/feeder, 003.4 tail) + Windows x86_64
-                        # package (003.7). Only hardware-gated items left.
+                        # verified with a test fleet PKI (enrolled ok; plain + ROGUE cert rejected).
+                        # 2026-07-22 (cont.): 003.7 Windows exe BUILT + SHIPPED (bpr.cpp 8959c56) — static x86_64
+                        # mingw kiosk agent, verified minimal imports. Remaining: ONLY the physical bench (real
+                        # TP9000 + UAT card on the Windows host — user hardware step); covers both the 003.4 tail
+                        # (live run over RemoteChannel) and the 003.7 real-card bench.
   priority: high
   created_at: "2026-07-22"
   owner: "bruid-iperso (na-005/010) — iPerso domain; RemoteChannel lands in the BprCardEmv lib (cpp-card-emv 003)"
@@ -147,7 +149,18 @@ subtasks:
   - id: "task-003.7"
     subject: "Windows package of the agent (x86_64 static) + real-card bench"
     detail: "Cross-compile perso-kiosk-agent for Windows x86_64 (mingw static, matching the 64-bit TP9000.dll; same recipe as task-002.6) and bench with a real TP9000 feeder + card end-to-end from a kiosk trigger."
-    status: pending
+    status: exe_shipped_bench_pending   # 2026-07-22 (bpr.cpp 8959c56). WINDOWS EXE BUILT + SHIPPED to the user.
+                   # scripts/build-kiosk-agent-win.sh cross-compiles on pat-m4p (x86_64-w64-mingw32-g++, static
+                   # -static-libgcc -static-libstdc++). Minimal source set — the agent only RELAYS APDUs so it
+                   # needs NO engine deps: main + tlv + perso_driver + card_tp9000 + tp9k_v2, -lws2_32. Transports
+                   # mock + tp9000 (PERSOENGINE_HAVE_TP9000); PC/SC + TLS OFF (TLS-on-Windows needs static mingw
+                   # OpenSSL — follow-on). Committed glog shim scripts/mingw/glog/logging.h (replaces the untracked
+                   # .deps/glog-stub). VERIFIED: PE32+ x86-64, imports = KERNEL32 + WS2_32 + OS UCRT stubs ONLY
+                   # (TP9000.dll runtime-loaded NOT linked; no OpenSSL/pugixml/winscard/libstdc++/winpthread —
+                   # fully static). SHA-256 a7f3f221d87d1308c5ceb09bf72d909eaa735c07ed625f1c2e82a8b789b7e51b, 3.1 MB.
+                   # Shipped perso-kiosk-agent.exe + README (bench order: mock/preflight -> tp9000/preflight ->
+                   # tp9000/commit). REMAINING: the real-card bench on the Windows host with a live TP9000 (user
+                   # hardware step, same as the task-002.5 probe bench). Can't wine-smoke on macOS (no wine).
     priority: medium
 
 # ---- Guardrails ----
