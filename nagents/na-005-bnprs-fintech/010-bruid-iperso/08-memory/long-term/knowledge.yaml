@@ -475,6 +475,37 @@ memories:
     source: "session-2026-07-22b"
     tags: [linux-bureau-ec2, graviton-t4g, arm64, docker-build-source-ro, no-source-on-instance, systemd-service, tls-mutual-auth-live, internet-verified, sg-scoped-to-kiosk, i-00eb79ff8e9e1788b, 98.130.14.127, teardown-noted]
 
+  - id: mem-015
+    type: milestone
+    content: >
+      2026-07-22: REMOTE LIVE PERSO PROVEN ON A REAL CARD — the whole remote-APDU iPerso model works
+      end-to-end over the internet. From the kiosk (Windows perso-kiosk-agent-tls.exe at 103.106.181.48) ->
+      internet -> TLS mutual auth -> the AWS Graviton bureau (98.130.14.127, mem-014) -> TP9000 feeder ->
+      REAL multi-app Visa card. Bureau session S6 (transport=tp9000, commit): ISD SELECT Visa CM
+      A000000003000000 -> ISD key AUTHENTICATES ✓ + EXT AUTH 9000 (so the card's ISD key MATCHES the bureau
+      keystore's ISD-KVN01), Visa applet auth ✓, then STORE DATA 18/20 Visa DGIs accepted: 8000 keys / 9000
+      KCVs / 8010 PIN / 9010 PINp / 8201-8205 ICC-RSA-CRT / 9102 FCI / 9104 GPO / 9115+9117 qGPO / 0101 / 0201 /
+      0302 / 0E01 / 3001 all SW=9000. TWO rejects: 0301 S3R1 (SFI3 issuer-cert record) -> 6A88 (referenced data
+      not found); 9200 IDD -> 6A80 (incorrect params). Because 2 DGIs rejected, the bureau correctly did NOT
+      finalize (SET STATUS) -> card NOT secured, rejected clean (guardrail held; no half-baked SECURED card).
+      ROOT CAUSE of 18/20 (not 20/20): the S6 card was ALREADY PERSONALIZED — INSTALL [make selectable] failed
+      (6985/6A80, "card SECURED disables plain-SCP02 GP mgmt"), fell back to the existing selectable Visa
+      instance; re-perso'ing a used/secured instance is why 0301/9200 reject. A FRESH OP_READY multi-app card
+      (INSTALL creates the instance = SW 9000) should take the full set + finalize (matches the pat-m4p proof).
+      CARD-ATR LEARNING (corrects earlier confusion): the kiosk hopper cards ALL share ATR
+      3B6E000080318066B0840C016E0183009000 (same chip platform) but are a MIX — some MC-manager-only (S3: Visa
+      SELECT 6A82), some multi-app Visa (S6). ATR does NOT distinguish them. The "3BFE13..." ATR seen in S1/S2
+      was the MOCK transport's hardcoded fake ATR, NOT a real card (and NOT the same as the pat-m4p UAT card).
+      So task-003.4 (live perso over RemoteChannel) + 003.7 (real-card bench) are ESSENTIALLY PROVEN — 18/20
+      real DGIs written to a real card over the internet; only a fresh card is needed for a finalized 20/20.
+      [[mem-006]] [[mem-014]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22b"
+    tags: [remote-live-perso-proven, real-card, 18-of-20-dgis, s6, tls-over-internet, tp9000-feeder, isd-auth-ok, 0301-6a88, 9200-6a80, not-finalized-guardrail-held, already-personalized-card, fresh-card-needed, atr-3b6e-mixed-hopper, mock-atr-3bfe13, task-003.4-003.7-proven, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500
