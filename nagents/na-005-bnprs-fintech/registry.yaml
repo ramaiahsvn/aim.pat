@@ -34,7 +34,7 @@ registry:
   - code: "003"
     name: "cpp-card-emv"
     label: "cpp-card-emv"
-    role: "BprCardEmv C++ Module — EMV Smart Card"
+    role: "BprCardEmv C++ library owner — EMV perso (dPrep/cPerso/iPerso independent modules)"
     path: "003-cpp-card-emv"
     status: "active"
     created_at: "2026-05-27"

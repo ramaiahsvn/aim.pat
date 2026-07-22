@@ -1,0 +1,102 @@
+# Task — Consolidate BprCardEmv into one shippable library (dPrep · cPerso · iPerso independent)
+#
+# Opened 2026-07-22 (user objective). cpp-card-emv (003) now OWNS the BprCardEmv library. Objective: one
+# shippable artifact (libBprCardEmv) with the three personalization concerns kept INDEPENDENT via C++
+# namespaces + a facade header per concern. Layout decision (user 2026-07-22): "namespaces only, one flat
+# lib" (files stay in persoengine/). Ownership decision (user 2026-07-22): 003 owns the library code +
+# build + API; the BRUID agents (dprep 008 / cperso 009 / iperso 010) are consumers + requirement drivers.
+# Reference model: the cpp-card-qi (002) agent / BprCardQi module.
+
+task:
+  id: "task-001"
+  subject: "BprCardEmv one-library consolidation with independent dPrep/cPerso/iPerso namespaces"
+  status: in_progress   # 2026-07-22 — facade headers landed (increment 1); packaging + module extraction remain.
+  priority: high
+  created_at: "2026-07-22"
+  owner: "cpp-card-emv (na-005/003) — library owner"
+  tags: [bprcardemv, library, dprep, cperso, iperso, namespaces, facade, packaging, shippable, ownership]
+
+# ---- Decisions (locked 2026-07-22) ----
+decisions:
+  layout: "One flat libBprCardEmv; independence via namespaces bpr::emv::{core,dprep,cperso,iperso} + a facade header per concern. Files stay in persoengine/."
+  ownership: "cpp-card-emv (003) owns library code/build/API/packaging. BRUID 008/009/010 = requirement drivers + consumers (a needed behaviour is a requirement TO 003; the method lands here under the right namespace)."
+  independence_rule: "A concern facade may depend on CORE only, never on another concern's facade (dPrep !-> cPerso/iPerso, etc.). This is what keeps them independently shippable."
+
+# ---- Current mapping (persoengine modules -> concern) ----
+module_map:
+  core:   "tlv, card/driver (ICardChannel seam + GP/CPS APDU builders + STORE DATA driver), sequencer, oda, hsm/scp02"
+  dprep:  "profile, embossing, dpi (instant DPI channel), hsm (UDK/PIN/KCV derivation)"
+  cperso: "live INSTALL/STORE DATA/SET STATUS orchestration (currently in apps/perso-live*), card_bprpcsc transport"
+  iperso: "script emitter (serialize+card-bind, no edge keys) + kiosk executor + supervisor auth (NOT yet modularized), card_tp9000 transport"
+
+# ---- Subtasks ----
+subtasks:
+  - id: "task-001.1"
+    subject: "Facade headers + bpr::emv namespaces"
+    detail: >
+      Add persoengine/include/persoengine/{core,dprep,cperso,iperso}.hpp — each a stable per-concern entry
+      point that re-exports the relevant existing modules via namespace aliases under bpr::emv::<concern>.
+      dprep/cperso/iperso include core.hpp only, never each other.
+    status: done   # 2026-07-22 — core/dprep/cperso/iperso.hpp added; compile-verified, aliases resolve.
+    priority: high
+
+  - id: "task-001.2"
+    subject: "Enforce the no-cross-concern rule (guard)"
+    detail: >
+      Add a lightweight check (grep/CI) that fails if dprep.hpp/cperso.hpp/iperso.hpp include each other, or
+      if a src file under one concern includes another concern's facade. Keeps the independence contract real.
+    status: pending
+    priority: medium
+
+  - id: "task-001.3"
+    subject: "Extract cPerso orchestration into a first-class module"
+    detail: >
+      The central INSTALL -> STORE DATA (keys-first) -> end-of-perso trigger -> GPO gate -> SET STATUS
+      PERSONALIZED/SECURED -> self-verify flow currently lives in apps/perso-live-visa/main.cpp. Lift it into
+      a cperso module (bpr::emv::cperso) so it is a library method, not app code. Keep the proven Visa/MC
+      sequence (mem-016/mem-026 in bruid-cperso) byte-identical; apps become thin drivers.
+    status: pending
+    priority: medium
+
+  - id: "task-001.4"
+    subject: "Build the iPerso script-emitter + kiosk-executor modules"
+    detail: >
+      Central script EMITTER: reuse core::sequencer to build the stream, then SERIALIZE it as a single-use,
+      card-bound SCP02 APDU script (no keys at the edge). Kiosk EXECUTOR: replay the script over the transport
+      (TP9000 feeder / PC/SC) + remote supervisor auth (kms.bnprs.ai). This realizes bpr::emv::iperso beyond
+      transport. Coordinates with bruid-iperso task-001 (the split-trust design).
+    status: pending
+    priority: medium
+
+  - id: "task-001.5"
+    subject: "CMake install/package target -> shippable BprCardEmv-<ver>/"
+    detail: >
+      Add an install/export target that emits a versioned package (public headers incl. the facades + the
+      built lib, per platform/bitness) so BprCardEmv ships wherever needed. Windows binaries are cross-built
+      LOCALLY (mingw static; see bruid-iperso task-002.6) — never build on the winrunner/kiosk (external).
+      Match the target's DLL bitness (kiosk TP9000.dll is 64-bit -> x86_64).
+    status: pending
+    priority: medium
+
+  - id: "task-001.6"
+    subject: "Fold the legacy BprCardEmv.h/.cpp into core + publish the public API doc"
+    detail: >
+      Merge the legacy _pure_read_datafield AID reader (bpr.cpp/src/BprCardEmv/BprCardEmv.{h,cpp}) into the
+      core surface. Publish a per-concern usage doc (what dPrep/cPerso/iPerso expose) for the consumer BRUID
+      agents; freeze the facade API as the stability boundary.
+    status: pending
+    priority: low
+
+# ---- Guardrails ----
+guardrails:
+  - "Keep the three concerns independent — no cross-concern includes; core only downward."
+  - "Do not regress the live-proven MC/Visa perso sequence when extracting modules (94/94 tests must stay green)."
+  - "PCI: never log PAN/PIN/CVV/track; key values never stored (labels/KCVs only); DEK-wrapped secret DGIs only."
+  - "Ship = cross-compile locally (mingw static); never put bpr.cpp source on the winrunner or the kiosk."
+
+# ---- Cross-refs ----
+see_also:
+  - "cpp-card-qi (na-005/002) nucleus — the module-ownership reference model"
+  - "bruid-cperso mem-016/mem-024/mem-026 (MC+Visa live-proven sequence to preserve)"
+  - "bruid-iperso task-002 (TP9000 transport) + task-002.6 (local mingw build recipe) + mem-003 (build policy)"
+  - "rnd-cperso (na-100/003) — EMV/GP/CPS specs, DGI maps, blueprints (design of record)"
