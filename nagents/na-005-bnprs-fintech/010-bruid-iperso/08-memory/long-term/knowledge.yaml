@@ -506,6 +506,35 @@ memories:
     source: "session-2026-07-22b"
     tags: [remote-live-perso-proven, real-card, 18-of-20-dgis, s6, tls-over-internet, tp9000-feeder, isd-auth-ok, 0301-6a88, 9200-6a80, not-finalized-guardrail-held, already-personalized-card, fresh-card-needed, atr-3b6e-mixed-hopper, mock-atr-3bfe13, task-003.4-003.7-proven, milestone]
 
+  - id: mem-016
+    type: milestone
+    content: >
+      2026-07-22: PRINT + MAGSTRIPE OUTPUT returned to the kiosk on successful perso (bpr.cpp ed9503c) — the
+      instant-issuance handoff so the kiosk main app can drive the physical card printer + magstripe encoder
+      after the chip perso. On res.complete the bureau assembles result.output from the (DPI-decoded)
+      CardholderData: output.print{cardholderName, pan, panMasked (first6+****+last4), expiry MM/YY} +
+      output.magstripe{track1 (ISO 7813 Format B: %B PAN ^ NAME ^ YYMM serviceCode disc ?), track2 (PAN =
+      YYMM serviceCode disc, wrapped ;...?)}. build_perso_output() in perso-bureau; the kiosk agent surfaces
+      it at the TOP LEVEL of the trigger response (result.output) so the main app reads it directly. GATED on
+      SUCCESS only (never on preflight/mock/fail — a failed perso returns no output). PCI: output is SAD
+      (PAN/tracks) — returned ONLY over TLS on success, bureau NEVER logs the values ("output assembled" only),
+      kiosk must use it transiently (printer/encoder) and not persist. DEPLOYED: rebuilt the Linux bureau in
+      Docker (source ro) + redeployed to the EC2 (98.130.14.127, systemd restart, healthcheck ok); rebuilt the
+      Windows TLS agent exe (surfaces output) and SHIPPED kiosk-update-output.zip (new exe + updated trigger.ps1
+      that pretty-prints the payload + OUTPUT-SCHEMA.md). C# sample updated (PersoResult.Output + Program prints
+      it; still builds). FOLLOW-ONs: (1) move the derivation into the library bpr::emv::dprep + unit test + C ABI
+      so any host builds the same output (currently in the bureau app); (2) reconcile the exact track name
+      (SURNAME/GIVEN) + discretionary-data layout with a REAL MENTA DPI's embossing fields + the kiosk's
+      encoder/printer spec (current tracks are ISO 7813 built from CardholderData). Verified formats locally
+      (KAT: PAN 4111.. name "ALI A A" -> track1 %B4111111111111111^ALI A A^2912201?, track2
+      ;4111111111111111=2912201?, expiry 12/29). [[mem-015]] [[mem-007]]
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-22b"
+    tags: [print-magstripe-output, result-output, instant-issuance-handoff, iso7813-tracks, success-gated, pci-transient-no-log, bureau-redeployed, agent-exe-updated, csharp-sample-updated, output-schema-doc, derivation-followon-to-library]
+
 # Pruning rules
 pruning:
   max_entries: 500

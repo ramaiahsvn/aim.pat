@@ -68,6 +68,16 @@ while (true)
         Console.WriteLine($"  => {(r.Ok ? "OK" : "FAIL")} : {r.Detail}");
         if (r.Atr is not null) Console.WriteLine($"     ATR    : {r.Atr}");
         if (r.Bureau.ValueKind == JsonValueKind.Object) Console.WriteLine($"     bureau : {r.Bureau}");
+        if (r.Output.ValueKind == JsonValueKind.Object)
+        {
+            // Card-production payload — feed to the printer + magstripe encoder; do NOT persist (PCI).
+            var print = r.Output.GetProperty("print");
+            var mag   = r.Output.GetProperty("magstripe");
+            Console.WriteLine($"     name   : {print.GetProperty("cardholderName").GetString()}");
+            Console.WriteLine($"     pan    : {print.GetProperty("panMasked").GetString()}  expiry {print.GetProperty("expiry").GetString()}");
+            Console.WriteLine($"     track1 : {mag.GetProperty("track1").GetString()}");
+            Console.WriteLine($"     track2 : {mag.GetProperty("track2").GetString()}");
+        }
 
         // Your UI branches here: r.Ok => card ready (already ejected good);
         //                        !r.Ok => the agent already rejected the card, show retry.

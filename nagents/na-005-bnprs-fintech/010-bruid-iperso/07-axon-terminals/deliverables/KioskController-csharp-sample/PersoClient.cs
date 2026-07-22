@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace KioskController;
 
 /// One result line from the agent: { status, detail, atr, bureau:{...} }.
-public sealed record PersoResult(string Status, string Detail, string? Atr, JsonElement Bureau, string Raw)
+public sealed record PersoResult(string Status, string Detail, string? Atr, JsonElement Output, JsonElement Bureau, string Raw)
 {
     public bool Ok => Status == "ok";
 }
@@ -70,6 +70,8 @@ public static class PersoClient
         string detail = root.TryGetProperty("detail", out var d) ? d.GetString() ?? "" : "";
         string? atr = root.TryGetProperty("atr", out var a) ? a.GetString() : null;
         JsonElement bureau = root.TryGetProperty("bureau", out var b) ? b.Clone() : default;
-        return new PersoResult(status, detail, atr, bureau, line);
+        // On a successful live perso, root.output carries the print + magstripe card-production payload.
+        JsonElement output = root.TryGetProperty("output", out var o) ? o.Clone() : default;
+        return new PersoResult(status, detail, atr, output, bureau, line);
     }
 }
