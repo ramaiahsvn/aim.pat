@@ -1,0 +1,103 @@
+# Task — Remote-APDU iPerso: Bureau drives perso live; Kiosk relays APDUs
+#
+# Opened 2026-07-22 (user redesign). iPerso becomes "cPerso with a remote card channel": the Bureau
+# (trusted, on-prem HSM + engine) does dPrep and drives the WHOLE perso session live; the Kiosk is a thin,
+# secure relay that only passes APDUs to the card (TP9000 v2 / PC/SC). Supersedes the self-contained
+# script-emitter model (rnd-cperso task-005-era). Nothing sensitive lives at the Kiosk.
+
+task:
+  id: "task-003"
+  subject: "Remote-APDU Bureau/Kiosk perso (RemoteChannel + kiosk relay + NDJSON protocol)"
+  status: in_progress   # 2026-07-22 — tunnel PROVEN on pat-m4p (bureau drove a read-only SELECT sequence over
+                        # RemoteChannel; mock kiosk relayed; result ok). Kiosk build guide delivered. Full dPrep +
+                        # live perso wire-up + TLS/mTLS + kiosk agent (kiosk team) remain.
+  priority: high
+  created_at: "2026-07-22"
+  owner: "bruid-iperso (na-005/010) — iPerso domain; RemoteChannel lands in the BprCardEmv lib (cpp-card-emv 003)"
+  tags: [iperso, remote-apdu, bureau, kiosk, remote-channel, ndjson, tp9000, pcsc, mtls, tunnel, dprep]
+
+# ---- Model (user, 2026-07-22) ----
+model:
+  bureau: >
+    Trusted server (pat-m4p for UAT; real bureau later) with the on-prem HSM + perso engine + keys. Receives
+    the issuer input (embossing file OR DPI) submitted BY the Kiosk, does dPrep (decode/decrypt by key label),
+    and drives the live perso (ISD SCP02 -> INSTALL -> STORE DATA -> verify -> SET STATUS) over a RemoteChannel.
+  kiosk: >
+    Thin relay. Connects OUT to the Bureau, submits the perso_request + input, opens its LOCAL card channel
+    (TP9000 v2 feeder / PC/SC), and relays each APDU to the card (resolving 61xx/6Cxx locally). Holds no keys,
+    no script, no data at rest. Ejects good / rejects failed on the Bureau's instruction.
+  inputs: "Either a Tri-Badge embossing file (cPerso format) OR a MENTA DPI (iPerso format, AES-encrypted). Keys provided to the BUREAU separately (by label)."
+  why_better: "kiosk holds nothing; bureau has full live control (abort on any bad SW; GPO-gate before SET STATUS); cPerso+iPerso converge on one engine w/ pluggable transport; no script-emitter needed."
+
+# ---- Protocol (NDJSON over TCP; UAT token, PROD TLS+mTLS) ----
+protocol:
+  wire: "newline-delimited JSON, one object per line, over TCP. Kiosk connects OUT to the Bureau."
+  security: "UAT = plain TCP + shared token in hello. PROD = TLS 1.2+ mutual auth (fleet client cert, k3_fleet_pfx pattern)."
+  messages: "hello/hello_ack -> perso_request -> card_open/card_opened -> apdu/apdu_response (xN) -> card_finish/card_finished -> result. Full table in the kiosk build guide."
+  chaining: "The Kiosk resolves 61xx/6Cxx LOCALLY (its BprPcScChannel/Tp9000Channel already do). The Bureau relays raw and sees FINAL responses."
+
+# ---- Subtasks ----
+subtasks:
+  - id: "task-003.1"
+    subject: "RemoteChannel : ICardChannel + perso-bureau NDJSON/TCP server"
+    detail: >
+      bpr.cpp persoengine apps/perso-bureau/main.cpp: TCP server, NDJSON Conn, RemoteChannel that tunnels
+      each APDU to the connected Kiosk and returns the response. Read-only SELECT demo sequence to prove it.
+    status: done   # 2026-07-22 — built on pat-m4p; verified end-to-end with a mock kiosk (SELECT MC 9000+FCI,
+                   # Visa 6A82, eject, result ok). RemoteChannel does NOT chain (kiosk does). setvbuf line logs.
+    priority: high
+
+  - id: "task-003.2"
+    subject: "Kiosk agent build guide + reference mock kiosk"
+    detail: "Protocol spec + build steps for the kiosk team (07-axon-terminals/deliverables/2026-07-22-kiosk-agent-build-guide.md) + mock_kiosk.py reference."
+    status: done   # 2026-07-22 — delivered; kiosk team can start implementing.
+    priority: high
+
+  - id: "task-003.3"
+    subject: "Wire dPrep (DPI decrypt / embossing parse) into the Bureau"
+    detail: >
+      perso_request.inputB64 -> dPrep: DPI decrypt by key label (perso::dpi) or embossing parse
+      (perso::embossing) -> the perso data. Keys from the Bureau keystore (provided separately). Needed for a
+      real card (the demo uses a fixed SELECT sequence).
+    status: pending
+    priority: high
+
+  - id: "task-003.4"
+    subject: "Run the full live perso over RemoteChannel (reuse the proven Visa/MC flow)"
+    detail: >
+      Drive the complete perso (INSTALL -> STORE DATA keys-first -> end-of-perso trigger -> GPO gate ->
+      SET STATUS -> self-verify) over the RemoteChannel instead of a local reader. Drop-in once the cPerso
+      orchestration is callable (cpp-card-emv task-001.3). Expect 19/19 DGIs per bruid-cperso mem-026.
+    status: pending
+    priority: high
+    depends_on: "task-003.3"
+
+  - id: "task-003.5"
+    subject: "TLS + mutual auth (PROD) + connection-drop recovery"
+    detail: >
+      Wrap the socket in TLS 1.2+ with a client fleet cert (k3_fleet_pfx pattern; mutual auth enforced by the
+      Bureau). Recovery: finalize (SET STATUS) is the LAST gated step, so a drop before it -> re-attemptable;
+      after -> reject. Kiosk rejects the card on a lost link.
+    status: pending
+    priority: medium
+
+  - id: "task-003.6"
+    subject: "Kiosk agent implementation (KIOSK TEAM) — relay + local card channels"
+    detail: "Per the build guide: socket/NDJSON, TP9000 v2 + PC/SC local channels (61/6C resolved locally), state machine, TLS in prod. Owned by the kiosk team; bruid-iperso supports."
+    status: pending
+    priority: high
+
+# ---- Guardrails ----
+guardrails:
+  - "Keys are BUREAU-side only; never sent to the Kiosk. The Kiosk holds nothing at rest."
+  - "The whole APDU channel is SAD — TLS in prod, no plaintext logging of PAN/track/CVV/PIN."
+  - "Finalize (SET STATUS -> SECURED) is the LAST step, gated on a passing GPO — so a mid-session drop is recoverable/rejectable, never a silently-bad card."
+  - "Bench/UAT bureau on pat-m4p; do not put bpr.cpp source on the kiosk (external)."
+
+# ---- Cross-refs ----
+see_also:
+  - "Bureau: bpr.cpp/src/BprCardEmv/persoengine/apps/perso-bureau/main.cpp (protocol authority + RemoteChannel)"
+  - "Kiosk guide: 07-axon-terminals/deliverables/2026-07-22-kiosk-agent-build-guide.md + mock_kiosk.py"
+  - "Local channels to mirror: bpr.cpp/src/BprPcSc/tp9k/tp9k_v2.* (TP9000 v2), persoengine/src/card_bprpcsc.cpp (PC/SC)"
+  - "task-002 (TP9000 transport, live-validated) + cpp-card-emv task-001.3 (cperso orchestration extract)"
+  - "Supersedes the self-contained script-emitter iPerso model (this agent iperso.hpp note / cpp-card-emv task-001.4)"

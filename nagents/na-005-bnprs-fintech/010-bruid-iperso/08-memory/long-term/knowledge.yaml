@@ -118,6 +118,34 @@ memories:
     source: "session-2026-07-21"
     tags: [build-policy, kiosk-external-no-build, no-source-on-winrunner, bruid-ip, mingw-local-build, pat-m4p, x86-static, perso-live-visa, user-directive]
 
+  - id: mem-004
+    type: milestone
+    content: >
+      2026-07-22: iPerso REDESIGNED to the REMOTE-APDU model (user) + first increment PROVEN. iPerso now runs
+      like cPerso — a trusted BUREAU (pat-m4p for UAT; real bureau later) with the on-prem HSM + engine + keys
+      does dPrep and drives the WHOLE perso session LIVE; the KIOSK is a thin secure RELAY that only passes
+      APDUs to the card (its local TP9000 v2 / PC/SC channel). Kiosk holds NOTHING at rest. This SUPERSEDES the
+      self-contained script-emitter model (no card-bound script, no keys at the edge, no kiosk-side executor).
+      Inputs: embossing file (cPerso format) OR MENTA DPI (iPerso format, AES-encrypted) — submitted BY the
+      kiosk; KEYS provided to the BUREAU separately (by label). Architecture = ONE engine, pluggable
+      ICardChannel: local PC/SC (bureau) / local TP9000 / RemoteChannel (tunnel to kiosk). RemoteChannel does
+      NOT chain — the kiosk's local channel resolves 61xx/6Cxx and returns FINAL responses; the bureau relays
+      raw. Protocol: newline-delimited JSON over TCP (UAT: token; PROD: TLS 1.2+ mutual auth / fleet cert
+      k3_fleet_pfx). Messages: hello -> perso_request -> card_open -> apdu/apdu_response(xN) -> card_finish ->
+      result. BUILT: bpr.cpp persoengine apps/perso-bureau/main.cpp (TCP/NDJSON server + RemoteChannel) —
+      VERIFIED end-to-end on pat-m4p with a mock kiosk: bureau drove SELECT MC (9000+FCI) + Visa (6A82) over
+      the tunnel, eject, result ok. DELIVERED for the kiosk team: 07-axon-terminals/deliverables/
+      2026-07-22-kiosk-agent-build-guide.md + mock_kiosk.py. RECOVERY: finalize (SET STATUS->SECURED) is the
+      LAST gated step (GPO must pass) so a mid-session link drop is re-attemptable/rejectable, never a silently
+      bad card. REMAINING (task-003): wire dPrep decode into the bureau, run the full live Visa/MC perso over
+      RemoteChannel, TLS/mTLS, and the kiosk agent (kiosk team). See task-003-remote-apdu-bureau.yaml.
+    created_at: "2026-07-22"
+    last_accessed: "2026-07-22"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-22"
+    tags: [iperso-remote-apdu, bureau-kiosk, remote-channel, ndjson-protocol, tunnel-proven, mock-kiosk, kiosk-build-guide, supersedes-script-emitter, one-engine-pluggable-transport, task-003, milestone]
+
 # Pruning rules
 pruning:
   max_entries: 500
