@@ -879,7 +879,16 @@ pruning:
       no BWT/WTX setting in SetParametersEx). SW-side levers EXHAUSTED. THE FIX IS AT THE FEEDER/DLL: a TP9000.dll
       version that honors WTX or clocks the card faster (their changelog shows per-version IC-timeout changes).
       BLOCKING ask to kiosk team: the deployed TP9000.dll VERSION (Properties->Details). Perso itself is DONE
-      (40/42 incl. encrypted keys write 9000; 41/41 on PC/SC). ---
+      (40/42 incl. encrypted keys write 9000; 41/41 on PC/SC). --- DLL VERSION RECEIVED: 4.1.4.7. That is NEWER
+      than our on-hand spec (Nuvia TPK DLL 4.1.2.5, bpr.cpp/docs, 2024-07-08), so "just upgrade the DLL" is NOT
+      the fix — the kiosk is already ahead. The documented changelog (thru 4.1.2.5) shows the ONLY IC-timing
+      change is 4.1.0.7 "Changed Timeout for IC_ContactOn" (card feeding, NOT the APDU/T=1 block-wait); no
+      configurable IC APDU BWT/WTX anywhere in the API. PRECISE NUVIA ASK (give them the instrumented evidence:
+      card ATR 3B6E no-TA1, A004/A002 ~3.5-4 s -> 6985 while card sends WTX S-blocks "RCV_SBLCK", all <1.3 s ops
+      9000): either (a) make IC_Input HONOR the card's WTX S-blocks (extend block-wait so a ~4 s APDU completes)
+      or expose a BWT/timeout param; OR (b) enable PPS / a faster base clock so the card runs at its TA1=13 rate
+      (~4x) like the local ACS reader. Until then the kiosk cannot write A004/A002 and cannot finalize an MC card;
+      PC/SC path is unaffected. ---
       2026-07-23 — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
       theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
       tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
