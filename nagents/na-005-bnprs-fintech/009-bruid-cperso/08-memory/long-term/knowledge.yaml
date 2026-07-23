@@ -835,3 +835,33 @@ pruning:
     confidence: 0.97
     source: "session-2026-07-23"
     tags: [mc-kiosk, a002-6985, a002-crm-template, content-not-transport, a002-tail-proven, 3b6e-vs-3bfe13-variant, ad14-6981-gate, secured-0-safe, sacrificial-removed, strict-loop-reverted, a002-cps-spec-needed, rnd-cperso-blocking]
+  - id: mem-033
+    type: project_context
+    content: >-
+      2026-07-23 (cont.) — CORRECTS [[mem-032]] and the whole 1.2.3 detour: the A002-content conclusion was
+      WRONG. ROOT of the confusion: there are TWO Thales perso traces and I used the wrong one. (1) Spi4MLB2
+      (Operas/THALES MDA/Spi4MLB2.trace.txt) = the REAL perso for OUR cards: Gemalto pkg A0000000180F...,
+      INSTALL C9=C905 0111000105 (5-byte = M/Chip Advance 1.1 mode), config-first order (A002 first, then
+      records/certs, then keys 8201-8205 WITH ISO-9797 padding, AD14 finalize, 9103 last). (2) McQi
+      (GemaltoCard_Traces_PrePersoInstant_McQi.LOG) = a DIFFERENT card/applet: Mastercard-RID pkg A00000000410,
+      3-byte C9, records-first, no ICC key shown. I mistakenly rebuilt the whole MC profile to McQi/1.2.3 mode
+      (C9 byte6=02) which cascaded into: A002 6985, then config 6A80, then the ICC RSA key rejecting its 3rd CRT
+      element (the applet in 1.2.3 mode accepts only 2 CRT DGIs; P,Q-only completes but SELECT 6985 = broken
+      card). ALL self-inflicted. FIX = revert the 3 MC files (mc_advance_product.cpp, sequencer.cpp,
+      orchestrator.cpp) to ac11a21 (the proven Spi4MLB2 code). PROVEN on the local ACS reader: 41/41 DGIs +
+      AD14 9000 + SELECT 9000 + GPO 9000 + READ SFI3/SFI4 9000 + VERIFY PIN 1234 9000 = a FULLY FUNCTIONAL
+      MasterCard (PAN 5213720475428723, TARIQ/ZIAD). CARD IDENTITY: local cards == kiosk cards (user: same
+      batch, 5 of 50 sent to kiosk). ATR differs ONLY by reader: local ACS 3BFE13...80318066B0840C016E0183009000
+      vs kiosk TP9000 3B6E...(same historical bytes). So solve locally == solve kiosk. KIOSK-ONLY remaining
+      issue = pure TRANSPORT: the TP9000 feeder DROPS the first ~2 STORE DATA (INS E2) after applet EXT AUTH ->
+      6985 (proven Spi4MLB2 kiosk run: A004+A002 6985, ALL 39 other DGIs 9000; genuinely dropped, not response-
+      lost — an earlier tolerate+AD14 gave 6981). FIX deployed (bpr.cpp 134fb7d, bureau sha db3000c): fire 2
+      throwaway E2 (copies of the first block) after EXT AUTH to absorb the feeder cold-start, tolerate optional
+      A004; real stream lands warm from the 3rd E2. UNVERIFIED at kiosk (awaiting one card). Bureau redeployed
+      f9dae096 (clean Spi4MLB2) then db3000c (with warm-up). [[mem-032]] [[mem-031]] [[mem-024]]
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.95
+    source: "session-2026-07-23"
+    tags: [spi4mlb2-is-our-cards, mcqi-is-different-card, 1.1-mode-not-1.2.3, mc-functional-card-proven, revert-ac11a21, local-equals-kiosk-cards, atr-reader-framing, tp9000-first-e2-dropped, warmup-2cmd, bureau-db3000c, kiosk-transport-fix, corrects-mem-032]
