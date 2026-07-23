@@ -805,3 +805,33 @@ pruning:
     confidence: 0.98
     source: "session-2026-07-23"
     tags: [mc-kiosk, a004-drop, p2-00-warmup, tp9000-6985, real-dpi, gd-secure-block, iso2-padding, load-secure-block, dpi-dek, card-from-dpi-mapping, track2full, bureau-redeployed-4ce8cdc, dek-injected-ec2, warmup-unconfirmed-at-kiosk, cert-threading-followup, f02e958]
+  - id: mem-032
+    type: project_context
+    content: >-
+      2026-07-23 (cont.) — KIOSK MC ROOT CAUSE ISOLATED: DGI A002 content is the sole blocker; supersedes the
+      transport theories in [[mem-031]]. Across ~5 live kiosk runs (bureau 98.130.14.127, KIOSK-DXB-014, real
+      DPI, cards ATR 3B6E) every DGI writes 9000 EXCEPT A002 -> 6985. Ruled OUT, with evidence: (1) transport
+      size — a 239-byte DGI 0404 succeeds, A002 is only 114 B; (2) first-E2/positional glitch — a sacrificial
+      warm-up E2 did NOT help and, decisively, A002 was moved to the STREAM TAIL (sent 40th, after all records
+      0201/0301/0302, all certs 0401-0404, all keys 8201-8205/8000/8001/A006/A016, and every other config DGI
+      were already on-card 9000) and STILL returned 6985 — so it is not order, not a prerequisite, not a
+      duplicate; (3) real-DPI content — A002 is a VERBATIM product-config block (mc_advance_config_blocks,
+      NON-cardholder), byte-identical to the synthetic run that proved 40/40 LOCALLY on the 3BFE13 Gemalto card
+      over PC/SC. CONCLUSION: the A002 CRM template (111-byte fixed-positional binary captured from the 3BFE13
+      trace) is WRONG for the 3B6E kiosk card variant. CORRECTION to mem-031: the 3B6E kiosk card is NOT
+      necessarily the "same build" as the 3BFE13 local card — A002 acceptance differs, so treat them as distinct
+      M/Chip Advance variants until proven otherwise. AD14 end-of-perso is a reliable completeness gate: it
+      returns 6981 whenever A002 is missing, so the card is NEVER secured incomplete (all runs secured=0, safe).
+      A GET DATA (INS CA) warm-up and a first-E2 tolerance were both tried and REMOVED — reverted the orchestrator
+      to a clean strict STORE DATA loop; A002 stays in its Spi4MLB2 position. Deployed sha (clean) recorded in
+      the session. NEXT (rnd-cperso research task, BLOCKING): obtain the Mastercard M/Chip Advance A002 CRM
+      field-layout (CPS spec) OR a real perso trace of a 3B6E card, and rebuild A002 byte-exact for this variant.
+      Do NOT drop A002 for a real cardholder card — it carries offline CRM risk/limit/currency params. Everything
+      else in the pipeline (DPI decode, SCP02, INSTALL, records, certs, keys, transport) is PROVEN end-to-end.
+      [[mem-031]] [[mem-029]]
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-23"
+    tags: [mc-kiosk, a002-6985, a002-crm-template, content-not-transport, a002-tail-proven, 3b6e-vs-3bfe13-variant, ad14-6981-gate, secured-0-safe, sacrificial-removed, strict-loop-reverted, a002-cps-spec-needed, rnd-cperso-blocking]
