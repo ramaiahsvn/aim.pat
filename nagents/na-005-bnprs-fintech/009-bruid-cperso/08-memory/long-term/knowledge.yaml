@@ -888,7 +888,21 @@ pruning:
       9000): either (a) make IC_Input HONOR the card's WTX S-blocks (extend block-wait so a ~4 s APDU completes)
       or expose a BWT/timeout param; OR (b) enable PPS / a faster base clock so the card runs at its TA1=13 rate
       (~4x) like the local ACS reader. Until then the kiosk cannot write A004/A002 and cannot finalize an MC card;
-      PC/SC path is unaffected. ---
+      PC/SC path is unaffected. --- BREAKTHROUGH (DLL reverse-trace, TP9000.dll 4.1.4.7 sha 2d521592...): the chip
+      module is a GemCore that Windows can expose as a STANDARD PC/SC READER, so we can BYPASS IC_Input's block-
+      wait and drive the card over winscard (SCardTransmit) — the same OS PC/SC stack that does 41/41 on the local
+      ACS and that HANDLES WTX + negotiates TA1. Evidence in the DLL: imports WinSCard.dll (SCardEstablish/
+      ListReadersA/ConnectA/GetStatusChangeA/Disconnect); exports IC_CheckPCSC (ord 720) + TP_IC_ModeChange;
+      strings "SYNIC Smart Card Reader 0", "USB Smart Card Reader", reg keys System\CurrentControlSet\Services\
+      USBCCID\Enum + GemCCID\Enum, "[IC] TS of the ATR is invalid (reader in PC/SC - ISO mode)", "[PCSC]
+      SCardConnect - %d: %s". PLAN = HYBRID kiosk agent: TP9000 DLL for MECHANICS ONLY (Card_Insert + IC_ContactOn
+      feed/contact, Card_EjectEx/Reject at end) and OUR winscard backend (src/BprPcSc/src/backend/
+      backend_winscard.cpp, already SCardConnect-by-name + SCardTransmit; ICardChannel seam identical to
+      Tp9000Channel) for ALL APDUs — skip IC_PowerOnEx, let SCardConnect power the chip. GATING FACT: board
+      strings show BOTH USB-CCID GemCores (CR30/POS Pro -> PC/SC reader) AND "GemCore Serial" (may NOT expose
+      PC/SC). MUST confirm on the kiosk a PC/SC reader is visible (Device Manager -> Smart card readers, or
+      certutil -scinfo) BEFORE building the hybrid. If visible -> build hybrid (reuses proven PC/SC perso path,
+      no Nuvia dependency). ---
       2026-07-23 — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
       theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
       tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
