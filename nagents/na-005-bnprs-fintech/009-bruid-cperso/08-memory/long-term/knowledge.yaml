@@ -902,7 +902,18 @@ pruning:
       strings show BOTH USB-CCID GemCores (CR30/POS Pro -> PC/SC reader) AND "GemCore Serial" (may NOT expose
       PC/SC). MUST confirm on the kiosk a PC/SC reader is visible (Device Manager -> Smart card readers, or
       certutil -scinfo) BEFORE building the hybrid. If visible -> build hybrid (reuses proven PC/SC perso path,
-      no Nuvia dependency). ---
+      no Nuvia dependency). --- CONFIRMED + BUILT: kiosk `certutil -scinfo` shows "SYNIC Smart Card Reader 0".
+      HYBRID agent built & delivered (bpr.cpp a126cb3): tp9k_v2 now has a PC/SC APDU path — open(pcscApdu=true)
+      does DLL Card_Insert+IC_ContactOn (mechanics) then SCardEstablishContext/ListReaders(pick SYNIC)/ConnectA
+      (SHARED, T1|T0, 12x retry)/SCardStatus(ATR); transmit()->SCardTransmit (SCARD_PCI_T1); eject/reject/close
+      SCardDisconnect(UNPOWER) before mechanics. card_tp9000.cpp Tp9000Channel ctor calls open(pcscApdu=true) with
+      auto-fallback to DLL IC_Input. build-kiosk-agent-win.sh links -lwinscard (agent imports SCardTransmit/
+      Connect/Status + g_rgSCardT0/T1Pci). Package ~/Downloads/perso-kiosk-agent-HYBRID-PCSC-2026-07-23
+      (perso-kiosk-agent-tls.exe sha e1b595b2...). Bureau UNCHANGED (clean 41-DGI f9dae096). KEY: even if the ATR
+      still lacks TA1, the OS PC/SC/CCID stack HONORS the card's WTX (the thing IC_Input's fixed block-wait did
+      not) -> A004/A002 (~4 s) should complete 9000. AWAITING kiosk run: watch kiosk-hybrid.log for "[tp9kv2]
+      PC/SC connected ... ATR=" then A004/A002 sw=9000 -> bureau AD14 9000, secured=1 = full terminal-usable MC
+      at the kiosk. ---
       2026-07-23 — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
       theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
       tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
