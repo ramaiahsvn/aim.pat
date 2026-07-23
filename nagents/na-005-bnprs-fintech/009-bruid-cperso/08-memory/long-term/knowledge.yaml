@@ -654,3 +654,91 @@ pruning:
     confidence: 0.99
     source: "session-2026-07-20"
     tags: [SOLVED, visa-fully-functional, vsdc, gpo-read-verify-pass, 19-of-19, end-of-perso-last-dgi-p1-80, mandatory-0E01-3001-9200, secured, gate-held, mc-and-visa-done, milestone]
+
+  - id: mem-027
+    type: project_context
+    content: >-
+      2026-07-23 — VISA LIVE REGRESSION FOUND + REVERTED; full ODA cert chain DEFERRED. The remote-APDU bureau
+      (AWS Graviton 98.130.14.127) was personalizing only 18/20 Visa DGIs on the kiosk feeder — 0301 S3R1 -> 6A88
+      and 9200 IDD -> 6A80 (finalize), card NOT secured (guardrail held). ROOT CAUSE (via bureau journal + git,
+      NOT the card): the bureau was running the WIP commit db5b27b "Visa ODA cert chain into SFI3 records", which
+      replaced the PROVEN minimal SFI3 rec1 with the full issuer PK cert (tag 90) in DGI 0301, added ICC cert
+      0302, and expanded AFL to SFI3 r1-2. That WIP came RIGHT AFTER the proven success 3a8dd7f "FULLY FUNCTIONAL
+      Visa card" (mem-026, 19/19) and was never validated on a card — the target applet rejects the cert-loaded
+      0301 (6A88), which cascades the 9200 end-of-perso to 6A80. FIX (bpr.cpp 9534e66, pushed to main): added
+      VisaPersoConfig.fullOdaCertChain (default FALSE = the proven mem-026 form: minimal SFI3 rec1 = 9F49 DDOL +
+      9F4A SDA tag list, no cert; AFL SFI3 r1; no 0302). The full-ODA code (orchestrator build_visa_oda + the
+      fullOda=true path) is RETAINED, gated off — not deleted. 95/95 tests green; proven stream = 19 DGIs. Bureau
+      rebuilt (Docker aarch64, source RO) + redeployed to the EC2. DEFERRED until we get the applet's ODA perso
+      record spec from the bureau: which record carries issuer(90) vs ICC(9F46) cert, record max size / split,
+      and the AFL for the SDA cert chain (cross-check VSDC 2.9.2 §3.16 + the card profile). Then enable
+      fullOdaCertChain, validate 0301/0302 -> 9000 + 9200 finalize on a FRESH card, ship. Tracked: cpp-card-emv
+      task-001.8. The ODA cert chain = OFFLINE terminal data auth (SDA/DDA); non-blocking for issuance (mem-026).
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-23"
+    tags: [visa-regression, reverted-to-proven, wip-db5b27b, 0301-6a88, 9200-6a80, fullodacertchain-gate-off, oda-cert-chain-deferred, bureau-redeployed, task-001.8, 9534e66]
+
+  - id: mem-028
+    type: milestone
+    content: >-
+      2026-07-23 — REVERT PROVEN: 19/19 FULLY FUNCTIONAL Visa card personalized LIVE on pat-m4p (ACS ACR39U,
+      perso-live-visa --commit --no-secure --transport pcsc) on a FRESH OP_READY UAT card. This confirms the
+      reverted stream (9534e66) AND the redeployed bureau are correct, and it pins the kiosk hopper 6D00 root
+      cause. Card: ATR 3BFE13..., Visa GP ISD A000000003000000 lifecycle=01 (OP_READY), VISA2 ISD key
+      authenticates, Visa package A00000000310 loaded, instance A0000000031010 NOT yet installed (6A82). Result:
+      INSTALL[make selectable] A0000000031010 (params C900) -> 9000 (FRESH instance created), applet SCP02 ok,
+      ALL 19 DGIs -> 9000 INCLUDING 9200 IDD end-of-perso (P1.b8=1) -> 9000, GPO-before-finalize -> 9000
+      (personalized), self-verify GPO 9000 (AIP 3800 + AFL 080101001001010018010101), READ SFI1/2/3 rec1 -> 9000,
+      PAN 4000000000000002 / name "VISA TEST CARD" / track2 read back, VERIFY PIN 1234 -> 9000. ROOT CAUSE of the
+      hopper 18/19 6D00 (mem-027 remaining item) now CLEAR: the kiosk hopper cards have a SECURED card manager
+      (ISD), so INSTALL[make selectable] fails 6985 and the engine falls back to re-perso'ing the vendor's
+      PRE-INSTALLED Visa instance — and the 9200 end-of-perso finalize returns 6D00 on that re-perso'd instance.
+      When INSTALL creates a FRESH instance on an OP_READY card (this test), the identical stream finalizes 9000.
+      So 6D00 is a CARD-STATE issue (secured-CM re-perso of a pre-installed instance), NOT an engine bug. Two
+      paths for the hopper: (a) use OP_READY cards at the kiosk (INSTALL creates the instance), or (b) add a GP
+      SCP02 C-MAC path so INSTALL works on a secured-CM card (mem-025 recovery path — hsm::scp02::cmac exists).
+      NOTE: IssuerCert(90)/ICC-cert(9F46)/CAPK(8F) absent = the deferred ODA cert chain (task-001.8); card works
+      online, offline SDA/DDA still pending that. TOOL: perso-live-visa --no-secure (bpr.cpp 6bc9e8a) skips only
+      the irreversible card->SECURED so a single test card stays DELETE/re-perso-able; bureau default unchanged
+      (still secures on issuance). [[mem-026]] [[mem-027]]
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-23"
+    tags: [SOLVED, revert-proven-19-of-19, op-ready-card, install-fresh-instance-9000, 9200-finalize-9000, hopper-6d00-root-cause, secured-cm-reperso, card-state-not-engine, no-secure-flag, 6bc9e8a, oda-still-deferred, milestone]
+
+  - id: mem-029
+    type: project_context
+    content: >-
+      2026-07-23 — MASTERCARD wired through the kiosk/bureau: extracted run_mc_perso into the orchestrator +
+      added a bureau scheme switch (bpr.cpp ac11a21). Before this, the kiosk/bureau path drove ONLY Visa
+      (run_visa_perso); MC lived only in the standalone perso-live app. Now perso::orchestrator::run_mc_perso
+      (ICardChannel&, McPersoConfig)->McPersoResult mirrors run_visa_perso and drives over ANY transport
+      (local reader / TP9000 / RemoteChannel). The MC perso LOGIC is lifted BYTE-FAITHFUL from the proven
+      perso-live flow (mem-024): build_mc_cert_key_data (UDKs IMK-AC/SMI/SMC, PIN, keyset KCVs, ICC RSA CRT,
+      ODA certs), assemble_perso_stream, skip {0E01,AD14}, AD14 as end-of-perso last block, INSTALL Gemalto
+      pkg/module params C9050111000105, ISD+applet SCP02 (VISA2), self-verify. Two safety ADDITIONS from the
+      Visa path (not in perso-live): fallback to an existing selectable instance when INSTALL is refused
+      (secured CM), and a GPO-personalized gate before card->SECURED. Honors skipSecure (--no-secure). BUREAU:
+      perso_request now carries optional "scheme" ("visa" default | "mc") -> dispatches run_mc_perso vs
+      run_visa_perso, sharing the log sink + result/output handling; mc_record_from_card maps the decoded DPI
+      CardholderData -> M/Chip PersoRecord. KIOSK AGENT: forwards the trigger's "scheme" into perso_request.
+      VERIFIED: 95/95 tests green + a local mock loop (trigger scheme=mc -> agent -> bureau -> run_mc_perso ->
+      MC ISD SELECT A000000004000000; mock can't SCP02 so it stops at auth, but dispatch is proven). NOT yet
+      re-proven LIVE on an MC card — the local blank card is a Visa card manager (MC AID 6A82), so faithful
+      extraction + build + mock smoke is the local validation; a REAL MC card at the kiosk is needed for the
+      full 41-DGI run. perso-live left UNTOUCHED as the known-good MC reference. TWO OPEN ITEMS: (1) the
+      DEPLOYED Windows kiosk agent exe does NOT forward "scheme" yet -> rebuild+reship the agent for the kiosk
+      to select MC (bureau redeployed with the switch; Visa unaffected since scheme defaults visa); (2) thread
+      per-card data into the MC ODA issuer/ICC certs (currently proven-card constants, cf. Visa mem-007), and
+      make perso-live a thin driver over run_mc_perso once MC is re-proven live. [[mem-024]] [[mem-028]]
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-23"
+    tags: [mastercard, run-mc-perso, orchestrator-extract, bureau-scheme-switch, kiosk-agent-scheme, byte-faithful-mem024, mock-dispatch-verified, not-yet-live-mc, agent-reship-needed, cert-threading-followon, ac11a21]

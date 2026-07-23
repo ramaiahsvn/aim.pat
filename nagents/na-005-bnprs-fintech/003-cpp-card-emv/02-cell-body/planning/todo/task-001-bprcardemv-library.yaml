@@ -98,6 +98,27 @@ subtasks:
     status: pending
     priority: medium
 
+  - id: "task-001.8"
+    subject: "Visa ODA offline-data-authentication cert chain in SFI3 (DEFERRED — awaiting applet ODA record spec)"
+    detail: >
+      2026-07-23: the live Visa perso was reverted to the PROVEN minimal SFI3 record (mem-026, commit 3a8dd7f)
+      after the WIP "ODA cert chain into SFI3" change (db5b27b) shipped to the bureau and failed live on the
+      target applet: DGI 0301 (issuer-cert record, template 70 { 8F,90 issuer cert,9F32,92,9F49,9F4A }) -> 6A88,
+      cascading the 9200 end-of-perso finalize -> 6A80, i.e. 18/20 and no finalize. The proven flow uses a
+      minimal SFI3 rec1 (9F49 DDOL + 9F4A SDA tag list, NO cert) and AFL SFI3 r1 -> 19/19 fully functional.
+      GATE ADDED (bpr.cpp 9534e66): VisaPersoConfig.fullOdaCertChain (default FALSE = proven form). The full
+      cert-chain code (orchestrator build_visa_oda + the fullOda=true path: issuer cert 0301 / ICC cert 0302,
+      AFL SFI3 r1-2) is RETAINED, gated off — NOT deleted. TO RE-ENABLE (needs details from the perso bureau /
+      applet spec first): the target Visa applet's ODA perso record layout — which DGI/record carries the
+      issuer PK cert (90) vs ICC PK cert (9F46), the record's max size / whether the issuer cert must be split,
+      and the AFL the applet expects for the SDA cert chain. Cross-check VSDC 2.9.2 §3.16 + the card's actual
+      profile. Once confirmed: set fullOdaCertChain=true (or make it profile-driven), validate 0301/0302 -> 9000
+      + 9200 finalize -> 9000 on a FRESH card, then ship. WHY it matters: the ODA cert chain enables OFFLINE
+      terminal data authentication (SDA/DDA); without it the card personalizes and works online but lacks the
+      offline-auth cert records (non-blocking for issuance, per mem-026).
+    status: deferred   # 2026-07-23 — reverted to proven; blocked on applet ODA record spec from the bureau.
+    priority: medium
+
   - id: "task-001.6"
     subject: "Fold the legacy BprCardEmv.h/.cpp into core + publish the public API doc"
     detail: >

@@ -1,10 +1,13 @@
 # Send ONE perso trigger to the local agent (127.0.0.1:9098) and print the result.
-#   .\trigger.ps1                                   -> preflight over mock (no card, non-destructive)
-#   .\trigger.ps1 -Transport tp9000                 -> preflight over the feeder (reads a real card, non-destructive)
-#   .\trigger.ps1 -Transport tp9000 -Commit -DpiFile dpi.b64   -> LIVE perso (destructive)
+#   .\trigger.ps1                                              -> preflight over mock (no card, non-destructive)
+#   .\trigger.ps1 -Transport tp9000                            -> preflight over the feeder (reads a real card)
+#   .\trigger.ps1 -Transport tp9000 -Commit -DpiFile dpi.b64   -> LIVE Visa perso (destructive)
+#   .\trigger.ps1 -Transport tp9000 -Commit -Scheme mc -DpiFile dpi.b64  -> LIVE MasterCard perso (destructive)
+# -Scheme selects the card scheme: visa (VSDC, default) | mc (M/Chip Advance). Needs an MC card in the feeder.
 # On a SUCCESSFUL live perso the bureau returns result.output with print + magstripe details for card production.
 param(
   [ValidateSet('mock','tp9000')][string]$Transport = 'mock',
+  [ValidateSet('visa','mc')][string]$Scheme = 'visa',
   [switch]$Commit,
   [string]$DpiFile,
   [string]$HardwareId = 'KIOSK-DXB-014',
@@ -12,7 +15,7 @@ param(
 )
 $dpi = ''
 if ($DpiFile) { if (Test-Path $DpiFile) { $dpi = (Get-Content -Raw $DpiFile).Trim() } else { Write-Host "DPI file not found: $DpiFile" -Foreground Red; exit 1 } }
-$req = @{ dpiB64=$dpi; hardwareId=$HardwareId; transport=$Transport; inputType= if($Commit){'dpi'}else{'none'}; commit=[bool]$Commit } | ConvertTo-Json -Compress
+$req = @{ dpiB64=$dpi; hardwareId=$HardwareId; transport=$Transport; scheme=$Scheme; inputType= if($Commit){'dpi'}else{'none'}; commit=[bool]$Commit } | ConvertTo-Json -Compress
 try {
   $c = New-Object System.Net.Sockets.TcpClient; $c.Connect('127.0.0.1',$Port)
   $s = $c.GetStream(); $c.ReceiveTimeout = 130000
