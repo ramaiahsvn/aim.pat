@@ -865,3 +865,35 @@ pruning:
     confidence: 0.95
     source: "session-2026-07-23"
     tags: [spi4mlb2-is-our-cards, mcqi-is-different-card, 1.1-mode-not-1.2.3, mc-functional-card-proven, revert-ac11a21, local-equals-kiosk-cards, atr-reader-framing, tp9000-first-e2-dropped, warmup-2cmd, bureau-db3000c, kiosk-transport-fix, corrects-mem-032]
+  - id: mem-034
+    type: project_context
+    content: >-
+      2026-07-23 (cont.) — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
+      theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
+      tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
+      write 9000 INCLUDING the DEK-encrypted ICC RSA private key 8201-8205, issuer keys 8000/8001, KCVs. The
+      failure tracks LATENCY, not position or content: every APDU that finishes < ~1.3 s -> 9000; the ONLY two
+      that run long — A004 3557 ms, A002 4029 ms — are the ONLY two that fail. Same card, SAME BYTES give 41/41
+      over PC/SC. Mechanism = FEEDER CLOCK: the TP9000 resets the card at the DEFAULT slow clock (its ATR carries
+      NO TA1: kiosk 3B6E00..., vs local ACS 3BFE13... TA1=0x13 Di=4 ~4x faster); at 1/4 clock A004/A002's fixed
+      internal-cycle work runs ~4 s and overruns the TP9000 EMV-mode BLOCK-WAIT, so the Nuvia DLL returns 6985
+      WITHOUT honoring the card's WTX. Proven NOT a window: (a) 2 malformed dummy E2 up front were FAST (~400 ms,
+      rejected) and did NOT absorb anything — A004/A002 still slow+6985 after them; (b) an end-of-stream re-send
+      of A004/A002 failed FAST (369/714 ms) = out-of-sequence reject, a different failure; (c) a 5 s pre-delay
+      did nothing. So dummies / skip / re-send / delay ALL removed — orchestrator reverted to the clean strict
+      41-DGI Spi4MLB2 loop (bpr.cpp 3e3388f, bureau sha f9dae096, PC/SC still 41/41). AGENT-SIDE FIX shipped &
+      UNVERIFIED at kiosk: open the feeder with IC_PowerOnEx nMode=1 (ISO Mode) instead of 2 (EMV Mode) so the
+      reader negotiates the card TA1 fast clock / honors WTX; EMV fallback if a card won't power on in ISO
+      (card_tp9000.cpp Tp9000Channel ctor). ISO-mode agent delivered to ~/Downloads/perso-kiosk-agent-ISO-MODE-
+      2026-07-23 (perso-kiosk-agent-tls.exe sha 4083e0fa..., still instrumented). WATCH in kiosk-iso.log: does
+      "powered on (mode=1)" ATR now carry TA1 (3BF..13) and do A004/A002 drop < 1.3 s -> 9000. IF ISO mode does
+      NOT lift the block-wait it is a Nuvia DLL limit (their changelog literally shows per-version IC timeout
+      changes) -> escalate with the evidence; NEED the deployed TP9000.dll VERSION (Properties->Details). Ref:
+      Nuvia TPK DLL spec in bpr.cpp/docs; IC_Input has NO timeout param, IC_PowerOnEx nMode {0 none,1 ISO,2 EMV}.
+      [[mem-033]] [[mem-032]]
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-23"
+    tags: [kiosk-root-cause-definitive, a004-a002-slowest-ops, latency-not-position, feeder-clock-no-ta1, emv-block-wait-clips-wtx, tp9000-slow-clock, instrumented-proof, dummies-resend-delay-all-fail, orchestrator-reverted-clean, bureau-f9dae096, iso-mode-fix, iso-agent-4083e0fa, need-tp9000-dll-version, nuvia-escalation, corrects-mem-033]
