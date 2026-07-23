@@ -742,3 +742,29 @@ pruning:
     confidence: 0.97
     source: "session-2026-07-23"
     tags: [mastercard, run-mc-perso, orchestrator-extract, bureau-scheme-switch, kiosk-agent-scheme, byte-faithful-mem024, mock-dispatch-verified, not-yet-live-mc, agent-reship-needed, cert-threading-followon, ac11a21]
+
+  - id: mem-030
+    type: milestone
+    content: >-
+      2026-07-23 — 🏆 run_mc_perso PROVEN LIVE (updates mem-029's "not yet re-proven live"): a real OP_READY
+      Gemalto MC card (ACS ACR39U on pat-m4p, ATR 3BFE13, ISD A000000004000000 lifecycle=01, VISA2 auth) was
+      personalized END-TO-END by the EXTRACTED orchestrator function via a new local driver flag. Added
+      perso-live-visa --scheme visa|mc (bpr.cpp dcadcc3): --scheme mc builds an McPersoConfig with the proven
+      synthetic M/Chip test card (PAN 5213720475428723, TARIQ/ZIAD, expiry 241130, track2, PIN 1234) and calls
+      perso::orchestrator::run_mc_perso over the local PC/SC transport — i.e. it exercises the SAME function the
+      kiosk/bureau run. RESULT (perso-live-visa --scheme mc --commit --no-secure --transport pcsc): ISD auth ✓,
+      INSTALL[make selectable] A0000000041010 -> 9000 (fresh instance on the OP_READY card), applet SCP02 ✓,
+      41/41 MC DGIs -> 9000, AD14 end-of-perso (P1.b8=1) -> 9000, GPO-before-finalize -> 9000 (personalized),
+      card left UNSECURED (--no-secure, reusable), self-verify: GPO 9000 + AFL 1801020120020400, READ
+      SFI3rec1-2/SFI4rec2-4 -> 9000, PAN 5213720475428723 / name TARIQ/ZIAD / track2 read back, VERIFY PIN 1234
+      -> 9000. So run_mc_perso is byte-faithful to the proven perso-live flow (mem-024) and now LIVE-PROVEN on a
+      real MC card — the kiosk MC path is validated (needs an OP_READY MC card, same INSTALL rule as Visa
+      mem-028). Remaining follow-ons unchanged: the shipped MC-capable kiosk agent needs installing at the kiosk
+      (perso-kiosk-agent-mc-2026-07-23.zip), and per-card MC ODA cert threading (currently proven-card constants).
+      [[mem-024]] [[mem-029]]
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-23"
+    tags: [SOLVED, run-mc-perso-live-proven, 41-of-41, real-mc-card, op-ready, scheme-mc-driver, gpo-read-verify-pass, byte-faithful-mem024, kiosk-mc-validated, dcadcc3, milestone]
