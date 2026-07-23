@@ -868,7 +868,19 @@ pruning:
   - id: mem-034
     type: project_context
     content: >-
-      2026-07-23 (cont.) — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
+      2026-07-23 (cont., UPDATE) — ISO-MODE FIX FAILED, escalate to Nuvia. Deployed the nMode=1 (ISO) agent to
+      the real kiosk: the ATR was BYTE-IDENTICAL (3B6E000080318066... still NO TA1) — so the TP9000 does not
+      negotiate the card's fast clock in EITHER mode — AND ISO mode broke the T=1 exchange (DLL printed
+      "RCV_SBLCK: 00" x3 = receiving the card's WTX S-blocks, then the agent exited right after SELECT ISD 9000).
+      Reverted the agent to EMV mode (card_tp9000.cpp, bpr.cpp f409157); stable EMV-instrumented agent redelivered
+      to ~/Downloads/perso-kiosk-agent-EMV-STABLE-2026-07-23 (sha a4974e3...). KEY takeaway: the card DOES request
+      WTX (S-blocks confirmed), but the Nuvia DLL's fixed block-wait clips A004/A002 (~4 s) regardless of mode,
+      and the DLL API exposes NO per-command timeout (IC_Input/IC_Input2/IC_MultiAPDU all lack a timeout param;
+      no BWT/WTX setting in SetParametersEx). SW-side levers EXHAUSTED. THE FIX IS AT THE FEEDER/DLL: a TP9000.dll
+      version that honors WTX or clocks the card faster (their changelog shows per-version IC-timeout changes).
+      BLOCKING ask to kiosk team: the deployed TP9000.dll VERSION (Properties->Details). Perso itself is DONE
+      (40/42 incl. encrypted keys write 9000; 41/41 on PC/SC). ---
+      2026-07-23 — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
       theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
       tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
       write 9000 INCLUDING the DEK-encrypted ICC RSA private key 8201-8205, issuer keys 8000/8001, KCVs. The
