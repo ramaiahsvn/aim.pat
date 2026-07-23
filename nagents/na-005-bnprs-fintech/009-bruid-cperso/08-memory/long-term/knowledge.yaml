@@ -768,3 +768,40 @@ pruning:
     confidence: 0.99
     source: "session-2026-07-23"
     tags: [SOLVED, run-mc-perso-live-proven, 41-of-41, real-mc-card, op-ready, scheme-mc-driver, gpo-read-verify-pass, byte-faithful-mem024, kiosk-mc-validated, dcadcc3, milestone]
+
+  - id: mem-031
+    type: project_context
+    content: >-
+      2026-07-23 — MC KIOSK debugging + REAL-DPI consumption (long live session, bureau 98.130.14.127).
+      (A) MC-over-kiosk transport fixes (bpr.cpp): the Gemalto GCX7.5 hopper cards (ATR 3B6E, SAME build as the
+      3BFE13 local card — the ATR differs only by READER interface bytes, historical bytes identical) reject two
+      things over the TP9000/RemoteChannel that PC/SC accepts: (1) DGI A004 (optional ICC PK-length) -> 6985:
+      DROPPED it (3e29981; size inferred from qInv per mem-023, proven 40/40 local); (2) the block at STORE DATA
+      sequence position P2=00 (the FIRST after applet EXT AUTH) -> 6985 regardless of which DGI, and re-sending
+      the same P2 does NOT help (retry approach failed) — FIX = prepend a SACRIFICIAL warm-up (duplicate of
+      block[0]) at P2=00 so real DGIs land at P2>=01 (03d7a6e). Both deployed to the bureau. STILL UNCONFIRMED
+      at the kiosk over real TP9000 (last kiosk runs predate the warm-up; local PC/SC never has the P2=00 glitch)
+      — needs one synthetic MC card at the kiosk to prove 40/40 -> secured. run_mc_perso now also logs every DGI
+      SW (4a28b3b) + perso-live-visa gained --card-file for real per-card data (abd99cd). (B) REAL DPI proven on
+      the local card: user's DPI = base64( 16B IV || AES-256-CBC( G&D <perso-entity name="secure"> XML ) ),
+      ISO/IEC 7816-4 (0x80 00) padded, DEK = the user-provided 32B AES-256 key (label MENTA/DEK/DEV_DEK_02). It
+      is the RAW encrypted secure block (CipherValue only), NOT the full RequestPerso envelope — which is why the
+      bureau's loader said "No document element". FIX (f02e958): dpi::load_secure_block (decrypt+parse a raw
+      block), aes256cbc_decrypt accepts BOTH PKCS7 (test KAT) and ISO2 padding (manual strip, still throws on
+      wrong key), bureau dprep_dpi auto-detects envelope-vs-raw and uses --dpi-dek (default MENTA/DEK/DEV_DEK_02),
+      card_from_dpi maps G&D names (EMB_PAN/EMB_NAME/EMB_PAN_SQ_NO + full ENC_TRACK_2_DATA -> CardholderData.
+      track2Full; expiry YYMM derived from track2's post-'D' 4 digits = 3602/Feb-2036; EMB_EXPIRY_DATE is MMYY).
+      VERIFIED: (local direct) perso-live-visa --scheme mc --card-file -> 40/40 real-data card (PAN 521372…4550,
+      GPO/READ/VERIFY-PIN pass, PIN=1234 test since DPI has no PIN block); (local bureau) raw DPI decoded
+      secure=27 + mapped PAN/name/expiry=3602 over the RemoteChannel. Bureau REDEPLOYED (sha 4ce8cdc) + real DEK
+      injected into the EC2 git-ignored keystore. So the kiosk can now send its raw DPI and it decodes. OPEN:
+      confirm P2=00 warm-up at the real kiosk; MC ODA certs still use proven-card PAN (cert-threading follow-up
+      — offline SDA/DDA); real PIN provisioning (separate channel); Visa DPI path uses the same decode now.
+      Guardrails held: DEK/key values only in git-ignored keystores (local + EC2), never committed/logged; PCI
+      values redacted; cleartext PII scratch deleted. [[mem-030]] [[mem-024]]
+    created_at: "2026-07-23"
+    last_accessed: "2026-07-23"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-23"
+    tags: [mc-kiosk, a004-drop, p2-00-warmup, tp9000-6985, real-dpi, gd-secure-block, iso2-padding, load-secure-block, dpi-dek, card-from-dpi-mapping, track2full, bureau-redeployed-4ce8cdc, dek-injected-ec2, warmup-unconfirmed-at-kiosk, cert-threading-followup, f02e958]
