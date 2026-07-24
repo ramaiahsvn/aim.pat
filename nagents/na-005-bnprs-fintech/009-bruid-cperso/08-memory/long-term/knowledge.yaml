@@ -987,3 +987,28 @@ pruning:
     confidence: 0.97
     source: "session-2026-07-23"
     tags: [kiosk-root-cause-definitive, a004-a002-slowest-ops, latency-not-position, feeder-clock-no-ta1, emv-block-wait-clips-wtx, tp9000-slow-clock, instrumented-proof, dummies-resend-delay-all-fail, orchestrator-reverted-clean, bureau-f9dae096, iso-mode-fix, iso-agent-4083e0fa, need-tp9000-dll-version, nuvia-escalation, corrects-mem-033]
+
+  - id: mem-035
+    type: project_context
+    content: >-
+      2026-07-24 — MC POS UAT reached HOST (progress: -4108 fixed via 5F24 last-of-month day; 88 crypto-error
+      fixed via PSN — MC UDK now derived with the card's actual 5F34 PSN, was hardcoded 00). REMAINING BLOCKER +
+      PENDING KEY EXCHANGE: our keystore's UAT MasterCard issuer master keys (IMK-AC/IMK-SMI/IMK-SMC) are a
+      PLACEHOLDER — KCV 82E136, K1=K2 (single-DES-equiv), vs the real-looking Visa keys (KCV 944A44). So the
+      ARQC our card generates will NOT validate against the issuer HSM's real IMK-AC -> POS response 88
+      "cryptographic error" (acquirer doc confirms 88=crypto). NEED from the issuer/key-ceremony team: the REAL
+      UAT MC IMK-AC (+SMI/SMC), 2-key TDEA, delivered securely — encrypted under the EXISTING shared ZMK A85DE2
+      (same channel the Visa keys came under) OR KCV-verified clear components OR HSM-to-HSM. FIRST ask them to
+      confirm their IMK-AC KCV (if != 82E136, ours is wrong, as suspected). Params to align (from card IAD 9F10):
+      DKI=01, CVN=0x10, UDK deriv = EMV Option A (2TDEA), and CONFIRM whether their host derives with the card's
+      5F34 PSN or a fixed 00 (if fixed 00, we set 5F34=00 to match). Card ref: BIN 521372, PAN 5213720978824550,
+      PSN 01, AID A0000000041010, ATC 0005. DRAFT request written: ~/Downloads/MC-key-exchange-request-issuer.md.
+      NEXT (card-free): get real key -> load into keystore (keys/uat_keystore.txt label IMK-AC) verify KCV ->
+      rebuild+deploy bureau -> THEN re-perso 1 card + re-test (kiosk MC cards are SCARCE, do not spend until the
+      issuer IMK-AC KCV is confirmed matching). NEVER store key VALUES — KCV only. [[mem-034]]
+    created_at: "2026-07-24"
+    last_accessed: "2026-07-24"
+    access_count: 1
+    confidence: 0.9
+    source: "session-2026-07-24"
+    tags: [mc-pos-uat, response-88-crypto-error, imk-ac-placeholder-82E136, need-real-uat-mc-imk, key-exchange-issuer, zmk-a85de2, dki-01-cvn-10, emv-option-a, psn-5f34-vs-00, kcv-only, draft-in-downloads, kiosk-cards-scarce, load-key-rebuild-retest]
