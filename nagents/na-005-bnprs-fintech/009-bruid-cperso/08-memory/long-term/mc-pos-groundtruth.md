@@ -70,6 +70,18 @@ local self-verify (only SELECT/GPO/PIN) — only a card test confirms it; expect
 perso). FOR A REAL APPROVED SALE: real DPI (real PAN + well-formed track2) + acquirer host OR OFFLINE
 approval config. OFFLINE approval = DEFERRED (user: "we will work later") — card currently requests ARQC.
 
+## MILESTONE (2026-07-24, mPos_88_resp.txt) — perso PROVEN correct end-to-end; now host-side
+After the 5F24 fix + real DPI, the card transacts FULLY online: -4108 GONE; real PAN 5213720978824550;
+well-formed track2 (FLD35=5213720978824550D36022011419193800000F, has 0xD); valid GENERATE AC (FLD55:
+9F26 ARQC, 9F27=80 ARQC, 9F36=0005 ATC, 9F10 IAD=0110A00003220800...FF -> DKI=01 CVN=0x10, 9F02 amount,
+9A=260724, 9C=00). Terminal reached a REAL host 185.206.80.23:1351, sent 0200, got 0210 FLD39=88 (decline).
+88 is switch-specific (NOT ISO). Host private FLD63 embeds "92" (ISO 'issuer/FI cannot be found for
+routing') -> most likely the BIN 521372 / PAN is NOT provisioned+routed to an issuer host (so the ARQC
+was never validated). Alt cause = ARQC key mismatch (issuer HSM lacks our IMK-AC at DKI 01). => ISSUER/HOST
+side now, NOT card/perso. Handoff: (1) provision PAN 5213720978824550 + route BIN 521372 to an issuer host;
+(2) confirm response 88 meaning + whether ARQC validated; (3) our side confirm perso IMK-AC (keystore
+label/DKI 01) matches issuer master key. Card-data/perso work is DONE for MC contact.
+
 ## Still-open / watch on re-test (ground-truth checklist)
 1. Re-perso a card (over OMNIKEY, transport=pcsc) with the fixed engine → confirm the 0201
    record no longer contains a 0-length 5F25 (either absent, or a valid 3-byte date).
