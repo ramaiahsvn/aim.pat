@@ -55,6 +55,21 @@ last-of-month day (Feb 28/29 leap-aware via yy%4==0 in the 20YY range; Apr/Jun/S
 Unit-verified: 3602->360229, 3604->360430, 3702->370228, 3612->361231. Applied at all 3 sites.
 The 5F25-omit change stays (correct: never emit a 0-length date) — it was not the blocker.
 
+## Post-(-4108) flow analysis (v2 log, working card traced end-to-end)
+The "working" MC card does NOT approve on this UAT terminal either — it just has no card-data error:
+  read-app-data:0 -> CVM online PIN (输PIN结果:0) -> GENERATE AC 9F27=80 (ARQC, card requests ONLINE)
+  -> importOnlineProcStatus status:-1, tags 71,72,91,8A,89 EMPTY -> finalStatus -20003 (no acquirer host).
+So the online -20003 is an ENVIRONMENT/host failure, not a card failure. Realistic success for our card
+after the 5F24 fix = reach GENERATE AC + online request (parity with the working card), NOT "approved".
+Non-blockers CONFIRMED (don't chase): (a) ODA/CAPK — terminal has NO matching CAPK for either card
+(ours 8F=08, working EF), logs "not found, skip", proceeds; (b) 5F25 absent — optional, not the -4108
+trigger, processing-restrictions skips when absent; (c) zero chip PAN — BOTH cards have 5A/57=0 in the
+chip (working card's displayed PAN 5222490717837466 came from its magstripe), did not block the working
+card's EMV flow. Residual unknown: our card's GENERATE AC (AC keys 8000 etc.) is not exercised by the
+local self-verify (only SELECT/GPO/PIN) — only a card test confirms it; expected fine (proven M/Chip key
+perso). FOR A REAL APPROVED SALE: real DPI (real PAN + well-formed track2) + acquirer host OR OFFLINE
+approval config. OFFLINE approval = DEFERRED (user: "we will work later") — card currently requests ARQC.
+
 ## Still-open / watch on re-test (ground-truth checklist)
 1. Re-perso a card (over OMNIKEY, transport=pcsc) with the fixed engine → confirm the 0201
    record no longer contains a 0-length 5F25 (either absent, or a valid 3-byte date).
