@@ -913,7 +913,22 @@ pruning:
       still lacks TA1, the OS PC/SC/CCID stack HONORS the card's WTX (the thing IC_Input's fixed block-wait did
       not) -> A004/A002 (~4 s) should complete 9000. AWAITING kiosk run: watch kiosk-hybrid.log for "[tp9kv2]
       PC/SC connected ... ATR=" then A004/A002 sw=9000 -> bureau AD14 9000, secured=1 = full terminal-usable MC
-      at the kiosk. ---
+      at the kiosk. --- PC/SC HYBRID DEAD (proven), PIVOT TO NUVIA. A standalone probe (tp9000-pcsc-diag2.exe,
+      no network/no feeder-jam) tested it cleanly on the kiosk: with a card FULLY POWERED by the DLL
+      (IC_PowerOnEx rc=0, ATR 3B6E000080318066... captured) SCardListReaders returns NO_READERS_AVAILABLE
+      (0x8010002E) at EVERY step — before/after LoadLibrary, after IC_ContactOn, after IC_PowerOnEx, after
+      FreeLibrary. So the TP9000 GemCore NEVER presents the card via Windows PC/SC (the DLL owns it over a
+      private serial/WinUSB channel, not usbccid.sys). The "SYNIC Smart Card Reader 0" certutil saw earlier was
+      transient/unrelated (at idle, post-reboot, certutil also shows 0 readers). Also: IC_CheckPCSC returns -1
+      and can HANG/wedge SCardSvr (needed a reboot) — do NOT call it. Reverted ALL hybrid code (bpr.cpp b6a86c1):
+      tp9k_v2 + card_tp9000 + build-kiosk-agent-win.sh restored to the clean EMV IC_Input path (no winscard).
+      Clean EMV agent rebuilt sha 91ac79fa -> ~/Downloads/perso-kiosk-agent-EMV-STABLE-2026-07-23 (stable,
+      non-hanging, still 40/42 = A004/A002 rejected until the DLL is fixed). THE FIX IS NUVIA'S: honor T=1 WTX in
+      IC_Input (card sends WTX S-blocks "RCV_SBLCK", DLL clips at ~1.3s) OR expose a block-wait/timeout param OR
+      negotiate TA1/PPS fast clock. Support ticket drafted: ~/Downloads/Nuvia-TP9000-IC-blockwait-support-
+      request.md (full evidence: latency table A004 3557ms/A002 4029ms->6985 vs all others <1.3s->9000, ATR
+      clock diff, WTX proof, DLL 4.1.4.7). OPERATIONAL NOTE: never force-kill the agent mid-APDU — it holds a
+      smartcard/USB handle and wedges SCardSvr; Ctrl-C or a SCardSvr restart/reboot recovers. ---
       2026-07-23 — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
       theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
       tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
