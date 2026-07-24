@@ -928,7 +928,24 @@ pruning:
       negotiate TA1/PPS fast clock. Support ticket drafted: ~/Downloads/Nuvia-TP9000-IC-blockwait-support-
       request.md (full evidence: latency table A004 3557ms/A002 4029ms->6985 vs all others <1.3s->9000, ATR
       clock diff, WTX proof, DLL 4.1.4.7). OPERATIONAL NOTE: never force-kill the agent mid-APDU — it holds a
-      smartcard/USB handle and wedges SCardSvr; Ctrl-C or a SCardSvr restart/reboot recovers. ---
+      smartcard/USB handle and wedges SCardSvr; Ctrl-C or a SCardSvr restart/reboot recovers. --- WORKAROUND
+      SHIPPED — DIRECT PC/SC AGENT (bpr.cpp 6c5661c): perso over a fixed desktop reader (OMNIKEY CardMan 5x21,
+      confirmed enumerable on the kiosk) instead of the feeder. This is NOT the hybrid (which needed the DLL
+      GemCore, dead): it's a PC/SC-ONLY agent that never loads TP9000.dll, drives the card via winscard
+      SCardConnect/Transmit — the same OS stack that does 41/41 on the bench (honors WTX + fast clock), so the
+      slow DGIs (MC A004/A002, Visa 9200) all complete. build-kiosk-agent-win.sh now takes --pcsc-only |
+      --tp9000-only | --all; DEFS -DPERSOENGINE_HAVE_PCSC -DPCSC_PLATFORM_WINDOWS -DPCSC_COMMON_EXPORTS + srcs
+      card_bprpcsc.cpp + BprPcSc/src/{error,context,reader,card}.cpp + backend_winscard.cpp + -lwinscard. Agent
+      already had a `pcsc` transport (PcscCard) behind #ifdef PERSOENGINE_HAVE_PCSC; enabled it + added a `reader`
+      trigger field (BprPcScChannel now does substring match + prefers a CONTACT reader over -CL/PICC). TWO agents
+      delivered: ~/Downloads/perso-kiosk-agent-PCSC-2026-07-24 (perso-kiosk-agent-pcsc.exe sha cc0d6cb7, imports
+      WinSCard, NO TP9000.dll) and perso-kiosk-agent-TP9000-2026-07-24 (perso-kiosk-agent-tp9000.exe sha
+      71663ecc, clean EMV feeder, no winscard). USE: put a fresh batch card in the OMNIKEY, run agent, trigger
+      -Transport pcsc -Scheme mc -Commit (existing MC DPI) -> full secured card -> POS UAT sale test. TRADE-OFF:
+      manual card insert, not automated feeder — validation/stopgap while Nuvia fixes the feeder block-wait.
+      Batch cards are BOTH MC- and Visa-capable (bench-proven: MC 41/41, Visa 19/19; Visa's only heavy DGI is
+      9200 @927ms fast-clock). Bureau unchanged (clean f9dae096). Not yet run at the kiosk over PC/SC — awaiting
+      user. ---
       2026-07-23 — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
       theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
       tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
