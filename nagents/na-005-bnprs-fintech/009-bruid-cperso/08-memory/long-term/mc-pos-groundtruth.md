@@ -82,6 +82,19 @@ side now, NOT card/perso. Handoff: (1) provision PAN 5213720978824550 + route BI
 (2) confirm response 88 meaning + whether ARQC validated; (3) our side confirm perso IMK-AC (keystore
 label/DKI 01) matches issuer master key. Card-data/perso work is DONE for MC contact.
 
+## 88 = CRYPTOGRAPHIC ERROR (acquirer doc) — root cause found + fixed
+Not routing (my 92 read was a red herring). 88 = the host got the ARQC and FAILED to validate it.
+Root cause (our code): MC UDK (IMK-AC/SMI/SMC) was derived with a HARDCODED PSN "00" (orchestrator.cpp
+build_mc_cert_key_data) while the card REPORTS 5F34 = 01 (from DPI EMB_PAN_SQ_NO). EMV Option-A diversifier
+(hsm.cpp emv_option_a_diversifier) includes the PSN in the rightmost-16 digits: PAN+PSN "…455000" (00) vs
+"…455001" (01) -> DIFFERENT UDK. The issuer host derives the validation key from PAN+PSN(5F34=01), so it
+computed a different key than our card used -> ARQC mismatch -> 88. Never caught locally (self-verify does
+SELECT/GPO/PIN, NOT GENERATE AC). The VISA path already derived with card.psn — MC was the odd one out.
+FIX (bpr.cpp b2a22e7, bureau sha 7e06b4a): build_mc_cert_key_data now takes psn and derives with the card's
+actual PSN = to_hex(cfg.record.panSeq), matching 5F34 + Visa. Local perso unaffected (local PSN default 00).
+STILL VERIFY with issuer (in case IMK also differs): the IMK-AC MASTER key our keystore holds must equal the
+issuer HSM's IMK-AC at DKI 01 — compare via KCV (share the 3-byte KCV, not the key). Card IAD: DKI=01 CVN=0x10.
+
 ## Still-open / watch on re-test (ground-truth checklist)
 1. Re-perso a card (over OMNIKEY, transport=pcsc) with the fixed engine → confirm the 0201
    record no longer contains a 0-length 5F25 (either absent, or a valid 3-byte date).
