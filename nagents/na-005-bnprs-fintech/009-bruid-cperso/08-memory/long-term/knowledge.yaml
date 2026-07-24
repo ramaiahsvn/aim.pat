@@ -1006,6 +1006,13 @@ pruning:
       NEXT (card-free): get real key -> load into keystore (keys/uat_keystore.txt label IMK-AC) verify KCV ->
       rebuild+deploy bureau -> THEN re-perso 1 card + re-test (kiosk MC cards are SCARCE, do not spend until the
       issuer IMK-AC KCV is confirmed matching). NEVER store key VALUES — KCV only. [[mem-034]]
+      UPDATE 2026-07-24: ISSUER CONFIRMED "all keys correct" -> KCV 82E136 IS the real UAT MC key (my placeholder
+      worry was wrong); key mismatch RULED OUT. Logic now points to the PSN fix as THE fix: with the key already
+      matching, the ARQC crypto-mismatch (88) could only come from a different derivation input = the PSN (card
+      keyed 00, reports 5F34=01). The fact 88 occurred PROVES the host derives with the reported 5F34 (else the
+      old 00-keyed card would have matched) -> our fix (derive with 5F34=01) now aligns card+host. Bureau 7e06b4a
+      (PSN fix) deployed. GREENLIT to spend 1 card: re-perso MC over OMNIKEY (real DPI) + POS tap -> expect NOT 88.
+      Residual-if-88-persists (unlikely, all standard): CVN 0x10 / EMV Option A / CDOL1 alignment.
     created_at: "2026-07-24"
     last_accessed: "2026-07-24"
     access_count: 1
