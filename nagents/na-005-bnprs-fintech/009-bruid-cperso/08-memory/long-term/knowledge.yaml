@@ -944,8 +944,20 @@ pruning:
       -Transport pcsc -Scheme mc -Commit (existing MC DPI) -> full secured card -> POS UAT sale test. TRADE-OFF:
       manual card insert, not automated feeder — validation/stopgap while Nuvia fixes the feeder block-wait.
       Batch cards are BOTH MC- and Visa-capable (bench-proven: MC 41/41, Visa 19/19; Visa's only heavy DGI is
-      9200 @927ms fast-clock). Bureau unchanged (clean f9dae096). Not yet run at the kiosk over PC/SC — awaiting
-      user. ---
+      9200 @927ms fast-clock). Bureau unchanged (clean f9dae096). PROVEN AT KIOSK 2026-07-24 (bureau S14): MC
+      perso over OMNIKEY (transport=pcsc) = 41/41 incl A004+A002, AD14 9000, GPO 9000, SECURED, complete=1
+      secured=1 -> full terminal-usable MC card produced at the kiosk. Prereqs that bit us: (1) SG 9099 allow-
+      list — kiosk IP is DYNAMIC (103.106.181.48 -> 103.80.12.217), add current IP to sg-061425921af1f1451;
+      (2) must run perso-kiosk-agent-pcsc.exe (old tls exe -> 'transport pcsc not available'); (3) trigger.ps1
+      -Transport ValidateSet needed 'pcsc'. --- POS UAT (2026-07-24, aeonpay/Sunmi com.mellon.aeonpay): card
+      DETECTED as MasterCard, MC AID A0000000041010 FINAL-SELECTED, PAN read 521372******4550, ATR 3BFE13 —
+      i.e. the card interoperates through app selection. BUT EMV txn terminated -4108 "data of card returns
+      error". Log ALSO shows POS-APP config bugs (not our card): CAPK load CRASHED — hexStr2Bytes
+      StringIndexOutOfBounds length=495 index=495 (odd-length CAPK hex) in CAPKsLoader.syncCAPKsToEMVKernel ->
+      NO CAPKs loaded into kernel; plus AID-config parse errors (convertToAid SIOOBE len=15) + toFils overflow
+      (00999999). QI/BIXAPP fallback failed = expected (card is MC-only). NEXT: POS/ITP team fix CAPK+AID tables,
+      re-test; if -4108 persists, capture the MC kernel card-APDU/tag trace to isolate POS-config vs our M/Chip
+      perso data; our side review M/Chip profile mandatory-tag completeness. ---
       2026-07-23 — DEFINITIVE kiosk root cause; CORRECTS the "first-E2 cold-start / positional window"
       theory in [[mem-033]]. A fully instrumented kiosk run (per-APDU tx bytes + DLL rc + LATENCY + sw, agent
       tp9k_v2) settled it. Only A004 (ICC PK-length alloc) and A002 (CRM, 119 B) fail 6985; ALL 39 other DGIs
