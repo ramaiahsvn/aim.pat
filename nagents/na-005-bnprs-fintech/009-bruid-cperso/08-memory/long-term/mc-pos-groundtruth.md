@@ -39,6 +39,22 @@ The working card carried a valid 3-byte 5F25.
 records 0201 (contact) + 0301 (contactless). When a real effective date is supplied the
 output is byte-identical to before.
 
+## UPDATE (v2 test, 2026-07-24) — 5F25 was a RED HERRING; real cause = 5F24 invalid date
+After the 5F25 omit fix, re-perso'd + re-tested: our record now omits 5F25, but STILL -4108.
+Re-diffed ours-now vs working (`_Pid1673_Tid0_v2.txt`). CAPK RULED OUT: the working card ALSO
+logs `tag9F22:EF -> 数据库中未找到匹配的CAPK` (no matching CAPK) yet passes read-app-data — so
+CA index / CAPK is an ODA concern, not the read-app-data -4108. The real discriminator, UNCHANGED
+between BOTH our failing cards but different on the working card, is the EXPIRY:
+  - OURS   5F24 = 360231  -> 2036-02-31  (Feb 31 = impossible date)
+  - WORKING 5F24 = 310331 -> 2031-03-31  (valid; March HAS 31 days -> slipped through)
+Root cause: engine hardcoded day 31 (`orchestrator.cpp` expiry_yymmdd, `perso-bureau/main.cpp:190`,
+`perso-live-visa/main.cpp:66` all did `yymm + "31"`). A strict Sunmi EMV L2 kernel VALIDATES the
+calendar date and aborts READ APPLICATION DATA with -4108 on an impossible date.
+FIX (bpr.cpp 4926599, bureau sha e7fe1e70): `seq::expiry_5f24(yymm)` -> YYMMDD with the real
+last-of-month day (Feb 28/29 leap-aware via yy%4==0 in the 20YY range; Apr/Jun/Sep/Nov=30; else 31).
+Unit-verified: 3602->360229, 3604->360430, 3702->370228, 3612->361231. Applied at all 3 sites.
+The 5F25-omit change stays (correct: never emit a 0-length date) — it was not the blocker.
+
 ## Still-open / watch on re-test (ground-truth checklist)
 1. Re-perso a card (over OMNIKEY, transport=pcsc) with the fixed engine → confirm the 0201
    record no longer contains a 0-length 5F25 (either absent, or a valid 3-byte date).
