@@ -1,0 +1,77 @@
+# task-003 — Visa POS approval (offline decline fixed; online-host vs offline-approve decision pending)
+# Deferred by user 2026-07-24 ("keep this action item to work on later"). Full analysis in
+# 08-memory/long-term/visa-pos-groundtruth.md. Do NOT re-derive — start from the decision below.
+
+task:
+  id: "task-003"
+  subject: "Get our Visa card to an APPROVED POS sale (decline root-cause fixed; needs host or offline-config)"
+  description: >
+    Our perso'd Visa (PAN 4177630223489082, AID A0000000031010) reads perfectly at the Sunmi/aeonpay
+    POS (read-app-data=0) but the terminal declined OFFLINE (Terminal Action Analysis requested AAC).
+    Computed root cause: the SOLE denial trigger was TVR byte2 0x10 "PIN required, PIN pad not
+    present/working" — the card's CVM list led with ONLINE PIN, impossible in an offline flow.
+    FIXED + DEPLOYED (see status below). Remaining work is a decision + follow-through, NOT the CVM.
+  status: in_progress        # CVM fix done+deployed; approval path decision pending
+  priority: high
+  created_at: "2026-07-24"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 4
+  tags: [visa, pos, emv, terminal-action-analysis, cvm, offline-vs-online, kiosk-dxb-014]
+
+# ---- DONE (do not redo) ----
+completed:
+  - id: "task-003.1"
+    what: >
+      CVM decline fixed. orchestrator.cpp:291 8E CVM list changed from online-PIN-first
+      (0000000000000000020542035E031F02) to offline-plaintext-PIN + No-CVM fallback
+      (000000000000000041031F00). Card PIN=1234 (self-verify VERIFY->9000). Removes the ONLY
+      TVR&Denial bit -> no more offline AAC decline.
+    proof: >
+      Bureau rebuilt aarch64 in local Docker (source ro) + redeployed to EC2 98.130.14.127
+      (i-00eb79ff8e9e1788b), systemd perso-bureau active, listening 9099, binary sha
+      9d64613d93455391 (NEW-CVM string present, OLD absent). Not yet committed to bpr.cpp git.
+
+# ---- PENDING ----
+pending:
+  - id: "task-003.2"
+    what: "Commit the CVM fix to bpr.cpp (ramaiahsvn token, clean commit, no Claude attribution)."
+    note: "Currently uncommitted local edit on main. Do when the fix is user-confirmed or on request."
+    priority: medium
+
+  - id: "task-003.3"
+    what: "Re-perso ONE Visa card over PC/SC (OMNIKEY) with the deployed bureau, tap at POS."
+    expect: >
+      CVM decline GONE; card advances PAST Terminal Action Analysis. On THIS terminal it will then
+      request ARQC (ONLINE) — because termOfflineFloorLmt=0 forces every txn online (floor-limit bit
+      is in TAC-Online). That is parity with the proven MC flow, NOT an offline approval.
+    priority: high
+    note: "User has FEW cards — only spend once the target path (3.4a or 3.4b) is chosen."
+
+  - id: "task-003.4"
+    what: "DECISION (user's call) — which approved-sale path for the Visa demo:"
+    options:
+      - "3.4a ONLINE (mirrors MC): needs a Visa auth host to validate our Visa ARQC — provision PAN
+         4177630223489082 + route Visa BIN to an issuer host; host must hold our Visa IMK-AC (KCV
+         944A44) at the right DKI. Card side READY (Visa already derives UDK with the card PSN — never
+         had MC's hardcoded-00 bug). Cross-ref MC host handoff in mc-pos-groundtruth.md."
+      - "3.4b OFFLINE approve: POS TEAM must RAISE the terminal offline floor limit (terminal-side, we
+         cannot perso it) AND we drop the AIP DDA claim (or ship fullOda=true + load our TEST CA on the
+         terminal at index 08) so DDA-failed/ICC-missing stop forcing online. Then terminal -> TC."
+    priority: high
+    blocked_by_external: "3.4a = issuer/host team; 3.4b = POS/terminal team (floor limit)."
+
+# ---- Guardrails ----
+guardrails:
+  - "User has very few MC/Visa cards at the kiosk — do NOT spend a card on a one-variable change that still fails; align the full path first."
+  - "PCI: test PANs only; no real cardholder data or key values committed; KCVs only (Visa IMK KCV 944A44)."
+  - "bpr.cpp push = ramaiahsvn token injected into remote URL then restore clean URL; clean commit (no Claude/Co-Authored-By)."
+  - "Bureau deploy = build aarch64 in local Docker (bpr.cpp source mounted RO, never on the instance); ship only the binary; deploy via EC2 Instance Connect (send-ssh-public-key + IMMEDIATE single ssh — the ~60s key window is timing-sensitive; a subshell/sleep between push and connect fails auth)."
+
+# ---- Cross-refs ----
+see_also:
+  - "08-memory/long-term/visa-pos-groundtruth.md — full Terminal Action Analysis computation + fix"
+  - "08-memory/long-term/mc-pos-groundtruth.md — MC online-host handoff (same shape as 3.4a)"
+  - "this agent task-002 (Visa perso — upstream; ODA cert 9F46/8F/90 still fullOda=false, relevant to 3.4b)"
+  - "bpr.cpp src/BprCardEmv/persoengine/src/orchestrator.cpp (visa_dgis fullOda flag, 8E CVM at :291)"

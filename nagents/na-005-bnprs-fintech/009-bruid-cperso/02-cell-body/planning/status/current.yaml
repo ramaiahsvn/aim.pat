@@ -5,7 +5,10 @@ session:
   started_at: null
   user_id: null
 
-active_tasks: []
+active_tasks:
+  - task_id: "task-003"
+    status: in_progress
+    current_step: "Visa POS: CVM offline-decline FIXED + bureau redeployed (sha 9d64613d). DEFERRED by user 2026-07-24. Resume at task-003.4 decision: online-host (3.4a) vs offline-approve (3.4b). See visa-pos-groundtruth.md."
 # - task_id: "task-001"
 #   status: in_progress
 #   progress: 60%

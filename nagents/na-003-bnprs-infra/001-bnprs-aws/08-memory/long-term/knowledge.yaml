@@ -347,3 +347,28 @@ pruning:
     confidence: 1.0
     source: "session-2026-07-19"
     tags: [mgate, bpr1002, india, ap-south-2, bootstrap, frankfurt-cleanup, acm, cost]
+
+  - id: mem-010
+    type: incident_learning
+    content: >-
+      2026-07-25: cPerso Windows build runner (i-03563f4ad6ca9abf0, patwin-runner /
+      mces2-win-build-runner) was found RUNNING 24/7 idle since 2026-07-17 (CPU ~0.13%),
+      triggering an AWS Cost Anomaly ($214 impact, ~$37/day, APS5 m5.4xlarge). ROOT CAUSE:
+      the auto-stop had been DISABLED in TWO places — (1) EventBridge rule
+      mces2-win-runner-idle-stop was DISABLED, and (2) Lambda win-runner-control had
+      ReservedConcurrentExecutions=0 (throttles ALL invokes incl. the rule's -> manual invoke
+      returns TooManyRequestsException "Rate Exceeded"). ROLLBACK (both required): `aws events
+      enable-rule --name mces2-win-runner-idle-stop` + `aws lambda delete-function-concurrency
+      --function-name win-runner-control`. Verified: idle-stop invoke returned 200
+      {"result":"idle-stop after 10714m"} and the box stopped. LESSON: reserved-concurrency=0 is
+      a silent Lambda kill-switch — check it (not just the rule State) when a scheduled Lambda
+      "does nothing". Also RESIZED the instance m5.4xlarge -> m5.large (user: "make it just
+      large"; 2 vCPU/8GB is ample for the MSBuild, ~8x cheaper/hr; resting state STOPPED so
+      on-run cost only). NOTE: this SUPERSEDES mem-005's instance-type (was m5.4xlarge). The AMI
+      ami-0c6054dcbf22e7214 is unchanged; only the live instance type changed.
+    created_at: "2026-07-25"
+    last_accessed: "2026-07-25"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-25"
+    tags: [windows-runner, cost-anomaly, auto-stop, eventbridge, lambda-reserved-concurrency, idle-stop, resize, m5.large, rollback, patwin-runner]

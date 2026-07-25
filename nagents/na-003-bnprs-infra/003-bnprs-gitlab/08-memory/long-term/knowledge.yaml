@@ -331,3 +331,79 @@ pruning:
   stale_after_days: 90
   min_confidence: 0.3
   strategy: "least_recently_used"
+
+  - id: mem-024
+    type: process_note
+    content: >-
+      2026-07-25: nagents PROD (bpr0000.bnprs.portal.iaac) was brought up in the ITP account
+      (819144294008, ap-south-2 Hyderabad) via DIRECT local `terraform apply` from a bp_rel checkout —
+      a STOPGAP, not the intended flow. PROPER DEPLOYMENT PATH (user-stated): merge an MR into the
+      target branch and let the GitLab CI pipeline auto-run terraform apply on merge (GitOps). Do NOT
+      keep deploying prod by hand. TWO FOLLOW-UPS OWED: (1) the session's IaC edits are UNCOMMITTED
+      local changes on top of bp_rel and MUST be committed + MR'd to bp_rel so the repo matches deployed
+      reality (else the next pipeline run drifts/reverts them). Edits: account-id 891963159778->819144294008
+      repo-wide; platform/prod openvpn_enabled=false + new var; alb-logs.tf -> ELB log-delivery SERVICE
+      principal (ap-south-2 has no legacy ELB account id); alb.tf tls_certificate_arn=null (HTTP-only);
+      frontend tfvars acm_certificate_arn=null; keycloak/prod tfvars filled (RDS pw, ALB-DNS stopgap
+      hostname, generated admin pw). (2) The app IMAGES/ASSETS come from the SEPARATE app repos' pipelines
+      (bpr0000.bnprs.erp/.projects backends -> ECR; .erp.web/.projects.web frontends -> S3), NOT from
+      portal.iaac. Deployed so far: platform (green) + erp-frontend (d393t8cl2frfgi.cloudfront.net) +
+      projects-frontend (d3gkxmmnojgivv.cloudfront.net). NOT deployed: keycloak (untested prod-only config,
+      fails on ecs/service module mismatch `command`), erp-hr-service + projects-backend (need ECR images).
+      Full deploy record + checklists in the session; cross-ref na-003/002 bnprs-aws-itp (account owner).
+    created_at: "2026-07-25"
+    last_accessed: "2026-07-25"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-25"
+    tags: [nagents-prod, portal-iaac, gitops, ci-driven-deploy, direct-apply-stopgap, uncommitted-edits, bp_rel, itp-account, ap-south-2, drift-risk]
+
+  - id: mem-025
+    type: architecture_decision
+    content: >-
+      2026-07-25 (user decision): nagents PROD uses the SHARED keycloak — do NOT deploy a per-platform
+      keycloak. The nagents portal.iaac repo has a services/keycloak module but it is NOT to be deployed
+      for prod (its per-platform-IdP design is superseded). Context: nagents UAT never ran its own keycloak
+      either — UAT apps authenticate against the shared keycloak at https://accounts-uat.itpgateway.com,
+      realm BNPRS-enterprise, which runs as `utms-keycloak` in the utms cluster (eu-central-1) on
+      Aurora-MYSQL. So there was never nagents-owned keycloak data to migrate, and a raw DB copy was
+      impossible anyway (utms keycloak = MySQL, nagents-prod RDS = Postgres). Using the shared IdP avoids
+      forking the BNPRS-enterprise realm. IMPLICATION: nagents-prod backends (erp-hr-service,
+      projects-backend) must set keycloak_issuer/jwks_url/admin_url/url to the PROD shared keycloak
+      (prod equivalent of accounts-uat.itpgateway.com — e.g. accounts.itpgateway.com; confirm the prod
+      hostname/realm with the shared-keycloak/utms owner). Their prod tfvars currently hold FILL_ME for these.
+      Local uncommitted edits made while attempting the keycloak deploy are now MOOT and can be discarded:
+      modules/ecs/service `command` support (main.tf + variables.tf) and services/keycloak/prod
+      alb-target-group.tf try() fix; the keycloak/prod tfvars were scrubbed back to FILL_ME. No keycloak
+      resources were ever created in nagents-prod. [[mem-024]]
+    created_at: "2026-07-25"
+    last_accessed: "2026-07-25"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-25"
+    tags: [keycloak, shared-idp, no-per-platform-keycloak, utms-keycloak, BNPRS-enterprise, accounts-itpgateway, nagents-prod, architecture-decision, mysql-vs-postgres]
+
+  - id: mem-026
+    type: technical_knowledge
+    content: >-
+      2026-07-25: nagents-prod BOTH backends deployed + functional in ITP/ap-south-2 (schemas in the shared
+      `nagents` DB). projects-backend: Go binary AUTO-MIGRATES on start (logs "migrations applied") -> just
+      deploy, healthy. erp-hr-service (hr-service Go binary): does NOT self-migrate and has NO migrate
+      subcommand (passing `migrate` is ignored -> it just serves). Its schema is managed by PRISMA
+      (prisma/schema.prisma + prisma/migrations/*.sql, provider postgresql, prisma ^5.22.0) in the
+      bpr0000.bnprs.erp repo — normally a CI step. To apply out-of-band: clone bpr0000.bnprs.erp @ the
+      deployed image commit, build a `prisma migrate deploy` image (MUST be Debian e.g. node:20-slim +
+      openssl — node:20-ALPINE fails: "Could not parse schema engine response / failed to detect libssl"),
+      push to prod ECR, run as a one-off Fargate task with DATABASE_URL secret (…?schema=erp&sslmode=require,
+      url-encoded pw) + the RDS-allowed nagents-prod-openvpn-sg. Applied 83 migrations -> erp-hr then seeds
+      + healthy. Reusable: task-def nagents-prod-erp-migrate, exec role nagents-prod-dbinit-exec, schema-init
+      pattern (CREATE SCHEMA erp/sprints via one-off postgres task). Also fixed erp prod tfvars: s3_bucket
+      must be hr-documents (not erp-uploads); projects db_name=nagents + db_schema=sprints (not sprints/"").
+      Backends reuse shared secrets from UAT (keycloak client secret, SES SMTP) + shared keycloak
+      accounts-uat.itpgateway.com/BNPRS-enterprise. Fresh DBs (no UAT data migrated). [[mem-024]] [[mem-025]]
+    created_at: "2026-07-25"
+    last_accessed: "2026-07-25"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-25"
+    tags: [nagents-prod, erp-hr-service, prisma-migrate, projects-backend, one-off-fargate-task, debian-not-alpine, schema-per-app, backends-deployed, ap-south-2]
