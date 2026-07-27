@@ -4,14 +4,30 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: technical_knowledge
+    content: >-
+      2026-07-27 — TRANSPORT DIAGNOSTICS in the library (env-gated, no effect on the perso sequence; 95/95
+      tests green). Two card transports now emit comparable per-APDU evidence, which is what lets us argue a
+      transport fault to a vendor with data rather than assertion:
+        - PC/SC (src/card_bprpcsc.cpp): PCSC_APDU_TIMING=1 -> latency summary (len/INS/DGI/lat/sw, no card
+          data); PCSC_APDU_TRACE=1 -> FULL C-APDU/R-APDU hex + gap= + lat= + timestamp. TRACE prints
+          cardholder + key material, so it is off by default, prints a one-time warning banner, and is for
+          test/dummy data only (PCI, core directive 3).
+        - TP9000 feeder (BprPcSc/tp9k/tp9k_v2.cpp, Windows-only): always-on per-APDU tx/rx bytes + rc + lat,
+          now plus gap= and a post-final-APDU timing line at eject/reject/close.
+      Both wrap ONLY the card exchange (SCardTransmit / IC_Input), never the network to the bureau — that
+      distinction is what proved the 6985s were on-card time, not host or link latency. The mingw glog shim
+      (persoengine/scripts/mingw/glog/logging.h) now timestamps every line HH:MM:SS.mmm; real glog already did.
+      WHY IT EXISTS: bruid-iperso mem-017/018 — the Pointman TP9000's DLL clips APDUs that take ~4 s, so the
+      two slowest M/Chip DGIs (A004, A002) fail 6985 at the feeder while identical bytes pass on a desktop
+      reader. Keep this instrumentation: any future transport seam (feeder, kiosk, remote) will need the same
+      lat/gap evidence to separate a card problem from a reader problem.
+    created_at: "2026-07-27"
+    last_accessed: "2026-07-27"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.98
+    source: "session-2026-07-27"
+    tags: [apdu-instrumentation, pcsc-apdu-trace, pcsc-apdu-timing, tp9k-v2-logging, glog-shim-timestamps, pci-gated, transport-vs-card-diagnosis, nuvia-escalation]
 
   # Example entries:
   # - id: mem-002

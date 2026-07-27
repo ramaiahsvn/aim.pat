@@ -981,6 +981,13 @@ pruning:
       changes) -> escalate with the evidence; NEED the deployed TP9000.dll VERSION (Properties->Details). Ref:
       Nuvia TPK DLL spec in bpr.cpp/docs; IC_Input has NO timeout param, IC_PowerOnEx nMode {0 none,1 ISO,2 EMV}.
       [[mem-033]] [[mem-032]]
+      --- UPDATE 2026-07-27 (escalation moves to the transport owner, bruid-iperso mem-017/mem-018): Nuvia
+      replied to the ticket asking for (a) the time elapsed AFTER the final APDU under normal operation and
+      (b) a VISA card run through the HID/desktop reader with the entire APDU log — they read our evidence as
+      "Visa failed / MasterCard passed". WRONG PREMISE: both sides of our comparison were MasterCard (A004 and
+      A002 are M/Chip DGIs, absent from a Visa perso); reply corrects it and asks which log file/timestamp they
+      hold. Instrumentation built for both answers (timestamps, gap= vs lat=, post-final-APDU->eject timing,
+      full APDU byte trace on the PC/SC path via PCSC_APDU_TRACE=1); 4-run evidence matrix pending kiosk time.
     created_at: "2026-07-23"
     last_accessed: "2026-07-23"
     access_count: 1

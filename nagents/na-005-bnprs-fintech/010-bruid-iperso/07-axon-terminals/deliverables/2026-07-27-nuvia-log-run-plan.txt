@@ -1,0 +1,81 @@
+BNPRS perso-kiosk-agent — NUVIA EVIDENCE BUILD + RUN PLAN (2026-07-27)
+======================================================================
+Purpose: produce the four logs Nuvia asked for, in one comparable format.
+They asked for (a) the time elapsed after the FINAL APDU under normal
+operation, and (b) a Visa card driven through the desktop (HID/OMNIKEY)
+reader, with the ENTIRE APDU log.
+
+WHAT'S NEW IN THESE EXES
+  1. Every log line now carries an absolute timestamp HH:MM:SS.mmm.
+  2. Every APDU line reports gap=<ms> — host-side idle since the previous
+     exchange returned — alongside the existing lat=<ms> (the IC_Input /
+     SCardTransmit call itself).
+  3. The feeder agent logs the time from the FINAL APDU to Card_EjectEx /
+     Card_Control(reject) / IC_PowerOff, and how long the eject call took.
+     That is Nuvia's question 1, measured.
+  4. The PC/SC agent can now log FULL C-APDU and R-APDU BYTES (previously
+     only length + INS + latency), so a desktop log and a feeder log can be
+     diffed line for line. Gated behind PCSC_APDU_TRACE=1.
+
+  PCI — READ THIS: the byte trace contains whatever the perso stream carries
+  (PAN, track 2, PIN block, DEK-wrapped keys). Run these four tests with a
+  TEST/DUMMY DPI and test keys only. Treat the logs as cardholder data until
+  they are confirmed clean; check before sending anything to Nuvia.
+
+CONTENTS
+  perso-kiosk-agent-tp9000.exe   feeder transport, TLS. No WinSCard import.
+  perso-kiosk-agent-pcsc.exe     desktop PC/SC transport, TLS. Never loads TP9000.dll.
+  start-agent-tp9000.cmd         runs the feeder agent, appends stderr -> kiosk-tp9000.log
+  start-agent-pcsc.cmd           runs the PC/SC agent with PCSC_APDU_TRACE=1 -> kiosk-pcsc.log
+  trigger.ps1                    unchanged (-Transport tp9000|pcsc, -Scheme visa|mc, -Reader, -Commit)
+  SHA256SUMS.txt                 integrity hashes
+
+  Reuse your existing certs\ folder (kiosk-KIOSK-DXB-014.pem/.key, ca.pem) and
+  keep TP9000.dll next to the feeder exe as before. Nothing there changes.
+
+BEFORE YOU START
+  - The bureau security group allows only the kiosk's CURRENT public IP on
+    9099. The kiosk IP is dynamic — confirm it still connects (a preflight
+    run is enough) before spending cards.
+  - Cards are scarce. A run that fails mid-stream does NOT secure the card,
+    and the bureau does DELETE + INSTALL at the start, so a failed card can
+    normally be re-used. A run that reaches SECURED cannot.
+
+THE FOUR RUNS
+  Each run: start the matching agent, trigger once, then keep the log file.
+  Rename each log immediately so they don't overwrite each other.
+
+  A. MasterCard over the FEEDER          (expected: A004 + A002 -> 6985)
+       start-agent-tp9000.cmd
+       .\trigger.ps1 -Transport tp9000 -Scheme mc -Commit -DpiFile dpi-test.b64
+       rename kiosk-tp9000.log -> A-mc-feeder.log
+
+  B. MasterCard over the OMNIKEY         (expected: 41/41, card secured)
+       insert card in the OMNIKEY, then start-agent-pcsc.cmd
+       .\trigger.ps1 -Transport pcsc -Reader OMNIKEY -Scheme mc -Commit -DpiFile dpi-test.b64
+       rename kiosk-pcsc.log -> B-mc-omnikey.log
+
+  C. Visa over the OMNIKEY               (the run Nuvia asked for)
+       insert a fresh card in the OMNIKEY, then start-agent-pcsc.cmd
+       .\trigger.ps1 -Transport pcsc -Reader OMNIKEY -Scheme visa -Commit -DpiFile dpi-test.b64
+       rename kiosk-pcsc.log -> C-visa-omnikey.log
+
+  D. Visa over the FEEDER                (the matching pair for C)
+       start-agent-tp9000.cmd
+       .\trigger.ps1 -Transport tp9000 -Scheme visa -Commit -DpiFile dpi-test.b64
+       rename kiosk-tp9000.log -> D-visa-feeder.log
+
+WHAT WE EXPECT (and what would change the diagnosis)
+  Visa's one heavy command is DGI 9200 — about 0.9 s on the desktop reader.
+  At the feeder's ~4x slower clock that lands near 3.5-4 s, the same zone
+  where MasterCard's A004/A002 fail. So run D is expected to fail at 9200
+  with 6985 while run C passes.
+    - If D fails at 9200: confirms the fault tracks COMMAND DURATION, not
+      card scheme or data — exactly what we told Nuvia.
+    - If D passes completely: the scheme does matter and our clock/block-wait
+      explanation is incomplete — send the logs before drawing conclusions.
+
+SEND TO NUVIA
+  All four logs, plus the ATR line from each (the feeder reports 3B6E...,
+  no TA1; the desktop reader reports 3BFE13..., TA1=0x13 — same card platform).
+  Point them at the gap= / lat= columns and the "+Nms after last APDU" line.

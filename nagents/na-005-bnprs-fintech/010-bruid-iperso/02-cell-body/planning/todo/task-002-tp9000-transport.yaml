@@ -164,7 +164,17 @@ subtasks:
       were macOS, so a Windows core build is new); (2) live feeder behaviour — feed, ATR, IC_Input RX sizing
       (512B), IC_PowerOnEx EMV-mode T=0/T=1, eject; (3) no PC/SC double-open contention. NEXT: run the runbook
       on the Windows perso host with a TP9000 + fresh OP_READY UAT card; capture stdout to this subtask.
-    status: step1_passed_step2_exe_delivered   # 2026-07-21 — STEP 1 ✅ transport validated on real hardware
+    status: blocked_on_vendor   # 2026-07-27 — SUPERSEDED BY THE BENCH RESULT, see mem-017: the transport works
+                      # mechanically but the feeder CANNOT complete the two slowest APDUs. MC over the feeder =
+                      # 39/41 (A004 3557 ms + A002 4029 ms -> 6985); identical bytes over a desktop PC/SC reader
+                      # = 41/41 + SECURED. Root cause is the feeder's slow clock (ATR has no TA1) overrunning
+                      # IC_Input's fixed block-wait, which does not honor the card's WTX. All software levers are
+                      # exhausted and reverted clean (ISO mode, dummies/re-send/delay, PC/SC hybrid = proven dead).
+                      # FIX BELONGS TO NUVIA (DLL 4.1.4.7). Escalation open; they replied 2026-07-27 asking for
+                      # post-final-APDU timing + a Visa-through-HID log — see task-002.7. The kiosk runs on the
+                      # PC/SC workaround agent meanwhile (proven 2026-07-24, bureau S14).
+                      # --- ORIGINAL 2026-07-21 NOTE BELOW (step 1 hardware validation, still true) ---
+                      # STEP 1 ✅ transport validated on real hardware
                       # (TeamViewer probe: TP9000.dll loaded; IC_PowerOnEx nMode=2 -> ATR 3B6E00008031...9000; SELECT
                       # MC A000000004000000 -> 9000 + full 103B FCI; eject OK => whole Tp9000Channel path works).
                       # BITNESS: the passing probe was the WIN64 exe (user confirmed) -> the kiosk TP9000.dll is 64-BIT.
@@ -211,6 +221,26 @@ open_questions:
   - "RESOLVED: contact-only — the TP9000.dll RF module is Mifare-block-only (no T=CL APDU pipe)."
   - "OPEN: TP9000.dll bitness + version on the perso host (x86/x64) — must match the host process (spec is rev 4.1.2.5; confirm deployed DLL)."
   - "OPEN: T=0 vs T=1 and max APDU/RX buffer through IC_Input — use IC_PowerOnEx nMode=2 (EMV) for protocol negotiation; affects 61xx/6Cxx + extended length."
+
+  - id: "task-002.7"
+    subject: "Nuvia escalation — supply the evidence they asked for (post-final-APDU timing + Visa-through-HID log)"
+    detail: >
+      2026-07-27: Nuvia replied to the block-wait ticket asking for (1) the time elapsed AFTER the final APDU
+      transmission under normal operating conditions, and (2) a log of a VISA card driven through the HID
+      (desktop OMNIKEY) reader, with the ENTIRE APDU trace — they read our evidence as Visa-fails vs
+      MasterCard-passes. That premise is WRONG (both sides of our comparison were MasterCard; A004/A002 are
+      M/Chip DGIs), so the reply corrects it AND asks which log file/timestamp they hold, since we did run
+      Visa at the kiosk in earlier sessions. Instrumentation for both answers is BUILT (mem-018): absolute
+      timestamps, gap= (host idle) beside lat= (the IC_Input/SCardTransmit call alone), post-final-APDU ->
+      eject timing on the feeder, and a full byte trace on the PC/SC path behind PCSC_APDU_TRACE=1.
+      REMAINING (kiosk hardware + cards): run the 4-run matrix per the run plan — A MC/feeder, B MC/OMNIKEY,
+      C Visa/OMNIKEY, D Visa/feeder — with a TEST/DUMMY DPI (the byte trace contains card data), then send
+      the four logs. Watch run D: Visa's heavy DGI 9200 (~927 ms fast-clock) should land ~3.5-4 s at the
+      feeder and fail 6985 like A004/A002 — that would prove the fault tracks command DURATION, not scheme.
+      Artifacts: 07-axon-terminals/deliverables/2026-07-27-nuvia-reply-draft.html (reply, unsent) +
+      2026-07-27-nuvia-log-run-plan.txt; Windows package ~/Downloads/perso-kiosk-agent-NUVIA-LOGS-2026-07-27.
+    status: awaiting_kiosk_runs   # 2026-07-27 — exes + reply drafted; blocked on kiosk hardware time + cards.
+    priority: high
 
 # ---- Guardrails ----
 guardrails:

@@ -535,6 +535,73 @@ memories:
     source: "session-2026-07-22b"
     tags: [print-magstripe-output, result-output, instant-issuance-handoff, iso7813-tracks, success-gated, pci-transient-no-log, bureau-redeployed, agent-exe-updated, csharp-sample-updated, output-schema-doc, derivation-followon-to-library]
 
+  - id: mem-017
+    type: project_context
+    content: >-
+      TP9000 FEEDER = BLOCKED ON THE VENDOR; PC/SC IS THE WORKING KIOSK PATH. (Detail of record lives in
+      bruid-cperso mem-034 — this entry is the TRANSPORT owner's copy, since 010 owns the TP9000 path.)
+      2026-07-23/24: over the feeder, only the two SLOWEST APDUs fail — MC DGI A004 (3557 ms) and A002
+      (4029 ms) -> 6985, while all 39 others (<1.3 s each) -> 9000. Same card, same bytes over a desktop
+      PC/SC reader = 41/41. Mechanism: the TP9000 resets the card at its DEFAULT SLOW clock (feeder ATR
+      3B6E0000... carries NO TA1; desktop ATR 3BFE13... has TA1=0x13, Di=4 ~4x faster), so those two
+      overrun IC_Input's fixed EMV block-wait and the DLL returns 6985 WITHOUT honoring the card's WTX
+      S-blocks (the card DOES send them — "RCV_SBLCK" in the DLL's own log). ALL SW-side levers exhausted
+      and REVERTED CLEAN: dummy E2 / re-send / pre-delay (disproved the positional-window theory), ISO mode
+      nMode=1 (ATR byte-identical, still no TA1, broke T=1 — bpr.cpp f409157), and the PC/SC HYBRID (DLL for
+      mechanics + winscard for APDUs) which is PROVEN DEAD — with the card fully powered by the DLL,
+      SCardListReaders returns NO_READERS_AVAILABLE at every step; the GemCore never presents via Windows
+      PC/SC (bpr.cpp b6a86c1). NEVER call IC_CheckPCSC (returns -1, can wedge SCardSvr -> reboot). Deployed
+      DLL is 4.1.4.7 = NEWER than our spec (4.1.2.5), so "upgrade the DLL" is not the fix.
+      WORKAROUND IN PRODUCTION USE: perso-kiosk-agent-pcsc.exe drives a fixed desktop reader (OMNIKEY
+      CardMan 5x21) over winscard and never loads TP9000.dll — PROVEN AT THE KIOSK 2026-07-24 (bureau S14):
+      MC 41/41 incl. A004+A002, AD14 9000, GPO 9000, SECURED. Trade-off: manual card insert, no feeder
+      automation. Gotchas: kiosk public IP is DYNAMIC (re-add it to SG sg-061425921af1f1451:9099), must use
+      the pcsc exe, trigger.ps1 needs 'pcsc' in its ValidateSet.
+      ESCALATION STATE 2026-07-27: ticket sent (~/Downloads/Nuvia-TP9000-IC-blockwait-support-request.md);
+      Nuvia replied asking (1) the time elapsed AFTER the final APDU under normal operation and (2) a VISA
+      card run through the HID/desktop reader plus a COMPLETE APDU log — they believe the failing log was
+      Visa while the passing one was MasterCard. THAT PREMISE IS WRONG: both sides of our comparison were
+      MasterCard (A004/A002 are M/Chip DGIs and do not exist in a Visa perso); asked them for the file name
+      + timestamp of the log they hold, since we did run Visa at the kiosk in earlier sessions.
+      Reply + 4-run evidence plan (MC/feeder, MC/OMNIKEY, Visa/OMNIKEY, Visa/feeder) in this agent's
+      deliverables: 2026-07-27-nuvia-reply-draft.html + 2026-07-27-nuvia-log-run-plan.txt.
+      PREDICTION to test in run D: Visa's only heavy command is DGI 9200 (~927 ms on the fast-clock desktop
+      reader) -> ~3.5-4 s at the feeder clock -> should fail 6985 the same way. If it does, the fault tracks
+      COMMAND DURATION, not scheme. If Visa passes the feeder cleanly, the clock explanation is incomplete.
+      [[mem-015]]
+    created_at: "2026-07-27"
+    last_accessed: "2026-07-27"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-27"
+    tags: [tp9000-blocked-on-nuvia, a004-a002-6985, latency-not-content, feeder-slow-clock-no-ta1, wtx-not-honored, iso-mode-failed, pcsc-hybrid-dead, ic-checkpcsc-wedges-scardsvr, dll-4147, pcsc-omnikey-workaround-proven, mc-41-of-41-secured, kiosk-ip-dynamic, nuvia-reply-2026-07-27, visa-vs-mc-premise-wrong, four-run-evidence-plan, dgi-9200-prediction]
+
+  - id: mem-018
+    type: technical_knowledge
+    content: >-
+      2026-07-27 — EVIDENCE-BUILD instrumentation added to answer Nuvia (bpr.cpp, library side owned by
+      cpp-card-emv 003). THREE changes, all diagnostic-only, no perso-sequence change (95/95 tests green):
+      (1) mingw glog shim now stamps every line HH:MM:SS.mmm (real glog already did) so absolute times are
+      readable off the kiosk log; (2) tp9k_v2 logs gap=<ms> (host-side idle since the previous exchange)
+      next to the existing lat=<ms> (the IC_Input call alone), and eject/reject/close now log "+N ms after
+      last APDU" plus the eject call's own duration — that IS Nuvia's question 1, measured; (3) the PC/SC
+      path (card_bprpcsc.cpp) gained a FULL C-APDU/R-APDU byte trace behind PCSC_APDU_TRACE=1 (it only had
+      len+INS+lat under PCSC_APDU_TIMING=1), same line shape as the feeder trace so the two logs diff
+      line-for-line — that is what makes Nuvia's "entire log with the APDU" answerable on the HID reader.
+      PCI: the byte trace prints PAN/track2/PIN block/DEK-wrapped keys, so it is env-gated, prints a warning
+      banner when enabled, and the run plan mandates a TEST/DUMMY DPI. Windows package (TLS, x86_64 mingw
+      static, stripped) delivered to ~/Downloads/perso-kiosk-agent-NUVIA-LOGS-2026-07-27: tp9000 exe sha
+      bd44097c..., pcsc exe sha 6a5f49e2..., + start-agent-*.cmd (stderr redirect + env var pre-set),
+      trigger.ps1, README = the run plan. Note the static mingw OpenSSL is NOT kept on disk between sessions
+      — it was rebuilt from source (openssl-3.0.16, Configure mingw64 no-shared no-tests no-asm) to make the
+      TLS exes; budget ~10 min for that step next time. [[mem-017]] [[mem-003]]
+    created_at: "2026-07-27"
+    last_accessed: "2026-07-27"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-27"
+    tags: [apdu-byte-trace, pcsc-apdu-trace-env, timestamps-in-glog-shim, gap-and-lat, post-final-apdu-timing, eject-timing, pci-gated-trace, mingw-tls-build, openssl-rebuild-needed, nuvia-evidence-package]
+
 # Pruning rules
 pruning:
   max_entries: 500
