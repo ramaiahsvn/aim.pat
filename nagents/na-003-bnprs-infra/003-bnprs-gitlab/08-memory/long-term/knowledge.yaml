@@ -325,12 +325,40 @@ memories:
     confidence: 1.0
     tags: [incident, tls, letsencrypt, cert-expiry, renew-le-certs, node-attributes, reconfigure, outage, cron, ephemeral-layer]
 
-# Pruning rules
-pruning:
-  max_entries: 500
-  stale_after_days: 90
-  min_confidence: 0.3
-  strategy: "least_recently_used"
+  - id: mem-027
+    type: operation
+    content: >-
+      2026-07-28: Created group "BPR2002 - QiTalab" (path BPR2002, group ID 309, private) + its SIX projects
+      for the QiTalab food-ordering platform: 251 bpr2002.qitalab.miniapp.customer (Customer Mini-App),
+      252 bpr2002.qitalab.miniapp.courier (Courier Mini-App), 253 bpr2002.qitalab.pos (Restaurant POS,
+      Android), 254 bpr2002.qitalab.portal (Merchant Portal, web), 255 bpr2002.qitalab.ops (Ops Console, web),
+      256 bpr2002.qitalab.api (Backend API). NOTE the BPR2002 group did NOT exist before this — members.yaml
+      still references "BPR2002/bpr2002.misc.dev-playground" as the template project, which is STALE.
+      Each project follows the org bootstrap exactly ([[mem-022]]): create with README on master ->
+      commit .gitlab-ci.yml (workflow rule merge_request_event + include BPR1000/ci-templates:approval-check.yml,
+      stage review) -> branch bp_dev/bp_rel/ai_dev from master -> DELETE then re-POST protection on all four
+      (push 40 / merge 40 / allow_force_push false; the DELETE matters because GitLab auto-protects the default
+      branch at creation and POST alone would conflict) -> MR settings remove_source_branch_after_merge +
+      only_allow_merge_if_pipeline_succeeds. VERIFIED by re-reading the API afterwards, not by trusting the
+      create calls: all 6 projects show 4 branches, 40/40/no-force on each, both MR settings true.
+      MEMBERS added at GROUP level (inherited by all six, so a new project in this group needs no member work):
+      Maintainer(40) charan uid 6, doddamurali uid 4; Developer(30) suneelvalavala34 18, Santoshkumar 16,
+      VenkatBorusu 20, venkatesh1117 19, chiranjeevinarukula 7, vamsikrishna 26, krishnavamsi 17.
+      NAME-RESOLUTION notes for future requests (the roster's first names are ambiguous): "krishna" ->
+      doddamurali (Murali Krishna Dodda, krishna@bnprs.in) — same identification as the BPR1003 op, NOT
+      krishnavamsi/satya_krishna/vamsikrishna, all of which also match a "krishna" search; "santhosh" ->
+      Santoshkumar (spelled Santosh, so a "santhosh" search returns NOTHING); "vamshikrisha" -> vamsikrishna
+      (Vamsi Krishna Perumalla); "venkat" -> VenkatBorusu vs "venkatesh" -> venkatesh1117. Resolve by EMAIL
+      via admin GET /users?search= before adding anyone.
+      Per-group roles here DIFFER from the global roster: VenkatBorusu, venkatesh1117, chiranjeevinarukula and
+      krishnavamsi are Maintainers in members.yaml but Developers in BPR2002 — per-group intent wins.
+    created_at: "2026-07-28"
+    last_accessed: "2026-07-28"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-28"
+    tags: [project-create, BPR2002, qitalab, group-309, six-projects, protected-branches, group-level-members, ci-template, name-resolution-gotchas, members-yaml-stale]
+
 
   - id: mem-024
     type: process_note
@@ -407,3 +435,10 @@ pruning:
     confidence: 1.0
     source: "session-2026-07-25"
     tags: [nagents-prod, erp-hr-service, prisma-migrate, projects-backend, one-off-fargate-task, debian-not-alpine, schema-per-app, backends-deployed, ap-south-2]
+
+# Pruning rules
+pruning:
+  max_entries: 500
+  stale_after_days: 90
+  min_confidence: 0.3
+  strategy: "least_recently_used"
