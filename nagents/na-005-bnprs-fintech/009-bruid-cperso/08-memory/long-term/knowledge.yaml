@@ -116,12 +116,6 @@ memories:
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
 
-# Pruning rules
-pruning:
-  max_entries: 500
-  stale_after_days: 90
-  min_confidence: 0.3
-  strategy: "least_recently_used"
 
   - id: mem-011
     type: technical_knowledge
@@ -1026,3 +1020,48 @@ pruning:
     confidence: 0.9
     source: "session-2026-07-24"
     tags: [mc-pos-uat, response-88-crypto-error, imk-ac-placeholder-82E136, need-real-uat-mc-imk, key-exchange-issuer, zmk-a85de2, dki-01-cvn-10, emv-option-a, psn-5f34-vs-00, kcv-only, draft-in-downloads, kiosk-cards-scarce, load-key-rebuild-retest]
+
+  - id: mem-036
+    type: project_context
+    content: >-
+      2026-07-28 — MC POS UAT: ARQC/keys now CORRECT (88 gone), decline is now 05 = "Incorrect ICVV/CVV" —
+      ROOT CAUSE FOUND AND FIXED: the CHIP's tag 57 was carrying the MAGSTRIPE CVV1. Host trace (SALE, MC card,
+      BIN 521372): FLD39=05, and the 0210 carries FLD55 91 (issuer auth data = ARPC + ARC 0000), i.e. the host
+      derived the same session key and VALIDATED our ARQC (9F26) — so the mem-035 PSN fix + the issuer's keys
+      are confirmed good and crypto is OFF the suspect list. Host team's own words: "Incorrect ICVV/CVV".
+      MECHANISM: EMV requires the chip's Track 2 Equivalent Data to carry the iCVV — the CVV computed with the
+      service code forced to 999 — which DIFFERS BY DESIGN from the stripe's CVV1 (that difference is the
+      anti-cloning control the issuer checks). perso-bureau was setting r.track2 = the DPI's ENC_TRACK_2_DATA
+      VERBATIM (the magstripe track, CVV1), while the DPI's separate ICVV field (listed in every bureau
+      "secure fields" log line; PURE embossing layout offset 407) was PARSED BUT NEVER READ by the engine. So
+      every card we have personalized carries the stripe CVC on the chip.
+      SECOND DEFECT found in the same place: the returned MAGSTRIPE output was rebuilt from components with an
+      EMPTY discretionary (build_perso_output used track2Disc, not the DPI track) — visible in the last kiosk
+      payload as track2 ";<PAN>=3603201?" with NO PVKI/PVV/CVC. A stripe encoded from that would fail too.
+      FIX (bpr.cpp, cpp-card-emv 003 owns the code): new seq::track2_with_icvv() substitutes ONLY the 3 CVC
+      digits of <PAN>D<YYMM><svc><PVKI 1><PVV 4><CVC 3><filler>, and THROWS on any unexpected layout or a
+      non-3-digit iCVV rather than silently writing a wrong CVC — it throws BEFORE the first APDU, so the card
+      is rejected untouched and no card is wasted. Wired into both schemes: perso-bureau reads ICVV and applies
+      it to the MC record; orchestrator::track2() now uses the DPI's full track when present (Visa previously
+      REBUILT it from components -> zero discretionary -> no CVC at all, so Visa cards had the same class of
+      defect) then substitutes. Magstripe output now derives from the DPI's real track and KEEPS CVV1 (stripe)
+      while only the chip gets the iCVV. Synthetic/test path unchanged (both fields empty -> original code).
+      98/98 tests green (3 new KATs incl. the fail-loud cases).
+      OPEN / TO CONFIRM WITH THE BUREAU-ISSUER before spending a card: (a) the DPI's ICVV field is the 3-digit
+      chip value — the PURE embossing layout allots it 5 chars, and if it arrives as 5 digits our code will
+      (deliberately) refuse and the run will fail with a clear message; (b) the CVC really sits at discretionary
+      digits 6-8 (PVKI+PVV first) for this issuer. THEN: rebuild + redeploy the bureau to the EC2, re-perso ONE
+      card, re-tap. NEVER store the ICVV/CVV values anywhere. [[mem-035]] [[mem-034]]
+    created_at: "2026-07-28"
+    last_accessed: "2026-07-28"
+    access_count: 1
+    confidence: 0.93
+    source: "session-2026-07-28"
+    tags: [mc-pos-uat, fld39-05, incorrect-icvv, arqc-validated-arpc-returned, keys-confirmed-good, chip-track2-must-carry-icvv, dpi-icvv-field-unused, magstripe-output-missing-discretionary, track2-with-icvv, fail-loud-no-card-wasted, visa-same-defect, bureau-redeploy-pending, confirm-icvv-layout]
+
+# Pruning rules
+pruning:
+  max_entries: 500
+  stale_after_days: 90
+  min_confidence: 0.3
+  strategy: "least_recently_used"
