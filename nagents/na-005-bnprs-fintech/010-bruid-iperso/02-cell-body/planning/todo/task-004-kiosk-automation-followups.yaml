@@ -1,0 +1,102 @@
+# Task — follow-ups after the kiosk feeder automation was proven (2026-07-28)
+#
+# Context: transport tp9000-pcsc personalized full cards at the kiosk, hopper to secured, no manual card
+# insertion — MC 42/42 incl A004+A002 (bureau S5) and Visa 19/19 incl 9200 (S3). See mem-019 + task-002.8.
+# These are the loose ends that remain. Picked up 2026-07-29.
+
+task:
+  id: "task-004"
+  subject: "Kiosk automation follow-ups — unattended operation, vendor evidence, UAT close-out"
+  description: >
+    The automated path works, but it is not yet safe to run UNATTENDED (the hopper holds a mix of card types
+    and the scheme is chosen by hand), the Nuvia ticket should be re-aimed at the much stronger evidence we
+    now have, and the UAT environment has costs and a POS test still open.
+  status: pending
+  priority: high
+  created_at: "2026-07-28"
+  source: "session 2026-07-28 — kiosk automation proven; user: work on this tomorrow"
+  tags: [kiosk, iperso, tp9000-pcsc, unattended, nuvia, uat-closeout, pos-test]
+
+subtasks:
+  - id: "task-004.1"
+    subject: "Auto-detect the card manager so -Scheme need not be chosen per card"
+    detail: >
+      THE BLOCKER FOR UNATTENDED OPERATION. The hopper is a MIX: some cards are MasterCard-manager-only,
+      some are multi-app. Bureau S4 died at the FIRST APDU ([ISD] SELECT A000000003000000 failed) purely
+      because an MC-only card was asked for the Visa CM. Unattended, that fails on roughly every card of the
+      wrong type. FIX: before selecting a scheme, probe the card manager — SELECT A000000004000000 (MC) and
+      A000000003000000 (Visa) and pick the scheme from whichever answers 9000; fail cleanly if neither does.
+      Belongs in the bureau (it already drives the sequence and knows both flows), with the trigger's -Scheme
+      becoming an optional OVERRIDE rather than a required choice. Also decide what happens when a card
+      supports both: prefer the scheme the DPI implies (PAN BIN) over a fixed default.
+    status: pending
+    priority: high
+
+  - id: "task-004.2"
+    subject: "Make tp9000-pcsc the kiosk app's default transport + hand the integration to the kiosk team"
+    detail: >
+      The kiosk main app still launches the agent and triggers with the old transport. Switch the default to
+      tp9000-pcsc (with -Reader "SYNIC", -ContactsOn true), update the C# sample + trigger docs, and tell the
+      kiosk team what changed. Keep pcsc (manual OMNIKEY) documented as the fallback if the feeder is down,
+      and keep the plain tp9000 transport available only for Nuvia diagnostics.
+    status: pending
+    priority: high
+
+  - id: "task-004.3"
+    subject: "Identify what 'SYNIC Smart Card Reader 0' actually is"
+    detail: >
+      Either a separate encoder unit in the card path, or the TP9000's own GemCore exposed over USB-CCID.
+      Both work, but the answer matters for the Nuvia ticket: if it IS the GemCore, then their own module
+      completes the ~4 s APDUs correctly whenever Windows drives it, which localizes the defect entirely in
+      IC_Input's block-wait. Check Device Manager (USB CCID vs a distinct vendor device), the machine's
+      hardware inventory, and whether the reader disappears when the printer is powered down.
+    status: pending
+    priority: medium
+
+  - id: "task-004.4"
+    subject: "Rewrite + send the Nuvia reply with the new evidence"
+    detail: >
+      The drafted reply (07-axon-terminals/deliverables/2026-07-27-nuvia-reply-draft.html, UNSENT) answers
+      their two questions — post-final-APDU timing, and a Visa log through the desktop reader — and corrects
+      their assumption that the failing log was Visa while the passing one was MasterCard (both were MC;
+      A004/A002 are M/Chip DGIs). It now needs re-aiming: the four-run matrix matters less than the fact that
+      the SAME cards in the SAME machine complete the SAME APDUs at 9000 when the OS CCID stack drives the
+      chip. That rules out the card, the module and the clock, and leaves IC_Input's fixed block-wait. Keep
+      the asks (honor T=1 WTX, expose a BWT/timeout, or negotiate PPS). Depends on task-004.3 for the
+      strongest phrasing. Any APDU log sent to them must come from a TEST/DUMMY DPI — never real cardholder
+      data.
+    status: pending
+    priority: medium
+
+  - id: "task-004.5"
+    subject: "POS-tap a feeder-produced card + get a pool of test PANs"
+    detail: >
+      The iCVV fix is proven at the POS on an OMNIKEY-produced card; tap the S5 (feeder-produced) card to
+      close the loop. BLOCKED until the issuer clears the stored ATC baseline for that PAN — a re-personalized
+      card restarts its counter at 0, the host still holds the previous card's high-water mark, and a lower
+      ATC reads as a clone (response 04 / pick-up). ALSO ASK for a small pool of test PANs (a few DPIs): every
+      re-perso of one PAN needs a manual host reset, and failed-auth flags accumulate on the account. A pool
+      removes a host round-trip from every iteration. See bruid-cperso mem-036.
+    status: blocked_on_issuer
+    priority: medium
+
+  - id: "task-004.6"
+    subject: "UAT close-out: bureau EC2 teardown + the dynamic-IP problem"
+    detail: >
+      (a) The UAT bureau EC2 i-00eb79ff8e9e1788b (t4g.small, ap-south-2, 98.130.14.127) is still running and
+      still billing — terminate it, plus SG sg-061425921af1f1451 and the key pair, when UAT closes.
+      (b) The kiosk's public IP is DYNAMIC and has moved three times in five days (103.106.181.48 ->
+      103.80.12.217 -> 103.80.15.13). Each move silently blocks the kiosk on 9099 and presents as a HANG
+      (the trigger just times out), which has now cost debugging time twice. Fix properly: a static IP for the
+      kiosk, or allow the ISP range on 9099, or have the agent report a connect failure distinctly from a
+      timeout. (c) Port 22 on that SG is closed again; re-open per mem-014 when the bureau needs managing —
+      the private key is GONE, so access is via EC2 Instance Connect with a 60-second key.
+    status: pending
+    priority: medium
+
+# ---- Cross-agent ----
+see_also:
+  - "this agent mem-019 (tp9000-pcsc proven) + mem-017/018 (the DLL blocker + the evidence instrumentation)"
+  - "task-002.8 (the delivered transport) + task-002.7 (Nuvia evidence runs)"
+  - "bruid-cperso mem-036 (iCVV fix, POS 05 cleared) + mem-034 (the DLL root cause; its 'PC/SC hybrid dead' line is superseded by mem-019)"
+  - "cpp-card-emv (003) task-001.7 — move the print/magstripe output builder out of the bureau app into bpr::emv::dprep + the C ABI"
