@@ -4,14 +4,43 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: technical_knowledge
+    content: >-
+      2026-07-28 — GND central-perso script: C ABI + Windows x86/x64 DLLs + Java (jnr-ffi) binding
+      (bpr.cpp 5133063, src/BprScripts/QiScript/gnd/capi/).
+      WHY: qiscript_central_perso() returns std::vector<std::string> and is C++-mangled — unusable from
+      Java/C#/Python. The ABI is handle-based: qignd_central_perso(...) -> opaque handle, then
+      qignd_count / qignd_length / qignd_get / qignd_free, plus qignd_version. Error codes pass through
+      from the engine (0 ok, -300 general, -301 invalid keys, -302 embdata parse, -303/-304 empty
+      CARD_ID/CARD_NUM) plus -390 for a null/negative argument caught at the boundary.
+      KEY FACTS LEARNED:
+      (1) the GND script is PURE COMPUTATION — no PC/SC calls at all, so it cross-builds anywhere. The
+      /usr/local/include/PCSC line in gnd/CMakeLists.txt is VESTIGIAL (and is a native-Pi path, implying
+      that CMake file expects to be built ON the Pi).
+      (2) Exports must be UNDECORATED for FFI. cdecl + MinGW gives plain names on BOTH bitnesses
+      (verified: qignd_* with no _name@n on x86); build-win.sh asserts this because an x86 stdcall build
+      would silently break every jnr-ffi/P-Invoke lookup.
+      (3) DLL bitness must match the JVM (sun.arch.data.model) — mismatch fails at LOAD time.
+      (4) jnr-ffi needs more than the one jar: jnr-ffi + jffi + jffi:-native (the plain jffi jar has NO
+      stub -> "could not locate stub library in jar file") + ASM (asm, -commons, -analysis, -tree, -util)
+      or NoClassDefFoundError org/objectweb/asm/ClassVisitor. Maven pulls these transitively; a manual
+      classpath does not.
+      (5) On this Mac the JDK (temurin-8) is x86_64 under Rosetta, so a local test dylib must be built
+      -arch x86_64 (or universal) or dlopen refuses it.
+      VERIFIED: javac -Xlint:all clean on JDK 8; full Java -> jnr-ffi -> C ABI -> C++ path exercised
+      against a macOS build of the same ABI (version string marshals; invalid licence -> QiGndException
+      -301). NOT verified: the success path — needs a real qiCode licence + a genuine embossing record,
+      and the DLLs have not been run on Windows yet.
+      PCI: generated APDUs embed personalisation data — the Demo prints lengths, not bytes, by default.
+      Package: ~/Downloads/QiGndPerso-java-2026-07-28 (both DLLs + import libs + jar + sources jar +
+      header + README). Ownership note: QiScript belongs to THIS agent (004), not cpp-card-qi (002) —
+      002 owns BprCardQi only.
+    created_at: "2026-07-28"
+    last_accessed: "2026-07-28"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.98
+    source: "session-2026-07-28"
+    tags: [qiscript, gnd, c-abi, jnr-ffi, java-binding, windows-dll, mingw-cross, undecorated-exports, bitness-must-match-jvm, jffi-native-jar, asm-jars, pure-computation-no-pcsc, success-path-untested]
 
   # Example entries:
   # - id: mem-002
