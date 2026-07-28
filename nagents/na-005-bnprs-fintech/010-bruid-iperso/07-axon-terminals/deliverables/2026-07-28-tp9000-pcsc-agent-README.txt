@@ -7,23 +7,24 @@ exactly that: the TP9000 DLL feeds and positions the card, and the APDUs go out
 over a Windows PC/SC reader.
 
 *** RUN THE PROBE FIRST — 2 MINUTES, NO CARD SPENT ***
-There is one hard precondition, and it is not something software can decide.
+The precondition is that a Windows PC/SC reader can see the card once the machine
+has positioned it. The probe settles that on your hardware. It is READ-ONLY: feeds
+a card, lists the readers visible at each step, connects, reads the ATR, sends one
+harmless SELECT, and ejects. It never writes to the chip.
 
-  The TP9000's OWN chip module (the GemCore behind the Nuvia DLL) does NOT present
-  itself to Windows as a PC/SC reader. We proved this on this machine: with a card
-  fed and powered by the DLL, SCardListReaders returned NO_READERS_AVAILABLE at
-  every step. That module is also the one whose block-wait clips A004/A002.
-
-  So this transport works ONLY if the machine has a SEPARATE encoder unit in the
-  card path that Windows enumerates as a smart-card reader. The probe tells you
-  whether it does, on your hardware, in one run. It is READ-ONLY: it feeds a card,
-  lists the readers visible at each step, tries to connect, reads the ATR, sends
-  one harmless SELECT, and ejects. It never writes to the chip.
+  WHAT WE KNOW SO FAR ON THIS MACHINE (probe run 2026-07-28):
+  "SYNIC Smart Card Reader 0" IS enumerated, consistently, before and after a card
+  is fed. The first probe run could not connect ("Card was removed" = the reader is
+  there but its slot reads empty) because it deliberately engaged neither the
+  contacts nor the power. The contacts have to be landed for any reader to see the
+  chip — hence --contacts-on. What must NEVER happen is IC_PowerOnEx: that is what
+  seizes the chip for the DLL and makes the readers vanish (the July 23 finding).
 
   Put a card in the hopper, then double-click run-probe.cmd (or run it from a
   prompt). It saves everything to probe.log — send us that file.
 
-     run-probe.cmd                 (same as: tp9000-pcsc-probe.exe)
+     run-probe.cmd --contacts-on   <- START HERE on this machine
+     run-probe.cmd                 (no contacts: expect "slot empty")
 
   If your encoder needs the card moved somewhere specific first, add moves (they
   run in order, values are Card_Control options from the Nuvia spec):
@@ -32,11 +33,13 @@ There is one hard precondition, and it is not something software can decide.
      run-probe.cmd --move 0x31:2:1 --move 0x33 (change feeder location, then entry)
      run-probe.cmd --no-eject                  (leave the card in place to look at it)
 
-  It ends with a VERDICT line:
+  It ends with a VERDICT line, one of three:
     - "CAN drive the chip over PC/SC" + a reader name -> use that name below.
-    - "NO separate encoder is visible" -> no software will fix this. The options
-      are then: keep the manual desktop reader, fit an encoder unit into the card
-      path, or wait for Nuvia to fix the IC_Input block-wait.
+    - "reader IS present, but its slot reads EMPTY" -> re-run with --contacts-on
+      (or, if contacts were already on, that reader is not the module holding this
+      card: try positioning moves and a longer --settle).
+    - "NO PC/SC reader is visible at all" -> no software will fix it. Options are
+      the manual desktop reader, an encoder unit in the card path, or Nuvia's fix.
 
   Send us the probe output either way — it is the fact we need.
 
@@ -54,14 +57,19 @@ IF THE PROBE PASSES — RUNNING THE AGENT
 
   Then trigger a card (Moves/Reader are whatever the probe told you):
      .\trigger.ps1 -Transport tp9000-pcsc -Scheme mc -Commit -DpiFile dpi.b64 ^
-        -Reader "<reader name from the probe>" -Moves "0x33" -SettleMs 800
+        -Reader "SYNIC" -SettleMs 800
+
+  -ContactsOn defaults to $true (land the contacts, never power the chip via the
+  DLL). Pass -ContactsOn $false only if the encoder is a separate unit that holds
+  the card itself. -Moves is only needed if the card must be repositioned first.
 
   Preflight first (non-destructive, proves feed + connect + ISD auth):
-     .\trigger.ps1 -Transport tp9000-pcsc -Scheme mc -Reader "<name>" -Moves "0x33"
+     .\trigger.ps1 -Transport tp9000-pcsc -Scheme mc -Reader "SYNIC"
 
 WHAT THE TRANSPORT DOES, STEP BY STEP
-  1. TP9000: feed a card from the hopper (only if one is not already inside).
-  2. TP9000: run your -Moves in order (Card_Control).
+  1. TP9000: feed a card from the hopper (only if one is not already inside), and
+     land the IC contacts (-ContactsOn, default on) WITHOUT powering the chip.
+  2. TP9000: run your -Moves in order (Card_Control), if any.
   3. Wait -SettleMs so the encoder sees the card seated.
   4. PC/SC: connect to the reader, negotiate the protocol, power the chip. This is
      the OS CCID stack — it honors the card's WTX and its fast clock, which is why
@@ -78,7 +86,7 @@ CONTENTS
   tp9000-pcsc-probe.exe          the read-only go/no-go probe described above
   start-agent-hybrid.cmd         starts the agent, stderr -> kiosk-hybrid.log
   run-probe.cmd                  runs the probe, output -> probe.log (send us this)
-  trigger.ps1                    adds -Transport tp9000-pcsc, -Moves, -SettleMs
+  trigger.ps1                    adds -Transport tp9000-pcsc, -Moves, -SettleMs, -ContactsOn
   SHA256SUMS.txt                 integrity hashes
 
   Keep TP9000.dll next to the exes, and reuse your existing certs\ folder.
