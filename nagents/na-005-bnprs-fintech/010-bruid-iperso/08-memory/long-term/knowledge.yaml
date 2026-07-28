@@ -468,6 +468,24 @@ memories:
       (test keys + test certs; PROD = HSM-backed bureau + real PKI); SG scoped to the current kiosk WAN IP
       (update the rule if it changes); teardown = terminate i-00eb79ff8e9e1788b + delete sg + key pair when
       done. [[mem-008]] [[mem-013]]
+      --- ACCESS RECOVERY (2026-07-28, important): the perso-bureau-key.pem private key is GONE — it lived in a
+      Claude session scratchpad, which is cleared between sessions, so NEVER assume it is still there. The
+      instance has NO IAM instance profile, so SSM is not available either. WORKING RECOVERY PATH, no key
+      needed: (1) `aws --profile bnprs ec2 authorize-security-group-ingress --group-id sg-061425921af1f1451
+      --region ap-south-2 --protocol tcp --port 22 --cidr <your current IP>/32` (the standing rule points at
+      the STALE 49.238.33.227); (2) ssh-keygen a throwaway key; (3) `aws --profile bnprs ec2-instance-connect
+      send-ssh-public-key --instance-id i-00eb79ff8e9e1788b --region ap-south-2 --availability-zone
+      ap-south-2b --instance-os-user ubuntu --ssh-public-key file://<pub>`; (4) ssh/scp with the throwaway key
+      WITHIN 60 SECONDS — the pushed key expires that fast, so re-send it before EVERY ssh/scp invocation;
+      (5) revoke the port-22 rule afterwards. Ubuntu 24.04 AMI ships ec2-instance-connect, which is what makes
+      this work. Also: `strings` is NOT installed on the instance — verify a shipped binary against the local
+      copy (hashes match) instead.
+      --- REDEPLOY 2026-07-28 (iCVV fix, bpr.cpp fce6601): rebuilt arm64 in Docker ubuntu:24.04 with the source
+      mounted READ-ONLY (build dir /tmp inside the container, since /src is ro), deps = cmake g++ libssl-dev
+      libpugixml-dev libgoogle-glog-dev nlohmann-json3-dev libgtest-dev, target perso-bureau only. Shipped
+      binary sha256 42aab776...905c (aarch64 ELF), previous binary preserved as perso-bureau.bak-pre-icvv.
+      systemctl daemon-reload + restart -> active, listening 0.0.0.0:9099 TLS mutual auth. NOTE the unit file
+      had been edited on disk without a daemon-reload at some earlier point — reload before restarting.
     created_at: "2026-07-22"
     last_accessed: "2026-07-22"
     access_count: 1

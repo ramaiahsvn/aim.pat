@@ -1050,8 +1050,12 @@ memories:
       OPEN / TO CONFIRM WITH THE BUREAU-ISSUER before spending a card: (a) the DPI's ICVV field is the 3-digit
       chip value — the PURE embossing layout allots it 5 chars, and if it arrives as 5 digits our code will
       (deliberately) refuse and the run will fail with a clear message; (b) the CVC really sits at discretionary
-      digits 6-8 (PVKI+PVV first) for this issuer. THEN: rebuild + redeploy the bureau to the EC2, re-perso ONE
-      card, re-tap. NEVER store the ICVV/CVV values anywhere. [[mem-035]] [[mem-034]]
+      digits 6-8 (PVKI+PVV first) for this issuer. DEPLOYED 2026-07-28: bureau rebuilt (arm64, Docker, source
+      mounted ro) and LIVE on the EC2 — binary sha 42aab776...905c, previous kept as perso-bureau.bak-pre-icvv,
+      service active listening 9099 TLS. REMAINING: re-perso ONE card and re-tap at the POS; expect the 05 to
+      clear. If the DPI's ICVV is not 3 digits the run FAILS FAST with "sequencer: iCVV must be 3 digits"
+      BEFORE any APDU — the card is rejected untouched and nothing is wasted, and that message IS the layout
+      answer. NEVER store the ICVV/CVV values anywhere. [[mem-035]] [[mem-034]]
     created_at: "2026-07-28"
     last_accessed: "2026-07-28"
     access_count: 1
