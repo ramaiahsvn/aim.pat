@@ -3,22 +3,29 @@
 #   .\trigger.ps1 -Transport tp9000                            -> preflight over the feeder (reads a real card)
 #   .\trigger.ps1 -Transport tp9000 -Commit -DpiFile dpi.b64   -> LIVE Visa perso (destructive)
 #   .\trigger.ps1 -Transport tp9000 -Commit -Scheme mc -DpiFile dpi.b64  -> LIVE MasterCard perso (destructive)
-# -Scheme selects the card scheme: visa (VSDC, default) | mc (M/Chip Advance). Needs an MC card in the feeder.
+#   .\trigger.ps1 -Transport pcsc  -Commit -Scheme mc -DpiFile dpi.b64   -> LIVE perso over a desktop PC/SC reader
+#   .\trigger.ps1 -Transport pcsc  -Reader OMNIKEY -Commit -Scheme mc -DpiFile dpi.b64  -> pin a specific reader
+# -Scheme selects the card scheme: visa (VSDC, default) | mc (M/Chip Advance). Needs an MC card in the feeder/reader.
+# -Reader (pcsc only) is a case-insensitive substring of the PC/SC reader name; empty = auto-pick a contact reader.
 # On a SUCCESSFUL live perso the bureau returns result.output with print + magstripe details for card production.
 param(
-  [ValidateSet('mock','tp9000')][string]$Transport = 'mock',
+  [ValidateSet('mock','tp9000','pcsc','tp9000-pcsc')][string]$Transport = 'mock',
   [ValidateSet('visa','mc')][string]$Scheme = 'visa',
   [switch]$Commit,
   [string]$DpiFile,
+  [string]$Reader = '',
+  [string]$Moves = '',          # tp9000-pcsc: Card_Control moves to the encoder, e.g. '0x33' or '0x31:2:1,0x33'
+  [int]$SettleMs = 800,        # tp9000-pcsc: pause after the last move before the reader is enumerated
+  [bool]$ContactsOn = $true,   # tp9000-pcsc: land the feeder's IC contacts before connecting (still no IC_PowerOnEx)
   [string]$HardwareId = 'KIOSK-DXB-014',
   [int]$Port = 9098
 )
 $dpi = ''
 if ($DpiFile) { if (Test-Path $DpiFile) { $dpi = (Get-Content -Raw $DpiFile).Trim() } else { Write-Host "DPI file not found: $DpiFile" -Foreground Red; exit 1 } }
-$req = @{ dpiB64=$dpi; hardwareId=$HardwareId; transport=$Transport; scheme=$Scheme; inputType= if($Commit){'dpi'}else{'none'}; commit=[bool]$Commit } | ConvertTo-Json -Compress
+$req = @{ dpiB64=$dpi; hardwareId=$HardwareId; transport=$Transport; scheme=$Scheme; reader=$Reader; moves=$Moves; settleMs=$SettleMs; contactsOn=$ContactsOn; inputType= if($Commit){'dpi'}else{'none'}; commit=[bool]$Commit } | ConvertTo-Json -Compress
 try {
   $c = New-Object System.Net.Sockets.TcpClient; $c.Connect('127.0.0.1',$Port)
-  $s = $c.GetStream(); $c.ReceiveTimeout = 130000
+  $s = $c.GetStream(); $c.ReceiveTimeout = 300000
   $w = New-Object System.IO.StreamWriter($s); $w.NewLine="`n"; $w.AutoFlush=$true; $w.WriteLine($req)
   $r = New-Object System.IO.StreamReader($s); $line = $r.ReadLine(); $c.Close()
   Write-Host "REQUEST : $req" -Foreground DarkGray
