@@ -620,6 +620,37 @@ memories:
     source: "session-2026-07-27"
     tags: [apdu-byte-trace, pcsc-apdu-trace-env, timestamps-in-glog-shim, gap-and-lat, post-final-apdu-timing, eject-timing, pci-gated-trace, mingw-tls-build, openssl-rebuild-needed, nuvia-evidence-package]
 
+  - id: mem-019
+    type: milestone
+    content: >-
+      2026-07-28 — THE PC/SC HYBRID IS ALIVE AFTER ALL: the kiosk CAN drive the chip over Windows PC/SC while
+      the TP9000 handles card mechanics. This CORRECTS the "PC/SC hybrid dead" conclusion in bruid-cperso
+      mem-034 — that test was invalid because it had the DLL POWER the chip (IC_PowerOnEx), which seizes it
+      exclusively and makes every reader vanish (SCardListReaders -> NO_READERS). The working recipe is
+      between the two extremes we had tried: LAND THE CONTACTS (IC_ContactOn) but NEVER POWER (no
+      IC_PowerOnEx) — then Windows keeps the electrical session and powers the card itself.
+      EVIDENCE (bureau S4, transport=tp9000-pcsc): "card opened, ATR=3BFE130000100080318066B0840C016E018300
+      9000" — that is the FAST-CLOCK ATR (TA1=0x13), byte-identical to what the desktop OMNIKEY reports, vs
+      the feeder's own slow 3B6E ATR (no TA1). So the card is on the OS CCID stack at full clock, which is
+      exactly what A004/A002/9200 need; the Nuvia block-wait is bypassed rather than fixed.
+      ALSO SETTLED: "SYNIC Smart Card Reader 0" is REAL and always enumerated (an earlier session dismissed it
+      as transient). A probe run with neither contacts nor power gets SCardConnect "Card was removed" = reader
+      present, slot empty — that is NOT the same as no reader, and the first version of my probe wrongly
+      reported it as a dead end (fixed, bpr.cpp 7645ec0).
+      DELIVERED: transport "tp9000-pcsc" (feeder feeds/positions/ejects, BprPcScChannel does the APDUs) +
+      tp9000-pcsc-probe (read-only go/no-go) + -ContactsOn (default TRUE) / -Moves / -SettleMs on trigger.ps1;
+      package ~/Downloads/perso-kiosk-agent-TP9000-PCSC-2026-07-28.
+      STILL TO PROVE: a full MC card over this path (S4 died at the FIRST APDU — [ISD] SELECT
+      A000000003000000 failed because the hopper card was MasterCard-manager-only and the run asked for Visa;
+      0/0 DGIs, card untouched). The prize is A004+A002 -> 9000 over tp9000-pcsc; that would take the Nuvia
+      DLL fix off the critical path for issuance entirely. [[mem-017]] [[mem-018]]
+    created_at: "2026-07-28"
+    last_accessed: "2026-07-28"
+    access_count: 1
+    confidence: 0.95
+    source: "session-2026-07-28"
+    tags: [tp9000-pcsc-works, corrects-hybrid-dead, contacts-on-never-power, fast-clock-atr-3bfe13, synic-reader-real, card-removed-not-no-readers, probe-verdict-fixed, feeder-automation-restored, mc-run-still-to-prove, nuvia-off-critical-path-if-proven]
+
 # Pruning rules
 pruning:
   max_entries: 500
