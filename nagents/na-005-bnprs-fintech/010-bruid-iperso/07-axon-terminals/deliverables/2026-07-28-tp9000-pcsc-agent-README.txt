@@ -20,16 +20,17 @@ There is one hard precondition, and it is not something software can decide.
   lists the readers visible at each step, tries to connect, reads the ATR, sends
   one harmless SELECT, and ejects. It never writes to the chip.
 
-  Put a card in the hopper, then:
+  Put a card in the hopper, then double-click run-probe.cmd (or run it from a
+  prompt). It saves everything to probe.log — send us that file.
 
-     tp9000-pcsc-probe.exe
+     run-probe.cmd                 (same as: tp9000-pcsc-probe.exe)
 
   If your encoder needs the card moved somewhere specific first, add moves (they
   run in order, values are Card_Control options from the Nuvia spec):
 
-     tp9000-pcsc-probe.exe --move 0x33                 (feeder card entry)
-     tp9000-pcsc-probe.exe --move 0x31:2:1 --move 0x33 (change feeder location, then entry)
-     tp9000-pcsc-probe.exe --no-eject                  (leave the card in place to look at it)
+     run-probe.cmd --move 0x33                 (feeder card entry)
+     run-probe.cmd --move 0x31:2:1 --move 0x33 (change feeder location, then entry)
+     run-probe.cmd --no-eject                  (leave the card in place to look at it)
 
   It ends with a VERDICT line:
     - "CAN drive the chip over PC/SC" + a reader name -> use that name below.
@@ -44,10 +45,12 @@ IF THE PROBE PASSES — RUNNING THE AGENT
   same bureau, same trigger interface) with one new transport: tp9000-pcsc.
   It still supports mock, tp9000 and pcsc, so it is a drop-in replacement.
 
-  Start it exactly as before, e.g.
-     perso-kiosk-agent-hybrid.exe --bureau-host 98.130.14.127 --bureau-port 9099 ^
-        --tls --cert certs\kiosk-KIOSK-DXB-014.pem --key certs\kiosk-KIOSK-DXB-014.key ^
-        --ca certs\ca.pem  2>> kiosk-hybrid.log
+  Start it with start-agent-hybrid.cmd (same bureau, token and certs as your
+  current start script; stderr is appended to kiosk-hybrid.log).
+
+  NOTE the start script does NOT set PCSC_APDU_TRACE. With real cardholder data
+  that trace would put PAN / track 2 / PIN block in the log. Turn it on only for a
+  vendor-log run on a TEST/DUMMY DPI.
 
   Then trigger a card (Moves/Reader are whatever the probe told you):
      .\trigger.ps1 -Transport tp9000-pcsc -Scheme mc -Commit -DpiFile dpi.b64 ^
@@ -73,6 +76,8 @@ WHAT THE TRANSPORT DOES, STEP BY STEP
 CONTENTS
   perso-kiosk-agent-hybrid.exe   agent with mock + tp9000 + pcsc + tp9000-pcsc (TLS, static)
   tp9000-pcsc-probe.exe          the read-only go/no-go probe described above
+  start-agent-hybrid.cmd         starts the agent, stderr -> kiosk-hybrid.log
+  run-probe.cmd                  runs the probe, output -> probe.log (send us this)
   trigger.ps1                    adds -Transport tp9000-pcsc, -Moves, -SettleMs
   SHA256SUMS.txt                 integrity hashes
 
