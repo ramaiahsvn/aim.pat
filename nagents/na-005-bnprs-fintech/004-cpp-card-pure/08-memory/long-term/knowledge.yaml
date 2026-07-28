@@ -55,6 +55,47 @@ memories:
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
 
+  - id: mem-002
+    type: technical_knowledge
+    content: >-
+      2026-07-28 — Bpr.QiScript JNI for WINDOWS x86+x64 (bpr.cpp 08735ce, src/BprScripts/QiScript/gnd/jni/).
+      THE DELIVERY FORMAT THE CUSTOMER EXPECTS is the layout in ~/Downloads/v2.22.31 (the existing LINUX
+      delivery): libBpr.QiScript.so + com/bnprs/jni/qiScript.java + com_bnprs_jni_qiScript.h + ErrorCodes +
+      qiscript.ini + qiscript.c.perso-bio.dat. It is JNI, NOT jnr-ffi — an earlier attempt this session built
+      a jnr-ffi/C-ABI binding (mem-001) before this folder surfaced; that work still stands as the C ABI, but
+      the SHIPPING interface is JNI.
+      CONTRACT (kept byte-compatible so the app swaps .so -> .dll and changes nothing):
+      class com.bnprs.jni.qiScript, System.loadLibrary("Bpr.QiScript"), native int qiCardTransmit(byte[]
+      embData, char[] cardNum, int cnSize, int offset, char[] crName, int crSize, int chipProtocal).
+      NOTE the native side DOES THE CARD I/O (crName is a PC/SC reader name) — it is not just script
+      generation: read licence from qiscript.ini -> qiscript_central_perso() -> SCardConnect(reader) ->
+      transmit each APDU requiring 9000 (61xx chained via GET RESPONSE, 6Cxx reissued) -> return 0 or a code.
+      Error codes: -300..-320 from the script builder, -401 init (ini missing/empty), -402 establish-context,
+      -444 card rejected, plus raw SCARD_E_* as large negatives (e.g. -2146435063 unknown reader,
+      -2146435060 no card, -2146435026 no readers).
+      NO SOURCE EXISTED for the .so anywhere in bpr.cpp — the Windows port was written from the documented
+      contract, and its PC/SC includes are conditional so the SAME source now builds the Windows DLL, the
+      Linux/Pi .so and a macOS dylib.
+      TWO TRAPS THAT FAIL SILENTLY:
+      (1) JNICALL is __stdcall, so an x86 build exports ...qiCardTransmit@36 and the JVM's plain-name lookup
+      MISSES -> link with -Wl,--add-stdcall-alias so BOTH names are exported (verified on the x86 DLL).
+      (2) a JDK ships one jni_md.h PER PLATFORM; the host macOS/darwin copy is wrong for a Windows target
+      (SysV convention, no dllexport) -> vendored win32 jni_md.h in mingw-jni/, FIRST on the include path.
+      Also: DLL bitness must match the JVM (sun.arch.data.model), not the machine — a 64-bit Windows box
+      commonly runs a 32-bit JVM.
+      VERIFIED with the customer's OWN licence + embossing data: the unchanged qiScript.java drove a macOS
+      build of this source through licence acceptance + script generation + SCardEstablishContext, stopping
+      at -2146435063 (no OMNIKEY attached here). NOT verified: the card transaction, and the DLLs have not
+      run on Windows. PCI/keys: qiscript.ini holds the licence key and *.dat is embossing data — both are
+      .gitignored in the repo; never commit or log them, and never log the generated APDUs.
+      Package: ~/Downloads/QiScript-windows-2026-07-28 (both DLLs + java + header + ErrorCodes + README).
+    created_at: "2026-07-28"
+    last_accessed: "2026-07-28"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-28"
+    tags: [qiscript, gnd, jni, windows-dll, x86-x64, stdcall-alias, jni-md-per-platform, bitness-vs-jvm, pcsc-card-io, error-codes, so-to-dll-dropin, customer-delivery-format, licence-in-ini, card-txn-untested]
+
 # Pruning rules
 pruning:
   max_entries: 500
