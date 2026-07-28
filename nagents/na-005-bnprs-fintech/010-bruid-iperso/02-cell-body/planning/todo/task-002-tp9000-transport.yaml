@@ -164,7 +164,12 @@ subtasks:
       were macOS, so a Windows core build is new); (2) live feeder behaviour — feed, ATR, IC_Input RX sizing
       (512B), IC_PowerOnEx EMV-mode T=0/T=1, eject; (3) no PC/SC double-open contention. NEXT: run the runbook
       on the Windows perso host with a TP9000 + fresh OP_READY UAT card; capture stdout to this subtask.
-    status: blocked_on_vendor   # 2026-07-27 — SUPERSEDED BY THE BENCH RESULT, see mem-017: the transport works
+    status: superseded_by_tp9000_pcsc   # 2026-07-28 — the feeder's own IC_Input path is still broken, but it is
+                      # NO LONGER ON THE CRITICAL PATH: the tp9000-pcsc transport (task-002.8, mem-019) does the
+                      # mechanics with the DLL and the APDUs over the OS CCID stack, and personalized full cards
+                      # at the kiosk — MC 42/42 incl A004+A002 (bureau S5) and Visa 19/19 incl 9200 (S3), both
+                      # SECURED. Nuvia's fix is now a quality item, not a blocker.
+                      # --- 2026-07-27 BENCH RESULT (why the DLL path is broken), see mem-017: the transport works
                       # mechanically but the feeder CANNOT complete the two slowest APDUs. MC over the feeder =
                       # 39/41 (A004 3557 ms + A002 4029 ms -> 6985); identical bytes over a desktop PC/SC reader
                       # = 41/41 + SECURED. Root cause is the feeder's slow clock (ATR has no TA1) overrunning
@@ -240,6 +245,28 @@ open_questions:
       Artifacts: 07-axon-terminals/deliverables/2026-07-27-nuvia-reply-draft.html (reply, unsent) +
       2026-07-27-nuvia-log-run-plan.txt; Windows package ~/Downloads/perso-kiosk-agent-NUVIA-LOGS-2026-07-27.
     status: awaiting_kiosk_runs   # 2026-07-27 — exes + reply drafted; blocked on kiosk hardware time + cards.
+                      # 2026-07-28: LOWER URGENCY (issuance is unblocked via tp9000-pcsc) but MORE valuable as
+                      # evidence: the same cards, in the same machine, complete the same ~4 s APDUs at 9000 when
+                      # the OS CCID stack drives the chip instead of IC_Input. Fold that into the reply.
+    priority: medium
+
+  - id: "task-002.8"
+    subject: "tp9000-pcsc transport — feeder mechanics + OS CCID chip access (DELIVERED + PROVEN)"
+    detail: >
+      The kiosk needed hopper-to-card automation without the DLL's block-wait. Transport tp9000-pcsc: the
+      TP9000 feeds/positions/ejects and LANDS THE CONTACTS, but never calls IC_PowerOnEx, so Windows keeps the
+      electrical session and powers the card over the CCID stack ("SYNIC Smart Card Reader 0"), which honors
+      WTX and the card's TA1 fast clock. Card opens with ATR 3BFE13... (TA1=0x13), not the feeder's slow 3B6E.
+      Shipped: transport + tp9000-pcsc-probe (read-only go/no-go) + trigger.ps1 -ContactsOn/-Moves/-SettleMs
+      (bpr.cpp 1038089, 7645ec0; package ~/Downloads/perso-kiosk-agent-TP9000-PCSC-2026-07-28).
+      PROVEN 2026-07-28 at the kiosk: MC 42/42 incl A004+A002 SECURED (bureau S5), Visa 19/19 incl 9200
+      SECURED (S3). This supersedes the "PC/SC hybrid is dead" finding (bruid-cperso mem-034), which was
+      measured with the DLL POWERING the chip — that seizes it and hides every reader.
+      FOLLOW-ONS: (1) confirm whether SYNIC is a separate encoder or the printer's own GemCore over USB-CCID —
+      either way it works, but if it is the GemCore that is decisive evidence for the Nuvia ticket; (2) decide
+      the default transport for the kiosk main app (tp9000-pcsc); (3) the hopper is a MIX of MC-manager-only
+      and multi-app cards, so either match -Scheme per card or detect the CM and pick the scheme automatically.
+    status: proven_live
     priority: high
 
 # ---- Guardrails ----

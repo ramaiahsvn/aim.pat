@@ -640,10 +640,18 @@ memories:
       DELIVERED: transport "tp9000-pcsc" (feeder feeds/positions/ejects, BprPcScChannel does the APDUs) +
       tp9000-pcsc-probe (read-only go/no-go) + -ContactsOn (default TRUE) / -Moves / -SettleMs on trigger.ps1;
       package ~/Downloads/perso-kiosk-agent-TP9000-PCSC-2026-07-28.
-      STILL TO PROVE: a full MC card over this path (S4 died at the FIRST APDU — [ISD] SELECT
-      A000000003000000 failed because the hopper card was MasterCard-manager-only and the run asked for Visa;
-      0/0 DGIs, card untouched). The prize is A004+A002 -> 9000 over tp9000-pcsc; that would take the Nuvia
-      DLL fix off the critical path for issuance entirely. [[mem-017]] [[mem-018]]
+      PROVEN SAME DAY, BOTH SCHEMES, FULL CARDS OVER THE FEEDER (bureau, transport=tp9000-pcsc, --commit):
+      S5 scheme=mc -> 42/42 DGIs INCLUDING A004 + A002, Card Manager SECURED, complete=1 secured=1; and
+      S3 scheme=visa -> 19/19 DGIs INCLUDING the heavy 9200, SECURED, complete=1. The exact APDUs that have
+      returned 6985 through IC_Input all week now return 9000 — same machine, same cards, same bureau; only
+      the party driving the chip changed. THE NUVIA DLL FIX IS THEREFORE OFF THE CRITICAL PATH for issuance:
+      the kiosk has full hopper-to-secured-card automation today, with no manual card insertion.
+      (S4 in between failed at the FIRST APDU — [ISD] SELECT A000000003000000 failed because that hopper card
+      was MasterCard-manager-only while the run asked for Visa; 0/0 DGIs, card untouched. The hopper is a MIX
+      of MC-manager-only and multi-app cards, so match -Scheme to the card or expect a clean first-APDU fail.)
+      STILL WORTH DOING: keep the Nuvia ticket open — this result is strong evidence FOR them, since their own
+      hardware handles these ~4 s APDUs correctly when the OS CCID stack drives it, which localizes the defect
+      squarely in IC_Input's block-wait rather than the module, the card or the clock. [[mem-017]] [[mem-018]]
     created_at: "2026-07-28"
     last_accessed: "2026-07-28"
     access_count: 1
