@@ -4,14 +4,41 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: incident
+    content: >-
+      2026-07-29 — bpr.pci HAD A HARDCODED HMAC KEY; found and fixed before its first commit
+      (bpr.grc eff65ca). The module had been sitting UNTRACKED on pat-m4p with no remote copy at all.
+      THE DEFECT: core/crypto.hpp GetSecretKey() returned a 32-byte key baked into the source, XOR-masked
+      with a single constant byte (0xAB) declared two lines below the array, under the comment "never stored
+      in plaintext". That is not obfuscation — it is one line of script, or `strings` on the shipped binary.
+      WHY IT MATTERED MORE THAN A NORMAL HARDCODED SECRET: that key feeds HashEvent(), which HMAC-tags every
+      audit event so a tampered trail can be DETECTED (PCI-DSS Req 10.5.2). Anyone who recovers it can forge
+      event hashes, so the audit trail still looks valid while proving nothing. A compliance monitor whose own
+      tamper-evidence is forgeable is worse than no monitor, because it manufactures false assurance.
+      IRONY WORTH REMEMBERING: bpr.kms — a SIBLING MODULE IN THIS SAME REPO — exists specifically to "move
+      sensitive keys from C++ binaries into AWS KMS/Secrets Manager". The exact anti-pattern bpr.kms was built
+      to eliminate was living in bpr.pci. When auditing our own GRC tooling, check the tools against the
+      controls they enforce; do not assume a security module practises what it monitors.
+      THE FIX: the key now comes from BPR_PCI_HMAC_KEY (64 hex chars) or BPR_PCI_HMAC_KEY_FILE at runtime and
+      FAILS CLOSED — missing or malformed throws instead of starting, because a monitor that silently emits
+      forgeable hashes is worse than one that refuses to run. A regression test asserts malformed keys are
+      never accepted; it exists to fail loudly if a compiled-in default is ever reintroduced. README documents
+      supply, the root-owned-file option for a service, and that ROTATION invalidates verification of every
+      event hashed under the old key (retain the old key as long as you need to verify historical events).
+      26/26 tests pass; both paths verified directly (no key -> throws with the remedy; valid key -> accepted).
+      ALSO FIXED: bpr.pci DID NOT COMPILE — main.cpp used getpid() without <unistd.h>, so the macOS build
+      failed outright. Committing a module that does not build would have been worse than the small scope creep.
+      CHECKED AND CLEAR: the old key was NEVER in git history (git log -S before committing), so no history
+      rewrite is needed. OPEN RISK: if any binary was already built and distributed carrying the old key, treat
+      that key as PUBLIC and ensure deployed instances get a fresh one.
+      STANDING RULE THIS CAME FROM (user's): the pre-commit key-value grep GATES the commit, fail-closed. It
+      worked exactly as intended here — the grep tripped, the commit stopped, the defect got fixed first.
+    created_at: "2026-07-29"
+    last_accessed: "2026-07-29"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 1.0
+    source: "session-2026-07-29"
+    tags: [bpr-pci, hardcoded-key, xor-obfuscation-is-not-security, audit-event-hmac, pci-req-10.5.2, forgeable-tamper-evidence, fail-closed, runtime-key-supply, key-rotation-invalidates-history, bpr-kms-anti-pattern, never-in-git-history, rotate-if-binary-shipped, getpid-unistd-build-fix, pre-commit-key-gate-worked]
 
   # Example entries:
   # - id: mem-002

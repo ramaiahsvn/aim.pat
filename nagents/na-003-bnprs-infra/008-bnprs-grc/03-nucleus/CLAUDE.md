@@ -35,6 +35,13 @@
 
 ## bpr.pci — PCI-DSS Compliance Monitor
 
+> **It needs a key to run.** Every event is HMAC-tagged so a tampered audit trail can be detected
+> (Req 10.5.2). Supply it at runtime — `BPR_PCI_HMAC_KEY` (64 hex chars) or `BPR_PCI_HMAC_KEY_FILE` — and
+> it **fails closed**: no key, or a malformed one, and the monitor throws instead of starting. Never
+> compile a key in; that is what was wrong before 2026-07-29 (mem-001). Rotating the key invalidates
+> verification of every event hashed under the old one, so keep the old key while you still need to verify
+> historical events.
+
 Monitors the CDE for events that trigger PCI-DSS requirements:
 
 | Detection | PCI Req | Severity |
@@ -61,6 +68,19 @@ Alert delivery: **SMTP email** (CISO, IT Manager) and/or **webhook** (Slack, Tea
 - Fleet cert: `CN=bpr-cardqi-fleet`, valid to 2036-05-15
 - Full KMS operational details → `007-bnprs-grc-kms` agent (na-003-bnprs-infra)
 
+## Auditing our own tooling
+
+These modules enforce controls, which makes them the last place anyone thinks to audit — and the worst
+place for a weakness. bpr.pci shipped with its audit-event HMAC key hardcoded and XOR-masked in the source
+while **bpr.kms, a sibling module in this same repo, exists to move keys out of C++ binaries** (mem-001).
+
+When touching any module here, check it against the control it implements:
+
+- secrets supplied at **runtime**, never compiled in — even "obfuscated"
+- security-critical paths **fail closed**; a control that degrades silently manufactures false assurance
+- the pre-commit key-value grep **gates** the commit, fail-closed — if it trips, fix before committing
+- if a key was ever in a **shipped binary**, treat it as public and rotate, regardless of the repo
+
 ## Compliance Frameworks in Scope
 
 | Framework | Relevance |
@@ -78,6 +98,8 @@ Alert delivery: **SMTP email** (CISO, IT Manager) and/or **webhook** (Slack, Tea
 
 ## Pending Actions
 
+- [ ] **bpr.pci: rotate if already deployed** — if any binary built before 2026-07-29 was distributed, it
+      carries the old hardcoded HMAC key; treat that key as public and re-key those instances (mem-001)
 - [ ] Document bpr.usb challenge-response key generation procedure
 - [ ] Map all bpr.pci detections to full PCI-DSS v4.0 requirement list (current mappings are v3.2.1 refs)
 - [ ] Set up bpr.pci webhook integration for Slack/Teams alerts
