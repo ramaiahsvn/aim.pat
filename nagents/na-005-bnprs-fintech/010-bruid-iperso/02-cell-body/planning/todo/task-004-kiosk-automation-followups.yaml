@@ -82,7 +82,13 @@ subtasks:
       arch needs its OWN static mingw OpenSSL — the x64 one will not link into an x86 build.
       REMAINING: run on Windows (start with commit=false preflight), hand the kiosk team the DLL + the C#/Java
       wrapper, and retire start-agent.cmd / trigger.ps1 from the integration once they are on the library.
-      Package: ~/Downloads/BprIPersoAgent-2026-07-29 (both DLLs + import libs + header + C# + Java + README).
+      VERSIONED 2026-07-29 (bpr.cpp 78f5102): BprIPersoAgent joined the BPR series at 2.59.0 — after
+      BprCardQi 2.56.x / BprCardEmv 2.57.x / BprICBA 2.58.x. Registered in the three files that must agree
+      (Makefile, bpr_versions.cmake, bpr_versions.h); the library builds its version string from
+      BPR_IPERSOAGENT_VERSION so the binary cannot drift from the build system, and the Windows script writes
+      to the standard build/bnprs-libs/BprIPersoAgent/v<ver>/windows-{32,64}/ layout. Both hosts can ask a
+      deployed kiosk what it is running: bpriperso_version() / agent.version() -> "BprIPersoAgent/2.59.0".
+      Package: ~/Downloads/BprIPersoAgent-v2.59.0 (both DLLs + import libs + header + C# + Java + README).
       SCOPE CHANGE 2026-07-29 (user, bpr.cpp a2755a7): the HOST owns card movement. The library no longer
       touches TP9000.dll at all — the kiosk app inserts the card and positions it at the encoder, calls
       run(), and acts on the result. Shipped DLLs are verified TP9000-free (imports WinSCard + WS2_32 +

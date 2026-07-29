@@ -1,4 +1,4 @@
-# BprIPersoAgent — instant personalisation as a library call
+# BprIPersoAgent v2.59.0 — instant personalisation as a library call
 
 Replaces the agent-as-a-process deployment. There is **no background exe, no localhost port and no batch
 file**: the kiosk application loads `BprIPersoAgent.dll` and calls one function when a card should be
@@ -16,6 +16,10 @@ per card:  app: insert + position at encoder
            app: run(request)          <- library powers the chip and personalises it
            app: eject  or  reject bin <- per result.disposition
 ```
+
+Versioned in the BPR series like every other library (`BprCardQi` 2.56.x, `BprCardEmv` 2.57.x, `BprICBA`
+2.58.x, **`BprIPersoAgent` 2.59.x**). The running library reports its own version — `bpriperso_version()`
+in C#/C, `agent.version()` in Java — so a deployed kiosk can be identified without checking file hashes.
 
 One DLL serves both hosts:
 
