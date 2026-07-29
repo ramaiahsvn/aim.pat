@@ -42,7 +42,9 @@ subtasks:
                    # "auto" as well, and trigger.ps1 defaults to auto with 'auto' added to the ValidateSet.
                    # Verified locally over the mock transport (answers MC 9000 / Visa 6A82): omitted and auto
                    # both resolve to mc, explicit visa is refused with the reason, explicit mc proceeds.
-                   # 98/98 tests green. REMAINING: deploy to the EC2 bureau + one real card to confirm.
+                   # 98/98 tests green. DEPLOYED 2026-07-29 to the EC2 bureau: arm64 binary sha c14e3c85,
+                   # previous kept as perso-bureau.bak-pre-cmdetect, service active on 9099 TLS. REMAINING:
+                   # one real card to confirm on hardware.
     priority: high
 
   - id: "task-004.2"
