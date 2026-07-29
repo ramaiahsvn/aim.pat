@@ -36,7 +36,7 @@ openssl verify -CAfile fleet-pki/ca.pem fleet-pki/bureau.pem fleet-pki/kiosk-KIO
 
 Bureau:
 ```bash
-perso-bureau --port 9099 --token <token> --max-workers 16 \
+bpr-iperso-bureau --port 9099 --token <token> --max-workers 16 \
   --tls --cert bureau.pem --key bureau.key --ca ca.pem
 ```
 Kiosk (the `-tls` exe):

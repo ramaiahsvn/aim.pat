@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Mock Kiosk agent — validates the perso-bureau NDJSON protocol WITHOUT a real card.
+"""Mock Kiosk agent — validates the bpr-iperso-bureau NDJSON protocol WITHOUT a real card.
 
 Reference for the Kiosk team: shows the exact message flow. It relays APDUs with *canned* responses
 instead of a real card. Replace rapdu_for() with a real local card channel (TP9000 v2 / PC/SC) that
 transmits capdu to the card and resolves 61xx/6Cxx locally.
 
 Usage:  python3 mock_kiosk.py [host] [port] [token]
-        (start the bureau first:  perso-bureau <port> <token>)
+        (start the bureau first:  bpr-iperso-bureau <port> <token>)
 """
 import socket, json, sys
 

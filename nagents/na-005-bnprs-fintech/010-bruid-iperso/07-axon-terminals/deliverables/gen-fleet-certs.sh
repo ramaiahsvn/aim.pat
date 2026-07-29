@@ -30,6 +30,8 @@ sign() {  # <common-name> <basename>
     echo "signed $name.pem (CN=$cn)"
 }
 
+# CN stays "perso-bureau" though the binary is now bpr-iperso-bureau — the deployed bureau.pem
+# carries this CN; changing it requires reissuing and redistributing the fleet bundle.
 [ -f bureau.pem ] || sign "perso-bureau" bureau     # one bureau server cert (re-run-safe)
 
 for kid in "$@"; do sign "$kid" "kiosk-$kid"; done   # one cert per kiosk hardwareId

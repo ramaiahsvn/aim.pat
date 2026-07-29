@@ -12,7 +12,7 @@
 ```
   KIOSK MACHINE (Windows)                                   BUREAU (pat-m4p for UAT; real bureau later)
   ┌───────────────────────────────────────────┐            ┌──────────────────────────────────────────┐
-  │ your kiosk software                         │            │ perso-bureau: engine + HSM + keys          │
+  │ your kiosk software                         │            │ bpr-iperso-bureau: engine + HSM + keys     │
   │        │ (1) TRIGGER: 127.0.0.1:9098         │            │  dPrep, SCP02, INSTALL, STORE DATA, verify │
   │        ▼   JSON { dpiB64, hardwareId, ... }  │            └──────────────────────────────────────────┘
   │  perso-kiosk-agent  (BNPRS-built, background)│◄── NDJSON/TCP ──►  (agent connects OUT to the bureau)
@@ -101,6 +101,6 @@ A ready-to-run reference client (`mock_kiosk.py` shows the same trigger shape) i
 ## Reference
 
 - Agent: `bpr.cpp/src/BprCardEmv/persoengine/apps/perso-kiosk-agent/main.cpp` (BNPRS-built).
-- Bureau: `.../apps/perso-bureau/main.cpp`. Shared wire: `.../apps/common/ndjson_conn.hpp`.
+- Bureau: `.../apps/bpr-iperso-bureau/main.cpp`. Shared wire: `.../apps/common/ndjson_conn.hpp`.
 - Reference trigger client: `mock_kiosk.py` (this folder).
 - Model + status: bruid-iperso task-003 (remote-APDU) + knowledge mem-004.

@@ -19,7 +19,9 @@ openssl req -x509 -newkey rsa:2048 -nodes -keyout ca.key -out ca.pem -days 3650 
 
 # Bureau server cert (one per bureau)
 openssl req -newkey rsa:2048 -nodes -keyout bureau.key -out bureau.csr \
-  -subj "/O=BNPRS Fleet/CN=perso-bureau"
+  -subj "/O=BNPRS Fleet/CN=perso-bureau"   # CN unchanged on purpose: this cert is already
+                                           # deployed and trusted; renaming it means reissuing
+                                           # the bureau cert and redistributing the fleet bundle
 openssl x509 -req -in bureau.csr -CA ca.pem -CAkey ca.key -CAcreateserial \
   -out bureau.pem -days 825
 
@@ -37,7 +39,7 @@ the CA key. If you hold fleet certs as `.pfx` (the k3_fleet_pfx pattern), conver
 ## 2. Run the Bureau (TLS server, mutual auth)
 
 ```bash
-perso-bureau --port 9099 --token <token> \
+bpr-iperso-bureau --port 9099 --token <token> \
   --tls --cert bureau.pem --key bureau.key --ca ca.pem \
   --keystore keys/uat_keystore.txt
 ```
