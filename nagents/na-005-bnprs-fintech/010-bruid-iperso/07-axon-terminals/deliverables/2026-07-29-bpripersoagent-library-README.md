@@ -117,6 +117,8 @@ encoder — do not log them and do not persist them after the card is produced.
 Verified on macOS builds of the identical source, against a live bureau:
 
 - **C host** — `bpriperso_run` drove a full session with progress callbacks and returned the result JSON.
+- **C# host** — the sample ran the whole cycle against a live bureau: P/Invoke, progress callbacks, parsed
+  result, and the feeder ejecting on `disposition: eject`.
 - **Java host** — the unchanged `iPersoAgent` class loaded the library and ran a session through JNI.
 - Both Windows DLLs cross-compile with the C ABI exported **undecorated** (cdecl, so P/Invoke binds) and
   the JNI names exported plainly (so `System.loadLibrary` binds on x86 too).
@@ -131,6 +133,8 @@ windows-64\BprIPersoAgent.dll      x86-64 build (+ import lib)
 windows-32\BprIPersoAgent.dll      x86 build (+ import lib)
 include\bpriperso_agent.h          the C ABI header
 hosts\csharp\IPersoAgent.cs        C# P/Invoke wrapper
+hosts\csharp\PersoResult.cs        typed result (status, disposition, output)
+hosts\csharp\sample\              runnable end-to-end sample: insert -> run -> dispose -> print
 hosts\java\com\bnprs\jni\iPersoAgent.java   Java JNI class
 SHA256SUMS.txt
 ```
