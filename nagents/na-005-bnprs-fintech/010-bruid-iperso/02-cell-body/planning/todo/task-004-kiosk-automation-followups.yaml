@@ -140,8 +140,14 @@ subtasks:
       ATC reads as a clone (response 04 / pick-up). ALSO ASK for a small pool of test PANs (a few DPIs): every
       re-perso of one PAN needs a manual host reset, and failed-auth flags accumulate on the account. A pool
       removes a host round-trip from every iteration. See bruid-cperso mem-036.
-    status: blocked_on_issuer
-    priority: medium
+    status: ready   # 2026-07-29 — ATC BASELINE RESET DONE (issuer). No longer blocked: tap the S5 card
+                    # (feeder-produced MC, 42/42 SECURED, 2026-07-28) at the POS and expect neither 05
+                    # (iCVV — fixed) nor 04 (pick-up, which was the stale ATC). The card's counter has
+                    # already advanced to ~3, which is fine: the host requires the ATC to be GREATER than
+                    # the stored high-water mark, and the reset cleared that. STILL OPEN and separate from
+                    # the reset: the pool of test PANs — without it, every re-perso of the same PAN needs
+                    # another manual host reset and failed-auth flags keep accumulating on one account.
+    priority: high
 
   - id: "task-004.6"
     subject: "UAT close-out: bureau EC2 teardown + the dynamic-IP problem"
