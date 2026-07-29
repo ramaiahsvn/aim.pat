@@ -754,7 +754,17 @@ memories:
       libpugixml, libstdc++, libgcc, libc, libm). It is built with PERSOENGINE_BUILD_PCSC=OFF and
       TP9000=OFF — the bureau has NO card-transport code at all; it holds the keys, builds the DGIs and
       decides every APDU, and the kiosk side puts them on the card. TP9000.dll / BprIPersoAgent.dll /
-      Bpr.QiScript.dll are all Windows-side and never go near it. [[mem-014]] [[mem-020]]
+      Bpr.QiScript.dll are all Windows-side and never go near it.
+      RENAMED 2026-07-29 (user, bpr.cpp 9c8a56f): the bureau binary is now **bpr-iperso-bureau**, not
+      perso-bureau — it belongs to the BprIPerso line beside BprIPersoAgent, and the old name said nothing
+      about which product it was. Renamed together: the CMake target, apps/bpr-iperso-bureau/, the banner it
+      prints (bpr-iperso-bureau/0.1) and the channel-header comment. ON THE EC2: new binary sha f94b954a,
+      systemd unit **bpr-iperso-bureau.service** DERIVED from the old one with sed so the token/certs/keystore
+      arguments carried over verbatim; old unit disabled then deleted; new unit `enable --now` so it survives a
+      reboot; verified by FORCING a restart (active + enabled, 9099 TLS). The old-named binary was kept as
+      perso-bureau.bak-prerename — note it is NOT byte-identical to the new one even though the code is the
+      same, because the embedded name string changed. Journal/logs are now `journalctl -u bpr-iperso-bureau`.
+      [[mem-014]] [[mem-020]]
     created_at: "2026-07-29"
     last_accessed: "2026-07-29"
     access_count: 1
