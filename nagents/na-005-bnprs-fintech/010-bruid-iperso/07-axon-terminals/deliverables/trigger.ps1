@@ -5,12 +5,14 @@
 #   .\trigger.ps1 -Transport tp9000 -Commit -Scheme mc -DpiFile dpi.b64  -> LIVE MasterCard perso (destructive)
 #   .\trigger.ps1 -Transport pcsc  -Commit -Scheme mc -DpiFile dpi.b64   -> LIVE perso over a desktop PC/SC reader
 #   .\trigger.ps1 -Transport pcsc  -Reader OMNIKEY -Commit -Scheme mc -DpiFile dpi.b64  -> pin a specific reader
-# -Scheme selects the card scheme: visa (VSDC, default) | mc (M/Chip Advance). Needs an MC card in the feeder/reader.
+# -Scheme: auto (DEFAULT — the bureau asks the card which manager it has) | visa (VSDC) | mc (M/Chip Advance).
+#   An explicit scheme is still honoured, but is checked against the card first, so a mismatch says so
+#   instead of failing on the first APDU. The hopper holds a mix of MC-only and multi-app cards.
 # -Reader (pcsc only) is a case-insensitive substring of the PC/SC reader name; empty = auto-pick a contact reader.
 # On a SUCCESSFUL live perso the bureau returns result.output with print + magstripe details for card production.
 param(
   [ValidateSet('mock','tp9000','pcsc','tp9000-pcsc')][string]$Transport = 'mock',
-  [ValidateSet('visa','mc')][string]$Scheme = 'visa',
+  [ValidateSet('auto','visa','mc')][string]$Scheme = 'auto',
   [switch]$Commit,
   [string]$DpiFile,
   [string]$Reader = '',

@@ -29,7 +29,20 @@ subtasks:
       Belongs in the bureau (it already drives the sequence and knows both flows), with the trigger's -Scheme
       becoming an optional OVERRIDE rather than a required choice. Also decide what happens when a card
       supports both: prefer the scheme the DPI implies (PAN BIN) over a fixed default.
-    status: pending
+    status: done   # 2026-07-29 (bpr.cpp a3401c5). The bureau SELECTs both CMs before committing (read-only —
+                   # the orchestrators re-SELECT their own ISD anyway) and routes: "auto"/absent -> the manager
+                   # the card actually has, with the PAN deciding when it has BOTH (4=visa, 5=mc; first digit
+                   # only, the PAN is never logged); explicit visa/mc still honoured but CHECKED first, so a
+                   # mismatch reports "card does not carry the visa card manager (card has MC only)" instead of
+                   # dying on APDU #1 with nothing written; neither present -> clean fail, card rejected
+                   # untouched; an explicit scheme contradicting the PAN -> warning (a Visa applet carrying an
+                   # MC PAN misroutes at the network).
+                   # GOTCHA FOUND BY TESTING: the AGENT always forwards `scheme`, so its own default masked the
+                   # detection entirely — omitting -Scheme still took the visa path. The agent now defaults to
+                   # "auto" as well, and trigger.ps1 defaults to auto with 'auto' added to the ValidateSet.
+                   # Verified locally over the mock transport (answers MC 9000 / Visa 6A82): omitted and auto
+                   # both resolve to mc, explicit visa is refused with the reason, explicit mc proceeds.
+                   # 98/98 tests green. REMAINING: deploy to the EC2 bureau + one real card to confirm.
     priority: high
 
   - id: "task-004.2"
