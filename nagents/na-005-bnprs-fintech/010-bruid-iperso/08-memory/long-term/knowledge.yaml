@@ -779,6 +779,50 @@ memories:
     source: "session-2026-07-29"
     tags: [uat-bureau, backup-pruning, verify-tls-material, force-restart-test, no-dll-on-bureau, elf-only, pcsc-off-tp9000-off, ec2-inventory]
 
+  - id: mem-023
+    type: debugging_log
+    content: >-
+      2026-07-29 — "applet auth failed" at the kiosk is NOT a key-set mismatch. A diagnosis reached us saying
+      the hopper card "isn't keyed for the MENTA_BANK test perso profile ... no cipher or code change fixes
+      that". The bureau log disproves the mechanism, and believing it would send us asking the bureau for the
+      WRONG thing (re-keyed cards instead of OP_READY cards).
+      WHAT THE LOG ACTUALLY SHOWS (bpr-iperso-bureau sessions S3/S4/S5, 2026-07-29, transport=tp9000):
+      dPrep OK (icvv=present) -> card opened ATR 3BFE13... -> [detect] MC CM 6A82 absent / Visa CM 9000 present
+      -> "ISD key AUTHENTICATES ✓" -> **EXT AUTH SW=6985** -> DELETE 6985 -> INSTALL [make selectable] 6985 on
+      all three parameter variants -> falls back to the pre-installed instance -> applet INIT UPDATE fails ->
+      "applet auth failed. Stop." -> 0/0 DGIs.
+      WHY THE KEYS ARE PROVEN CORRECT: "ISD key AUTHENTICATES ✓" is a cryptographic check, not a soft claim
+      (orchestrator.cpp open_ch, ~line 236-241): the card returns its cryptogram, the bureau derives session
+      keys from OUR ISD key + the card's key-diversification data + sequence counter, recomputes the card
+      cryptogram and compares. A match is only possible if the key sets are IDENTICAL. A wrong key logs
+      "ISD key MISMATCH ✗" and returns immediately.
+      SO THE REAL FAULT IS EXT AUTH -> 6985 ("conditions of use not satisfied") = right keys, wrong CARD STATE
+      = the SECURED card manager already recorded in bruid-cperso mem-028 (2026-07-23). "applet auth failed" is
+      the LAST symptom of a cascade, not the cause: once EXT AUTH fails there is no secure channel, so every
+      subsequent GP command returns 6985, the code falls back to the vendor's pre-installed instance, and that
+      applet will not INIT UPDATE either because it is already personalised and locked.
+      WHAT TO ASK THE BUREAU FOR: OP_READY cards with an UNLOCKED card manager and NO pre-installed
+      personalised instance (mem-028 option a) — NOT re-keyed cards. Option (b) still stands: a GP SCP02 C-MAC
+      path (hsm::scp02::cmac already exists) would make INSTALL work on a secured-CM card whose applet is not
+      yet personalised; it cannot rescue a card that is already fully personalised and secured.
+      TWO MORE PROBLEMS VISIBLE IN THE SAME LOG, previously unreported: (1) the DPI is a MASTERCARD DPI
+      (PAN implies mc) being pushed at a VISA-ONLY card — the new detection warning fired ("personalising a
+      visa applet with a mc PAN will misroute at the network"); the runs pass -Scheme visa EXPLICITLY instead
+      of auto, which fights the detection deployed the same day (S6: an MC-only card + explicit visa -> clean
+      refusal, working as designed). (2) transport=tp9000, the raw feeder path with the Nuvia block-wait
+      defect — not what failed here, but it would fail later at A004/A002 or 9200; tp9000-pcsc is the proven
+      path.
+      CODE WEAKNESS FOUND WHILE CHECKING (not yet fixed): open_ch LOGS the EXT AUTH result but never CHECKS it
+      (orchestrator.cpp ~line 246) — it returns session keys regardless. That is why a clean 6985 becomes a
+      confusing cascade ending in a misleading message. Making EXT AUTH failure abort with "card manager is
+      SECURED — needs an OP_READY card" would have named this in one line. [[mem-020]] [[mem-019]]
+    created_at: "2026-07-29"
+    last_accessed: "2026-07-29"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-07-29 (bureau log analysis)"
+    tags: [applet-auth-failed, not-a-key-mismatch, ext-auth-6985, secured-card-manager, cryptogram-proves-keys-match, cascade-not-cause, op-ready-cards-needed, cmac-path-option, mc-dpi-on-visa-card, explicit-scheme-fights-auto, transport-tp9000-not-pcsc, open_ch-ignores-ext-auth, corrects-external-diagnosis]
+
 # Pruning rules
 pruning:
   max_entries: 500
