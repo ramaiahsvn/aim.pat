@@ -53,9 +53,19 @@ string result = IPersoAgent.Run(request, line => Log.Info(line));   // blocking 
 ## Java
 
 ```java
-iPersoAgent agent = new iPersoAgent();
-String result = agent.runPerso(request);    // blocking — worker thread
+// 1. your code: insert the card and position it at the encoder
+feeder.insertCard();
+feeder.moveToEncoder();
+
+// 2. the library: power the chip and personalise it
+PersoResult r = PersoResult.parse(agent.runPerso(request));   // blocking — worker thread
+
+// 3. your code: dispose of the card as instructed
+if (r.shouldEject()) feeder.eject(); else feeder.rejectToBin();
 ```
+
+Build and run with no jars: `javac com/bnprs/jni/*.java` then
+`java -Djava.library.path=. com.bnprs.jni.KioskPersoSample`.
 
 `System.loadLibrary("BprIPersoAgent")` finds the DLL on `java.library.path` or beside the executable.
 
@@ -119,7 +129,8 @@ Verified on macOS builds of the identical source, against a live bureau:
 - **C host** — `bpriperso_run` drove a full session with progress callbacks and returned the result JSON.
 - **C# host** — the sample ran the whole cycle against a live bureau: P/Invoke, progress callbacks, parsed
   result, and the feeder ejecting on `disposition: eject`.
-- **Java host** — the unchanged `iPersoAgent` class loaded the library and ran a session through JNI.
+- **Java host** — the sample ran the whole cycle through JNI: insert, run, parsed result, and the feeder
+  ejecting on `disposition: eject`.
 - Both Windows DLLs cross-compile with the C ABI exported **undecorated** (cdecl, so P/Invoke binds) and
   the JNI names exported plainly (so `System.loadLibrary` binds on x86 too).
 
@@ -135,6 +146,8 @@ include\bpriperso_agent.h          the C ABI header
 hosts\csharp\IPersoAgent.cs        C# P/Invoke wrapper
 hosts\csharp\PersoResult.cs        typed result (status, disposition, output)
 hosts\csharp\sample\              runnable end-to-end sample: insert -> run -> dispose -> print
-hosts\java\com\bnprs\jni\iPersoAgent.java   Java JNI class
+hosts\java\com\bnprs\jni\iPersoAgent.java        Java JNI class
+hosts\java\com\bnprs\jni\PersoResult.java        typed result (dependency-free reader)
+hosts\java\com\bnprs\jni\KioskPersoSample.java  runnable end-to-end sample
 SHA256SUMS.txt
 ```
