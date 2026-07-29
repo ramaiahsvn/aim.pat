@@ -172,6 +172,32 @@ Applied to **all projects** in the organization.
 
 Current member roster → `08-memory/long-term/members.yaml`
 
+## New-project standard (ALWAYS use this)
+
+Every new repo gets the same four branches and protection. **Do not create projects by hand** — the UI
+gives you `master` only, and the branch set is what everything else (MR flow, approvals, CI) assumes.
+
+```bash
+export GITLAB_PAT=...     # already in ~/.zshrc on pat-m4p
+07-axon-terminals/deliverables/gitlab-create-project.py \
+    --group BPR1004 --name bpr1004.utms.api-go.tms --desc "uTMS API (Go)"
+```
+
+It creates the project with a README on `master`, commits the org `.gitlab-ci.yml`, branches
+`bp_dev` / `bp_rel` / `ai_dev`, protects all four at Maintainer-only push+merge with force push off, sets
+the MR options, then **re-reads the project and fails loudly if anything is not as asked**. Members are
+left alone — they are inherited from the group.
+
+> **Why a script and not a GitLab template:** custom project templates are a **Premium** feature. This
+> instance is CE (`/api/v4/version` → `"enterprise": false`, `/api/v4/license` → 404), so GitLab cannot
+> create `bp_dev`/`bp_rel`/`ai_dev` on its own. CE can set a default branch *name* and default protection —
+> not additional branches. Same class of limitation as MR approvals, which the 👍 CI job works around.
+>
+> **Full automation is possible but not built:** a CE **system hook** on `project_create` could apply this
+> to projects made through the UI too. It needs a small listener on the GitLab host, and it must handle the
+> case that matters — a project created **empty has no commit**, so branches cannot exist yet; only a
+> README-initialised project can be branched immediately. Until that exists, the script is the standard.
+
 ## Merge Request Settings
 
 Applied to **all projects** in the organization.

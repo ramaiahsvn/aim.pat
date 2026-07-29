@@ -436,6 +436,36 @@ memories:
     source: "session-2026-07-25"
     tags: [nagents-prod, erp-hr-service, prisma-migrate, projects-backend, one-off-fargate-task, debian-not-alpine, schema-per-app, backends-deployed, ap-south-2]
 
+  - id: mem-028
+    type: operation
+    content: >-
+      2026-07-29: Created BPR1004/bpr1004.utms.api-go.tms (project 257) and bpr1004.utms.api-go.shared
+      (258) in group "BPR1004 - uTms" (id 5) — README on master + org .gitlab-ci.yml, branches
+      bp_dev/bp_rel/ai_dev, all four protected 40/40 force-push off, MR settings on. Verified by re-reading
+      the API, not by trusting the 201s. Members inherited from the group (16), not set per project.
+      STANDARDISED THE RECIPE (user asked for these branches to be the default on every new repo):
+      07-axon-terminals/deliverables/gitlab-create-project.py — one command does create -> CI -> branches ->
+      protect -> MR settings, then RE-READS the project and fails loudly if anything is off. Recorded in the
+      nucleus as "New-project standard (ALWAYS use this)". It is the same logic that created projects
+      251-256 (BPR2002) and 257-258, parameterised.
+      WHY A SCRIPT AND NOT A GITLAB TEMPLATE — verified on this instance, do not re-investigate: custom
+      project templates are a PREMIUM feature and this is CE. /api/v4/version reports "enterprise": false,
+      /api/v4/license returns 404, and neither the instance settings nor a group exposes
+      custom_project_templates_group_id. CE can set a default branch NAME and default_branch_protection
+      (group 5 has it = 2) but CANNOT create extra branches. Same class of limitation as MR approvals, which
+      the thumbs-up CI job works around.
+      PATH TO REAL AUTOMATION IF EVER WANTED (not built): a CE SYSTEM HOOK on project_create (0 configured
+      today, GET /api/v4/hooks) firing a small listener that applies the convention — that would cover
+      projects created through the UI too. Key constraint to design around: a project created EMPTY has no
+      commit, so bp_dev/bp_rel/ai_dev cannot be created until the first push; only a README-initialised
+      project can be branched immediately. [[mem-027]] [[mem-022]]
+    created_at: "2026-07-29"
+    last_accessed: "2026-07-29"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-29"
+    tags: [project-create, BPR1004, utms, api-go, project-257, project-258, create-script, new-project-standard, ce-no-custom-templates, enterprise-false, system-hook-option, empty-project-has-no-branches]
+
 # Pruning rules
 pruning:
   max_entries: 500
