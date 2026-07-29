@@ -81,6 +81,19 @@ subtasks:
       REMAINING: run on Windows (start with commit=false preflight), hand the kiosk team the DLL + the C#/Java
       wrapper, and retire start-agent.cmd / trigger.ps1 from the integration once they are on the library.
       Package: ~/Downloads/BprIPersoAgent-2026-07-29 (both DLLs + import libs + header + C# + Java + README).
+      SCOPE CHANGE 2026-07-29 (user, bpr.cpp a2755a7): the HOST owns card movement. The library no longer
+      touches TP9000.dll at all — the kiosk app inserts the card and positions it at the encoder, calls
+      run(), and acts on the result. Shipped DLLs are verified TP9000-free (imports WinSCard + WS2_32 +
+      CRYPT32 + ADVAPI32 + USER32 + KERNEL32 only); --tp9000 remains an opt-in build flag for diagnostics
+      and the Nuvia evidence. Three additions this required:
+      (1) result carries "disposition" ("eject"|"reject") on EVERY path INCLUDING failures — a card sits at
+      the encoder either way and the host must know which way to move it; unknown/interrupted always reports
+      "reject" (a card the bureau did not confirm complete must never reach the customer);
+      (2) "waitForCardMs" (default 5000) retries the connect until the chip is contactable, because the card
+      is not necessarily seated the instant the host says it is — SCardConnect is the power-on step;
+      (3) default transport is now pcsc (was tp9000, which would have failed as "not available in this
+      build"), and the capabilities announced to the bureau derive from the COMPILED transports rather than
+      a hardcoded list that claimed a feeder the build does not have.
     status: delivered_windows_run_pending
     priority: high
 

@@ -4,9 +4,17 @@ Replaces the agent-as-a-process deployment. There is **no background exe, no loc
 file**: the kiosk application loads `BprIPersoAgent.dll` and calls one function when a card should be
 personalised.
 
+**The host owns card movement.** This library never loads `TP9000.dll` and never moves a card. Your
+application inserts the card and positions it at the encoder, calls `run`, and then acts on the
+`disposition` in the result. The DLL imports `WinSCard` only — verified free of any TP9000 reference.
+
 ```
 before :  kiosk app -> start-agent.cmd -> perso-kiosk-agent.exe -> TCP 127.0.0.1:9098 -> bureau
 now    :  kiosk app -> BprIPersoAgent.dll (one call)                                  -> bureau
+
+per card:  app: insert + position at encoder
+           app: run(request)          <- library powers the chip and personalises it
+           app: eject  or  reject bin <- per result.disposition
 ```
 
 One DLL serves both hosts:
@@ -35,7 +43,7 @@ string request = @"{
   ""bureauHost"":""98.130.14.127"", ""bureauPort"":9099, ""token"":""…"",
   ""tls"":true, ""cert"":""certs\\kiosk.pem"", ""key"":""certs\\kiosk.key"", ""ca"":""certs\\ca.pem"",
   ""hardwareId"":""KIOSK-DXB-014"",
-  ""transport"":""tp9000-pcsc"", ""reader"":""SYNIC"",
+  ""transport"":""pcsc"", ""reader"":""SYNIC"", ""waitForCardMs"":5000,
   ""scheme"":""auto"", ""inputType"":""dpi"", ""dpiB64"":""" + dpiB64 + @""", ""commit"":true
 }";
 
@@ -60,8 +68,9 @@ One JSON object carries the bureau connection and the card request:
 | `bureauHost`, `bureauPort`, `token` | where the bureau is |
 | `tls`, `cert`, `key`, `ca` | PROD mutual-TLS material (omit for plain UAT) |
 | `hardwareId` | this kiosk's id |
-| `transport` | `tp9000-pcsc` (feeder + encoder), `pcsc`, `tp9000`, `mock` |
-| `reader`, `moves`, `settleMs`, `contactsOn` | `tp9000-pcsc` positioning |
+| `transport` | `pcsc` (default) — the reader the card is sitting in; `mock` for a dry run |
+| `reader` | PC/SC reader name or substring, e.g. `SYNIC` |
+| `waitForCardMs` | how long to keep trying for a card after you say it is positioned (default 5000) |
 | `scheme` | `auto` — the bureau asks the card; `visa`/`mc` force it |
 | `inputType`, `dpiB64` | the encrypted DPI for this card |
 | `commit` | `false` = non-destructive preflight, `true` = live perso |
@@ -70,15 +79,25 @@ One JSON object carries the bureau connection and the card request:
 
 ```json
 { "status": "ok", "detail": "...", "atr": "3BFE13...",
+  "disposition": "eject",
   "bureau": { "dgisAccepted": 42, "dgisTotal": 42, "secured": true, ... },
   "output": { "print": {...}, "magstripe": {...} } }
 ```
+
+**`disposition` is the instruction for your card handling** — `"eject"` for a good card, `"reject"` for
+one that must go to the reject bin. It is present on EVERY result, including failures, because a card is
+sitting at the encoder either way. When in doubt the value is `"reject"`: a card the bureau did not confirm
+complete must never reach the customer.
 
 `output` appears only after a successful live perso — feed it to the printer and magstripe encoder.
 Check `status` first; a card-level failure is reported there, not as an exception.
 
 ## Behaviour worth knowing
 
+- **The library moves nothing.** It powers the chip through `SCardConnect` when you call it, and leaves the
+  card exactly where it is. Insert, position, eject and reject are yours.
+- **It waits for the card.** If the chip is not contactable the moment you call, the connect is retried for
+  `waitForCardMs` before failing — contacts settle and the CCID stack re-enumerates at their own pace.
 - **Blocking.** A live perso takes tens of seconds. Always call from a worker thread.
 - **One call, one card.** The API deliberately has no "measure then fetch" form — that would run the
   session twice and consume two cards for one request.
