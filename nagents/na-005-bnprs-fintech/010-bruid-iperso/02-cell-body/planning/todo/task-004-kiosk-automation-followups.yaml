@@ -52,7 +52,36 @@ subtasks:
       tp9000-pcsc (with -Reader "SYNIC", -ContactsOn true), update the C# sample + trigger docs, and tell the
       kiosk team what changed. Keep pcsc (manual OMNIKEY) documented as the fallback if the feeder is down,
       and keep the plain tp9000 transport available only for Nuvia diagnostics.
-    status: pending
+    status: superseded_by_004.7   # 2026-07-29 — the deployment model changed: the host no longer launches an
+                   # agent process at all (see task-004.7). What remains of this item is telling the kiosk team
+                   # to link the library instead of shipping start-agent.cmd + trigger.ps1.
+    priority: high
+
+  - id: "task-004.7"
+    subject: "BprIPersoAgent — perso as a LIBRARY call from the kiosk app (no process, no port, no batch file)"
+    detail: >
+      2026-07-29 (bpr.cpp ef764f4), user request. The kiosk app had to launch perso-kiosk-agent.exe from a
+      batch file and trigger it over 127.0.0.1:9098 — a process to supervise, a port to keep free, and a
+      window an operator can close. The session now lives in a library (src/iperso_agent.cpp) and the host
+      calls ONE function; perso-kiosk-agent.exe remains as a thin wrapper for diagnostics and for hosts that
+      still prefer process isolation.
+      ONE DLL serves BOTH hosts: C ABI (bpriperso_version/run/free, cdecl, undecorated -> C# P/Invoke and
+      C/C++) and JNI (Java_com_bnprs_jni_iPersoAgent_{version,runPerso} -> Java System.loadLibrary, matching
+      the Bpr.QiScript delivery style). Request is ONE JSON object carrying the bureau connection AND the card
+      request — a superset of the old trigger message, so the kiosk team's existing request body still works.
+      DESIGN FIX FOUND BY TESTING (worth remembering): the first C ABI used a caller buffer with the usual
+      size-then-fill idiom — and the SIZING CALL RAN THE SESSION. One logical request produced two bureau
+      sessions and would have consumed TWO CARDS. Replaced with allocate-and-free (run returns a string, free
+      releases it): one call, one card, impossible to misuse.
+      Verified against a live bureau on macOS builds of the same source: a C host ran a full session with
+      progress callbacks; the Java class ran one through JNI. Windows x86+x64 DLLs cross-built static
+      (imports KERNEL32/WS2_32/WinSCard/CRYPT32/ADVAPI32/USER32 only). x86 needs -Wl,--add-stdcall-alias or
+      the JVM misses the JNI symbols (JNICALL is __stdcall); the C ABI is cdecl and unaffected. Also note each
+      arch needs its OWN static mingw OpenSSL — the x64 one will not link into an x86 build.
+      REMAINING: run on Windows (start with commit=false preflight), hand the kiosk team the DLL + the C#/Java
+      wrapper, and retire start-agent.cmd / trigger.ps1 from the integration once they are on the library.
+      Package: ~/Downloads/BprIPersoAgent-2026-07-29 (both DLLs + import libs + header + C# + Java + README).
+    status: delivered_windows_run_pending
     priority: high
 
   - id: "task-004.3"
