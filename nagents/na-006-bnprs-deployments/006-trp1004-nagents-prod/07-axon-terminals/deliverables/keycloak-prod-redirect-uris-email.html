@@ -1,0 +1,45 @@
+<div style="font-family:'Segoe UI',Segoe,Tahoma,Arial,sans-serif;font-size:15px;color:#1a1a1a;line-height:1.5;">
+<p>Hi team,</p>
+
+<p>nagents <b>prod</b> is now deployed in the ITP account (<code>819144294008</code>, ap-south-2). The prod frontends are live and serving on CloudFront, but <b>login currently fails with a <code>redirect_uri</code> mismatch</b> because their prod origins aren&rsquo;t registered on the shared realm.</p>
+
+<p>Could you please <b>add</b> the following (append &mdash; keep the existing UAT entries) to the <b><code>BNPRS-enterprise</code></b> realm on <code>accounts-uat.itpgateway.com</code>:</p>
+
+<table style="border-collapse:collapse;font-size:15px;margin:12px 0;">
+  <thead>
+    <tr style="background:#f2f2f2;">
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:left;">Client</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:left;">Add Valid Redirect URI</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;text-align:left;">Add Web Origin</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border:1px solid #ccc;padding:6px 10px;"><code>hr-spa</code> (erp)</td>
+      <td style="border:1px solid #ccc;padding:6px 10px;"><code>https://d393t8cl2frfgi.cloudfront.net/*</code></td>
+      <td style="border:1px solid #ccc;padding:6px 10px;"><code>https://d393t8cl2frfgi.cloudfront.net</code></td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #ccc;padding:6px 10px;"><code>projects-frontend</code></td>
+      <td style="border:1px solid #ccc;padding:6px 10px;"><code>https://d3gkxmmnojgivv.cloudfront.net/*</code></td>
+      <td style="border:1px solid #ccc;padding:6px 10px;"><code>https://d3gkxmmnojgivv.cloudfront.net</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>If those clients use <b>post-logout redirect URIs</b>, please add the same two origins there as well. (These are the CloudFront default domains; when custom prod domains land we&rsquo;ll follow up with those.)</p>
+
+<p><b>Why we&rsquo;re asking you:</b> we tried to apply this ourselves but don&rsquo;t have the access &mdash; the bootstrap admin password in Secrets Manager (<code>utms/prod/keycloak</code>) is invalid (rotated after first boot), the <code>hr-app-admin</code> service account returns 403 (no <code>manage-clients</code>), and ECS exec is disabled on <code>utms-keycloak</code>.</p>
+
+<p><b>Fastest ways to resolve &mdash; any one works:</b></p>
+<ol style="margin:6px 0 12px 0;">
+  <li>You make the four edits above directly in the admin console (~2 min), or</li>
+  <li>Update <code>utms/prod/keycloak</code> &rarr; <code>KEYCLOAK_ADMIN_PASSWORD</code> with the current admin password, or</li>
+  <li>Grant the <code>hr-app-admin</code> service account the <code>manage-clients</code> realm-management role.</li>
+</ol>
+<p>With option 2 or 3 we&rsquo;ll apply it ourselves immediately via the Admin API.</p>
+
+<p>This is the last gap before nagents-prod frontends are fully usable &mdash; the backends already authenticate against this realm. Thanks very much.</p>
+
+<p>Best regards,<br>BNPRS Deployments (nagents-prod / TRP1004)</p>
+</div>

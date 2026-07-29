@@ -70,8 +70,14 @@
   - `projects-frontend` → redirect `https://d3gkxmmnojgivv.cloudfront.net/*` , web-origin `https://d3gkxmmnojgivv.cloudfront.net`
   - (APPEND — keep existing UAT entries; add post-logout redirect URIs if used.)
   - **Until done, prod login bounces with redirect_uri mismatch** — the only functional gap left.
-  - **BLOCKER (2026-07-26):** could not self-apply — bootstrap admin password in Secrets Manager `utms/prod/keycloak` is INVALID (rotated post-boot); `hr-app-admin` service account is 403 (no `manage-clients`); ECS exec disabled on utms-keycloak; no other admin secret. Needs the utms/shared-keycloak team's current admin creds OR them to make the edit. Request draft: `07-axon-terminals/deliverables/keycloak-prod-redirect-uris-request.md`.
+  - **BLOCKER (2026-07-26):** could not self-apply — bootstrap admin password in Secrets Manager `utms/prod/keycloak` is INVALID (rotated post-boot); `hr-app-admin` service account is 403 (no `manage-clients`); ECS exec disabled on utms-keycloak; no other admin secret. Needs the utms/shared-keycloak team's current admin creds OR them to make the edit.
+  - **REQUEST SENT 2026-07-26** via email from ramaiah@bnprs.in (pat-emails-todo agent, Zoho, HTML) to charan.vadagana@bnprs.in, krishna@bnprs.in, pardhiv.chatla@bnprs.in, anil.isukapudi@bnprs.in (subject "nagents-prod: add prod redirect URIs…", messageId 1785036510159155300). Draft/HTML: `07-axon-terminals/deliverables/keycloak-prod-redirect-uris-request.md` + `-email.html`. Awaiting their action.
   - **To unblock (any one):** update `utms/prod/keycloak` KEYCLOAK_ADMIN_PASSWORD with the current value; OR grant `hr-app-admin` the `manage-clients` role; OR the shared team adds the 4 entries directly. Then apply via the Admin API.
+  - **STATUS 2026-07-29:** still awaiting the shared-keycloak team — no reply since the 2026-07-26 request.
+    Nothing further this agent can do unaided; the three unblock routes above all need someone else's
+    credentials or action. **Chase before assuming it is in progress** — three days of silence on the only
+    functional gap left in prod. If it stays blocked, escalate via na-003/007-bnprs-grc-kms (KMS/secrets
+    owner) or ask the utms team to make the edit directly.
 
 ---
 
