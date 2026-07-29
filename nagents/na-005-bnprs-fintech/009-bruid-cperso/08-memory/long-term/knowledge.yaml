@@ -1060,9 +1060,10 @@ memories:
       host holding the PREVIOUS card's ATC high-water mark (19) while the re-persoed card restarted at 0 and
       reached 3; a lower ATC reads as a clone. With the baseline cleared the same physical card can be
       re-tapped: expect neither 05 (iCVV, fixed) nor 04. The card's counter having already advanced is fine —
-      the host wants the ATC ABOVE the stored value. Still open and SEPARATE from the reset: a pool of test
-      PANs, so a re-perso does not need a manual host reset each time and failed-auth flags stop accumulating
-      on one account. [[mem-035]] [[mem-034]]
+      the host wants the ATC ABOVE the stored value. SEPARATE ASK, ALREADY RAISED: a pool of test PANs was
+      REQUESTED from the issuer on 2026-07-29 and is awaiting their response — do not re-raise it. Until it
+      lands, each re-perso of the same PAN needs another manual host reset and failed-auth flags keep
+      accumulating on that one account. [[mem-035]] [[mem-034]]
     created_at: "2026-07-28"
     last_accessed: "2026-07-28"
     access_count: 1

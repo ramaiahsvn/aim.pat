@@ -145,8 +145,9 @@ subtasks:
                     # (iCVV — fixed) nor 04 (pick-up, which was the stale ATC). The card's counter has
                     # already advanced to ~3, which is fine: the host requires the ATC to be GREATER than
                     # the stored high-water mark, and the reset cleared that. STILL OPEN and separate from
-                    # the reset: the pool of test PANs — without it, every re-perso of the same PAN needs
-                    # another manual host reset and failed-auth flags keep accumulating on one account.
+                    # the reset: the pool of test PANs — ALREADY REQUESTED from the issuer 2026-07-29, now
+                    # awaiting their response; do not re-raise. Until it lands, every re-perso of the same PAN
+                    # needs another manual host reset and failed-auth flags keep accumulating on one account.
     priority: high
 
   - id: "task-004.6"
