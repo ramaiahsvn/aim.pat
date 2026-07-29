@@ -659,6 +659,109 @@ memories:
     source: "session-2026-07-28"
     tags: [tp9000-pcsc-works, corrects-hybrid-dead, contacts-on-never-power, fast-clock-atr-3bfe13, synic-reader-real, card-removed-not-no-readers, probe-verdict-fixed, feeder-automation-restored, mc-run-still-to-prove, nuvia-off-critical-path-if-proven]
 
+  - id: mem-020
+    type: technical_knowledge
+    content: >-
+      2026-07-29 — THE CARD PICKS THE SCHEME, NOT THE TRIGGER (bpr.cpp a3401c5; deployed to the EC2 bureau
+      the same day, binary sha c14e3c85). This was THE blocker for unattended running: the hopper holds a MIX
+      of MC-manager-only and multi-app cards, and asking for the wrong scheme died on the FIRST APDU (bureau
+      S4 on 2026-07-28: SELECT of the Visa CM on an MC-only card, 0/0 DGIs written).
+      The bureau now SELECTs BOTH card managers before committing — read-only, and both orchestrators
+      re-SELECT their own ISD afterwards anyway — then routes:
+      "auto"/absent -> the manager the card actually has; if it has BOTH, the DPI's PAN decides (4=visa,
+      5=mc; ONLY the first digit is read and the PAN is never logged);
+      explicit "visa"/"mc" -> still honoured but CHECKED first, so a mismatch now reports "card does not
+      carry the visa card manager (card has MC only)" instead of failing on APDU #1 with nothing written;
+      neither manager present -> clean fail, card rejected untouched;
+      explicit scheme contradicting the PAN -> warning (a Visa applet carrying an MC PAN misroutes at the
+      network).
+      TRAP FOUND ONLY BY RUNNING IT: the AGENT always forwards the `scheme` field, so its own "visa" default
+      MASKED the bureau's detection entirely — omitting -Scheme still took the visa path. The agent and
+      trigger.ps1 now default to "auto" too. A clean compile would have shipped this broken.
+      Verified over the mock transport (answers MC 9000 / Visa 6A82): omitted and "auto" both resolve to mc,
+      explicit visa is refused with the reason, explicit mc proceeds. 98/98 tests green.
+      REMAINING: one real card at the kiosk to confirm on hardware — watch for the "[detect] SELECT ..." lines
+      and "scheme = ... (auto — card has ...)" in the bureau log. [[mem-019]]
+    created_at: "2026-07-29"
+    last_accessed: "2026-07-29"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-29"
+    tags: [card-manager-detection, scheme-auto, mixed-hopper, unattended-blocker-cleared, pan-decides-tie, agent-default-masked-detection, bureau-deployed-c14e3c85, real-card-pending]
+
+  - id: mem-021
+    type: milestone
+    content: >-
+      2026-07-29 — BprIPersoAgent: PERSO IS NOW A LIBRARY CALL, NOT AN AGENT PROCESS (bpr.cpp ef764f4,
+      a2755a7, 14e0275, 56c10c0, 78f5102). User decision: no exe to supervise, no localhost port to keep
+      free, no batch file an operator can close. The kiosk application links the library and calls ONE
+      function; perso-kiosk-agent.exe survives only as a thin wrapper over the same code for diagnostics.
+      ONE DLL, BOTH HOSTS: C ABI (bpriperso_version/run/free — cdecl, undecorated, for C# P/Invoke and C/C++)
+      and JNI (Java_com_bnprs_jni_iPersoAgent_{version,runPerso} — System.loadLibrary, matching the
+      Bpr.QiScript delivery style). The request is ONE JSON object carrying the bureau connection AND the
+      card request — a superset of the old TCP trigger message, so the kiosk team's existing body still works.
+      THE HOST OWNS CARD MOVEMENT (user, same day): the library never loads TP9000.dll — the app inserts,
+      positions at the encoder, calls run(), then moves the card per result.disposition. Shipped DLLs are
+      verified TP9000-free (imports WinSCard/WS2_32/CRYPT32/ADVAPI32/USER32/KERNEL32 only); --tp9000 remains
+      an opt-in build flag for diagnostics. That handover needed three things:
+      (1) "disposition" ("eject"|"reject") on EVERY result INCLUDING failures — a card sits at the encoder
+      either way, and anything unconfirmed reports "reject";
+      (2) "waitForCardMs" (default 5000) retries the connect, because the card is not necessarily seated the
+      instant the host says so — SCardConnect is the power-on step;
+      (3) the default transport (was "tp9000" -> would have failed as "not available in this build") and the
+      capabilities announced to the bureau now derive from the COMPILED transports, not a hardcoded list.
+      DESIGN BUG CAUGHT BY TESTING, WORTH REMEMBERING: the first C ABI used the standard size-then-fill buffer
+      idiom — and the SIZING CALL RAN THE SESSION. One logical request produced two bureau sessions and would
+      have consumed TWO CARDS. Replaced with allocate-and-free (run returns a string, free releases it): one
+      call, one card, impossible to misuse. Counting bureau sessions in the log is what exposed it.
+      VERSIONED 2.59.0 in the BPR series (after BprCardQi 2.56.x / BprCardEmv 2.57.x / BprICBA 2.58.x),
+      registered in Makefile + bpr_versions.cmake + bpr_versions.h, built into the binary from
+      BPR_IPERSOAGENT_VERSION, and shipped under build/bnprs-libs/BprIPersoAgent/v<ver>/windows-{32,64}/ —
+      so a deployed kiosk can be identified by asking the library rather than hashing the file.
+      SAMPLES for both hosts (C# IPersoAgent.cs + PersoResult.cs + sample/Program.cs; Java iPersoAgent.java +
+      PersoResult.java + KioskPersoSample.java) show the real cycle and were RUN against a live bureau, not
+      just compiled. The obsolete KioskController C# sample (launched the exe, triggered over TCP) was deleted.
+      Java stays jar-free (plain javac, like Bpr.QiScript): minimal result reader that says to swap in a real
+      JSON library, and java.util.Base64 — javax.xml.bind.DatatypeConverter was removed in Java 11 and this
+      must build on their JDK 8 too.
+      BUILD NOTES: x86 needs -Wl,--add-stdcall-alias or the JVM misses the JNI symbols (JNICALL is __stdcall;
+      the C ABI is cdecl and unaffected); each arch needs its OWN static mingw OpenSSL (the x64 one will not
+      link into an x86 build); DLL bitness must match the HOST PROCESS, not the machine.
+      NOT YET DONE: nothing has run on WINDOWS, and no card has gone through the library path — first run
+      there should be commit=false. Package: ~/Downloads/BprIPersoAgent-v2.59.0. [[mem-019]] [[mem-020]]
+    created_at: "2026-07-29"
+    last_accessed: "2026-07-29"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-29"
+    tags: [bpripersoagent, library-not-process, c-abi, jni, csharp-pinvoke, host-owns-card-movement, disposition, waitforcardms, no-tp9000-dependency, sizing-call-ran-the-session, version-2.59.0, samples-verified-live, windows-run-pending]
+
+  - id: mem-022
+    type: process_note
+    content: >-
+      2026-07-29 — UAT bureau housekeeping. The EC2 (i-00eb79ff8e9e1788b, 98.130.14.127) accumulated TEN
+      perso-bureau.bak-* binaries (9.3 MB) from a week of redeploys; pruned to the two most recent
+      (bak-pre-cmdetect = the iCVV+PSN build, bak-pre-icvv = the one before) -> 936 KB. Everything removed was
+      from Jul 22-23 and predates BOTH the PSN fix and the iCVV fix, so rolling back to any of them would
+      reintroduce POS declines already diagnosed — they were not viable rollback targets.
+      TWO CHECKS WORTH REPEATING after any file work on that box: (a) confirm bureau.key/bureau.pem/ca.pem/
+      uat_keystore.txt are all still present — a truncated `ls | tail` made bureau.key LOOK missing and it
+      sorts first alphabetically; (b) force `systemctl restart` rather than trusting "active", because a
+      process that loaded its certs at startup keeps running happily even if the key file was deleted, and the
+      failure would only appear at the next reboot. Both verified clean.
+      WHAT IS ACTUALLY ON THE EC2 (asked 2026-07-29): NO DLL and no source — one aarch64 ELF `perso-bureau`
+      plus bureau.pem/bureau.key/ca.pem/uat_keystore.txt. Runtime deps are stock apt libs (libssl, libcrypto,
+      libpugixml, libstdc++, libgcc, libc, libm). It is built with PERSOENGINE_BUILD_PCSC=OFF and
+      TP9000=OFF — the bureau has NO card-transport code at all; it holds the keys, builds the DGIs and
+      decides every APDU, and the kiosk side puts them on the card. TP9000.dll / BprIPersoAgent.dll /
+      Bpr.QiScript.dll are all Windows-side and never go near it. [[mem-014]] [[mem-020]]
+    created_at: "2026-07-29"
+    last_accessed: "2026-07-29"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-29"
+    tags: [uat-bureau, backup-pruning, verify-tls-material, force-restart-test, no-dll-on-bureau, elf-only, pcsc-off-tp9000-off, ec2-inventory]
+
 # Pruning rules
 pruning:
   max_entries: 500
