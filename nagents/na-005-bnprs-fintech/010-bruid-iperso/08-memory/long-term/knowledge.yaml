@@ -728,7 +728,14 @@ memories:
       the C ABI is cdecl and unaffected); each arch needs its OWN static mingw OpenSSL (the x64 one will not
       link into an x86 build); DLL bitness must match the HOST PROCESS, not the machine.
       NOT YET DONE: nothing has run on WINDOWS, and no card has gone through the library path — first run
-      there should be commit=false. Package: ~/Downloads/BprIPersoAgent-v2.59.0. [[mem-019]] [[mem-020]]
+      there should be commit=false.
+      DELIVERY FOLDER CONVENTION (user, observed 2026-07-29): delivery packages are named by VERSION ONLY —
+      ~/Downloads/v2.59.0 for this one, matching ~/Downloads/v2.22.31 for the QiScript delivery. The user
+      renamed BprIPersoAgent-v2.59.0 -> v2.59.0; use v<version> for future packages.
+      DOCS now live in the repo, not only in the delivery folder (bpr.cpp 4504335): persoengine/README.md
+      (what gets built, CMake options, cross-build scripts, the card flow, versioning, the PCI/key/eject
+      conventions) and persoengine/capi/BprIPersoAgent.md (the delivery README plus build-from-source and the
+      source layout). [[mem-019]] [[mem-020]]
     created_at: "2026-07-29"
     last_accessed: "2026-07-29"
     access_count: 1
