@@ -1055,7 +1055,14 @@ memories:
       service active listening 9099 TLS. REMAINING: re-perso ONE card and re-tap at the POS; expect the 05 to
       clear. If the DPI's ICVV is not 3 digits the run FAILS FAST with "sequencer: iCVV must be 3 digits"
       BEFORE any APDU — the card is rejected untouched and nothing is wasted, and that message IS the layout
-      answer. NEVER store the ICVV/CVV values anywhere. [[mem-035]] [[mem-034]]
+      answer. NEVER store the ICVV/CVV values anywhere.
+      ATC BASELINE RESET DONE 2026-07-29 (issuer, user-confirmed) — the response 04 "pick-up card" was the
+      host holding the PREVIOUS card's ATC high-water mark (19) while the re-persoed card restarted at 0 and
+      reached 3; a lower ATC reads as a clone. With the baseline cleared the same physical card can be
+      re-tapped: expect neither 05 (iCVV, fixed) nor 04. The card's counter having already advanced is fine —
+      the host wants the ATC ABOVE the stored value. Still open and SEPARATE from the reset: a pool of test
+      PANs, so a re-perso does not need a manual host reset each time and failed-auth flags stop accumulating
+      on one account. [[mem-035]] [[mem-034]]
     created_at: "2026-07-28"
     last_accessed: "2026-07-28"
     access_count: 1
