@@ -1,6 +1,6 @@
 # BprIDEngine — unified library architecture
 
-**Status:** B1·B2·B3·B4·B6 cleared, B5 cleared for Palmprint · **proof gate PASSES on 3 modalities** · 2026-07-30
+**Status:** B1·B2·B3·B4·B6 cleared; B5 cleared for Palmprint + FingerCless · **gate PASSES on 4 modalities** · 2026-07-30
 **Owner:** na-004/007 `cpp-bengine` (engine, ABI contract, build integration)
 **Affects:** na-004/001–006 — every modality agent
 
@@ -91,7 +91,7 @@ Requirement 2, satisfied structurally.
 |---|:--:|:--:|:--:|:--:|---|
 | BprFace | ✓ | ✓ dll+jni | ✓ | **✓** | — |
 | BprFinger | ✓ | ✓ dll | ✓ | **✓** | ✓ T21 (Fjfx) |
-| BprFingerCless | ✗ | ✓ dll | ✗ | ✓ | — |
+| BprFingerCless | **✓** | ✓ dll | ✗ | ✓ | **✓ T31 (feeds T21)** |
 | BprFingerKnuckle | ✗ | ✓ dll | ✗ | ✓ | — |
 | BprPalmprint | **✓** | ✗ | ✗ | — | **✓ T41/M41 (CompCode)** |
 | BprIris | ✓ | ✓ dll | ✓ | ✓ | ✓ T51/M51 |
@@ -124,7 +124,10 @@ with `-DNO_MFC`.** *002.*
 unless `NO_MFC` is set; all five glue files inherit it. With `-DNO_MFC`, four of five compile
 clean on clang. Set globally by the unified CMake. *007.*
 
-**B5 · ~~three~~ TWO modalities have no algorithm sources.** ~~Palmprint~~ **cleared
+**B5 · ~~three~~ ~~two~~ ONE modality has no algorithm sources.** FingerCless **cleared
+2026-07-30** — T31 implemented as preprocessing feeding T21, emitting ISO 19794-2, so it needs
+no matcher of its own. Only FingerKnuckle remains, and the T31 trick will not generalise there
+(a knuckle image has no minutiae to feed an ISO extractor). *Previously:* ~~Palmprint~~ **cleared
 2026-07-30** — Competitive Coding implemented, T41/M41 live, in the gate. FingerCless and
 FingerKnuckle still have export glue wired to nothing and no sources; they share modality 4C,
 so 003 and 004 must coordinate. *003, 004.*
@@ -182,17 +185,19 @@ the consolidated library and fails on drift.
 ```
 $ cmake -S . -B build-all -DBENGINE_BUILD_ALL=ON && cmake --build build-all
 $ tests/proof_gate.sh build-all
-PASS  libBprFinger.dylib     17 symbols
-PASS  libBprIris.dylib       17 symbols
-PASS  libBprPalmprint.dylib  17 symbols
+PASS  libBprFinger.dylib       17 symbols
+PASS  libBprFingerCless.dylib  17 symbols
+PASS  libBprIris.dylib         17 symbols
+PASS  libBprPalmprint.dylib    17 symbols
 ```
 
 | Library | `BprID_*` | Registers |
 |---|:--:|---|
 | `BprFinger` | 17 | T21 bFinger |
 | `BprIris` | 17 | T51 mIris |
+| `BprFingerCless` | 17 | T31 bFingerCless *(ISO 19794-2, feeds from T21)* |
 | `BprPalmprint` | 17 | T41 bPalmprint |
-| `BprIDEngine` | 17 | **T21 + T41 + T51** |
+| `BprIDEngine` | 17 | **T21 + T31 + T41 + T51** |
 
 Identical ABI, different capability sets, consolidated = the union. Until iris landed the gate
 compared one library against a superset of itself, which proved little — two modalities is the

@@ -143,6 +143,30 @@ memories:
     source: "session-2026-07-30"
     tags: [shared-modality-4c, touchless-source-located, nothing-for-knuckle, coordinate-with-na-004-003, b5-still-open]
 
+  - id: mem-005
+    type: process_note
+    content: >-
+      2026-07-30 MODALITY 4C RESOLVED FOR T31 — affects this agent because 4C is shared.
+      na-004/003 implemented T31 as PREPROCESSING that feeds T21: a touchless capture is
+      normalised into a contact-equivalent ridge image and passed to FingerJetFX, so a T31
+      template is a standard ISO 19794-2 record and needs NO M31 (bpr.cpp 27ffd00).
+      WHAT THIS SETTLES FOR 4C: the taxonomy's three-templates-but-two-matchers shape is now
+      explained rather than odd. T31 needs no matcher; T33 bFingerKnuckle is matched by M32
+      bFingerKnuckle(PolyU), which is THIS agent's. T32 (Inno Ansi/Iso) remains the only orphan.
+      WORTH CONSIDERING FOR KNUCKLE: the same trick may not apply. A knuckle image has no
+      minutiae, so it cannot feed an ISO fingerprint extractor — T33/M32 really do need their own
+      algorithm and matcher, unlike T31. Do not assume the T31 pattern generalises.
+      STILL OPEN HERE: no algorithm sources, no *_src.cmake, and the cli/ export glue is wired to
+      nothing. B5 remains open for knuckle even though it is now cleared for fingercless and
+      palmprint. The module does at least have real headers (HandStructureLR4.h, Points_New*.h,
+      bpr_idengineknuckle.h), unlike Palmprint which was empty.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [4c-resolved-for-t31, no-m31-needed, t32-still-orphan, knuckle-cannot-reuse-the-trick, b5-still-open-here]
+
 # Pruning rules
 pruning:
   max_entries: 500

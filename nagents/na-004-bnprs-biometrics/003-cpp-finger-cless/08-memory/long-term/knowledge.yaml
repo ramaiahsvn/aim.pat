@@ -172,6 +172,52 @@ memories:
     source: "session-2026-07-30 (user-directed import)"
     tags: [source-of-record, trp1001-sbioids, enrollmentflowimpl-branch, main-is-empty, fp-bridge-copied, no-matcher-source, vendor-so-arm64-only, decompiled-aar-licensing, opencv-tflite-decision, t31-may-feed-t21, shared-modality-4c, 36a86ce]
 
+  - id: mem-005
+    type: infrastructure
+    content: >-
+      2026-07-30 T31 IS NOW PREPROCESSING THAT FEEDS T21 — implemented, in the proof gate, and
+      B5 is cleared for this modality (bpr.cpp 27ffd00). User-directed decision.
+      THE DESIGN: a touchless capture differs from a contact scan in its IMAGE, not in what a
+      fingerprint is. So T31 defines NO touchless template format. It normalises the capture into
+      a contact-equivalent ridge image and hands that to FingerJetFX:
+      touchless -> invert polarity -> CLAHE -> normalise -> FJFX -> ISO/IEC 19794-2:2005.
+      A T31 template is therefore a STANDARD ISO record, byte-compatible with T21's.
+      WHY THIS MATTERS — three problems dissolve at once: (1) M31 is not needed, which is exactly
+      why the taxonomy gives modality 4C three template formats but only TWO matchers; the oddity
+      answers itself. (2) extract_templates_native does not need porting and neither does the
+      vendor matcher, so libttv_fp_core.so leaves the critical path entirely. (3) Any conformant
+      external ISO matcher consumes touchless captures unchanged.
+      WHEN AN ISO MATCHER IS WRITTEN: register the SAME implementation as both M21 (modality 4B)
+      and M31 (4C). That respects Engine::match's rule that matcher and template share a modality
+      instead of weakening the guard.
+      IMPLEMENTATION: BprFingerCless/Touchless/touchless_preprocess.{h,cpp}, dependency-free (no
+      OpenCV, no TFLite, no vendor .so) so it links into BprIDEngine like every other modality.
+      Real CLAHE — tiled histogram equalisation, clipped AND redistributed (discarding the
+      clipped mass would darken high-contrast tiles), bilinearly interpolated between tile LUTs
+      because otherwise tile seams read as ridge endings — plus Hong-Wan-Jain mean/variance
+      normalisation. DPI is estimated from finger width (kNominalFingerWidthMm = 15.0) since a
+      camera reports none and FJFX validates the print's PHYSICAL size.
+      DO NOT TURN OFF invertPolarity without checking the rig: touchless illumination makes
+      ridges BRIGHT, so without inversion the extractor traces the VALLEYS and every minutia is
+      systematically wrong — it will still return a plausible-looking template.
+      BENGINE_BUILD_FINGER_CLESS IMPLIES BENGINE_BUILD_FINGER — the adapter reuses the T21
+      extractor rather than carrying a second copy of FJFX. Expressed in CMake, not left as a
+      link error.
+      VERIFIED END TO END: a synthetic touchless capture derived from FingerJetFX's own reference
+      contact print (inverted, contrast crushed to 25%, illumination ramp) is asserted to recover
+      into a valid FMR record with real minutiae, AND that T31's first 8 record bytes are
+      IDENTICAL to T21's — the property the whole design rests on. 57 tests.
+      REAL REMAINING GAP is no longer the matcher: it is FINGER DETECTION AND ROI SEGMENTATION.
+      The adapter assumes a cropped, roughly axis-aligned fingertip. Locating the finger in a full
+      camera frame is the imported reference pipeline's CaptureNet/TFLite stage
+      (TouchlessCapture/fp_bridge.cpp) and is NOT reimplemented. [[mem-004]]
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (user-directed)"
+    tags: [t31-feeds-t21, b5-cleared, iso-19794-2-output, no-m31-needed, dependency-free-clahe, invert-polarity-critical, implies-build-finger, roi-segmentation-is-the-gap, 27ffd00]
+
 # Pruning rules
 pruning:
   max_entries: 500

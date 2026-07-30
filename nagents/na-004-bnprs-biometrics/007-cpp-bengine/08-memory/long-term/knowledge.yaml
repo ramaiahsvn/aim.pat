@@ -455,6 +455,41 @@ memories:
     source: "session-2026-07-30"
     tags: [three-modalities, proof-gate, palmprint-added, add-a-modality-recipe, b5-partial, 4a6cb30]
 
+  - id: mem-015
+    type: infrastructure
+    content: >-
+      2026-07-30 FOUR MODALITIES IN THE GATE (bpr.cpp 27ffd00).
+        BprFinger      T21 bFinger        BprFingerCless T31 bFingerCless
+        BprPalmprint   T41 bPalmprint     BprIris        T51 mIris
+        BprIDEngine    all four
+      57 tests; default core-only build unaffected; 17 identical BprID_* symbols everywhere.
+      T31 IS ARCHITECTURALLY DIFFERENT FROM THE OTHERS and worth understanding before adding more
+      modalities. It is not a new algorithm — it is PREPROCESSING that emits an existing format.
+      A touchless capture is normalised into a contact-equivalent image and handed to the T21
+      extractor, so a T31 template is a standard ISO 19794-2 record. Two firsts for this engine:
+      (1) an adapter that DEPENDS ON ANOTHER ADAPTER — BENGINE_BUILD_FINGER_CLESS implies
+      BENGINE_BUILD_FINGER, expressed in CMake rather than left as a link error; and (2) a TID
+      whose template format is deliberately identical to another TID's, distinguishing only the
+      CAPTURE PATH.
+      That second point is the useful general lesson: a TID identifies where a template CAME
+      FROM, not necessarily a unique byte format. It is why modality 4C has three template
+      formats but only two matchers, and it is the cheapest way to add a capture modality —
+      normalise into an existing format instead of inventing one and a matcher to go with it.
+      Consider it first for any future modality.
+      RULE FOR WHEN AN ISO MATCHER APPEARS: register the same implementation under BOTH M21 (4B)
+      and M31 (4C). Engine::match requires matcher and template to share a modality; two ids over
+      one implementation satisfies that without weakening the guard.
+      REMAINING: B5 for FingerKnuckle only (no sources, no src.cmake — and the T31 trick will NOT
+      generalise, since a knuckle image has no minutiae to feed an ISO extractor); B7 Fjfx in no
+      library plus its LGPL gate; T32 still an orphan template; and the root toolchain's
+      --export-all-symbols leak (mem-013).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [four-modalities, t31-preprocessing-pattern, adapter-depends-on-adapter, tid-is-capture-path, register-one-impl-under-two-mids, remaining-blockers, 27ffd00]
+
 # Pruning rules
 pruning:
   max_entries: 500
