@@ -51,7 +51,7 @@ Cross-cutting certification agent — validates and certifies all BprIDEngine bi
 | 004-cpp-finger-knuckle | BprFingerKnuckle | EER on knuckle database |
 | 005-cpp-palmprint | BprPalmprint | EER on PolyU/IITD (pending impl.) |
 | 006-cpp-iris | BprIris | EER on CASIA-IrisV4 (IREX protocol) |
-| 007-cpp-dna | BprDNA | Random match probability (pending impl.) |
+| 007-cpp-bengine | BprIDEngine | Engine-level / multi-modal fusion certification |
 
 ## Certification Process
 

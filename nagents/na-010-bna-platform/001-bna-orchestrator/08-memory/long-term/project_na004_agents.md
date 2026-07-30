@@ -18,7 +18,7 @@ na-004-bnprs-biometrics has 12 active agents (codes 001–012), all created 2026
 
 **Not yet implemented (planned):**
 - 005 cpp-palmprint — BprPalmprint (readme says "to be added")
-- 007 cpp-dna — BprDNA (STR profiling)
+- 007 cpp-bengine — BprIDEngine (biometric engine, cross-modality layer; was cpp-dna/BprDNA)
 - 008 cpp-sheep — BprSheep (livestock biometrics)
 - 009 cpp-video — BprVideo (gait, multi-frame fusion, person re-ID)
 

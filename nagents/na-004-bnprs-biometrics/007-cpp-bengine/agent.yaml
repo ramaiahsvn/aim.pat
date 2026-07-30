@@ -6,7 +6,7 @@
 # ============================================================
 
 agent:
-  name: "cpp-dna"
+  name: "cpp-bengine"
   code: "007"
   group: "na-004-bnprs-biometrics"
   version: "1.0.0"

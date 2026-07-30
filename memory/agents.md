@@ -40,7 +40,7 @@
 | 004  | na-004 | cpp-finger-knuckle | BprFingerKnuckle C++ Module (L4/R4/T2 segmentation + matching) | active | 2026-05-27 |
 | 005  | na-004 | cpp-palmprint | BprPalmprint C++ Module (not yet implemented) | active | 2026-05-27 |
 | 006  | na-004 | cpp-iris | BprIris C++ Module (Masek + VASIR iris recognition) | active | 2026-05-27 |
-| 007  | na-004 | cpp-dna | BprDNA C++ Module (not yet implemented) | active | 2026-05-27 |
+| 007  | na-004 | cpp-bengine | BprIDEngine C++ Engine — cross-modality layer (was cpp-dna) | active | 2026-05-27 |
 | 008  | na-004 | cpp-sheep | BprSheep C++ Module (livestock biometrics, not yet implemented) | active | 2026-05-27 |
 | 009  | na-004 | cpp-video | BprVideo C++ Module (video biometrics, not yet implemented) | active | 2026-05-27 |
 | 010  | na-004 | algo-certify | Algorithm Certification and Benchmarking (all modalities) | active | 2026-05-27 |
