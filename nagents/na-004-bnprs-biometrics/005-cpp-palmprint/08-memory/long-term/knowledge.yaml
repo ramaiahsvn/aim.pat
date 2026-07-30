@@ -139,6 +139,71 @@ memories:
     source: "session-2026-07-30"
     tags: [b5-cleared, compcode-implemented, t41-m41, self-contained, dc-removed-gabor, border-masking, genuine-impostor-measured, roi-segmentation-missing, no-cli-glue, no-m-pi, 4a6cb30]
 
+  - id: mem-005
+    type: infrastructure
+    content: >-
+      2026-07-30 ROI SEGMENTATION EXISTS — BprPalmprint works on a hand image now, not only on a
+      pre-cropped database (bpr.cpp 02d0a0d, Segment/palmprint_segment.{h,cpp}).
+      Pipeline: Otsu -> largest connected component -> Moore-neighbour boundary trace -> radial
+      distance profile from the palm centroid -> digits and valleys -> frame through the
+      index/middle and ring/little valleys -> square ROI resampled to 128x128. Dependency-free.
+      MEASURED (synthetic hand, CompCode similarity between two captures of ONE hand, vs the same
+      images centre-cropped): rotated 10/20/30 deg = 0.900 / 0.900 / 0.913 segmented against
+      0.511 / 0.509 / 0.503 cropped; shifted 40 px = 0.924 vs 0.635. Flat across +/-40 deg and
+      0.7x-1.3x scale. Two DIFFERENT hands both segmented = 0.514, so invariance did not come
+      from making everything match.
+      THE HARD PART IS TELLING A DIGIT FROM A CORNER OF THE PALM, and distance from the centroid
+      CANNOT DO IT — on this hand the two lower palm corners sit 115 and 120 px out against a
+      120 px median fingertip, so every length-based test admits them and the frame gets built on
+      a corner. My first version did exactly that. What works is SHAPE: a finger is a long thin
+      protrusion, so the boundary arc over it is several times the chord across its base.
+      Measured arc/chord — middle 7.9, ring 7.1, index 4.6, little 4.1 | thumb 3.0, palm corners
+      1.4. `minProtrusion` default 3.0, measured working window 1.6-4.0 (1.2 -> kErrRoiOffHand,
+      4.4 -> little finger lost, 4.8 -> kErrNoValleys).
+      The THUMB is dropped on purpose: it rotates about its own joint independently of the palm,
+      so a frame anchored to it is not repeatable. Identified by anatomy, not pose — always at an
+      END of the digit run, never between two fingers, and the nearer end to the centroid.
+      ADAPTER: `make_palmprint_compcode_extractor(PalmInput::FullHand, 128)` vs the default
+      `PalmInput::Roi`. BOTH EMIT T41 — segmentation is a front end, not a template format. No
+      auto-detect, deliberately: falling back to whole-image encoding on a failed segmentation
+      would produce a silently wrong template from background, worse than an error.
+      NOT MEASURED ON REAL PALMS. Everything above is geometric invariance on a synthetic hand,
+      NOT recognition accuracy. A PolyU run is owed to na-004/010. Handedness is not normalised
+      (a left hand mirrors a right — correct, but a gallery must not mix them under one identity).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (measured, not assumed)"
+    tags: [roi-segmentation, protrusion-not-length, minprotrusion-3.0, thumb-dropped-by-anatomy, palminput-fullhand, t41-unchanged, synthetic-only-no-polyu, 02d0a0d]
+
+  - id: mem-006
+    type: incident_learning
+    content: >-
+      2026-07-30 A CONTOUR TRACE THAT SILENTLY RUNS TWICE LOOKS LIKE AN ALGORITHM BUG, NOT A BUG.
+      My Moore-neighbour boundary trace stated Jacob's stopping criterion against the FIRST
+      RETURN to the start pixel instead of the walk's initial state, so it traced the whole
+      boundary twice: N=2572 for a 1286-pixel contour, and every fingertip and valley appeared at
+      both i and i+N/2. It never errored. It presented as "the valley detector finds 10 valleys
+      when there are 3", and I nearly went and retuned the extremum thresholds — which would have
+      papered over it and left the real defect in place.
+      What found it was DUMPING THE INTERMEDIATE STATE rather than the outcome: printing the peak
+      list with image coordinates made the duplication obvious in one look (peak i=209 and i=1495
+      were the same pixel). Do that before tuning any parameter.
+      Second wrong version, worth naming too: stopping when the backtrack matched its INITIAL
+      value never fired at all and ran to the iteration guard — that initial value is synthetic
+      (we assume we arrived from the west) and the walk enters the start pixel from wherever the
+      boundary actually comes from. The working criterion is "back at the start pixel AND about
+      to repeat the first move".
+      Both failure modes are quiet. There is now a regression test (DoesNotTraceTheContourTwice)
+      that asserts the valley count, because that is the observable the duplication changed.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [moore-tracing, jacobs-criterion, silent-double-trace, dump-state-before-tuning, regression-test-added]
+
 # Pruning rules
 pruning:
   max_entries: 500

@@ -547,6 +547,35 @@ memories:
     source: "session-2026-07-30"
     tags: [b1-b7-all-cleared, five-of-six-modalities, face-needs-opencv, segmentation-is-the-gap, 2ecfbb5]
 
+  - id: mem-018
+    type: infrastructure
+    content: >-
+      2026-07-30 PALMPRINT SEGMENTATION LANDED (na-004/005, bpr.cpp 02d0a0d) — one of the three
+      modalities that assumed a handed-in ROI now finds its own. Gate still PASSES on five
+      modalities at 17 identical symbols; 78 tests, up from 64.
+      T41 IS UNCHANGED. The adapter gained `PalmInput::FullHand` beside the default
+      `PalmInput::Roi`, and both emit the same T41 — segmentation is a front end, not a template
+      format, so the templates are mutually comparable and the registrar and the shipped ABI did
+      not move. That is the pattern to reuse for knuckle and fingercless: add a mode, not a
+      template id. Adding one would mean changing the taxonomy, which is the user's call.
+      ONE DECISION LEFT OPEN DELIBERATELY: the registrar still registers `PalmInput::Roi`, so
+      segmentation is NOT reachable through BprIDEngine.so / BprPalmprint.so — a caller of the
+      C ABI handed a hand photo still gets a code map of the whole image. Switching the registrar
+      to FullHand would change shipped behaviour, so it needs the user. Worth raising: FullHand
+      fails LOUDLY on a pre-cropped image (kErrNoValleys) whereas Roi fails SILENTLY on a hand
+      photo, which argues for FullHand being the safer default.
+      SEGMENTATION IS STILL MISSING FOR TWO: BprFingerKnuckle and BprFingerCless. Knuckle has
+      KnuckleSegment{Common,L4,R4,T2}.cpp in-tree as reference (unbuildable — OpenCV 1.x C API);
+      fingercless has the CaptureNet/TFLite stage in TouchlessCapture/ as reference. Neither is
+      ported. See [[na-004/005 mem-005]] for the approach that worked: protrusion (arc/chord),
+      not distance from the centroid.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [palmprint-segmentation-done, palminput-mode-not-new-tid, registrar-still-roi-open-decision, knuckle-and-cless-still-missing, 78-tests, gate-passes, 02d0a0d]
+
 # Pruning rules
 pruning:
   max_entries: 500
