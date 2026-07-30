@@ -1,0 +1,81 @@
+# Task — touchless finger detection / ROI segmentation
+# Raised 2026-07-31, deferred by the user before work started.
+# OWNER: na-004/003 cpp-finger-cless (this agent).
+#
+# CONTEXT: palmprint (na-004/005) and knuckle (na-004/004) both got ROI segmentation on
+# 2026-07-30/31. Fingercless is the LAST modality that still assumes it is handed a cropped,
+# roughly axis-aligned fingertip. Work was about to start and was deferred.
+
+task:
+  id: "task-001"
+  subject: "Locate the fingerprint ROI in a touchless camera frame"
+  description: >-
+    Touchless/touchless_preprocess.{h,cpp} converts a cropped fingertip into a
+    contact-equivalent ridge image and hands it to FingerJetFX, so T31 emits a standard
+    ISO 19794-2 record. That half works and is in the proof gate.
+
+    What is missing is everything BEFORE it: finding the finger in a full camera frame and
+    cropping it. Until that exists T31 needs a caller that has already done the hardest part.
+
+    DO NOT ASSUME THE PALMPRINT/KNUCKLE APPROACH TRANSFERS. Common/HandGeometry (silhouette ->
+    boundary trace -> radial distance profile -> fingers and valleys) works because a hand
+    silhouette has fingers as protrusions around a palm. A touchless capture may well be one
+    or more fingertips filling the frame with no palm and no valleys, in which case none of
+    that machinery applies and this needs a genuinely different method.
+
+    THAT QUESTION IS OPEN AND IS THE FIRST STEP. I had started checking it and stopped. The
+    evidence to settle it is in the reference pipeline, TouchlessCapture/fp_bridge.cpp:
+
+      - extract_rects_native (line 522) — finger RECTANGLE detection, plural
+      - calc_median_finger_size (line 629) — a MEDIAN over a finger vector
+
+    Both names imply MULTIPLE fingers per frame, which would look like a four-finger slap held
+    up to a camera — and if so the hand IS in frame and Common/HandGeometry may apply after
+    all. Read those two functions before choosing an approach. I told the user in an earlier
+    session that the shared layer would not apply here; that was an assumption, not a finding,
+    and these two symbol names are reason to doubt it.
+
+    The reference's own answer to this stage is CaptureNet, a TFLite segmentation model
+    (run_capture_net_on_mat, line 1302) producing a mask plus a marker output. Three problems
+    with adopting it, all pre-existing and recorded in BprFingerCless/README.md:
+      1. The MODEL IS NOT IN THE REPO. The only committed asset is nist_plain_tir-ink.yaml,
+         which is the NFIQ2 quality model, not a fingerprint network.
+      2. TFLite would be a new runtime dependency for the consolidated BprIDEngine, which is
+         dependency-free by design for exactly this reason. That is an architectural decision
+         for na-004/007 and na-002, not one to make inside this module.
+      3. fp_bridge.cpp is Android/JNI-coupled and written against cv::Mat throughout, so it
+         also drags in OpenCV.
+
+    So the likely shape of the work is a dependency-free geometric segmenter informed by the
+    reference, the same way BprFingerKnuckle/Segment was written from KnuckleSegmentL4.cpp
+    rather than ported from it.
+
+  status: pending
+  priority: medium
+  created_at: "2026-07-31"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 12
+  tags: [fingercless, t31, segmentation, touchless, capturenet, tflite-decision, last-modality]
+
+  first_step: >-
+    Read extract_rects_native and calc_median_finger_size in
+    src/BprIDEngine/BprFingerCless/TouchlessCapture/fp_bridge.cpp and establish whether the
+    capture is one fingertip or several fingers with the hand in frame. Everything else
+    depends on that answer.
+
+  references:
+    module_readme: "bpr.cpp src/BprIDEngine/BprFingerCless/README.md"
+    reference_pipeline: "bpr.cpp src/BprIDEngine/BprFingerCless/TouchlessCapture/fp_bridge.cpp"
+    source_of_record: "~/BPR/GitRepos2/TRP1001_SbioidS/trp1001.sbioids.finger.cless (branch enrollmentFlowImpl, NOT main)"
+    shared_layer: "bpr.cpp src/BprIDEngine/Common/HandGeometry/hand_geometry.h"
+    prior_art_palmprint: "bpr.cpp src/BprIDEngine/BprPalmprint/Segment/ (commit 02d0a0d)"
+    prior_art_knuckle: "bpr.cpp src/BprIDEngine/BprFingerKnuckle/Segment/ (commit 39a0443)"
+    memories: ["na-004/003 mem-004", "na-004/007 mem-019"]
+
+  transferable_lessons:
+    - "Add a MODE to the adapter (FingerClessInput::FullFrame vs Roi), never a new template id — T31 must stay T31 so templates remain comparable and the taxonomy is untouched."
+    - "Measure against a no-segmentation baseline (fixed/centre crop) and report both numbers, or the module's value is unevidenced."
+    - "Binarisation is the floor and it fails SILENTLY with a plausible count — check what the mask actually looks like before tuning anything downstream (na-004/004 mem-009)."
+    - "Refactor the existing consumer onto any shared layer FIRST and prove its tests unchanged, before adding the new one (na-004/007 mem-019)."
