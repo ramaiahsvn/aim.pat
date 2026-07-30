@@ -490,6 +490,34 @@ memories:
     source: "session-2026-07-30"
     tags: [four-modalities, t31-preprocessing-pattern, adapter-depends-on-adapter, tid-is-capture-path, register-one-impl-under-two-mids, remaining-blockers, 27ffd00]
 
+  - id: mem-016
+    type: infrastructure
+    content: >-
+      2026-07-30 FIVE MODALITIES IN THE GATE — B5 is fully closed (bpr.cpp 193abbc).
+        BprFinger T21 / BprFingerCless T31 / BprFingerKnuckle T33 /
+        BprPalmprint T41 / BprIris T51, with BprIDEngine carrying all five.
+      64 tests; default core-only build unaffected; 17 identical BprID_* symbols in all six
+      libraries. Only BprFace (modality 4A) has no adapter, and it is the one that needs OpenCV.
+      COMPCODE NOW EXISTS TWICE — palmprint and knuckle each carry their own Gabor bank, winner
+      selection and angular distance, differing only in parameters (omega 0.10 vs 0.075, square
+      vs asymmetric shift search) and in knuckle's extra magnitude-mask option. That is real
+      duplication, ~200 lines. I did NOT factor it out: BprIDEngine has no shared layer
+      (mem-002), creating one is a structural change this agent's own guardrails say to confirm
+      first, and the two modules belong to different agents (na-004/005 and /004). A
+      BprIDEngine/Common/ holding a parameterised CompCode is now clearly justified — worth
+      proposing rather than doing silently.
+      GENERAL LESSON FROM THE KNUCKLE WORK, applicable to any future modality: na-004/004 added
+      magnitude masking on a plausible hypothesis and the measurement showed it reduced
+      genuine/impostor separation MONOTONICALLY (0.3022 -> 0.0024 across the range). The
+      hypothesis was reasonable; the data disagreed. Every modality here now ships measured
+      genuine/impostor numbers as test assertions rather than claimed accuracy — keep that.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [five-modalities, b5-closed, compcode-duplicated, shared-layer-justified, measure-dont-assume, only-face-remains, 193abbc]
+
 # Pruning rules
 pruning:
   max_entries: 500

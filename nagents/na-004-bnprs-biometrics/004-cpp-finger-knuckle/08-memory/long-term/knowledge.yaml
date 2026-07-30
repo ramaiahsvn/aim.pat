@@ -167,6 +167,46 @@ memories:
     source: "session-2026-07-30"
     tags: [4c-resolved-for-t31, no-m31-needed, t32-still-orphan, knuckle-cannot-reuse-the-trick, b5-still-open-here]
 
+  - id: mem-006
+    type: infrastructure
+    content: >-
+      2026-07-30 B5 CLEARED FOR KNUCKLE — T33/M32 implemented and in the proof gate
+      (bpr.cpp 193abbc).
+      THE EXISTING ~130 KB IN THIS MODULE IS NOT BUILDABLE — I expected a wiring job and it was
+      not. KnuckleMatching.cpp, KnuckleSegmentL4/R4/T2.cpp and bpr_idengineknuckle.* fail for
+      four independent reasons: (1) OpenCV **1.x C API** — opencv/cv.h, CvMat, cvShiftDFT —
+      which was REMOVED in OpenCV 4; (2) `bioidengineknuckle.h` is included by
+      KnuckleSegmentCommon.cpp and KnuckleSegmentR4.cpp and DOES NOT EXIST anywhere in the
+      repository; (3) `<io.h>`, Windows-only; (4) unconditional __declspec(dllexport) and a
+      FILE-PATH api — BEKnuckle_Matching(file1,file2) — with no separable template, which cannot
+      fit the engine's extract-then-match model. Excluded from bpr_fingerknuckle_src.cmake, kept
+      as the reference for segmentation.
+      IMPLEMENTED: CompCode/knuckle_compcode.{h,cpp} — Competitive Coding, the PolyU baseline
+      that M32's own name refers to. Self-contained (no OpenCV/SDK/model blobs). Differs from the
+      palmprint CompCode where a knuckle differs from a palm: omega 0.075 with a wider envelope
+      (creases are coarser than palm lines) and an ASYMMETRIC shift search, +/-6 horizontal vs
+      +/-3 vertical, because creases run across the finger so misalignment is mostly along it.
+      A HYPOTHESIS THE MEASUREMENT KILLED — worth remembering as a habit, not just a fact. I added
+      magnitude masking reasoning that a knuckle ROI is mostly smooth skin where the winning
+      orientation is noise, so keeping only strong-response pixels should sharpen matching. It
+      does the OPPOSITE, monotonically: separation 0.3022 at ratio 0.0, 0.1201 at 0.1, 0.0388 at
+      0.3, 0.0244 at 0.5, 0.0024 at 0.8. The pixels it keeps are creases, and creases are
+      near-horizontal in EVERYONE, so impostor distances shrink alongside genuine ones. Default is
+      0.0 (off); the header carries the table instead of my original claim; a test pins both the
+      default and the direction. DO NOT re-enable on intuition — re-measure.
+      M32 READS T33, not the same-numbered T32. Encoded in accepts(); a test asserts a T32
+      template reaching M32 is rejected. T32 stays an orphan.
+      REMAINING GAP: SEGMENTATION. CompCode assumes a knuckle ROI and does not locate one in a
+      hand image. The legacy KnuckleSegment* files (L4/R4/T2 hand structures, ~72 KB) are the
+      reference for that work — porting them means resolving the OpenCV question first.
+      [[mem-005]]
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b5-cleared, t33-m32, compcode-polyu, legacy-unbuildable, opencv-1x-removed, missing-header, magnitude-masking-disproved, m32-reads-t33, segmentation-is-the-gap, 193abbc]
+
 # Pruning rules
 pruning:
   max_entries: 500
