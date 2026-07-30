@@ -5,26 +5,159 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: >-
+      2026-07-30 IDENTITY — this agent was `cpp-dna` (BprDNA C++ Module: STR profiling, CODIS,
+      forensic matching) until 2026-07-30, when the user renamed it to `cpp-bengine` and re-scoped
+      it. "bengine" is shorthand for **BprIDEngine** — clarified by the user after an initial
+      misread on my part that it meant some new "BEngine" module. So this was a REPURPOSE, not a
+      rename: the agent now owns the biometric ENGINE (the cross-modality layer above the six
+      modality modules), not a single modality. The old nucleus was entirely DNA-specific and was
+      rewritten; keeping it under a BprIDEngine name would have been actively misleading.
+      Code 007 is UNCHANGED and never reassigned (platform rule: codes are permanent).
+      CONSEQUENCE: **DNA biometrics is now covered by NO na-004 agent.** It was only ever a stub
+      (never implemented, no BprDNA/ directory ever existed), so nothing was lost in practice, but
+      the coverage gap is real. If DNA returns it needs a NEW code — the next free one in the
+      na-004 registry — not 007. The old scope (STR loci selection, allele-counts-only storage,
+      GDPR Art 9 / forensic-DNA-law constraints, consent + chain-of-custody) is recoverable from
+      the git history of 03-nucleus/CLAUDE.md.
+      Cross-refs updated the same day: registry.yaml, agent.yaml, memory/agents.md, na-010/001
+      orchestrator's na-004 roster, and na-004/010 algo-certify's module table.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [identity, repurpose, was-cpp-dna, bpridengine, code-007-permanent, dna-coverage-gap]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: technical_knowledge
+    content: >-
+      2026-07-30 WHAT BprIDEngine ACTUALLY IS (measured, not assumed — check before designing
+      anything engine-level). Path: bpr.cpp/src/BprIDEngine/.
+      (1) It is a bare CONTAINER. As of 2026-07-30 the top level holds only the six module
+      directories and a .DS_Store — **zero top-level source files, no shared layer, no common
+      header, no CMakeLists of its own.** Every module is fully self-contained. So "the engine"
+      did not exist as code before bengine/ was added; do not assume a shared abstraction is there.
+      (2) Only THREE of the six modules are in the root BprCpp build. The root CMakeLists.txt
+      includes bpr_face_src.cmake, bpr_finger_src.cmake and bpr_iris_src.cmake — and those are the
+      only three *_src.cmake fragments that exist. **BprFingerCless, BprFingerKnuckle and
+      BprPalmprint are on disk but built by NOTHING.** BprPalmprint has no headers at all (empty
+      but for the directory). Treat those three as unbuilt/unowned source until proven otherwise.
+      (3) The module APIs DIVERGE SHARPLY — this is the whole reason an engine layer is worth
+      having, and the concrete evidence for it:
+        - BprIris:  IrisMasekTemplate::bpr_iris_feature_extraction_masek(const char* file_name,
+                    int algType) -> int; IrisMasekMatching::bpr_iris_masek_matching(unsigned char*
+                    qmin, int qminLength, ...) -> int. File path in, raw buffer for matching,
+                    int status out. Static-class style, no namespace.
+        - BprFinger: FingerIsoMatching::bpr_matcher(xyt_struct*, xyt_struct*) -> int. Minutiae
+                    structs (xyt_struct/edgepair_struct), MAX_MINUTIAE fixed arrays.
+        - BprFace:  OpenCV-based (cv::VideoCapture), frame CALLBACKS (BprFrameCallback), its own
+                    BPR_FACE_EXPORT dllexport macro and ERR_CAM_* codes. Completely different shape.
+      There is no common namespace, no common template type, no common return convention. Any
+      shared interface has to reconcile file-path-vs-buffer input and int-code-vs-object output.
+      MODULE -> OWNING AGENT: BprFace na-004/001, BprFinger 002, BprFingerCless 003,
+      BprFingerKnuckle 004, BprPalmprint 005, BprIris 006. This agent must NOT change module
+      internals — coordinate with the owner.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (direct inspection of bpr.cpp)"
+    tags: [bpridengine, no-shared-layer, api-divergence, unbuilt-modules, palmprint-empty, root-cmake, module-ownership]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: project_context
+    content: >-
+      2026-07-30 CREATED bpr.cpp/src/BprIDEngine/bengine/ — committed b20e3b3, pushed to
+      github.com/ramaiahsvn/bpr.cpp (17 files, 0 build artifacts).
+      A SELF-CONTAINED CMake project following the src/BprCardEmv/persoengine pattern (its own
+      project(), include/ src/ apps/ capi/ tests/, own .gitignore/README), deliberately NOT wired
+      into the root CMakeLists — same as persoengine. If it ever must ship in the monolithic build,
+      add a bpr_bengine_src.cmake fragment; do not make the root build depend on this directory.
+      WHAT IT PROVIDES: the vocabulary the modules lack — Sample / Template / Score / Status
+      (types.hpp), IExtractor, IMatcher, four fusion rules (Max/Min/Mean/WeightedSum), and an
+      Engine registry that dispatches by Modality. Plus bengine-cli, a C ABI shared lib
+      (libBprIDEngine, extern "C" — BprIDEngine_Fuse / _Version, for P/Invoke + JNI as persoengine
+      does), and 13 GoogleTest cases. Verified: builds clean, 13/13 pass, cmake 4.2.3 + Apple clang.
+      CORE IS DEPENDENCY-FREE ON PURPOSE — the modules' third-party needs are too unequal (OpenCV
+      for face, none for iris) to put in a shared core. Every adapter is opt-in.
+      THREE BEHAVIOURS chosen deliberately because they are easy to get silently wrong:
+        - fuse() with nothing valid returns valid=false, NEVER a 0.0 that a caller could read as a
+          confident non-match;
+        - match_multi() SKIPS modalities with no registered adapter and reports attempted/succeeded,
+          so a partly provisioned engine still yields a usable fused score instead of failing;
+        - cross-modality comparison is rejected BEFORE dispatch — the wrapped modules would not all
+          catch a finger template scored by an iris matcher, and the number would look plausible.
+      STATUS: SCAFFOLD. **No modality adapter exists yet.** Each BENGINE_BUILD_<MODALITY> option is
+      a configure-time FATAL_ERROR if switched on, so a build either has an adapter or fails loudly
+      rather than silently matching nothing. README documents the four steps to add one; the
+      cleanest first adapter is BprIris (buffers in, int out, no OpenCV).
+      Score-level fusion only — decision-level fusion needs per-modality thresholds, which are
+      na-004/010 algo-certify's concern, not this library's.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [bengine, created, persoengine-pattern, separate-project, capi, fusion, scaffold, no-adapters-yet, b20e3b3]
+
+  - id: mem-004
+    type: incident_learning
+    content: >-
+      2026-07-30 ABI LEAK — hidden visibility on the SHARED target is not enough when a STATIC
+      library is linked into it. First build of bengine's C ABI exported four symbols instead of
+      two: BprIDEngine_Fuse and BprIDEngine_Version as intended, PLUS bpr::bengine::fuse and
+      bpr::bengine::fusion_rule_name. Those C++ internals would have silently become part of the
+      shipped ABI.
+      CAUSE: CXX_VISIBILITY_PRESET hidden on the BprIDEngine shared target only governs the sources
+      compiled AS PART OF that target (capi/*.cpp). The `bengine` static library was compiled
+      separately with default visibility, and objects keep the visibility they were compiled with
+      when linked into a .dylib/.so.
+      FIX: set C_VISIBILITY_PRESET/CXX_VISIBILITY_PRESET hidden + VISIBILITY_INLINES_HIDDEN on the
+      STATIC library too. Also set POSITION_INDEPENDENT_CODE ON — the same objects go into a shared
+      lib, which is merely conventional on macOS but MANDATORY on Linux x86-64 (linking a non-PIC
+      static into a .so fails outright), and this tree cross-compiles to Linux via toolchains/.
+      VERIFY, do not assume: `nm -gU build/libBprIDEngine.dylib` must show EXACTLY the extern "C"
+      entry points. This is worth checking on persoengine's BprCardEmv / BprIPersoAgent too — same
+      structure (static persoengine linked into a shared capi lib), so it plausibly has the same
+      leak. NOT yet checked.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [abi, visibility, static-into-shared, pic, cross-compile-linux, nm-verify, check-persoengine-too, lesson]
+
+  - id: mem-005
+    type: process_note
+    content: >-
+      2026-07-30 OPEN ITEMS / GOTCHAS for this agent.
+      (1) **bpr.cpp/CLAUDE.md does not document the separate-project pattern AT ALL.** It describes
+      only the monolithic build (OUTFILENAME / PROJECTTYPE + *_src.cmake fragments), so BOTH
+      persoengine and bengine are invisible to any session that reads it and trusts it. A future
+      session will assume everything builds from the root. Adding a short section is the durable
+      fix — offered to the user, not yet done.
+      (2) Next engineering step: write the first adapter. BprIris is the cleanest candidate
+      (buffer in, int out, no OpenCV, no external deps). Steps are in bengine/README.md "Adapters";
+      persoengine's optional PERSOENGINE_BUILD_PCSC block is the reference for pulling in a sibling
+      module's sources and platform deps.
+      (3) Still undecided (this agent's first real design question): whether a shared engine layer
+      is actually wanted, or whether the modules should stay self-contained and bengine remain a
+      thin facade. Do not create a top-level layer in BprIDEngine/ without confirming — it is a
+      structural change touching all six modules.
+      (4) GIT TRAP hit twice on 2026-07-30, in bpr.cpp and in the mGate IaC repo: `git log
+      @{u}..HEAD` reported 58 unpushed commits in bpr.cpp, and the remote turned out to be
+      identical. The remote-tracking ref reflects the LAST FETCH, not reality. ALWAYS `git fetch`
+      before reading @{u} or reporting anything as unpushed — otherwise you either raise a false
+      alarm or believe you are about to push one commit when it looks like dozens.
+      (5) bpr.cpp is a PRIVATE repo — push with the ramaiahsvn token specifically (the other two
+      gh accounts on pat-m4p get 403). Commits must carry no Claude attribution.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [open-items, claude-md-gap, first-adapter, iris, design-question, git-stale-upstream, push-token, process]
 
 # Pruning rules
 pruning:
