@@ -590,16 +590,39 @@ memories:
       and a key that never existed here either, so that stack was already unrunnable; platform/uat
       has never been deployed in 891963159778. Comments in modules/network/vpc still mention
       bootstrap/eip but the module self-allocates when no EIPs are supplied, so they are harmless.
-      ALSO STILL ORPHANED in eu-central-1: SSM SecureStrings /mgate-prod-vpn/wireguard/
-      client{1,2}.conf (2026-06-11) — dead WireGuard client configs holding key material for a
-      server that no longer exists; they embed the now-released 3.74.90.58. Worth deleting as
-      hygiene (free, but it is live key material for nothing).
+      [RESOLVED same day: those orphaned SSM SecureStrings were deleted — see mem-021.]
     created_at: "2026-07-30"
     last_accessed: "2026-07-30"
     access_count: 1
     confidence: 1.0
     source: "session-2026-07-30"
     tags: [eip, cleanup, frankfurt, eu-central-1, terraform, stack-deleted, zero-eips, dangling-uat-vpn, orphaned-ssm, cost]
+
+  - id: mem-021
+    type: incident_learning
+    content: >-
+      2026-07-30 Deleted the 2 orphaned WireGuard SSM SecureStrings in eu-central-1
+      (/mgate-prod-vpn/wireguard/client{1,2}.conf, written 2026-06-11). eu-central-1 now has ZERO
+      SSM parameters; ap-south-2 unaffected (also 0). Values were never read/decrypted — metadata
+      only, per the key-material policy.
+      KEY LESSON — why they survived a terraform destroy: `describe-parameters` showed
+      LastModifiedUser = arn:aws:sts::891963159778:assumed-role/mgate-prod-vpn-role/
+      i-0d6c610578f1d6846, i.e. the WireGuard EC2 instance WROTE THEM ITSELF at boot via its
+      instance role. They were never in any terraform state, so `terraform destroy` of
+      platform/prod (2026-06-14) could not remove them and left live private-key material behind
+      for a server that no longer exists. GENERALISE THIS: any resource an instance self-registers
+      at runtime (SSM params, secrets, DNS, service-discovery entries, dynamic tags) is invisible
+      to IaC teardown and WILL be orphaned. After destroying any stack whose instances write their
+      own state, sweep the runtime-written namespaces by hand.
+      DIAGNOSTIC: LastModifiedUser on an SSM parameter tells you who created it — an assumed-role
+      /<instance-id> ARN means runtime-written, not terraform-managed, so deleting it causes no
+      drift. Check it before assuming a stray parameter is IaC-owned.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [ssm, cleanup, orphaned, wireguard, key-material, eu-central-1, terraform-blind-spot, runtime-written, lesson]
 
 # Pruning rules
 pruning:

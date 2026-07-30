@@ -100,7 +100,7 @@ this account is **fully credit-funded** and every default cost view reads ~$0 (m
       to inherit — `modules/network/vpc` self-allocates NAT EIPs, which is what India already does.
 - [ ] Clean up remaining Frankfurt leftovers: portal-frontend CloudFront, old state bucket, SQS,
       AppConfig (dead since the June teardown, mem-012)
-- [ ] Delete orphaned SSM SecureStrings in eu-central-1 —
+- [x] ~~Delete orphaned SSM SecureStrings in eu-central-1~~ — **DONE 2026-07-30.**
       `/mgate-prod-vpn/wireguard/client{1,2}.conf`. Dead key material for a server destroyed
       2026-06-14; they embed the now-released `3.74.90.58`.
 - [ ] Delete `mgate-in-prod-db-preteardown-20260730` **only after** a successful restore is verified
@@ -116,15 +116,18 @@ this account is **fully credit-funded** and every default cost view reads ~$0 (m
 | `gitlab-server` t3.large | ~66 (with perso-bureau) | na-003/003 |
 | `perso-bureau-uat` t4g.small | ↑ | na-005/010 |
 | EBS volumes + snapshots | ~19 | mixed |
-| Frankfurt idle EIPs ×3 | 11 | leftover |
+| ~~Frankfurt idle EIPs ×3~~ | ~~11~~ → **0** | released 2026-07-30 |
 | SQS / AppConfig / Secrets / ECR (bootstrap) | ~37 | mGate bootstrap |
-| **Total** | **≈ 140** | |
+| **Total** | **≈ 129** | |
 
 ## What is preserved and ready
 
 18 ECR repos · 16 SQS queues · 7 Secrets Manager secrets · 2 ACM certs · Terraform state bucket
-`mgate-in-prod-terraform-state` · bootstrap appconfig / vendor-config / eip / portal-frontend ·
+`mgate-in-prod-terraform-state` · bootstrap appconfig / vendor-config / portal-frontend ·
 DB snapshot `mgate-in-prod-db-preteardown-20260730`
+
+> `bootstrap/eip` is **gone** — deleted 2026-07-30, not merely emptied. Do not expect it back;
+> `modules/network/vpc` self-allocates NAT EIPs, which is already how India was configured.
 
 ---
 
