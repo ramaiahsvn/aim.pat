@@ -1,6 +1,6 @@
 # BprIDEngine — unified library architecture
 
-**Status:** B1–B6 all cleared; only B7 remains · **gate PASSES on 5 modalities** · 2026-07-30
+**Status:** **B1–B7 ALL CLEARED** · gate PASSES on 5 of 6 modalities · 2026-07-30
 **Owner:** na-004/007 `cpp-bengine` (engine, ABI contract, build integration)
 **Affects:** na-004/001–006 — every modality agent
 
@@ -132,7 +132,11 @@ so 003 and 004 must coordinate. *003, 004.*
 **B6 · ~~`imread.cpp:557`~~ — CLEARED 2026-07-30.** Now `!= NULL`. BprIris builds off MSVC for
 the first time. *006.*
 
-**B7 · Fjfx is in no library.** `BprFinger/Fjfx` (FingerJetFX OSE) is referenced by nothing in
+**B7 · ~~Fjfx is in no library~~ — CLEARED 2026-07-30.** Added to `bpr_finger_src.cmake`;
+`libBprFinger` now exports `fjfx_create_fmd_from_raw` alongside `Start_Iso_Fp_Matching`. LGPL
+made optional via `-DBPR_FINGER_WITH_FJFX=OFF` rather than decided — distribution remains
+na-002-bnprs-core's call, and FJFX's `COPYRIGHT.txt` is missing from the vendored copy and needs
+recovering from upstream. *Originally:* `BprFinger/Fjfx` (FingerJetFX OSE) is referenced by nothing in
 the root build. Root `BprFinger` ships **matching only** (M3gl + Nnmq → `Start_Iso_Fp_Matching`);
 bengine's T21 is **extraction only**. Neither half is complete. Adding Fjfx to
 `bpr_finger_src.cmake` closes it. **LGPL — clear with na-002-bnprs-core first.** *002.*

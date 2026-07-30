@@ -217,6 +217,38 @@ memories:
     source: "session-2026-07-30 (verified by cross-compiling both revisions)"
     tags: [windows-build-was-broken, confirmed-by-building, since-2025-02-05, no-mfc-line-51, not-a-mingw-artefact, dll-now-builds, export-all-symbols-leak, worktree-method]
 
+  - id: mem-007
+    type: infrastructure
+    content: >-
+      2026-07-30 B7 CLEARED — FingerJetFX is in the root build; extractor and matcher now ship in
+      ONE library (bpr.cpp 2ecfbb5). Last of the original seven blockers.
+      BprFinger/Fjfx had been referenced by nothing, so libBprFinger held a matcher with no
+      extractor while bengine's T21 was an extractor with no matcher. Verified by building the
+      Windows DLL with the repo's mingw toolchain: it now exports fjfx_create_fmd_from_raw
+      alongside Start_Iso_Fp_Matching and bpr_finger_get_version.
+      LGPL HANDLED BY MAKING IT OPTIONAL, NOT BY DECIDING IT. FingerJetFX OSE is LGPL v3 — the
+      ONLY LGPL code in bpr.cpp. `-DBPR_FINGER_WITH_FJFX=OFF` builds BprFinger without it,
+      verified: zero fjfx symbols, matcher still exported, clean build. So the obligation can be
+      avoided at BUILD time rather than discovered at RELEASE time. Default is ON. The
+      distribution decision is na-002-bnprs-core's and remains open.
+      COMPLIANCE GAP FOUND, NOT YET FIXED: every FJFX source says the licence applies "provided
+      that the conditions specified in the COPYRIGHT.txt file provided with this software are
+      met" — and COPYRIGHT.txt is NOT in this repository. It was dropped when the library was
+      vendored in, so the licence text its own sources point at does not travel with the code.
+      Recover it from upstream FingerJetFX OSE before shipping either way. (I drafted a
+      Fjfx/NOTICE.md capturing the obligations; the user declined the file, so this memory and
+      the comment in bpr_finger_src.cmake are the record.)
+      Also: FJFX marks EVERY entry point DEPRECATED — its header says "we are deprecating this
+      entire library". It works and is in the proof gate, but it is not a long-term foundation.
+      M21 remains unimplemented: FJFX extracts, it does not match. Nnmq (FingerIsoMatching) and
+      M3gl (OpenAFIS) are the in-tree candidates, and both are already compiled into BprFinger.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b7-cleared, fjfx-in-root-build, extractor-and-matcher-together, lgpl-opt-out-flag, copyright-txt-missing, m21-still-open, 2ecfbb5]
+
 # Pruning rules
 pruning:
   max_entries: 500

@@ -49,6 +49,36 @@ memories:
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
 
+  - id: mem-004
+    type: incident_learning
+    content: >-
+      2026-07-30 SECURITY — A PRIVATE KEY IS COMMITTED IN bpr.cpp AND STILL TRACKED.
+      src/BprCardQi/k3_fleet_cert.h contains a PEM "BEGIN PRIVATE KEY" block (line 314) beside
+      its certificate (line 282). Its own header says: "Fleet mTLS client certificate —
+      CN=bpr-cardqi-fleet, valid to 2036-05-15", "Generated: 2026-05-18", and "PFX bundle (empty
+      password) — used by Windows WinHTTP via PFXImportCertStore". Added in the single commit
+      8ad7ad3 (2026-05-18), "BprCardQi: replace hardcoded 3DES key with cloud mTLS API
+      (k3-verifychallenge)" — the change that removed a hardcoded 3DES key introduced this.
+      WHY IT IS WORSE THAN A TYPICAL LEAK, three reasons compounding:
+      1. FLEET-WIDE. One credential shared by every deployed terminal for mTLS to the
+         k3-verifychallenge endpoint. Compromise is not per-device; it is the whole estate.
+      2. TEN-YEAR LIFETIME. Valid to 2036-05-15, so it does not expire out of the problem.
+      3. EMPTY PFX PASSWORD. Nothing else has to be obtained — the header alone is the key.
+      IT IS ALSO IN GIT HISTORY from 8ad7ad3 onward, so deleting the file does not undo the
+      exposure. ROTATION IS THE ONLY REAL REMEDY, and rotating a fleet cert invalidates every
+      deployed terminal at once — that is a release decision, not a code fix, which is why it was
+      recorded rather than acted on. Route through na-002-bnprs-core, with na-003/008 bnprs-grc
+      for the PCI angle and na-006 for the rollout.
+      Found by the standing pre-commit key-value grep while committing an unrelated BprIDEngine
+      change (see [[feedback_commit_key_safety]] — the fail-closed gate did exactly its job on a
+      file nobody was looking at).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (pre-commit key grep, verified against git log and the file)"
+    tags: [security, committed-private-key, k3-fleet-cert, empty-pfx-password, fleet-wide, ten-year-cert, in-git-history-8ad7ad3, rotation-is-a-release-decision]
+
 # Pruning rules
 pruning:
   max_entries: 500

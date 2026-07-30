@@ -518,6 +518,35 @@ memories:
     source: "session-2026-07-30"
     tags: [five-modalities, b5-closed, compcode-duplicated, shared-layer-justified, measure-dont-assume, only-face-remains, 193abbc]
 
+  - id: mem-017
+    type: infrastructure
+    content: >-
+      2026-07-30 ALL SEVEN ORIGINAL BLOCKERS (B1-B7) ARE NOW CLEARED. B7 closed by na-004/002
+      (bpr.cpp 2ecfbb5): FingerJetFX joined the root build, so libBprFinger exports the extractor
+      and the matcher together for the first time. LGPL was handled by making it optional
+      (-DBPR_FINGER_WITH_FJFX=OFF, verified to build clean with zero fjfx symbols) rather than by
+      deciding the distribution question, which stays with na-002-bnprs-core.
+      STATE OF THE ARCHITECTURE: five of six modalities in the proof gate (T21 finger, T31
+      fingercless, T33 knuckle, T41 palmprint, T51 iris), 17 identical BprID_* symbols across all
+      six libraries, 64 tests. Only BprFace (4A) has no adapter — and it is the one that needs
+      OpenCV, which is the standing architectural question this engine has deliberately avoided.
+      WHAT IS LEFT, none of it blocking the architecture:
+      - BprFace / modality 4A: five templates and five matchers catalogued, none implemented.
+        Needs the OpenCV decision first.
+      - SEGMENTATION is missing for THREE modalities — fingercless, knuckle and palmprint all
+        assume they are handed a ROI. That is now the largest functional gap in the engine.
+      - M21 (and therefore M31) still unimplemented; T32 still an orphan template.
+      - CompCode duplicated between palmprint and knuckle; a BprIDEngine/Common/ is justified
+        (mem-016).
+      - Root toolchain's -Wl,--export-all-symbols leaks C++ symbols from every Windows DLL
+        (mem-013).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b1-b7-all-cleared, five-of-six-modalities, face-needs-opencv, segmentation-is-the-gap, 2ecfbb5]
+
 # Pruning rules
 pruning:
   max_entries: 500
