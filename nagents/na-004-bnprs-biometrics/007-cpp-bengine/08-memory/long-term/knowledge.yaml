@@ -381,6 +381,28 @@ memories:
     source: "session-2026-07-30"
     tags: [proof-gate-passing, two-modalities, b6-b2-cleared-by-006, build-all, remaining-blockers, c767a10]
 
+  - id: mem-012
+    type: process_note
+    content: >-
+      2026-07-30 B3 CLEARED by na-004/002 (bpr.cpp 92609a9). ALL FIVE modality glue files now
+      compile with -DNO_MFC — Face, Finger, Iris, FingerCless, FingerKnuckle. Of the seven
+      original blockers, FOUR are cleared (B1 B2 B3 B4 B6 — five, in fact) and the remainder are
+      content gaps rather than portability: B5 (no algorithm sources for FingerCless, Knuckle,
+      Palmprint) and B7 (Fjfx in no library, gated on the LGPL decision).
+      LESSON FOR MY OWN WORK: clearing B3 surfaced a -Wvexing-parse warning in my finger adapter
+      (FJFX_FMD_BUFFER_SIZE is a parenthesised macro, so `vector<uint8_t> fmd(FJFX_FMD_BUFFER_SIZE)`
+      expands to a double-paren form clang reads as a possible function declaration). It had been
+      there since I wrote the adapter and I never saw it because I had been grepping build output
+      for "error:" only. Fixed by binding to a constexpr first, and bengine's own sources are now
+      VERIFIED warning-clean under -Wall -Wextra -Wpedantic. Grep for "warning:" too, excluding
+      the imported third-party paths (Fjfx, MasekAlgo, AprCommon) which are built with -w.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b3-cleared, all-glue-portable, vexing-parse, grep-warnings-not-just-errors, lesson]
+
 # Pruning rules
 pruning:
   max_entries: 500

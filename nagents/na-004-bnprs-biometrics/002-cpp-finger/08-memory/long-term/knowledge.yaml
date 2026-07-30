@@ -95,6 +95,40 @@ memories:
     source: "session-2026-07-30"
     tags: [blocker, b3, b7, declspec-bstr, fjfx-not-in-any-library, lgpl, m21-missing, action-required]
 
+  - id: mem-004
+    type: infrastructure
+    content: >-
+      2026-07-30 B3 CLEARED (bpr.cpp 92609a9) — the BprFinger glue compiles off Windows for the
+      first time, so all FIVE modality glue files now build with -DNO_MFC.
+      WHAT WAS WRONG: TemplateExtractnew carried a bare `extern "C" __declspec(dllexport)` and a
+      Windows COM BSTR out-param OUTSIDE the `#if defined(_WIN32)` guard the rest of that file
+      uses correctly. It was the ONLY one of the five glue files failing on clang.
+      FIX AND WHY IT IS A GUARD, NOT A PORT: BSTR and SysAllocStringByteLen come from the Windows
+      OLE runtime and have no portable equivalent. TemplateExtractnew IS a COM automation entry
+      point, so it is Windows-only by nature; faking a cross-platform BSTR would be worse than
+      omitting it. The whole function is now inside the platform guard and uses
+      BPRIDFINGER_EXPORT like its neighbours. Non-Windows callers use the generalized ABI instead:
+      BprID_Extract(BPRID_T21, ...) returns the same minutiae as an ISO 19794-2 record.
+      STILL OPEN FOR THIS AGENT: B7 — Fjfx is referenced by NOTHING in the root build.
+      bpr_finger_src.cmake lists only M3gl and Nnmq, which are MATCHERS, so the shipping
+      BprFinger has no extractor while bengine's T21 is extraction with no matcher. Adding Fjfx to
+      that fragment closes it, gated on the LGPL decision from na-002-bnprs-core. M21 also remains
+      unimplemented (FJFX extracts but does not match; Nnmq and M3gl are the candidates).
+      THINGS I NOTICED IN TemplateExtractnew BUT DID NOT CHANGE — behaviour-affecting, so they are
+      this agent's call: (a) the `rawBuffer` parameter is a FILENAME despite the name, and
+      `rawBufferLen` is unused; (b) neither `stat()` nor `fopen()` results are checked, so a
+      missing file is a null deref; (c) the row-flip loop starts at `k = h` and reads
+      `newBuffer[k*w + l + 1078]`, which overruns the buffer by up to one row on the first
+      iteration — it looks like it should be `k = h-1`; (d) `templateData` and the `temp` buffer
+      from Encode() are never freed; (e) it writes a debug file "1.tmpl" into the CWD
+      unconditionally.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b3-cleared, com-bstr-windows-only, all-five-glue-compile, b7-still-open, templateextractnew-bugs-flagged, 92609a9]
+
 # Pruning rules
 pruning:
   max_entries: 500

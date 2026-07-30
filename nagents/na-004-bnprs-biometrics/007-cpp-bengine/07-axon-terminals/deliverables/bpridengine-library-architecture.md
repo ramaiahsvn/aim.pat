@@ -1,6 +1,6 @@
 # BprIDEngine — unified library architecture
 
-**Status:** B1 · B2 · B4 · B6 CLEARED · **proof gate PASSES on two modalities** · 2026-07-30
+**Status:** B1 · B2 · B3 · B4 · B6 CLEARED — only B5 and B7 remain · **proof gate PASSES** · 2026-07-30
 **Owner:** na-004/007 `cpp-bengine` (engine, ABI contract, build integration)
 **Affects:** na-004/001–006 — every modality agent
 
@@ -90,11 +90,11 @@ Requirement 2, satisfied structurally.
 | Modality | `*_src.cmake` | `cli/` glue | root branch | glue builds `-DNO_MFC` | bengine adapter |
 |---|:--:|:--:|:--:|:--:|---|
 | BprFace | ✓ | ✓ dll+jni | ✓ | **✓** | — |
-| BprFinger | ✓ | ✓ dll | ✓ | ✗ B3 | ✓ T21 (Fjfx) |
+| BprFinger | ✓ | ✓ dll | ✓ | **✓** | ✓ T21 (Fjfx) |
 | BprFingerCless | ✗ | ✓ dll | ✗ | ✓ | — |
 | BprFingerKnuckle | ✗ | ✓ dll | ✗ | ✓ | — |
 | BprPalmprint | ✗ | ✗ | ✗ | — | — |
-| BprIris | ✓ | ✓ dll | ✓ | ✓ | ✓ T51/M51 (B6) |
+| BprIris | ✓ | ✓ dll | ✓ | ✓ | ✓ T51/M51 |
 
 ## Blockers — each owned by one agent, all small
 
@@ -113,9 +113,11 @@ try/catch; BprFace's is bare and gains robustness. *001, 003, 004 + 007.*
 **B2 · ~~`int main()` in the BprIris glue~~ — CLEARED 2026-07-30.** Removed; it was a leftover
 harness extracting from a hardcoded `C:/BPR/DAta/img1.bmp`. *006.*
 
-**B3 · BprFinger glue is not portable.** `TemplateExtractnew` uses bare
-`__declspec(dllexport)` and the Windows COM `BSTR` outside the platform guard the rest of the
-file uses. *002.*
+**B3 · ~~BprFinger glue is not portable~~ — CLEARED 2026-07-30.** `TemplateExtractnew` is now
+inside the platform guard and uses `BPRIDFINGER_EXPORT`. Guarded rather than ported: `BSTR` and
+`SysAllocStringByteLen` are Windows OLE and the function is a COM automation entry point by
+nature. Non-Windows callers use `BprID_Extract(BPRID_T21, …)`. **All five glue files now compile
+with `-DNO_MFC`.** *002.*
 
 **B4 · ~~`NO_MFC`~~ — CLEARED 2026-07-30** via `add_compile_definitions(NO_MFC)`.
 *Original text:* `AprCommon/BprUtils/bpr_utils_main.h` pulls `<afx.h>` (MFC)
