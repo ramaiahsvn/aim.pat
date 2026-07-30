@@ -99,6 +99,40 @@ memories:
     source: "session-2026-07-30"
     tags: [blocker, b2, b6, imread-pointer-compare, main-in-library, wrappers-broken, disk-side-effects, t52-missing, action-required]
 
+  - id: mem-004
+    type: infrastructure
+    content: >-
+      2026-07-30 B6 AND B2 CLEARED — BprIris now builds off MSVC and is part of the unified
+      library family (bpr.cpp c767a10).
+      B6: MasekAlgo/imread.cpp:557 was `if (m_image >0)` — an ordered comparison between a pointer
+      and an int. Clang rejects it as an ERROR with no suppression flag, and createiristemplate()
+      needs imread(), so the ENTIRE module was unbuildable on anything but MSVC. It was verified
+      to be the only error in an otherwise clean build. Now `if (m_image != NULL)`; behaviour is
+      unchanged wherever the original compiled.
+      B2: cli/BprIDEngine/BprIris/BprIdIris_dll_exports.cpp defined `int main()` — a leftover
+      harness printing "Iris matcher test app" and extracting from a hardcoded
+      C:/BPR/DAta/img1.bmp. A library must not define main; it collides as soon as this glue is
+      linked into BprIDEngine beside other modalities. Removed. A manual driver belongs in its own
+      executable target.
+      RESULT: libBprIris.dylib builds and exports the same 17-symbol BprID_* ABI as
+      libBprIDEngine, registering T51 mIris. The proof gate
+      (bengine/tests/proof_gate.sh <build-dir>) now passes across TWO modalities — BprFinger T21,
+      BprIris T51, and BprIDEngine carrying both — which is the first run that demonstrates the
+      architecture rather than comparing one library to itself. Build with
+      `cmake -S . -B build-all -DBENGINE_BUILD_ALL=ON` from bengine/.
+      STILL OPEN FOR THIS AGENT (unchanged, see mem-003): the public wrappers remain unusable —
+      IrisMasekTemplate::bpr_iris_feature_extraction_masek computes a template then DISCARDS it
+      (locals, never returned, leaked) and IrisMasekMatching::bpr_iris_masek_matching is a stub
+      that printf()s and returns 0 without writing *score. The bengine T51/M51 adapter bypasses
+      both and calls Masek:: directly. T52/M52 (vIris/Vasir) are still unimplemented — algType==1
+      returns -1. And createiristemplate still writes five files beside the input image.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b6-cleared, b2-cleared, imread-fixed, main-removed, builds-on-clang, proof-gate-two-modalities, c767a10]
+
 # Pruning rules
 pruning:
   max_entries: 500

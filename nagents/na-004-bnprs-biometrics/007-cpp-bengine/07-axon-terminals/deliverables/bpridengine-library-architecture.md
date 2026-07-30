@@ -1,6 +1,6 @@
 # BprIDEngine — unified library architecture
 
-**Status:** B4 + B1 CLEARED · **proof gate PASSES** · 2026-07-30
+**Status:** B1 · B2 · B4 · B6 CLEARED · **proof gate PASSES on two modalities** · 2026-07-30
 **Owner:** na-004/007 `cpp-bengine` (engine, ABI contract, build integration)
 **Affects:** na-004/001–006 — every modality agent
 
@@ -110,8 +110,8 @@ Linking all three is a duplicate-symbol error. Move to `bprid_common` as
 `BprID_LicVerification`. The FingerCless/Knuckle body is the better one — size-0 guard plus
 try/catch; BprFace's is bare and gains robustness. *001, 003, 004 + 007.*
 
-**B2 · `int main()` in the BprIris glue — BLOCKS CONSOLIDATION.** A library must not define
-`main`. *006.*
+**B2 · ~~`int main()` in the BprIris glue~~ — CLEARED 2026-07-30.** Removed; it was a leftover
+harness extracting from a hardcoded `C:/BPR/DAta/img1.bmp`. *006.*
 
 **B3 · BprFinger glue is not portable.** `TemplateExtractnew` uses bare
 `__declspec(dllexport)` and the Windows COM `BSTR` outside the platform guard the rest of the
@@ -125,9 +125,8 @@ clean on clang. Set globally by the unified CMake. *007.*
 **B5 · three modalities have no algorithm sources.** FingerCless and FingerKnuckle have export
 glue wired to nothing. Palmprint has no glue, no sources, no headers. *003, 004, 005.*
 
-**B6 · `BprIris/MasekAlgo/imread.cpp:557`** — `if (m_image >0)`, ordered pointer/int comparison.
-Clang rejects it as an error with no suppression flag; verified to be the *only* error in an
-otherwise clean build. Fix: `!= NULL`. *006.*
+**B6 · ~~`imread.cpp:557`~~ — CLEARED 2026-07-30.** Now `!= NULL`. BprIris builds off MSVC for
+the first time. *006.*
 
 **B7 · Fjfx is in no library.** `BprFinger/Fjfx` (FingerJetFX OSE) is referenced by nothing in
 the root build. Root `BprFinger` ships **matching only** (M3gl + Nnmq → `Start_Iso_Fp_Matching`);
@@ -177,10 +176,21 @@ Automated as `bengine/tests/proof_gate.sh <build-dir>`; it diffs every `Bpr<Moda
 the consolidated library and fails on drift.
 
 ```
-$ cmake -S . -B build-fp -DBENGINE_BUILD_FINGER=ON && cmake --build build-fp
-$ tests/proof_gate.sh build-fp
+$ cmake -S . -B build-all -DBENGINE_BUILD_ALL=ON && cmake --build build-all
+$ tests/proof_gate.sh build-all
 PASS  libBprFinger.dylib  17 symbols
+PASS  libBprIris.dylib    17 symbols
 ```
+
+| Library | `BprID_*` | Registers |
+|---|:--:|---|
+| `BprFinger` | 17 | T21 bFinger |
+| `BprIris` | 17 | T51 mIris |
+| `BprIDEngine` | 17 | **T21 + T51** |
+
+Identical ABI, different capability sets, consolidated = the union. Until iris landed the gate
+compared one library against a superset of itself, which proved little — two modalities is the
+first meaningful run.
 
 Export hygiene alongside it — 26 total per library: 17 `BprID_*`, the 2 common license symbols,
 and FingerJetFX's own 7 vendor entry points. Nothing else escapes.

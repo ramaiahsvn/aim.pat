@@ -354,6 +354,33 @@ memories:
     source: "session-2026-07-30"
     tags: [b1-cleared, b4-cleared, proof-gate-passing, object-libraries, per-library-name, visibility-leak-again, 52f4317]
 
+  - id: mem-011
+    type: infrastructure
+    content: >-
+      2026-07-30 PROOF GATE NOW PASSES ON TWO MODALITIES (bpr.cpp c767a10) — the architecture is
+      demonstrated, not just designed. na-004/006 cleared B6 (imread.cpp pointer/int comparison)
+      and B2 (int main() in the iris glue), so BprIris joined the family.
+        PASS  libBprFinger.dylib  17 symbols   registers T21 bFinger
+        PASS  libBprIris.dylib    17 symbols   registers T51 mIris
+              libBprIDEngine      17 symbols   registers BOTH T21 and T51
+      Identical ABI, different capability sets, consolidated = the union. That is the requirement
+      end to end. Until iris landed the gate compared one library against a superset of itself,
+      which proved little; two modalities is the first meaningful run.
+      Build: `cmake -S . -B build-all -DBENGINE_BUILD_ALL=ON && cmake --build build-all` then
+      `tests/proof_gate.sh build-all`. 45 tests pass; the default core-only build is unaffected.
+      Export hygiene per library: 17 BprID_* everywhere; BprIris totals 19 (plus the 2 common
+      license symbols), BprFinger and BprIDEngine 26 (those 2 plus FingerJetFX's 7 vendor entry
+      points, which LGPL relinking arguably wants visible anyway).
+      REMAINING BLOCKERS, all modality-owned: B3 __declspec/BSTR in the BprFinger glue (002),
+      B5 no algorithm sources for FingerCless/Knuckle/Palmprint (003/004/005), B7 Fjfx in no
+      library plus its LGPL gate (002). Nothing left on 007's side for the current two.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [proof-gate-passing, two-modalities, b6-b2-cleared-by-006, build-all, remaining-blockers, c767a10]
+
 # Pruning rules
 pruning:
   max_entries: 500
