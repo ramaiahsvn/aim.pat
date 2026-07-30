@@ -80,7 +80,11 @@ memories:
       linking all three is a duplicate-symbol error. Fix: delete them here, call the shared
       BprID_Lic* from bprid_common (na-004/007). This agent's version is the GOOD one (size-0
       guard + try/catch) and is the body being standardised on.
-      BLOCKER B5 (this agent's real gap): there is NO bpr_fingercless_src.cmake and NO root
+      BLOCKER B5 (this agent's real gap) [PARTLY SUPERSEDED 2026-07-30, see mem-005: Touchless/
+      exists, is built by bengine and is in the proof gate as T31. What is still true is the
+      ROOT build half — no bpr_fingercless_src.cmake and no root OUTFILENAME branch, so cli/
+      export glue is still wired to nothing and there is no legacy-style BprFingerCless DLL]:
+      as written, there was NO bpr_fingercless_src.cmake and NO root
       OUTFILENAME branch. The export glue is wired to NOTHING — it compiles (verified clean on
       clang with -DNO_MFC) but no library is ever produced from it. Only
       finger_cless_preprocess.h exists in the module. Until a source list exists there is

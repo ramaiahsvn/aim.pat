@@ -69,27 +69,24 @@ memories:
   - id: mem-003
     type: process_note
     content: >-
-      2026-07-30 THIS AGENT HAS THE LARGEST GAP OF THE SIX — blocker B5, and for this modality it
-      is total. Verified 2026-07-30: src/BprIDEngine/BprPalmprint/ exists as a DIRECTORY but
-      contains NO source files and NO headers at all. There is no bpr_palmprint_src.cmake, no
-      root OUTFILENAME branch, and — unlike FingerCless and FingerKnuckle — not even export glue
-      under cli/BprIDEngine/. Every other modality has at least something.
-      So BprPalmprint is currently a name in the taxonomy (modality 4, 0x4D, T41/M41) with no
-      implementation behind it. Nothing to build, nothing to register, nothing for
-      BprID_Extract(T41) to call.
-      WHEN WORK STARTS, the order that matches the architecture is: (1) algorithm sources under
-      src/BprIDEngine/BprPalmprint/, (2) bpr_palmprint_src.cmake listing them, (3) a registration
-      unit binding T41/M41 to the generalized ABI, (4) na-004/007 adds the modality to
-      bprid_modalities.cmake. Do NOT invent new exported function names — T41/M41 go through
-      BprID_Extract / BprID_Match like every other modality.
-      Also note bengine currently has no BprPalmprint adapter and BENGINE_BUILD_PALMPRINT is a
-      deliberate configure-time error rather than a silent no-op.
+      [SUPERSEDED 2026-07-31 — kept only for the rule at the end and for the history.]
+      Written 2026-07-30, when src/BprIDEngine/BprPalmprint/ was a directory holding one
+      readme.txt saying "to be added" and this agent had the largest gap of the six (blocker B5,
+      total: no sources, no headers, no *_src.cmake, not even cli/ export glue). ALL OF THAT IS
+      NOW FALSE — see mem-004 (CompCode, B5 cleared) and mem-005 (ROI segmentation). Do not read
+      this entry as current state; it described a greenfield that no longer exists.
+      THE ONE PART STILL WORTH OBEYING: do NOT invent new exported function names. T41/M41 go
+      through BprID_Extract / BprID_Match like every other modality, and any future palmprint
+      work does too.
+      STILL TRUE from the original list: there is no root OUTFILENAME branch and no cli/
+      export glue for BprPalmprint, so there is no legacy-style BprPalmprint DLL from the
+      monolithic build — only the generalized-ABI library bengine produces.
     created_at: "2026-07-30"
-    last_accessed: "2026-07-30"
-    access_count: 1
+    last_accessed: "2026-07-31"
+    access_count: 2
     confidence: 1.0
-    source: "session-2026-07-30"
-    tags: [blocker, b5, empty-module, no-sources-no-glue, greenfield, action-required]
+    source: "session-2026-07-30, superseded 2026-07-31"
+    tags: [superseded, historical, b5-cleared, no-root-outfilename-branch, use-bprid-extract-match]
 
   - id: mem-004
     type: project_context
@@ -122,10 +119,10 @@ memories:
       TUNING KNOBS if accuracy is ever benchmarked (na-004/010 algo-certify): kRadius=10,
       kSigma=4.0, kOmega=0.10. Kong & Zhang use 35x35 / 5.6179 / 0.0916 on 128x128; the smaller
       kernel here is ~2.8x cheaper and masks 16% of a 128x128 ROI instead of 47%.
-      NOT DONE — READ BEFORE CLAIMING THIS MODALITY IS FINISHED: (a) ROI SEGMENTATION is not
-      implemented. The module assumes it is handed an aligned grayscale ROI (the region between
-      the finger valleys, ~128x128); feeding a whole hand photo produces a code map dominated by
-      background. That is the next real piece of work here. (b) No cli/ export glue and no root
+      NOT DONE — READ BEFORE CLAIMING THIS MODALITY IS FINISHED: (a) [CLEARED 2026-07-31, see
+      mem-005] ROI segmentation was not implemented and the module assumed it was handed an
+      aligned ~128x128 ROI. Segment/ now finds it, and PalmInput::FullHand routes a hand image
+      through it. (b) STILL TRUE — no cli/ export glue and no root
       OUTFILENAME branch, so there is still no legacy-style BprPalmprint DLL from the monolithic
       build — only the generalized-ABI library from bengine. (c) T41/M41 are the only ids; the
       taxonomy defines no others for this modality.

@@ -1,0 +1,74 @@
+# Task — BprIris public wrappers are non-functional and they SHIP
+# Raised 2026-07-31. Recorded in mem-003/mem-004 since 2026-07-30 but never given a task file,
+# so nothing surfaced it.
+# OWNER: na-004/006 cpp-iris.
+
+task:
+  id: "task-001"
+  subject: "Make bpr_iris_masek_matching and bpr_iris_feature_extraction_masek actually work"
+  description: >-
+    Both public entry points of BprIris are non-functional, and both are compiled into the
+    shipped root BprIris library (bpr_iris_src.cmake globs iris_template_matching.cpp and
+    iris_template_creation.cpp). Verified in source 2026-07-31, unchanged.
+
+    THE MATCHER IS A STUB THAT REPORTS SUCCESS. src/BprIDEngine/BprIris/iris_template_matching.cpp:
+
+        int IrisMasekMatching::bpr_iris_masek_matching(unsigned char* qmin, int qminLength,
+                                unsigned char* dbmin, int dbminLength, int* score)
+        {
+            printf("IrisMasekMatching::bpr_iris_masek_matching Entry: ...");
+            return 0;
+        }
+
+    It never touches *score and returns 0, which every other module in this tree uses to mean
+    OK. A caller cannot tell this apart from a real comparison. That is worse than a matcher
+    that fails: a verification path built on it silently accepts whatever the caller had in
+    *score already. Treat this as the priority half of the task.
+
+    THE EXTRACTOR THROWS ITS RESULT AWAY. src/BprIDEngine/BprIris/iris_template_creation.cpp:
+    bpr_iris_feature_extraction_masek declares int* _template and int* _mask as LOCALS, calls
+    _masek.createiristemplate(filename, 3, &_template, &_mask, &width, &height), and then
+    returns 0 without returning, storing or freeing either. The work is done and discarded, and
+    both allocations leak on every call. The signature has nowhere to put a template, so fixing
+    this means changing the signature — which is why it needs a decision rather than a patch.
+
+    T52/M52 (vIris / Vasir) are also unimplemented: algType == 1 returns -1. Separate and lower
+    priority; VasirAlgo/ sources are present in the tree.
+
+    WHAT IS NOT AFFECTED: bengine's T51/M51 adapter (src/adapters/iris_masek.cpp) calls
+    Masek::createiristemplate and gethammingdistance DIRECTLY and does not go through these
+    wrappers. So BprIDEngine.so / BprIris.so via the generalized ABI are fine, and the proof
+    gate passing says nothing about this. The defect is confined to the legacy root-build path —
+    which is still the path the existing DLL consumers use.
+
+    DECIDE FIRST, THEN IMPLEMENT. The signature question is the crux: bpr_iris_feature_extraction_masek
+    takes (const char* eyeimage_filename, int algType) and returns int, with no out-parameter.
+    Either it gains one (breaking existing callers) or these wrappers are declared dead and
+    REMOVED in favour of the bengine ABI. Removing them may well be the right answer now that
+    T51/M51 work — but that is na-004/007's and na-002's call, not a unilateral one, because
+    something outside this repo may link them.
+
+  status: pending
+  priority: high
+  created_at: "2026-07-31"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 6
+  tags: [iris, t51, m51, stub, ships-broken, silent-success, memory-leak, signature-decision, t52-m52-unimplemented]
+
+  first_step: >-
+    Establish whether anything outside bpr.cpp links bpr_iris_masek_matching or
+    bpr_iris_feature_extraction_masek. If nothing does, deleting both wrappers and pointing
+    callers at the bengine ABI is cheaper and safer than fixing them. Ask na-004/007 and
+    na-003/010 (bnprs-lib-multisdk wraps these natives).
+
+  references:
+    matcher_stub: "bpr.cpp src/BprIDEngine/BprIris/iris_template_matching.cpp:13"
+    extractor_leak: "bpr.cpp src/BprIDEngine/BprIris/iris_template_creation.cpp:7"
+    build_inclusion: "bpr.cpp src/BprIDEngine/BprIris/bpr_iris_src.cmake"
+    working_path: "bpr.cpp src/BprIDEngine/bengine/src/adapters/iris_masek.cpp"
+    memories: ["mem-003", "mem-004"]
+
+  already_fixed_do_not_redo:
+    - "MasekAlgo/imread.cpp `if (m_image > 0)` — the pointer/int ordered comparison that kept BprIris out of every non-MSVC build. Verified fixed 2026-07-31."

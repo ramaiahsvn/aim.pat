@@ -1,0 +1,72 @@
+# Task — BprFace is the last modality with no bengine adapter
+# Raised 2026-07-31. Tracked in na-004/007 mem-016/mem-017 since 2026-07-30 with no task file.
+# OWNER: na-004/001 cpp-face. The OpenCV decision inside it is NOT this agent's alone.
+
+task:
+  id: "task-001"
+  subject: "Give BprFace a bengine adapter — after the OpenCV-in-BprIDEngine decision is made"
+  description: >-
+    Five of six modalities are in the proof gate (T21 finger, T31 fingercless, T33 knuckle,
+    T41 palmprint, T51 iris), each exporting the same 17 BprID_* symbols. BprFace (modality 1,
+    0x4A) is the only one left, and it is the only one that needs OpenCV — which is precisely
+    the architectural question the engine has spent its whole life avoiding.
+
+    WHY THIS IS NOT JUST "WRITE ANOTHER ADAPTER". Every modality currently in BprIDEngine is
+    dependency-free: FingerJetFX, Masek, CompCode x2, CLAHE. That is what lets one consolidated
+    binary carry all of them. BprFace inference is cv::dnn reading an ONNX model, so OpenCV is
+    not optional for it — and linking OpenCV into BprIDEngine.so imposes it on every consumer of
+    every other modality, including ones that only want a fingerprint.
+
+    THE DECISION IS THE FIRST DELIVERABLE, and it belongs to na-004/007 (engine architecture)
+    with na-002-bnprs-core (distribution). Roughly three ways it can go:
+
+      1. BprFace stays OUT of the consolidated library and ships only as a standalone
+         BprFace.so/.dll carrying its own OpenCV. BprIDEngine then means "the five
+         dependency-free modalities", which needs saying out loud in the architecture doc
+         because the name currently implies all six.
+      2. BprIDEngine takes the OpenCV dependency and everyone carries it.
+      3. A second consolidated target — BprIDEngine (lean) and BprIDEngineFull (with face) —
+         paid for in build matrix and in two things to keep in step.
+
+    Option 1 costs the least and is the current de-facto state; it just is not written down as a
+    decision. Do not pick by default — write it down.
+
+    WHAT IS ALREADY DONE AND MUST NOT BE REDONE: the self-contained static-OpenCV build. mem-001
+    has the full recipe (OpenCV 4.10.0, BUILD_SHARED_LIBS=OFF, the exact BUILD_LIST, every
+    WITH_* external dep OFF, and the otool -L / ldd verification). macOS is classified as
+    PROJECTTYPE=SO_Linux and needs no CMake change — just point OpenCV_DIR at the static build.
+    That work makes option 1 cheap.
+
+    ONCE THE DECISION IS MADE, the adapter itself is the standard four steps (bengine README):
+    IExtractor/IMatcher over BprFace, a registrar, BENGINE_BUILD_FACE, and the proof gate.
+    Modality 4A has FIVE templates and FIVE matchers catalogued (T11 sFace(pat), T12
+    sFace(opencv), T13 bFace(InspireFace), T14 iFace(Innovatrics), T15 tFace(Tech5), and M11-M15)
+    — do NOT try to implement all of them. Pick one pair, almost certainly T11/M11, and register
+    only that; the registry is keyed on TemplateId, not on Modality, precisely so a modality can
+    land one variant at a time.
+
+    Note BENGINE_BUILD_FACE is currently a deliberate configure-time FATAL_ERROR rather than a
+    silent no-op, so nobody can accidentally half-enable this. Remove that guard as part of the
+    work, not before it.
+
+  status: blocked
+  priority: medium
+  created_at: "2026-07-31"
+  assigned_to: null
+  blocked_by: ["opencv-in-bpridengine-decision"]   # not a task id — an architectural decision
+  blocks: []
+  estimated_steps: 8
+  tags: [face, 4a, t11, m11, bengine-adapter, opencv-decision, last-modality-in-gate, na-004-007, na-002]
+
+  first_step: >-
+    Put the three options above to na-004/007 and na-002-bnprs-core and get one chosen in
+    writing, into the architecture deliverable
+    (na-004/007 07-axon-terminals/deliverables/bpridengine-library-architecture.md).
+    No code before that.
+
+  references:
+    architecture: "na-004/007 07-axon-terminals/deliverables/bpridengine-library-architecture.md"
+    adapter_howto: "bpr.cpp src/BprIDEngine/bengine/README.md — 'Adapters'"
+    static_opencv_recipe: "this agent's mem-001"
+    taxonomy_4a: "na-004/007 mem-006"
+    memories: ["mem-001", "na-004/007 mem-016", "na-004/007 mem-017"]

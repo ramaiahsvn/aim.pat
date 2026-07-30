@@ -109,7 +109,8 @@ memories:
       omitting it. The whole function is now inside the platform guard and uses
       BPRIDFINGER_EXPORT like its neighbours. Non-Windows callers use the generalized ABI instead:
       BprID_Extract(BPRID_T21, ...) returns the same minutiae as an ISO 19794-2 record.
-      STILL OPEN FOR THIS AGENT: B7 — Fjfx is referenced by NOTHING in the root build.
+      STILL OPEN FOR THIS AGENT [SUPERSEDED 2026-07-30 — B7 IS CLEARED, see mem-007]: B7 —
+      Fjfx is referenced by NOTHING in the root build.
       bpr_finger_src.cmake lists only M3gl and Nnmq, which are MATCHERS, so the shipping
       BprFinger has no extractor while bengine's T21 is extraction with no matcher. Adding Fjfx to
       that fragment closes it, gated on the LGPL decision from na-002-bnprs-core. M21 also remains

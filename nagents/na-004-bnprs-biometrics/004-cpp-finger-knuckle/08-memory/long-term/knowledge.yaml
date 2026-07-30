@@ -83,10 +83,13 @@ memories:
       BprLicVerification() (~line 61), as do the BprFace and BprFingerCless glue files. Fix:
       delete here, use the shared BprID_Lic* from bprid_common (na-004/007). This agent's body
       (size-0 guard + try/catch) is the one being standardised on.
-      BLOCKER B5: no bpr_fingerknuckle_src.cmake and no root OUTFILENAME branch — the export glue
-      is wired to nothing. It compiles clean on clang with -DNO_MFC (verified), but no library is
-      produced. The module does have real headers (HandStructureLR4.h, Points_New*.h,
-      bpr_idengineknuckle.h) so unlike Palmprint there IS code to list.
+      BLOCKER B5 [SUPERSEDED 2026-07-31 — see mem-006 and mem-008]: at the time there was no
+      bpr_fingerknuckle_src.cmake and no root OUTFILENAME branch, so the export glue was wired to
+      nothing. B5 is CLEARED: CompCode/ and Segment/ exist, bpr_fingerknuckle_src.cmake lists
+      them, and the modality is in the proof gate as T33/M32. STILL TRUE: there is no root
+      OUTFILENAME branch, so cli/BprIDEngine/BprFingerKnuckle/ remains wired to nothing and there
+      is no legacy-style BprFingerKnuckle DLL — only the generalized-ABI library from bengine.
+      B1 above is also cleared (bprid_common owns BprID_Lic* now).
     created_at: "2026-07-30"
     last_accessed: "2026-07-30"
     access_count: 1
@@ -131,11 +134,12 @@ memories:
       bpr.cpp BprFingerCless/TouchlessCapture/ (36a86ce). There is NO MATCHER source — the
       matcher is inside a prebuilt arm64-v8a vendor .so, and the Java SDK around it is decompiled
       from an AAR (a licensing question for na-002-bnprs-core).
-      WHY THIS MATTERS TO THIS AGENT: nothing in that repo touches KNUCKLE. T33 bFingerKnuckle and
-      M32 bFingerKnuckle(PolyU) remain unimplemented and unsourced, and this agent still has no
-      *_src.cmake. But 4C's id space is shared, so coordinate before claiming a TID — and note the
-      open question that affects both: if T31 turns out to be PREPROCESSING feeding T21
-      (FingerJetFX) rather than a standalone algorithm, the shape of 4C changes for knuckle too.
+      WHY THIS MATTERS TO THIS AGENT: nothing in that repo touches KNUCKLE — the touchless source
+      gave this modality nothing, which is why T33/M32 had to be written from the PolyU baseline
+      instead. [SUPERSEDED 2026-07-31: T33/M32 are implemented (mem-006) and segmented (mem-008),
+      and bpr_fingerknuckle_src.cmake exists.] 4C's id space is still shared, so coordinate before
+      claiming a TID. The open question raised here — whether T31 is preprocessing feeding T21 —
+      was RESOLVED yes; see mem-005.
     created_at: "2026-07-30"
     last_accessed: "2026-07-30"
     access_count: 1
@@ -156,10 +160,9 @@ memories:
       WORTH CONSIDERING FOR KNUCKLE: the same trick may not apply. A knuckle image has no
       minutiae, so it cannot feed an ISO fingerprint extractor — T33/M32 really do need their own
       algorithm and matcher, unlike T31. Do not assume the T31 pattern generalises.
-      STILL OPEN HERE: no algorithm sources, no *_src.cmake, and the cli/ export glue is wired to
-      nothing. B5 remains open for knuckle even though it is now cleared for fingercless and
-      palmprint. The module does at least have real headers (HandStructureLR4.h, Points_New*.h,
-      bpr_idengineknuckle.h), unlike Palmprint which was empty.
+      [SUPERSEDED 2026-07-31] This entry said no algorithm sources, no *_src.cmake and B5 open.
+      All three are now false — see mem-006 (CompCode) and mem-008 (Segment). What REMAINS open is
+      narrower: no root OUTFILENAME branch, so the cli/ export glue is still wired to nothing.
     created_at: "2026-07-30"
     last_accessed: "2026-07-30"
     access_count: 1

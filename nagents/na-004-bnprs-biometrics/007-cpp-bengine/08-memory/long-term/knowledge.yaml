@@ -371,7 +371,8 @@ memories:
       Export hygiene per library: 17 BprID_* everywhere; BprIris totals 19 (plus the 2 common
       license symbols), BprFinger and BprIDEngine 26 (those 2 plus FingerJetFX's 7 vendor entry
       points, which LGPL relinking arguably wants visible anyway).
-      REMAINING BLOCKERS, all modality-owned: B3 __declspec/BSTR in the BprFinger glue (002),
+      REMAINING BLOCKERS [SUPERSEDED 2026-07-30 — ALL of B1-B7 are cleared, see mem-017; this
+      list is the state as of the day it was written], all modality-owned: B3 __declspec/BSTR in the BprFinger glue (002),
       B5 no algorithm sources for FingerCless/Knuckle/Palmprint (003/004/005), B7 Fjfx in no
       library plus its LGPL gate (002). Nothing left on 007's side for the current two.
     created_at: "2026-07-30"
@@ -389,6 +390,7 @@ memories:
       original blockers, FOUR are cleared (B1 B2 B3 B4 B6 — five, in fact) and the remainder are
       content gaps rather than portability: B5 (no algorithm sources for FingerCless, Knuckle,
       Palmprint) and B7 (Fjfx in no library, gated on the LGPL decision).
+      [SUPERSEDED 2026-07-30: B5 and B7 are both cleared — see mem-017.]
       LESSON FOR MY OWN WORK: clearing B3 surfaced a -Wvexing-parse warning in my finger adapter
       (FJFX_FMD_BUFFER_SIZE is a parenthesised macro, so `vector<uint8_t> fmd(FJFX_FMD_BUFFER_SIZE)`
       expands to a double-paren form clang reads as a possible function declaration). It had been
@@ -444,7 +446,8 @@ memories:
       it tests with the option OFF), a registrar in src/registrars/, one bprid_add_modality()
       call and one CLI registration. That is the whole recipe — the ABI header did not change,
       which is the property the architecture was built for.
-      BLOCKER STATUS: B1 B2 B3 B4 B6 cleared earlier; B5 now cleared FOR PALMPRINT ONLY.
+      BLOCKER STATUS [SUPERSEDED 2026-07-30, see mem-017 — all seven are cleared]:
+      B1 B2 B3 B4 B6 cleared earlier; B5 at this point cleared FOR PALMPRINT ONLY.
       FingerCless and FingerKnuckle still have export glue wired to nothing and no algorithm
       sources, and they SHARE modality 4C, so whoever does them must coordinate across
       na-004/003 and /004. B7 (Fjfx in no library, LGPL gate) is still open on na-004/002.
