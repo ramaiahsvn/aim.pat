@@ -129,6 +129,54 @@ memories:
     source: "session-2026-07-30"
     tags: [b3-cleared, com-bstr-windows-only, all-five-glue-compile, b7-still-open, templateextractnew-bugs-flagged, 92609a9]
 
+  - id: mem-005
+    type: incident_learning
+    content: >-
+      2026-07-30 TemplateExtractnew — overread FIXED, and the function turns out to have NEVER
+      COMPILED (bpr.cpp bb9ba2e).
+      THE OVERREAD: the row-flip loop started at `k = h`, so its first iteration read
+      newBuffer[h*w + l + 1078] — one whole row (w bytes) PAST the end of the pixel data — while
+      source row 0 was never read at all. Proven with a standalone harness before editing: for
+      w=8,h=5 the old form touched [1086..1125] against a valid range of [1078..1117], and copied
+      source rows 1..5 instead of 0..4. Now `k = h-1`. Note this CHANGES OUTPUT: extraction
+      previously ran on an image whose first row was heap garbage and whose rows were all off by
+      one. Also hardened: null/dimension checks, stat() and fopen() results checked (both were
+      unchecked — a missing file left st_size uninitialised and fread ran on a NULL FILE*), file
+      size verified to hold 1078 + w*h, malloc checked, both buffers freed on the error path that
+      leaked them, and the 1.tmpl debug dump made opt-in via BPRFINGER_DUMP_TEMPLATE.
+      THE BIGGER FINDING — the function CANNOT COMPILE and never could. It calls
+      `FeatureExtract()`, which EXISTS NOWHERE in the repository; the only other trace is a
+      commented-out `//Pat_FeatureExtract` in Nnmq/finger_iso_template.cpp. The one
+      signature-compatible candidate, FingerIsoTemplate::bpr_iso_feature_extraction, is itself a
+      STUB — its entire body is that comment plus `return 0`, writing nothing. Wiring the call to
+      it would produce a function that reports SUCCESS with an EMPTY template, which is worse than
+      not compiling. It also calls a bare `Encode()` that is really the static BprUtils::Encode
+      and does not resolve unqualified. So it is now gated behind
+      BPRFINGER_HAVE_VENDOR_FEATUREEXTRACT rather than deleted or faked — it presumably needed a
+      vendor SDK never committed here (the 1078-byte BMP palette header, id=8, ppmm=197 all point
+      at a specific fingerprint SDK). All the repair work is in place for whoever revives it.
+      IMPLICATION WORTH CHECKING: if this file is in the BprFinger Windows DLL build, that build
+      has been broken. Either nobody has built BprFinger for Windows recently, or the vendor SDK
+      header is present in someone's environment and not in git.
+      REGRESSION I CAUSED AND REVERTED: in 92609a9 I swapped the hard __declspec(dllexport) for
+      BPRIDFINGER_EXPORT "for consistency". That macro resolves to dllIMPORT unless
+      MY_LIBRARY_EXPORTS is defined, and the root CMakeLists defines it ONLY for BprPinblock —
+      never BprFinger. The swap turned the definition into a dllimport declaration. mingw caught
+      it. The hard dllexport was deliberate and is back, with a comment saying not to touch it.
+      TWO LATENT MFC DEPENDENCIES now explicit: <sys/stat.h> for struct stat, and <windows.h> +
+      <oleauto.h> for BSTR/SysAllocStringByteLen. Both had been arriving via <afx.h>, so this file
+      silently required MFC.
+      LESSON: cross-compile before believing a Windows-only change is correct. mingw
+      (x86_64-w64-mingw32-g++ / i686-w64-mingw32-g++, both on this Mac) caught the dllimport
+      regression, both missing headers and the nonexistent FeatureExtract — none of which a macOS
+      syntax check could see, because the guard excludes the whole function there.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [overread-fixed, templateextractnew-never-compiled, featureextract-missing, stub-candidate, vendor-sdk-gate, dllimport-regression, mfc-latent-deps, cross-compile-with-mingw, lesson, bb9ba2e]
+
 # Pruning rules
 pruning:
   max_entries: 500
