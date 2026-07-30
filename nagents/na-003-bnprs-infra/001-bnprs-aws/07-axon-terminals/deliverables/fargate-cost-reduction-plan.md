@@ -1,7 +1,14 @@
 # mGate India — Fargate Cost Reduction Plan
 
 **Account:** 891963159778 (`bnprs`) · **Region:** ap-south-2 · **Cluster:** `mgate-in-prod-ecs-cluster`
-**Date:** 2026-07-30 · **Status:** PROPOSED — not applied, awaiting go-ahead
+**Date:** 2026-07-30 · **Status:** ⚠️ **SUPERSEDED BY TEARDOWN — apply this at REBUILD time**
+
+> **2026-07-30 update:** the stack was torn down entirely rather than right-sized (see mem-017).
+> This plan is **not obsolete** — it is the sizing spec for the rebuild. The stack was originally
+> built at 25 vCPU / 50 GB while peaking at 0.19 vCPU. **Do not re-apply the old tfvars.**
+> Rebuild at the Phase 1 numbers in §4 (5.5 vCPU / 16 GB) and skip the 6 VPC interface endpoints
+> (§8) unless traffic justifies them. Restore the DB from snapshot
+> `mgate-in-prod-db-preteardown-20260730`.
 **Source of truth:** `~/BPR/GitRepos2/BPR1002_mGate_IN/bpr1002.mgate.iaac/services/<svc>/prod/terraform.tfvars` (branch `bp_rel`)
 
 ---

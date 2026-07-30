@@ -470,6 +470,59 @@ memories:
     source: "session-2026-07-30"
     tags: [support-case, service-quotas, fargate, quota, basic-support, ap-south-2, how-to, decision]
 
+  - id: mem-017
+    type: infrastructure
+    content: >-
+      2026-07-30 mGate India TORN DOWN in ap-south-2 (acct 891963159778) to stop spend until
+      go-live — user: "stop the mgate system for time being and we will make it up after going
+      live". Scope = all 15 services stacks + platform/prod; bootstrap KEPT for fast re-apply.
+      DESTROYED: 14 ECS services + 3 ALBs + 3 target groups (services phase), then platform 79/79
+      = VPC vpc-0df1c91378fb9bab8 + 4 subnets, 2 NAT, 7 VPC endpoints, Aurora cluster+instance,
+      5 Secrets Manager secrets, 2 S3 buckets (cloudtrail + alb-logs), 7 CW alarms, SNS, KMS,
+      GuardDuty. VERIFIED post-teardown: 0 RDS / 0 non-default VPC / 0 NAT / 0 VPC endpoints /
+      0 ALB / 0 unassociated EIP in ap-south-2; ECS cluster INACTIVE. The 2 still-running EC2 are
+      OTHER agents' and were left alone (gitlab-server na-003/003, perso-bureau-uat na-005/010).
+      DATA SAFE: manual snapshot mgate-in-prod-db-preteardown-20260730 (available, ~67 MB, tagged
+      Retain=true) taken BEFORE anything was touched — restore from this on rebuild.
+      KEPT: 18 ECR repos, 16 SQS queues, 7 Secrets Manager secrets, ACM certs
+      (api.mgate.bnprs.in df684416 + *.mgate.bnprs.in 623a1971), state bucket
+      mgate-in-prod-terraform-state, bootstrap appconfig/vendor-config/eip/portal-frontend.
+      COST: ~$1,683/mo -> ~$140/mo projected (saves ~$1,540/mo). IaC verified safe on GitLab
+      before destroying: origin/bp_rel == local HEAD == 766706b.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [mgate, india, teardown, destroy, ap-south-2, cost, snapshot, bootstrap-kept, supersedes-mem-014]
+
+  - id: mem-018
+    type: incident_learning
+    content: >-
+      2026-07-30 TEARDOWN PLAYBOOK for the mGate stacks — four destroy blockers, all of which fail
+      the destroy MID-RUN (leaving a half-torn stack) rather than at plan time, so clear them ALL
+      up front. (1) Aurora deletion_protection = true -> must be flipped to false and APPLIED in a
+      separate prior apply; destroy alone cannot do it. (2) skip_final_snapshot = false -> set true
+      (take your own manual snapshot first instead — safer and you control the name).
+      (3) S3 force_destroy = false on platform/prod alb-logs.tf + cloudtrail.tf -> set true, else
+      BucketNotEmpty. (4) **NEW, not in the June/mem-012 Frankfurt run**: the ALBs carry their own
+      enable_deletion_protection = true (services/{callbackapplication,portalbackend,maingateway}/
+      prod, via modules/alb) -> terraform destroy dies with
+      "OperationNotPermitted: Load balancer cannot be deleted because deletion protection is
+      enabled". Fastest fix mid-teardown is the CLI on every ALB:
+      `aws elbv2 modify-load-balancer-attributes --load-balancer-arn <arn> --attributes
+      Key=deletion_protection.enabled,Value=false` then re-run the destroy (terraform is idempotent
+      here — it just resumes). ORDER: services stacks first, then platform (platform owns the VPC/
+      cluster the services sit in). ALB-backed stacks take 5-10 min each (ENI detach), the rest ~30s.
+      Make the three platform edits WORKING-TREE ONLY and `git checkout --` them after, so the repo
+      stays live-ready and the next apply doesn't ship deletion_protection=false to prod.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [teardown, playbook, terraform, destroy-blockers, alb-deletion-protection, aurora, force-destroy, lesson, mgate]
+
 # Pruning rules
 pruning:
   max_entries: 500
