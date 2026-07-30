@@ -119,6 +119,59 @@ memories:
     source: "session-2026-07-30"
     tags: [b1-cleared, glue-edited, license-moved-to-common, bprlicgeneration-semantics-changed, proof-gate]
 
+  - id: mem-004
+    type: reference
+    content: >-
+      2026-07-30 SOURCE OF RECORD FOR TOUCHLESS FINGERPRINT — user-directed.
+      REPO: /Users/bnprs/BPR/GitRepos2/TRP1001_SbioidS/trp1001.sbioids.finger.cless
+      remote gitlab.bnprs.ai/TRP1001/trp1001.sbioids.finger.cless.
+      **ITS main BRANCH IS EMPTY** — one commit holding only a .gitignore. All the work is on
+      branch **enrollmentFlowImpl**, commit 86cfe424 (2026-02-18). Anyone who checks that repo
+      casually will conclude there is nothing in it. Other branches: CL_FP1, bioqi_dev,
+      itp_release near-empty; jagan_touchlessAndroidApp and jagan_wd are Java-only.
+      COPIED into bpr.cpp/src/BprIDEngine/BprFingerCless/TouchlessCapture/ (bpr.cpp 36a86ce),
+      byte-identical and diff-verified: fp_bridge.cpp (1674 lines, the extraction/preprocessing
+      pipeline) and CMakeLists.txt.reference (the Android build, kept for its link info).
+      fp_bridge.cpp is NOT merely SWIG glue despite the JNI symbol names — the [#Nk-I257] and
+      [#Nk-I264] commits migrated the pipeline out of Java into C++. It holds nv21_to_bgr,
+      fast_rotate, extract_rects_native, run_capture_net_on_mat (TFLite CaptureNet),
+      calc_median_finger_size, smart_resize_like_sdk, crop_to_size_centered,
+      crop_fingerprint_like_sdk and extract_templates_native. I first judged it generated glue
+      from the JNI names alone and was wrong — read the file, not the symbol list.
+      **THERE IS NO MATCHER.** The only matching artefact is MatchResult.java, a DECOMPILED SWIG
+      wrapper over libttv_fp_core.so. M31 has no source anywhere; extraction is ours, matching is
+      not. The TFLite model is not committed either (the sole asset is a 21 MB NFIQ2 quality
+      model, nist_plain_tir-ink.yaml).
+      NOT COPIED, deliberately: libttv_fp_core.so (4.7 MB prebuilt vendor binary, arm64-v8a ONLY,
+      no source — it owns preprocessFingerprint, axisAlign, computeNfiq and the matcher); the
+      vendor Java SDK under com/ttv/finger/, which carries JADX markers
+      ("loaded from: input.aar:classes.jar:...") meaning it was DECOMPILED FROM A VENDOR AAR —
+      importing that is a LICENSING question for na-002-bnprs-core, not a technical one; OpenCV
+      (~120 MB of prebuilt .so across four ABIs); TensorFlow Lite; and NFIQ2 (submodule
+      09f24634 — open-source NIST, genuinely reusable, but a QUALITY metric, not a matcher).
+      ALSO: the pre-existing finger_cless_preprocess.{h,cpp} in BprFingerCless/ are a developer
+      scratch experiment — CLAHE plus imshow/waitKey and commented-out webcam main() blocks,
+      depending on OpenCV highgui and blocking on a GUI window. That is why they are in no
+      *_src.cmake and have never built. Not a starting point.
+      FIVE THINGS BEFORE THIS CAN BE A LIBRARY (full detail in the directory README): de-JNI it;
+      decide on OpenCV (every other modality here is dependency-free, which is what lets
+      BprIDEngine link them all — taking OpenCV for one modality is an architectural decision,
+      not an assumption); find or replace the missing TFLite model; resolve the vendor .so
+      dependency; and replace NV21 (an Android camera format) with a decoded grayscale buffer
+      matching BprIDSample.
+      CHEAPER ROUTE TO SETTLE FIRST: the pipeline's output is an axis-aligned RIDGE IMAGE, which
+      is exactly what T21 (FingerJetFX, already working, ISO 19794-2) consumes. So T31 may be
+      PREPROCESSING that feeds T21 rather than a parallel algorithm needing its own matcher —
+      which would also explain why modality 4C has three template formats but only two matchers.
+      Settle this before anyone ports extract_templates_native; it may not be needed.
+      Coordinate with na-004/004 cpp-finger-knuckle — 4C is a SHARED modality.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (user-directed import)"
+    tags: [source-of-record, trp1001-sbioids, enrollmentflowimpl-branch, main-is-empty, fp-bridge-copied, no-matcher-source, vendor-so-arm64-only, decompiled-aar-licensing, opencv-tflite-decision, t31-may-feed-t21, shared-modality-4c, 36a86ce]
+
 # Pruning rules
 pruning:
   max_entries: 500

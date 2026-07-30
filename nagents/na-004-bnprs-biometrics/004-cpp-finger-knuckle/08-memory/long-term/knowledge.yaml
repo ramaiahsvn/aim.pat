@@ -119,6 +119,30 @@ memories:
     source: "session-2026-07-30"
     tags: [b1-cleared, glue-edited, license-moved-to-common, bprlicgeneration-semantics-changed, proof-gate]
 
+  - id: mem-004
+    type: reference
+    content: >-
+      2026-07-30 TOUCHLESS FINGERPRINT SOURCE LOCATED — relevant to you because modality 4C is
+      SHARED with na-004/003 cpp-finger-cless. Full detail in that agent's mem-004 and in
+      bpr.cpp/src/BprIDEngine/BprFingerCless/README.md.
+      Short version: the touchless work lives at
+      /Users/bnprs/BPR/GitRepos2/TRP1001_SbioidS/trp1001.sbioids.finger.cless on branch
+      **enrollmentFlowImpl** (its main branch is EMPTY). The extraction pipeline was copied into
+      bpr.cpp BprFingerCless/TouchlessCapture/ (36a86ce). There is NO MATCHER source — the
+      matcher is inside a prebuilt arm64-v8a vendor .so, and the Java SDK around it is decompiled
+      from an AAR (a licensing question for na-002-bnprs-core).
+      WHY THIS MATTERS TO THIS AGENT: nothing in that repo touches KNUCKLE. T33 bFingerKnuckle and
+      M32 bFingerKnuckle(PolyU) remain unimplemented and unsourced, and this agent still has no
+      *_src.cmake. But 4C's id space is shared, so coordinate before claiming a TID — and note the
+      open question that affects both: if T31 turns out to be PREPROCESSING feeding T21
+      (FingerJetFX) rather than a standalone algorithm, the shape of 4C changes for knuckle too.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [shared-modality-4c, touchless-source-located, nothing-for-knuckle, coordinate-with-na-004-003, b5-still-open]
+
 # Pruning rules
 pruning:
   max_entries: 500
