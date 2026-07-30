@@ -6,16 +6,29 @@ session:
   user_id: null
 
 active_tasks: []
-# - task_id: "task-001"
-#   status: in_progress
-#   progress: 60%
-#   current_step: "Generating report"
+
+# Parked work — surface this at session start if the resume trigger has fired.
+blocked_tasks:
+  - task_id: "task-001"
+    subject: "Rebuild mGate India in ap-south-2 when the project goes live"
+    status: blocked
+    priority: high
+    blocked_by: "mgate-india-go-live"
+    resume_trigger: "mGate India project goes live"
+    owner: "na-006/001 bpr1002-mgate-prod (this agent)"
+    file: "02-cell-body/planning/todo/task-001-mgate-india-golive-rebuild.yaml"
+    checklist: "07-axon-terminals/deliverables/mgate-india-golive-checklist.md"
+    note: >-
+      mGate India was TORN DOWN 2026-07-30 to stop a ~$1,683/mo run-rate (now ~$140/mo).
+      mem-003 still reads "LIVE" — it is SUPERSEDED by mem-006. Rebuild at 5.5 vCPU, NOT the
+      original 25. Restore the DB from snapshot mgate-in-prod-db-preteardown-20260730.
+      Teardown was executed by na-003/001 bnprs-aws, which owns the AWS account and cost.
 
 queue:
   pending: 0
   in_progress: 0
   completed: 0
-  blocked: 0
+  blocked: 1
 
 resources:
   active_connectors: []

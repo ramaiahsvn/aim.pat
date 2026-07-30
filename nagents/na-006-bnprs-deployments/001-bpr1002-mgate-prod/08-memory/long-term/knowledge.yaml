@@ -52,6 +52,8 @@ memories:
   - id: mem-003
     type: deployment
     content: >
+      [SUPERSEDED 2026-07-30 by mem-006 — the stack described here was TORN DOWN; it is NOT live.
+      The deployment detail below is still accurate as the rebuild reference.]
       2026-07-19 India services rollout, phase 2 — ALL 15 services/*/prod stacks APPLIED; mGate
       India production is LIVE in ap-south-2. Images: GitLab CI pipelines on
       BPR1002/india/bpr1002.mgate.api (2755, tag 6216592...) + api.portal (2757, tag e83596e...)
@@ -140,6 +142,47 @@ memories:
     confidence: 1.0
     source: "session-2026-07-19"
     tags: [portal, frontend, cloudfront, mgate.bnprs.in, appconfig, value-placeholders, receipts, debt]
+
+  - id: mem-006
+    type: deployment
+    content: >-
+      2026-07-30 ⚠️ mGate India is NO LONGER LIVE — this SUPERSEDES mem-003 ("mGate India
+      production is LIVE in ap-south-2"). The whole stack was TORN DOWN on 2026-07-30 to stop
+      spend until go-live (user: "stop the mgate system for time being and we will make it up
+      after going live"). Executed by na-003/001 bnprs-aws (AWS account owner); THIS agent
+      (na-006/001) owns the REBUILD.
+      DESTROYED: all 15 services/*/prod stacks (14 ECS services, 3 ALBs, 3 target groups) then
+      platform/prod 79/79 — VPC vpc-0df1c91378fb9bab8 + 4 subnets, 2 NAT, 7 VPC endpoints,
+      Aurora cluster+instance, 5 Secrets Manager secrets, 2 S3 buckets (cloudtrail + alb-logs),
+      7 CW alarms, SNS, KMS, GuardDuty. Verified after: 0 RDS / 0 non-default VPC / 0 NAT /
+      0 VPC endpoint / 0 ALB in ap-south-2; ECS cluster mgate-in-prod-ecs-cluster INACTIVE.
+      KEPT (so the rebuild is a straight apply): all bootstrap stacks, 18 ECR repos WITH the
+      built images, 16 SQS queues, 7 Secrets Manager secrets, both ACM certs
+      (api.mgate.bnprs.in df684416, *.mgate.bnprs.in 623a1971), state bucket
+      mgate-in-prod-terraform-state, appconfig/vendor-config/eip/portal-frontend.
+      DATA: manual snapshot mgate-in-prod-db-preteardown-20260730 (available, ~67 MB, tagged
+      Retain=true) — restore from this, do NOT rebuild an empty DB. Automated snapshots went
+      with the cluster; this is the only copy, so do not delete it until a restore is verified.
+      COST: ~$1,683/mo -> ~$140/mo (~$1,540/mo saved).
+      REBUILD IS PARKED AS task-001 (status blocked, resume_trigger "mGate India project goes
+      live"): 02-cell-body/planning/todo/task-001-mgate-india-golive-rebuild.yaml, with the
+      full step-by-step in 07-axon-terminals/deliverables/mgate-india-golive-checklist.md.
+      READ THAT CHECKLIST FIRST when go-live is called.
+      Three things it exists to stop us repeating: (1) do NOT re-apply the old tfvars — the
+      stack ran 25 vCPU / 50 GB while peaking at 0.19 vCPU; rebuild at 5.5 vCPU / 16 GB (the
+      tfvars comments are wrong by 2x: "cpu = 2048 # 1 vCPU per task" — 2048 units IS 2 vCPU,
+      which is how the over-sizing happened); (2) drop the 6 VPC INTERFACE endpoints ($116/mo,
+      biggest unnoticed line item — keep only the free S3 gateway endpoint); (3) fix
+      cloudwatch-prod before redeploying it — it was crash-looping (exit code 1, restart every
+      ~90s, "Essential container in task exited"), an application defect, never healthy in prod.
+      Cost analysis backing all of this: na-003/001 bnprs-aws mem-013/014/015/017/018 and its
+      deliverable 07-axon-terminals/deliverables/fargate-cost-reduction-plan.md.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [india, ap-south-2, teardown, destroyed, supersedes-mem-003, rebuild, go-live, blocked, snapshot, cost, owner]
 
   # Example entries:
   # - id: mem-002

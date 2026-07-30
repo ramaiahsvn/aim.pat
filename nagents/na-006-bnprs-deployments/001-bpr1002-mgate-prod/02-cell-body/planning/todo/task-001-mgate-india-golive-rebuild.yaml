@@ -1,5 +1,8 @@
 # Task — mGate India go-live rebuild
 # Raised when the stack was torn down on 2026-07-30 to stop spend until go-live.
+# OWNER: na-006/001 bpr1002-mgate-prod (this agent) — mGate deployment is this agent's remit.
+# The teardown itself was executed by na-003/001 bnprs-aws, which owns the AWS account and cost
+# analysis; consult it for cost/quota/account questions, not for the deployment steps.
 
 task:
   id: "task-001"

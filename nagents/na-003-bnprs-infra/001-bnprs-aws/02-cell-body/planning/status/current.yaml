@@ -7,26 +7,28 @@ session:
 
 active_tasks: []
 
-# Parked work — surface this at session start if the resume trigger has fired.
-blocked_tasks:
+# Work owned by ANOTHER agent that this agent must not duplicate.
+# Listed here only because this agent executed the teardown and owns the AWS account/cost.
+delegated_tasks:
   - task_id: "task-001"
     subject: "Rebuild mGate India in ap-south-2 when the project goes live"
+    owner: "na-006/001 bpr1002-mgate-prod"
     status: blocked
-    priority: high
-    blocked_by: "mgate-india-go-live"
     resume_trigger: "mGate India project goes live"
-    file: "02-cell-body/planning/todo/task-001-mgate-india-golive-rebuild.yaml"
-    checklist: "07-axon-terminals/deliverables/mgate-india-golive-checklist.md"
-    note: >-
-      Torn down 2026-07-30 to stop a ~$1,683/mo run-rate (now ~$140/mo).
-      Rebuild at 5.5 vCPU, NOT the original 25. Restore DB from snapshot
-      mgate-in-prod-db-preteardown-20260730. See mem-017 / mem-018.
+    file: "nagents/na-006-bnprs-deployments/001-bpr1002-mgate-prod/02-cell-body/planning/todo/task-001-mgate-india-golive-rebuild.yaml"
+    checklist: "nagents/na-006-bnprs-deployments/001-bpr1002-mgate-prod/07-axon-terminals/deliverables/mgate-india-golive-checklist.md"
+    this_agent_retains: >-
+      AWS account + cost ownership only: the Fargate sizing analysis
+      (07-axon-terminals/deliverables/fargate-cost-reduction-plan.md), the credit-funding /
+      RECORD_TYPE=Usage trap (mem-013), run-rate and forecasting (mem-014), the Fargate quota
+      decision (mem-016), and the teardown playbook (mem-018). Do NOT drive the rebuild from
+      here — hand off to na-006/001.
 
 queue:
   pending: 0
   in_progress: 0
   completed: 0
-  blocked: 1
+  blocked: 0
 
 resources:
   active_connectors: []

@@ -489,12 +489,17 @@ memories:
       mgate-in-prod-terraform-state, bootstrap appconfig/vendor-config/eip/portal-frontend.
       COST: ~$1,683/mo -> ~$140/mo projected (saves ~$1,540/mo). IaC verified safe on GitLab
       before destroying: origin/bp_rel == local HEAD == 766706b.
-      PARKED, NOT ABANDONED — user: "we will resume when this project goes live". The rebuild is
-      a blocked task in the agent's own queue: 02-cell-body/planning/todo/
-      task-001-mgate-india-golive-rebuild.yaml (also flagged in planning/status/current.yaml
-      under blocked_tasks, so it surfaces at session start). Step-by-step rebuild checklist:
-      07-axon-terminals/deliverables/mgate-india-golive-checklist.md. AT SESSION START, if the
-      user mentions mGate India going live, open that checklist FIRST.
+      PARKED, NOT ABANDONED — user: "we will resume when this project goes live".
+      OWNERSHIP (user-directed 2026-07-30, "it should be handled by bpr1002-mgate-prod agent"):
+      the REBUILD belongs to **na-006/001 bpr1002-mgate-prod**, not to this agent. Its task-001
+      (status blocked, resume_trigger "mGate India project goes live") and the step-by-step
+      checklist mgate-india-golive-checklist.md both live under that agent now; its mem-006
+      records the teardown and supersedes its mem-003, which still reads "LIVE".
+      THIS agent retains only the AWS account + cost side: the Fargate sizing analysis
+      (07-axon-terminals/deliverables/fargate-cost-reduction-plan.md), the credit-funding trap
+      (mem-013), run-rate/forecast (mem-014), the quota decision (mem-016) and the teardown
+      playbook (mem-018). If a future session here is asked to rebuild mGate, HAND OFF to
+      na-006/001 rather than driving it from this agent.
     created_at: "2026-07-30"
     last_accessed: "2026-07-30"
     access_count: 1
