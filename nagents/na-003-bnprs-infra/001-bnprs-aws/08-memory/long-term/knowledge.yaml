@@ -489,6 +489,12 @@ memories:
       mgate-in-prod-terraform-state, bootstrap appconfig/vendor-config/eip/portal-frontend.
       COST: ~$1,683/mo -> ~$140/mo projected (saves ~$1,540/mo). IaC verified safe on GitLab
       before destroying: origin/bp_rel == local HEAD == 766706b.
+      PARKED, NOT ABANDONED — user: "we will resume when this project goes live". The rebuild is
+      a blocked task in the agent's own queue: 02-cell-body/planning/todo/
+      task-001-mgate-india-golive-rebuild.yaml (also flagged in planning/status/current.yaml
+      under blocked_tasks, so it surfaces at session start). Step-by-step rebuild checklist:
+      07-axon-terminals/deliverables/mgate-india-golive-checklist.md. AT SESSION START, if the
+      user mentions mGate India going live, open that checklist FIRST.
     created_at: "2026-07-30"
     last_accessed: "2026-07-30"
     access_count: 1

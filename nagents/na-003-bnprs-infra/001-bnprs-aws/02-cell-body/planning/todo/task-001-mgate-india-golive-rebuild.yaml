@@ -1,0 +1,55 @@
+# Task — mGate India go-live rebuild
+# Raised when the stack was torn down on 2026-07-30 to stop spend until go-live.
+
+task:
+  id: "task-001"
+  subject: "Rebuild mGate India in ap-south-2 when the project goes live"
+  description: >-
+    mGate India (BPR1002) was fully torn down on 2026-07-30 to stop a ~$1,683/mo run-rate
+    while the project is pre-launch. All 15 service stacks and platform/prod (79 resources)
+    were destroyed; bootstrap was deliberately kept so the rebuild is a straight
+    terraform apply. Resume ONLY when the project goes live.
+
+    Full step-by-step checklist (the authoritative source, do not work from this file alone):
+    07-axon-terminals/deliverables/mgate-india-golive-checklist.md
+
+    Sizing spec for the rebuild:
+    07-axon-terminals/deliverables/fargate-cost-reduction-plan.md
+
+    Three things that MUST NOT be forgotten at rebuild time:
+      1. Do NOT re-apply the old tfvars. The stack was built at 25 vCPU / 50 GB while peaking
+         at 0.19 vCPU. Rebuild at 5.5 vCPU / 16 GB per the plan (§4). The tfvars comments are
+         wrong by 2x ("cpu = 2048 # 1 vCPU") and that is how the over-sizing happened.
+      2. Drop the 6 VPC INTERFACE endpoints ($116/mo, the biggest unnoticed line item; keep the
+         free S3 gateway endpoint). mem-011 recorded this exact mistake in Frankfurt first.
+      3. Restore the DB from snapshot mgate-in-prod-db-preteardown-20260730 by setting
+         db_snapshot_identifier in platform/prod tfvars — do not start empty.
+
+    Also fix cloudwatch-prod before redeploying it: it was crash-looping (exit code 1, restart
+    every ~90s). Application defect, owner na-006/001 / dev team.
+
+  status: blocked
+  priority: high
+  created_at: "2026-07-30"
+  assigned_to: null
+  blocked_by: ["mgate-india-go-live"]   # external event, not a task id
+  blocks: []
+  estimated_steps: 20
+  tags: [mgate, bpr1002, india, ap-south-2, rebuild, go-live, terraform, cost-optimisation, paused]
+
+  resume_trigger: "mGate India project goes live"
+
+  references:
+    checklist: "07-axon-terminals/deliverables/mgate-india-golive-checklist.md"
+    sizing_spec: "07-axon-terminals/deliverables/fargate-cost-reduction-plan.md"
+    memories: ["mem-017", "mem-018", "mem-015", "mem-016", "mem-013"]
+    iac_repo: "~/BPR/GitRepos2/BPR1002_mGate_IN/bpr1002.mgate.iaac"
+    iac_branch: "bp_rel"
+    iac_commit: "766706b"
+    db_snapshot: "mgate-in-prod-db-preteardown-20260730"
+
+  cost_context:
+    before_teardown_monthly_usd: 1683
+    after_teardown_monthly_usd: 140
+    saving_monthly_usd: 1543
+    rebuild_target_monthly_usd: 600   # right-sized, per the plan
