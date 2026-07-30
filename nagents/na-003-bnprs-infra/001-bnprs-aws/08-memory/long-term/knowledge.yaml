@@ -542,8 +542,9 @@ memories:
     content: >-
       2026-07-30 Released the 2 idle Frankfurt NAT EIPs (~$7.44/mo): 63.182.201.159
       (eipalloc-0205134489d990b66, mgate-prod-nat-eip-eu-central-1a) and 3.126.247.176
-      (eipalloc-0ef4726071d098f3c, ...-1b). KEPT 3.74.90.58 (mgate-prod-openvpn-eip). eu-central-1
-      now has exactly 1 EIP. CORRECTS mem-012, which had labelled those two "pre-existing, NOT
+      (eipalloc-0ef4726071d098f3c, ...-1b). [SAME DAY, LATER: the whole vestigial stack was then
+      deleted — see mem-020 — so 3.74.90.58 went too and eu-central-1 now has ZERO EIPs.]
+      CORRECTS mem-012, which had labelled those two "pre-existing, NOT
       mGate" — in fact ALL THREE were mGate and Terraform-managed (tags ManagedBy=terraform,
       Component=eip-bootstrap, Project=mgate) by bootstrap/eip/prod. LESSON: an unassociated EIP
       with no obvious owner is NOT evidence it is foreign — read its tags and check whether a
@@ -566,6 +567,39 @@ memories:
     confidence: 1.0
     source: "session-2026-07-30"
     tags: [eip, cleanup, frankfurt, eu-central-1, terraform, corrects-mem-012, backend-bucket, lesson, cost]
+
+  - id: mem-020
+    type: infrastructure
+    content: >-
+      2026-07-30 DELETED the vestigial bootstrap/eip stack entirely (user-directed, after
+      mem-019 released its 2 NAT EIPs). Released the last resource 3.74.90.58
+      (eipalloc-0df2e41d95d6e51b6, mgate-prod-openvpn-eip) — **eu-central-1 now has ZERO Elastic
+      IPs**, ending the ~$11/mo idle-EIP bleed that had run since the 2026-06-14 Frankfurt
+      teardown. Removed the S3 state object bootstrap/eip/prod/terraform.tfstate from
+      mgate-bnprs-prod-terraform-state (4 prior object VERSIONS remain — the bucket is versioned,
+      kept deliberately for audit, a few KB) and deleted bootstrap/eip/{prod,uat} from the India
+      repo working tree (NOT committed — left for the user, as with the mem-019 tfvars change).
+      SAFE TO DELETE because, verified first: the WireGuard/OpenVPN server it served
+      (i-0d6c610578f1d6846) died with platform/prod on 2026-06-14; no Route53 record in ANY zone
+      resolved to 3.74.90.58; the only textual references anywhere were this agent's own memory
+      notes; bootstrap/eip/uat had NO state object (never applied); and India's platform/prod
+      self-allocates NAT EIPs in modules/network/vpc so nothing consumed the stack's outputs.
+      DANGLING (pre-existing, NOT caused by this deletion): platform/uat/vpn.tf still does a
+      terraform_remote_state read of bucket "mgate-terraform-state" key
+      "bootstrap/eip/terraform.tfstate" — a THIRD bucket name that does not exist in this account
+      and a key that never existed here either, so that stack was already unrunnable; platform/uat
+      has never been deployed in 891963159778. Comments in modules/network/vpc still mention
+      bootstrap/eip but the module self-allocates when no EIPs are supplied, so they are harmless.
+      ALSO STILL ORPHANED in eu-central-1: SSM SecureStrings /mgate-prod-vpn/wireguard/
+      client{1,2}.conf (2026-06-11) — dead WireGuard client configs holding key material for a
+      server that no longer exists; they embed the now-released 3.74.90.58. Worth deleting as
+      hygiene (free, but it is live key material for nothing).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [eip, cleanup, frankfurt, eu-central-1, terraform, stack-deleted, zero-eips, dangling-uat-vpn, orphaned-ssm, cost]
 
 # Pruning rules
 pruning:

@@ -93,10 +93,16 @@ this account is **fully credit-funded** and every default cost view reads ~$0 (m
 
 ## 7 · Housekeeping — not blocking, can be done any time
 
-- [ ] Release 2 unidentified idle EIPs in **eu-central-1**: `3.126.247.176`, `63.182.201.159`
-      (~$7.44/mo). Keep `3.74.90.58` — mGate bootstrap EIP, retained by design.
+- [x] ~~Release idle EIPs in **eu-central-1**~~ — **DONE 2026-07-30.** All three released
+      (`63.182.201.159`, `3.126.247.176`, `3.74.90.58`) and the vestigial `bootstrap/eip` stack
+      deleted outright. eu-central-1 now holds **zero** EIPs (~$11/mo saved). See na-003/001
+      mem-019 / mem-020. **Consequence for a rebuild:** there is no longer any pre-allocated EIP
+      to inherit — `modules/network/vpc` self-allocates NAT EIPs, which is what India already does.
 - [ ] Clean up remaining Frankfurt leftovers: portal-frontend CloudFront, old state bucket, SQS,
       AppConfig (dead since the June teardown, mem-012)
+- [ ] Delete orphaned SSM SecureStrings in eu-central-1 —
+      `/mgate-prod-vpn/wireguard/client{1,2}.conf`. Dead key material for a server destroyed
+      2026-06-14; they embed the now-released `3.74.90.58`.
 - [ ] Delete `mgate-in-prod-db-preteardown-20260730` **only after** a successful restore is verified
 - [ ] Move the plaintext vendor creds out of `bootstrap/vendor-config/{prod,uat}/main.tf` and purge
       git history (long-standing security debt, mem-008)
