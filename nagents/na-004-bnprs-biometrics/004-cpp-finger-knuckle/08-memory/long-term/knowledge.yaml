@@ -119,7 +119,7 @@ memories:
     source: "session-2026-07-30"
     tags: [b1-cleared, glue-edited, license-moved-to-common, bprlicgeneration-semantics-changed, proof-gate]
 
-  - id: mem-004
+  - id: mem-007
     type: reference
     content: >-
       2026-07-30 TOUCHLESS FINGERPRINT SOURCE LOCATED — relevant to you because modality 4C is
@@ -206,6 +206,75 @@ memories:
     confidence: 1.0
     source: "session-2026-07-30"
     tags: [b5-cleared, t33-m32, compcode-polyu, legacy-unbuildable, opencv-1x-removed, missing-header, magnitude-masking-disproved, m32-reads-t33, segmentation-is-the-gap, 193abbc]
+
+  - id: mem-008
+    type: infrastructure
+    content: >-
+      2026-07-31 KNUCKLE ROI SEGMENTATION EXISTS — T33 works on a hand capture now, not only on a
+      pre-cropped database (bpr.cpp 39a0443, Segment/knuckle_segment.{h,cpp}).
+      THE CAPTURE IS A WHOLE HAND, NOT A SINGLE FINGER. This is the thing to know before touching
+      this module. The FKP literature (PolyU) images ONE finger over a triangular support and
+      finds the knuckle by convex direction coding along it — that is NOT our rig. Our own
+      reference, KnuckleSegment{L4,R4,T2}.cpp, takes a four-finger hand image, builds a
+      `struct hand` of four fingers plus valleys v1/v2/v3, and cuts a band out of each finger.
+      Segment/ follows the reference, not the literature.
+      GEOMETRY COPIED FROM THE REFERENCE, not invented (KnuckleSegmentL4.cpp:282-295): base =
+      midpoint of the finger's flanking valleys; MAJOR knuckle (PIP, the one FKP recognition
+      uses) at length/3 from the base; DISTAL (DIP) at 2*length/3; major band 125 along x 100
+      across at a reference valley span of 271 (-> 0.461 x 0.369), distal 80x80 (-> 0.295 sq).
+      Sizing to the valley span is what makes it invariant to camera distance.
+      OUTPUT x RUNS ALONG THE FINGER. Not arbitrary — CompCode's knuckle shift search is
+      asymmetric (+/-6 along, +/-3 across) because creases run across the finger. A transposed
+      band searches the wrong axis.
+      MEASURED (synthetic four-finger hand, similarity between two captures of ONE hand vs the
+      same images cropped at a fixed position): rot 10/20/30 deg = 0.875/0.877/0.878 segmented
+      against 0.502/0.506/0.518 cropped; shifted 100 px = 0.885 vs 0.529; flat over 0.75x-1.25x
+      scale. Genuine 0.872, impostor 0.644 — a NARROWER margin than palmprint's, because the two
+      synthetic hands share finger geometry and differ only in crease spacing. Different FINGER
+      of the same hand = 0.594, which is the check that makes the finger index mean anything.
+      ADAPTER: `make_knuckle_compcode_extractor(KnuckleInput::FullHand, fingerIndex, 160, 128)`
+      vs the default Roi. Both emit T33. FullHand needs a FINGER INDEX (a hand gives four
+      knuckles, T33 is one). Indices are consistent across captures of one hand but MIRROR
+      between left and right hands.
+      NOT MEASURED ON REAL KNUCKLES — geometric invariance on a synthetic hand, not recognition
+      accuracy. Owed to na-004/010.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (measured)"
+    tags: [knuckle-segmentation, whole-hand-not-single-finger, reference-geometry-L4, x-along-finger, finger-index-mirrors, synthetic-only, 39a0443]
+
+  - id: mem-009
+    type: incident_learning
+    content: >-
+      2026-07-31 BINARISATION IS THE FLOOR, AND IT FAILS SILENTLY WITH THE RIGHT COUNT.
+      If skin texture is dark enough to cross the Otsu threshold it binarises as BACKGROUND, and
+      a crease spanning the full width of a finger cuts that finger in two — the severed tip
+      becomes a separate component and is discarded. Measured on the synthetic hand: darkest
+      on-hand pixel 119 against background 28 -> Otsu 31, all four fingers correct. Darkest 71 ->
+      Otsu jumps to 112, and the geometry collapses (finger lengths 135/134/147/193 where the
+      truth is 242/262/241/198).
+      THE DANGEROUS PART: the finger COUNT still came to four. Four confident, wrong bands. What
+      exposed it was a shape that is anatomically impossible — 199 px wide by 147 px long — so
+      there is now a `width > 0.9 * length` guard (a finger is always longer than it is wide;
+      measured ratios 0.36-0.46). With it the bad shapes are refused and the count drops to 3,
+      which is at least VISIBLE. There is still no positive detection of the condition.
+      HOLE FILLING DOES NOT RESCUE THIS and I checked rather than assumed: a full-width cut is
+      not a hole. Filling (flood the background in from the border, promote what it cannot reach)
+      is still worth having for shadows and specular highlights, because holes move the CENTROID
+      and the centroid is the origin of the radius profile every extremum is found from — but it
+      changed nothing in the dark-crease case.
+      MY OWN TEST SYNTHETIC CAUSED THIS FIRST. I gave the creases amplitude 70 and got three
+      "fingers" with nonsense geometry, and the first instinct was that the digit detector was
+      broken. It was not — the image was. Check what binarisation produced BEFORE tuning anything
+      downstream of it.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [binarisation-floor, silent-failure-right-count, width-over-length-guard, hole-filling-limits, check-the-image-first]
 
 # Pruning rules
 pruning:

@@ -576,6 +576,44 @@ memories:
     source: "session-2026-07-30"
     tags: [palmprint-segmentation-done, palminput-mode-not-new-tid, registrar-still-roi-open-decision, knuckle-and-cless-still-missing, 78-tests, gate-passes, 02d0a0d]
 
+  - id: mem-019
+    type: infrastructure
+    content: >-
+      2026-07-31 Common/HandGeometry EXISTS — the first shared layer under BprIDEngine
+      (bpr.cpp 39a0443). Palmprint and knuckle segmentation have the same first three quarters
+      (silhouette, boundary trace, fingers and valleys) and differ only in where the ROI goes
+      once the anatomy is known. Written twice that is ~400 duplicated lines and the hard parts
+      (Jacob's stopping criterion, telling a digit from a corner of the palm) would have to be
+      correct twice.
+      HOW IT WAS DONE SAFELY, reuse this order: extract the layer and rewrite the EXISTING
+      consumer onto it FIRST, prove its tests pass unchanged, and only then add the new consumer.
+      Palmprint's 14 tests were the evidence the move was behaviour-neutral; if knuckle had gone
+      in at the same time, a regression could have come from either.
+      TARGET SHAPE MATTERS: bengine_hand_geometry is its OWN static target that both
+      bengine_palmprint_algo and bengine_knuckle_algo link. Compiling the source into each would
+      put two copies of the symbols into BprIDEngine and collide at link time. The root build is
+      different — it builds one modality at a time via OUTFILENAME — so both *_src.cmake files
+      can glob Common/HandGeometry/*.cpp without ever colliding.
+      SHARED CODE MEANS SHARED CONSEQUENCES, and they showed up immediately: adding hole filling
+      for knuckle moved palmprint's measured minProtrusion window from 1.6-4.0 to 1.6-3.6 and
+      broke one of its tests. The shared default moved 3.0 -> 2.5 to sit centrally in the
+      intersection with knuckle's 1.6-4.0. Any change here needs BOTH modalities' suites green;
+      palmprint is the more sensitive because its frame is built directly on valley positions.
+      STATE OF SEGMENTATION: palmprint DONE, knuckle DONE, fingercless STILL MISSING (its
+      CaptureNet/TFLite stage in TouchlessCapture/ is the reference and is not ported). Note
+      fingercless is a different problem — a single fingertip in a camera frame, no hand
+      silhouette — so Common/HandGeometry does NOT apply to it.
+      PATTERN FOR ADDING SEGMENTATION TO A MODALITY: add a MODE to the adapter
+      (PalmInput/KnuckleInput FullHand vs Roi), never a new template id. Both modes emit the same
+      T-id, templates stay comparable, the registrar and shipped ABI do not move, and the
+      taxonomy is untouched — changing that is the user's call.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [common-handgeometry, shared-layer, refactor-existing-consumer-first, own-cmake-target, shared-defaults-coupled, mode-not-new-tid, fingercless-still-missing, 39a0443]
+
 # Pruning rules
 pruning:
   max_entries: 500
