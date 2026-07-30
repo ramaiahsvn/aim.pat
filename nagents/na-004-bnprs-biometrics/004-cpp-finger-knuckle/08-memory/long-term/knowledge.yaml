@@ -94,6 +94,31 @@ memories:
     source: "session-2026-07-30"
     tags: [blocker, b1, b5, shared-modality-4c, coordinate-with-na-004-003, m32-reads-t33, action-required]
 
+  - id: mem-004
+    type: infrastructure
+    content: >-
+      2026-07-30 B1 IS CLEARED — this agent's glue file WAS EDITED (bpr.cpp 52f4317). The
+      BprLicGeneration and BprLicVerification DEFINITIONS were removed from
+      cli/BprIDEngine/<this modality>/*_dll_exports.cpp and now live once in
+      cli/BprIDEngine/common/bprid_common_abi.cpp. The DECLARATIONS stay, and the file now
+      includes ../common/bprid_common_abi.h, so this library's exported ABI is unchanged — do not
+      re-add the bodies.
+      This agent's body (size-0 guard + try/catch) is the one that was standardised on. Its BprLicGeneration developer-printer behaviour was NOT carried over — see below.
+      IMPORTANT SEMANTIC CHANGE TO BprLicGeneration: the two legacy bodies did DIFFERENT things
+      and could not be merged. BprFace's verified a hardcoded license string; BprFingerCless's and
+      BprFingerKnuckle's printed developer license codes to stdout (including a block of
+      hardcoded license values in comments) and returned true unconditionally. Neither belongs in
+      a shipped library, so the shared definition performs NO generation and returns false. If the
+      developer printer is still wanted, it belongs in a tool, not the library ABI.
+      The proof gate now PASSES: run bengine/tests/proof_gate.sh <build-dir> after touching the
+      glue — it fails if this modality's exported BprID_* set drifts from BprIDEngine's.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b1-cleared, glue-edited, license-moved-to-common, bprlicgeneration-semantics-changed, proof-gate]
+
 # Pruning rules
 pruning:
   max_entries: 500

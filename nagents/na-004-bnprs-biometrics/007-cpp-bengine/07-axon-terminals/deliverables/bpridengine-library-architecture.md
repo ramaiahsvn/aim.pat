@@ -1,6 +1,6 @@
 # BprIDEngine — unified library architecture
 
-**Status:** SPECIFICATION · 2026-07-30 · contract header written, implementation staged
+**Status:** B4 + B1 CLEARED · **proof gate PASSES** · 2026-07-30
 **Owner:** na-004/007 `cpp-bengine` (engine, ABI contract, build integration)
 **Affects:** na-004/001–006 — every modality agent
 
@@ -98,7 +98,13 @@ Requirement 2, satisfied structurally.
 
 ## Blockers — each owned by one agent, all small
 
-**B1 · duplicate license symbols — BLOCKS CONSOLIDATION.** `BprLicGeneration` /
+**B1 · ~~duplicate license symbols~~ — CLEARED 2026-07-30.** Now defined once in
+`cli/BprIDEngine/common/bprid_common_abi.cpp`; the three glue files keep their declarations so
+no exported surface changed. `BprLicVerification` consolidated on the FingerCless/Knuckle body
+(size-0 guard + try/catch); BprFace's bare version gained both. `BprLicGeneration` could **not**
+be merged — BprFace verified a hardcoded string while FingerCless/Knuckle printed developer
+license codes and returned `true` unconditionally, so the common definition performs no
+generation and returns `false`. *Original text:* `BprLicGeneration` /
 `BprLicVerification` are *defined* in three glue files (Face, FingerCless, FingerKnuckle).
 Linking all three is a duplicate-symbol error. Move to `bprid_common` as
 `BprID_LicVerification`. The FingerCless/Knuckle body is the better one — size-0 guard plus
@@ -111,7 +117,8 @@ try/catch; BprFace's is bare and gains robustness. *001, 003, 004 + 007.*
 `__declspec(dllexport)` and the Windows COM `BSTR` outside the platform guard the rest of the
 file uses. *002.*
 
-**B4 · `NO_MFC` must be defined.** `AprCommon/BprUtils/bpr_utils_main.h` pulls `<afx.h>` (MFC)
+**B4 · ~~`NO_MFC`~~ — CLEARED 2026-07-30** via `add_compile_definitions(NO_MFC)`.
+*Original text:* `AprCommon/BprUtils/bpr_utils_main.h` pulls `<afx.h>` (MFC)
 unless `NO_MFC` is set; all five glue files inherit it. With `-DNO_MFC`, four of five compile
 clean on clang. Set globally by the unified CMake. *007.*
 
@@ -164,17 +171,30 @@ generalized ABI just makes it the parameter instead of part of the symbol name.
 6. **B7**, **B6** content fixes *(002, 006)*
 7. **B5** the three missing modalities *(003, 004, 005)*
 
-## Proof gate
+## Proof gate — PASSING
 
-Unification is proven only when this is empty for every modality:
+Automated as `bengine/tests/proof_gate.sh <build-dir>`; it diffs every `Bpr<Modality>` against
+the consolidated library and fails on drift.
 
-```bash
-cmake --build . --target BprFace BprIDEngine
-diff <(nm -gU libBprFace.dylib     | awk '{print $3}' | grep '^_BprID_') \
-     <(nm -gU libBprIDEngine.dylib | awk '{print $3}' | grep '^_BprID_')
+```
+$ cmake -S . -B build-fp -DBENGINE_BUILD_FINGER=ON && cmake --build build-fp
+$ tests/proof_gate.sh build-fp
+PASS  libBprFinger.dylib  17 symbols
 ```
 
-Both must export the identical `BprID_*` set. Belongs in CI once the blockers clear.
+Export hygiene alongside it — 26 total per library: 17 `BprID_*`, the 2 common license symbols,
+and FingerJetFX's own 7 vendor entry points. Nothing else escapes.
+
+### Two bugs the gate exposed
+
+**`BprID_LibraryName` returned "BprIDEngine" from `libBprFinger`.** A compile-time define cannot
+work: `bprid_abi.cpp` is compiled **once** and the same object lands in every library, so it has
+no way to know which one. That is precisely the property the design depends on. Fixed with a
+generated per-library source — the library's own name is the *only* thing not shared.
+
+**Forcing default visibility on `bprid_abi`** so the ABI would export leaked **152** internal
+symbols (bengine internals, AprCommon, STL) into every library. Now hidden, letting `BPRID_API`
+mark exactly the entry points.
 
 ---
 

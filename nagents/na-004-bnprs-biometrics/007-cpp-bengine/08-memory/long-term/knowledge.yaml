@@ -313,6 +313,47 @@ memories:
     source: "session-2026-07-30"
     tags: [root-build, outfilename, target-name-collision-avoided, no-mfc, afx-h, complementary-halves, blockers, agents-fed]
 
+  - id: mem-010
+    type: infrastructure
+    content: >-
+      2026-07-30 B4 + B1 CLEARED — THE PROOF GATE PASSES (bpr.cpp 52f4317). libBprFinger and
+      libBprIDEngine export an IDENTICAL 17-symbol BprID_* ABI. Regression test:
+      bengine/tests/proof_gate.sh <build-dir>, which diffs every Bpr<Modality> against the
+      consolidated library and fails on drift. Run it after ANY change to the ABI or the target
+      layout.
+      B4: add_compile_definitions(NO_MFC) in bengine/CMakeLists.txt.
+      B1: BprLicGeneration/BprLicVerification now defined ONCE in
+      cli/BprIDEngine/common/bprid_common_abi.cpp; the three glue files keep their declarations
+      so no exported surface changed. NOTE the two BprLicGeneration bodies could NOT be merged —
+      BprFace's verified a hardcoded license string, FingerCless/Knuckle's printed developer
+      license codes to stdout and returned true unconditionally. Neither is shippable, so the
+      common definition performs no generation and returns false. BprLicVerification took the
+      FingerCless/Knuckle body (size-0 guard + try/catch); BprFace's bare version gained both.
+      HOW IT IS BUILT: bprid_abi (the generalized ABI impl) and bprid_common are OBJECT
+      libraries; bprid_add_modality() links the SAME objects into Bpr<Modality> and into
+      BprIDEngine. bprid_common also carries its AprCommon deps (BprLicense -> BprCrypt incl.
+      des/des3/descbc/des3cbc -> BprUtils) so a modality library is self-contained. Registrars
+      live in bengine/src/registrars/<m>_reg.cpp and use the BPRID_REGISTER macro
+      (capi/bprid_register.hpp) to add algorithms during static init.
+      TWO BUGS THE GATE EXPOSED, both worth remembering:
+      (1) BprID_LibraryName returned "BprIDEngine" from libBprFinger too. A compile-time define
+      CANNOT work — bprid_abi.cpp is compiled ONCE and the same object lands in every library, so
+      it cannot know which. That is exactly the property the architecture depends on, so the
+      symptom was actually proof the sharing works. Fixed with a per-library generated source
+      (file(GENERATE) -> BprID_LibraryNameImpl, resolved through a weak symbol); the library's own
+      name is the ONLY thing not shared.
+      (2) Forcing CXX_VISIBILITY_PRESET default on bprid_abi so the ABI would export leaked 152
+      internal symbols (bengine internals, AprCommon, STL) into EVERY family library. Correct
+      answer is hidden visibility everywhere + let BPRID_API mark the entry points: now 26 exports
+      = 17 BprID_* + 2 common license + 7 FingerJetFX vendor entry points. SAME CLASS OF BUG AS
+      mem-004 — I have now made it twice; always `nm -gU` after touching visibility.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [b1-cleared, b4-cleared, proof-gate-passing, object-libraries, per-library-name, visibility-leak-again, 52f4317]
+
 # Pruning rules
 pruning:
   max_entries: 500
