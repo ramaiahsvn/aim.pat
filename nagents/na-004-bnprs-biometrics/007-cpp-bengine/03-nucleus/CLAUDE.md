@@ -37,6 +37,22 @@ As of 2026-07-30 there are **no top-level files** in `BprIDEngine/` — every mo
 self-contained. A shared engine layer does not exist yet; creating one is this agent's
 primary open question (see Pending Actions).
 
+## Product taxonomy
+
+Six modalities, codes `4A`..`4F`, each with several template formats (TID) and matcher
+implementations (MID) — **15 formats, 14 matchers**. Encoded as data in
+`bengine/src/catalogue.cpp`; run `bengine-cli catalogue`. Full detail in mem-006.
+
+Two things it settles that the source tree does not show: `BprFingerCless` and
+`BprFingerKnuckle` are ONE modality (`4C`) despite being two directories owned by two agents,
+and `OtherBio` (`4F`) is a modality with no directory at all.
+
+**A modality is not a matcher.** BprFace alone has five of each, so anything keyed on
+`Modality` silently drops implementations — see mem-007.
+
+**M32 reads T33**, not the same-numbered T32; it is the only place the digits do not pair.
+Consequently **T32 is an orphan** — no matcher reads it. Unresolved.
+
 ## Scope
 
 Engine-level concerns that sit ABOVE any single modality:

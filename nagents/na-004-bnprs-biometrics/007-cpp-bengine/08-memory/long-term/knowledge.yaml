@@ -159,6 +159,82 @@ memories:
     source: "session-2026-07-30"
     tags: [open-items, claude-md-gap, first-adapter, iris, design-question, git-stale-upstream, push-token, process]
 
+  - id: mem-006
+    type: technical_knowledge
+    content: >-
+      2026-07-30 THE bENGINE PRODUCT TAXONOMY (user-supplied, authoritative). Six modalities,
+      each with SEVERAL template formats (TID) and matcher implementations (MID). Encoded as data
+      in bengine/src/catalogue.cpp; `bengine-cli catalogue` prints it, `bengine-cli id T52`
+      resolves one entry. Modality codes are the taxonomy's OWN hex values 4A..4F (enum is
+      uint8_t) so a modality serialises into a template header / TLV tag with no lookup table.
+        1 (4A) BprFace                T11 sFace(pat) / T12 sFace(opencv) / T13 bFace(InspireFace)
+                                      / T14 iFace(Innovatrics) / T15 tFace(Tech5)
+                                      M11 sFace(pat-cosinesimilarity) / M12 Yunet+sFace(opencv)
+                                      / M13 bFace(InspireFace) / M14 iFace(Innovatrics)
+                                      / M15 tFace(Tech5)
+        2 (4B) BprFinger              T21 bFinger / T22 Inno Ansi/Iso / T23 Aware Iso
+                                      M21 bFinger / M22 IdKit(Innovatrics) / M23 Aw.XM(Aware)
+        3 (4C) BprFingerCless/Knuckle T31 bFingerCless / T32 Inno Ansi/Iso / T33 bFingerKnuckle
+                                      M31 bFingerCless / M32 bFingerKnuckle(PolyU)
+        4 (4D) BprPalmprint           T41 bPalmprint            M41 bPalmprint
+        5 (4E) BprIris                T51 mIris / T52 vIris     M51 bIris / M52 Vasir
+        6 (4F) OtherBio               T61 bOtherBio             M61 bOtherBio
+      = 15 template formats, 14 matchers.
+      TWO CORRECTIONS this forced to mem-001/mem-002's picture: FingerCless and FingerKnuckle are
+      ONE modality (4C) in the product taxonomy even though they are two source directories owned
+      by two different agents (na-004/003 and /004); and **OtherBio (4F) is a modality with no
+      source directory at all** under src/BprIDEngine/.
+      MATCHER->TEMPLATE PAIRING: every matcher reads its same-numbered template EXCEPT **M32,
+      which reads T33** (M32 is the knuckle matcher; user-confirmed 2026-07-30). That mapping is
+      catalogue data (MatcherInfo::accepts), so an adapter derives IMatcher::accepts() from it
+      rather than restating it. A test asserts the same-numbered convention with M32 as the one
+      named exception.
+      CONSEQUENCE: **T32 (Inno Ansi/Iso, modality 3) is an ORPHAN — no matcher reads it.** It
+      duplicates T22's name under modality 2, so presumably M22 (IdKit) serves both — but that
+      needs a matcher accepting formats from TWO modalities, which Engine::match forbids today
+      (matcher and template must share a modality). UNRESOLVED; decide before writing an
+      Innovatrics adapter. orphan_templates() reports it, the CLI prints a warning, and a test
+      pins T32 as the ONLY orphan so the set cannot drift unnoticed.
+      Several catalogued entries wrap third-party SDKs NOT in this repo (Innovatrics, Aware,
+      Tech5, InspireFace) — catalogued to reserve their IDs before any adapter exists. The
+      catalogue is a CATALOGUE, not a registry: an entry means the ID is defined, not that an
+      adapter is compiled in (Engine::has_matcher answers that).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (user-supplied product table)"
+    tags: [taxonomy, modality-codes-4a-4f, tid, mid, catalogue, m32-reads-t33, t32-orphan, otherbio, fingerck-merged, third-party-sdks]
+
+  - id: mem-007
+    type: incident_learning
+    content: >-
+      2026-07-30 DESIGN CORRECTION — a modality is NOT a matcher, and I built it wrong first.
+      The initial bengine registry was keyed on Modality: std::map<Modality, unique_ptr<IMatcher>>,
+      one extractor and one matcher per modality. The product taxonomy (mem-006) then showed
+      BprFace has FIVE template formats and FIVE matchers. A modality-keyed registry can hold one
+      of each and SILENTLY DROPS the rest — register_matcher() would have overwritten M11 with M12
+      with no error at all.
+      FIX (commit edbb8c4): registry keyed on TemplateId / MatcherId. Template now carries its
+      TID rather than just a modality, because an Innovatrics ANSI/ISO finger template (T22) and a
+      bFinger template (T21) are both "finger" and are NOT interchangeable. MatchRequest names the
+      matcher to use. IMatcher::accepts() declares readable formats explicitly, since same-modality
+      does not imply compatible.
+      LESSON: I inferred the cardinality (one algorithm per modality) from the SOURCE TREE, where
+      each modality is one directory. The product taxonomy is a different axis — one directory can
+      ship several template formats and several matchers, some from third-party SDKs that are not
+      in the tree at all. Ask for the product taxonomy BEFORE designing a registry key; the
+      directory layout is not evidence of it.
+      Guard added: catalogue_test.cpp asserts per-modality counts, id uniqueness, contiguous
+      1-based variants and the 4A..4F codes, so editing the table cannot silently drift.
+      29 tests. [[mem-006]] [[mem-003]]
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [design-correction, registry-key, modality-is-not-a-matcher, cardinality, tid-mid, lesson, edbb8c4]
+
 # Pruning rules
 pruning:
   max_entries: 500
