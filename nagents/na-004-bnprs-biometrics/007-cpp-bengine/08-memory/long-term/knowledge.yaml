@@ -235,6 +235,84 @@ memories:
     source: "session-2026-07-30"
     tags: [design-correction, registry-key, modality-is-not-a-matcher, cardinality, tid-mid, lesson, edbb8c4]
 
+  - id: mem-008
+    type: technical_knowledge
+    content: >-
+      2026-07-30 UNIFIED LIBRARY ARCHITECTURE (user-directed). Requirement: cpp-face builds ONLY
+      BprFace; build bengine later and it already contains whatever BprFace gained; and the
+      METHOD SIGNATURES MUST BE IDENTICAL between BprFace and BprIDEngine. Spec:
+      07-axon-terminals/deliverables/bpridengine-library-architecture.md. Contract header
+      WRITTEN: bpr.cpp/src/BprIDEngine/bengine/capi/bprid_abi.h.
+      TWO MECHANISMS, BOTH REQUIRED — one alone is not enough.
+      (1) GENERALIZED ABI. The libraries do NOT export per-modality functions. They export one
+      set parameterised by TID/MID: BprID_Extract(tid, sample, out, io_size) and
+      BprID_Match(mid, probe, plen, gallery, glen, &score, &raw), plus capability discovery
+      (BprID_HasTemplate/ListTemplates/MatcherAccepts), BprID_Fuse, and introspection. Ids are
+      (modality << 8) | variant over the taxonomy's own 4A..4F, so T11 == 0x4A01, M52 == 0x4E02 —
+      self-describing on the wire, no lookup table. CONSEQUENCE: adding a modality NEVER changes
+      the header; new algorithms are new TID/MID VALUES, not new symbols. BprFace.dll and
+      BprIDEngine.dll therefore export an identical function set and differ only in what
+      ListTemplates returns, so a host can swap one for the other with no code change.
+      (2) SHARED OBJECTS. Signature identity is guaranteed by linking the SAME compiled objects
+      (OBJECT libraries bprid_abi / bprid_common / bprid_<m>_algo / bprid_<m>_reg), not by
+      keeping two definitions in sync. MUST be OBJECT, not STATIC: a linker pulls from an archive
+      only to resolve an undefined symbol, and registration code is referenced by nobody, so a
+      static archive is silently dropped and the consolidated library ships an EMPTY dispatch
+      table. Measured, not assumed — before the WHOLE_ARCHIVE fix,
+      `nm -a libBprIDEngine.dylib | grep fjfx_create_fmd_from_raw` returned nothing.
+      Change propagation falls out for free: both artefacts derive from the same
+      src/BprIDEngine/<M>/*_src.cmake and cli/BprIDEngine/<M>/ glue, so there is no second place
+      to edit and no way to drift.
+      PROOF GATE (not yet passing): diff the BprID_* symbol sets out of libBprFace and
+      libBprIDEngine with nm -gU; must be empty. Belongs in CI.
+      Legacy names (Bpr_Face_Matching_T11, Start_Iso_Fp_Matching, bpr_<mod>_get_version) stay as
+      a thin compat layer only. They already embedded TIDs, so the taxonomy was implicitly there;
+      the generalized ABI just makes it a parameter rather than part of the symbol name.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (user-directed)"
+    tags: [architecture, unified-abi, generalized-signatures, object-libraries, whole-archive, tid-mid, proof-gate, bprid-abi-h]
+
+  - id: mem-009
+    type: process_note
+    content: >-
+      2026-07-30 THE ROOT BUILD ALREADY SHIPS PER-MODALITY LIBRARIES — do not build a parallel
+      set. bpr.cpp/CMakeLists.txt selects ONE library at a time via OUTFILENAME and already has
+      branches for BprFace, BprFinger and BprIris, each combining its *_src.cmake sources with
+      export glue under cli/BprIDEngine/<Modality>/. THOSE are the independent libraries the user
+      wants, and they belong to na-004/001..006.
+      I NEARLY BROKE THIS: my first restructure created targets literally named BprFinger and
+      BprIris inside bengine — the same names the root build owns, for different artefacts.
+      Separate CMake projects so no error today, but add_subdirectory() from the root would fail
+      outright. Renamed to bengine_<mod>_algo. RULE: bengine must never define a target named
+      Bpr<Modality>. The user caught this by asking whether the root CMakeLists duplicated the
+      new plan — it did.
+      VERIFIED STATE of the six (src.cmake / cli glue / root branch / glue compiles -DNO_MFC):
+      Face yes/yes/yes/YES; Finger yes/yes/yes/NO(B3 __declspec+BSTR); FingerCless no/yes/no/YES;
+      FingerKnuckle no/yes/no/YES; Palmprint no/no/no/n-a (directory is EMPTY); Iris
+      yes/yes/yes/YES. So three are complete, two have export glue wired to NOTHING, one does not
+      exist.
+      KEY GOTCHA — <afx.h>: all five glue files pull MFC transitively via
+      AprCommon/BprUtils/bpr_utils_main.h, which guards it with #ifndef NO_MFC. Compiling with
+      -DNO_MFC makes four of five build clean on clang. Without that flag the entire cli/ export
+      layer looks Windows-only, which is what it appeared to be until the guard was found.
+      COMPLEMENTARY, NOT REDUNDANT: root BprFinger ships MATCHING only (M3gl + Nnmq ->
+      Start_Iso_Fp_Matching) and contains no extractor; bengine's T21 is EXTRACTION only (Fjfx)
+      and has no matcher. Fjfx is referenced by NOTHING in the root build. Neither half is
+      complete alone — that is blocker B7 (na-004/002).
+      BLOCKERS B1..B7 with owners are in the architecture deliverable; B1 (BprLicGeneration /
+      BprLicVerification defined in THREE glue files) and B2 (int main() in the BprIris glue) are
+      the two that actually prevent the consolidated library from linking.
+      All six modality agents were fed this contract as their mem-002/mem-003 on 2026-07-30.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [root-build, outfilename, target-name-collision-avoided, no-mfc, afx-h, complementary-halves, blockers, agents-fed]
+
 # Pruning rules
 pruning:
   max_entries: 500

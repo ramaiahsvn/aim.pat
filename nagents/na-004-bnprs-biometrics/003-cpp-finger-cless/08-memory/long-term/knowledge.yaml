@@ -26,6 +26,74 @@ memories:
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
 
+  - id: mem-002
+    type: technical_knowledge
+    content: >-
+      2026-07-30 BprIDEngine UNIFIED LIBRARY ARCHITECTURE — this agent's build contract.
+      Set by the user via na-004/007 cpp-bengine. Full spec:
+      nagents/na-004-bnprs-biometrics/007-cpp-bengine/07-axon-terminals/deliverables/
+      bpridengine-library-architecture.md. Contract header:
+      bpr.cpp/src/BprIDEngine/bengine/capi/bprid_abi.h.
+      WHAT THIS MEANS WHEN THE USER SAYS "BUILD" TO THIS AGENT: build ONLY this modality's
+      library — `cmake --build . --target BprFingerCK` — never the whole engine, never another
+      modality. The consolidated BprIDEngine is na-004/007's target, not this one's.
+      THE RULE THAT MAKES IT WORK: BprFingerCK and BprIDEngine export the SAME generalized C ABI, and
+      they do so by linking the SAME compiled objects — not by keeping two definitions in sync.
+      So anything added here appears in BprIDEngine on its next build, automatically, with an
+      identical signature. There is no second place to update, and no way for the two to drift.
+      THE ABI IS GENERALIZED OVER THE TAXONOMY — do NOT add a new exported function for a new
+      algorithm. Everything goes through:
+        BprID_Extract(tid, sample, out, io_size)
+        BprID_Match(mid, probe, plen, gallery, glen, &score, &raw)
+      parameterised by TID/MID, where an id is (modality << 8) | variant using the taxonomy's own
+      modality codes 4A..4F. THIS modality is 0x4C (3); its ids are T31 bFingerCless / T32 Inno Ansi-Iso / T33 bFingerKnuckle, and M31 bFingerCless / M32 bFingerKnuckle(PolyU).
+      A NEW ALGORITHM IS A NEW TID/MID VALUE, NEVER A NEW SYMBOL. That is what lets all six
+      modality agents work independently without breaking each other's hosts, and why swapping
+      BprFingerCK for BprIDEngine needs no host code change — only BprID_ListTemplates() returns more.
+      Scores returned through BprID_Match must be SIMILARITY normalised to [0,1], higher =
+      better, whatever the underlying algorithm's native scale or direction; put the native
+      value in out_raw. Fusion across modalities depends on that normalisation.
+      DEPENDENCY DIRECTION IS ONE-WAY: engine -> modality. This library must NEVER depend on
+      bengine_core, or it stops being independently shippable.
+      Legacy per-modality exports (Bpr_Face_Matching_T11, Start_Iso_Fp_Matching,
+      bpr_<mod>_get_version, ...) survive only as a thin compatibility layer; they are not the
+      contract. Note they already embedded TIDs in their names, so the taxonomy was implicitly
+      there — the generalized ABI just makes it a parameter instead of part of the symbol.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (user-directed unification)"
+    tags: [bpridengine, unified-abi, generalized-signatures, tid-mid, build-contract, one-modality-only, na-004-007]
+
+  - id: mem-003
+    type: process_note
+    content: >-
+      2026-07-30 IMPORTANT — THIS AGENT SHARES A MODALITY WITH na-004/004 cpp-finger-knuckle.
+      The product taxonomy treats FingerCless and FingerKnuckle as ONE modality, 3 (0x4C),
+      product name "BprFingerCless/Knuckle", with a single shared id space T31..T33 / M31..M32.
+      The repo has them as two separate directories owned by two agents. Coordinate before
+      claiming a TID — you cannot allocate one without the other agent knowing.
+      BLOCKER B1 (blocks consolidated linking): cli/BprIDEngine/BprFingerCless/
+      BprIdFingerCless_dll_exports.cpp DEFINES BprLicGeneration() (~line 36) and
+      BprLicVerification() (~line 63). BprFace and BprFingerKnuckle define the same two, so
+      linking all three is a duplicate-symbol error. Fix: delete them here, call the shared
+      BprID_Lic* from bprid_common (na-004/007). This agent's version is the GOOD one (size-0
+      guard + try/catch) and is the body being standardised on.
+      BLOCKER B5 (this agent's real gap): there is NO bpr_fingercless_src.cmake and NO root
+      OUTFILENAME branch. The export glue is wired to NOTHING — it compiles (verified clean on
+      clang with -DNO_MFC) but no library is ever produced from it. Only
+      finger_cless_preprocess.h exists in the module. Until a source list exists there is
+      nothing for BprID_Extract(T31) to call.
+      NOTE M32 reads T33, not T32 — the one place in the taxonomy where the digits do not pair.
+      T32 (Inno Ansi/Iso) currently has NO matcher at all.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [blocker, b1, b5, shared-modality-4c, coordinate-with-na-004-004, no-src-cmake, action-required]
+
 # Pruning rules
 pruning:
   max_entries: 500
