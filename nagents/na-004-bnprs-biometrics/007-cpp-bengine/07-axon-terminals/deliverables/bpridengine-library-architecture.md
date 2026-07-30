@@ -1,6 +1,6 @@
 # BprIDEngine — unified library architecture
 
-**Status:** B1 · B2 · B3 · B4 · B6 CLEARED — only B5 and B7 remain · **proof gate PASSES** · 2026-07-30
+**Status:** B1·B2·B3·B4·B6 cleared, B5 cleared for Palmprint · **proof gate PASSES on 3 modalities** · 2026-07-30
 **Owner:** na-004/007 `cpp-bengine` (engine, ABI contract, build integration)
 **Affects:** na-004/001–006 — every modality agent
 
@@ -93,7 +93,7 @@ Requirement 2, satisfied structurally.
 | BprFinger | ✓ | ✓ dll | ✓ | **✓** | ✓ T21 (Fjfx) |
 | BprFingerCless | ✗ | ✓ dll | ✗ | ✓ | — |
 | BprFingerKnuckle | ✗ | ✓ dll | ✗ | ✓ | — |
-| BprPalmprint | ✗ | ✗ | ✗ | — | — |
+| BprPalmprint | **✓** | ✗ | ✗ | — | **✓ T41/M41 (CompCode)** |
 | BprIris | ✓ | ✓ dll | ✓ | ✓ | ✓ T51/M51 |
 
 ## Blockers — each owned by one agent, all small
@@ -124,8 +124,10 @@ with `-DNO_MFC`.** *002.*
 unless `NO_MFC` is set; all five glue files inherit it. With `-DNO_MFC`, four of five compile
 clean on clang. Set globally by the unified CMake. *007.*
 
-**B5 · three modalities have no algorithm sources.** FingerCless and FingerKnuckle have export
-glue wired to nothing. Palmprint has no glue, no sources, no headers. *003, 004, 005.*
+**B5 · ~~three~~ TWO modalities have no algorithm sources.** ~~Palmprint~~ **cleared
+2026-07-30** — Competitive Coding implemented, T41/M41 live, in the gate. FingerCless and
+FingerKnuckle still have export glue wired to nothing and no sources; they share modality 4C,
+so 003 and 004 must coordinate. *003, 004.*
 
 **B6 · ~~`imread.cpp:557`~~ — CLEARED 2026-07-30.** Now `!= NULL`. BprIris builds off MSVC for
 the first time. *006.*
@@ -180,15 +182,17 @@ the consolidated library and fails on drift.
 ```
 $ cmake -S . -B build-all -DBENGINE_BUILD_ALL=ON && cmake --build build-all
 $ tests/proof_gate.sh build-all
-PASS  libBprFinger.dylib  17 symbols
-PASS  libBprIris.dylib    17 symbols
+PASS  libBprFinger.dylib     17 symbols
+PASS  libBprIris.dylib       17 symbols
+PASS  libBprPalmprint.dylib  17 symbols
 ```
 
 | Library | `BprID_*` | Registers |
 |---|:--:|---|
 | `BprFinger` | 17 | T21 bFinger |
 | `BprIris` | 17 | T51 mIris |
-| `BprIDEngine` | 17 | **T21 + T51** |
+| `BprPalmprint` | 17 | T41 bPalmprint |
+| `BprIDEngine` | 17 | **T21 + T41 + T51** |
 
 Identical ABI, different capability sets, consolidated = the union. Until iris landed the gate
 compared one library against a superset of itself, which proved little — two modalities is the

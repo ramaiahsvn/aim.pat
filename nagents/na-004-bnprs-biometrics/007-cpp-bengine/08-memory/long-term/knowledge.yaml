@@ -429,6 +429,32 @@ memories:
     source: "session-2026-07-30"
     tags: [root-toolchain, export-all-symbols, symbol-leak, windows-dll, my-library-exports-only-pinblock, do-not-remove-blindly]
 
+  - id: mem-014
+    type: infrastructure
+    content: >-
+      2026-07-30 PALMPRINT JOINS — proof gate now passes on THREE modalities (bpr.cpp 4a6cb30).
+        BprFinger     17 symbols  T21 bFinger
+        BprIris       17 symbols  T51 mIris
+        BprPalmprint  17 symbols  T41 bPalmprint
+        BprIDEngine   17 symbols  T21 + T41 + T51
+      51 tests; default core-only build unaffected. `cmake -DBENGINE_BUILD_ALL=ON` now means
+      FINGER + IRIS + PALMPRINT, and PALMPRINT is out of the "no adapter" FATAL_ERROR list.
+      Adding a modality took: an algorithm under src/BprIDEngine/<M>/, its *_src.cmake, an
+      adapter in bengine/src/adapters/, a blob codec split out with no algorithm dependency (so
+      it tests with the option OFF), a registrar in src/registrars/, one bprid_add_modality()
+      call and one CLI registration. That is the whole recipe — the ABI header did not change,
+      which is the property the architecture was built for.
+      BLOCKER STATUS: B1 B2 B3 B4 B6 cleared earlier; B5 now cleared FOR PALMPRINT ONLY.
+      FingerCless and FingerKnuckle still have export glue wired to nothing and no algorithm
+      sources, and they SHARE modality 4C, so whoever does them must coordinate across
+      na-004/003 and /004. B7 (Fjfx in no library, LGPL gate) is still open on na-004/002.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [three-modalities, proof-gate, palmprint-added, add-a-modality-recipe, b5-partial, 4a6cb30]
+
 # Pruning rules
 pruning:
   max_entries: 500
