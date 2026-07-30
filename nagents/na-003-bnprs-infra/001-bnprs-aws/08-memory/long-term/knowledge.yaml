@@ -186,14 +186,7 @@ memories:
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
 
-# Pruning rules
-pruning:
-  max_entries: 500
-  stale_after_days: 90
-  min_confidence: 0.3
-  strategy: "least_recently_used"
-
-  - id: mem-003
+  - id: mem-011
     type: project_context
     content: >-
       2026-06-11: mGate prod (BPR1002) deployed into THIS account (891963159778,
@@ -230,7 +223,7 @@ pruning:
     source: "session-2026-06-11"
     tags: [mgate, bpr1002, frankfurt, eu-central-1, terraform, deployment, oidc, cloudfront]
 
-  - id: mem-004
+  - id: mem-012
     type: project_context
     content: >-
       2026-06-14: mGate prod platform/prod DESTROYED in eu-central-1 (account
@@ -273,7 +266,7 @@ pruning:
       re-enable), backend -> s3 bucket mgate-in-prod-terraform-state (ap-south-2,
       NOT yet created). terraform plan = 76 add / 0 / 0, validated; db.r5.large +
       aurora-mysql 8.0.3.10.3 confirmed orderable in ap-south-2. Est ~$400-530/mo
-      (vs the old eu-central-1 r5.xlarge ~$650/mo, see mem-004). APPLIED 2026-07-15:
+      (vs the old eu-central-1 r5.xlarge ~$650/mo, see mem-012). APPLIED 2026-07-15:
       79/79 resources live. State bucket mgate-in-prod-terraform-state (ap-south-2,
       versioned/encrypted/private); backend.tf needed skip_region_validation=true
       (TF 1.5.7 S3 backend rejects newer ap-south-2). VPC vpc-0df1c91378fb9bab8; Aurora
@@ -353,7 +346,9 @@ pruning:
     content: >-
       2026-07-25: cPerso Windows build runner (i-03563f4ad6ca9abf0, patwin-runner /
       mces2-win-build-runner) was found RUNNING 24/7 idle since 2026-07-17 (CPU ~0.13%),
-      triggering an AWS Cost Anomaly ($214 impact, ~$37/day, APS5 m5.4xlarge). ROOT CAUSE:
+      triggering an AWS Cost Anomaly (FINAL impact $280.58 over 8 days, max $37.07/day, APS5
+      m5.4xlarge — the $214 seen live on 2026-07-25 kept rising as billing data settled; CE
+      recalculates an anomaly up to 3x daily, so never record the first number as final). ROOT CAUSE:
       the auto-stop had been DISABLED in TWO places — (1) EventBridge rule
       mces2-win-runner-idle-stop was DISABLED, and (2) Lambda win-runner-control had
       ReservedConcurrentExecutions=0 (throttles ALL invokes incl. the rule's -> manual invoke
@@ -372,3 +367,112 @@ pruning:
     confidence: 1.0
     source: "session-2026-07-25"
     tags: [windows-runner, cost-anomaly, auto-stop, eventbridge, lambda-reserved-concurrency, idle-stop, resize, m5.large, rollback, patwin-runner]
+
+  - id: mem-013
+    type: technical_knowledge
+    content: >-
+      2026-07-30 CRITICAL COST-VISIBILITY TRAP: account 891963159778 is FULLY CREDIT-FUNDED, so
+      every default Cost Explorer view reads ~$0 and hides all real consumption. `ce
+      get-cost-and-usage` sums ALL record types unless filtered — Usage and Credit net each other
+      out (June: usage $175.33 / credits -$175.31; July: usage $935.05 / credits -$935.03; net ~$0,
+      even slightly negative from Bundled Discount). ALWAYS pass
+      --filter '{"Dimensions":{"Key":"RECORD_TYPE","Values":["Usage"]}}' when analysing cost in
+      this account, else you will conclude the account is free and miss a runaway. Same trap in
+      AWS Budgets: budget "MonthlyBudget" ($10) has IncludeCredit=true so it tracks NET (~$0) and
+      is STRUCTURALLY INCAPABLE of ever firing — a dead alarm. Budget "monthly-250-alert" ($250,
+      IncludeCredit=false) is the only working one and sat at $935.03 actual / $988.64 forecast
+      (374% of limit) so its alerts are being tuned out. AWS's own forecast API also does NOT
+      project credits forward — net and usage forecasts come back near-identical (~$1,443 for Aug),
+      so the console shows a scary number that credits may actually absorb. Remaining credit
+      BALANCE has no API — only Billing console -> Credits. NOT YET CHECKED as of 2026-07-30;
+      at the current burn this is the single most important unknown for this account.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [cost-explorer, credits, record-type, budgets, forecast, gotcha, cost-visibility, include-credit]
+
+  - id: mem-014
+    type: project_context
+    content: >-
+      2026-07-30 run-rate + August forecast for 891963159778 (all figures USAGE-only, see mem-013).
+      July daily series shows three regimes: 07-01..07-14 = $3.31/day (pre-India baseline);
+      07-15 platform/prod applied -> ramp $7.20 -> $18.09 -> $48.74 -> $66.76; 07-20..07-23 =
+      $90.30/day peak (full stack + the mem-010 Windows-runner anomaly); 07-24 $83.06 (runner
+      stopped mid-day); 07-25..07-28 = $54.30/day STEADY STATE (variance <0.2%). Forward baseline
+      is therefore $54.30/day => AUGUST ~$1,683 (31 days). AWS's native forecast says $1,442.33
+      (80% PI $1,390-$1,495) and is BIASED LOW by ~$240 because its model averages in the 14
+      pre-India days at $3.31/day — do not trust the console forecast the month after a big
+      build-out. Aug by service (4-day stable window x31): ECS/Fargate $952.72 (57% of the bill),
+      RDS $249.08, VPC/NAT $165.53, EC2-Other/EBS $102.89, EC2-Compute $66.66, ELB $53.36,
+      CloudWatch $29.27, SSM $24.72, WAF $16.01, SecretsMgr $11.90, rest ~$11. Growth June $175 ->
+      July $935 -> Aug ~$1,683 = 9.6x in two months, entirely the mGate India build-out.
+      CONTRADICTS mem-009 "services NOT applied" — the services stacks ARE live: 14 ECS services,
+      17 tasks, 25 vCPU / 50 GB Fargate. Residual EC2-Compute $2.15/day baseline = two OTHER
+      agents' boxes, both legitimate: gitlab-server t3.large (na-003/003, up since 06-04) and
+      perso-bureau-uat t4g.small (na-005/010, up since 07-22).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 0.98
+    source: "session-2026-07-30"
+    tags: [cost, run-rate, forecast, august, mgate, india, ap-south-2, fargate, supersedes-mem-009]
+
+  - id: mem-015
+    type: technical_knowledge
+    content: >-
+      2026-07-30 mGate India Fargate is MASSIVELY over-provisioned — measured, not estimated.
+      7-day CloudWatch AWS/ECS (Container Insights is DISABLED but service-level CPUUtilization /
+      MemoryUtilization are still emitted, so no need to enable it): EVERY service averages <1%
+      CPU. Peak CPU across the whole cluster = maingateway-prod at 9.46% of 2048 units = 0.19 vCPU;
+      peak memory = 487 MB. Traffic justifies it: 7-day ALB request counts are maingateway 1,336 /
+      portalbackend 5,149 / callbackapplication 2,802 = ~1,327 req/DAY total (~0.9 req/min).
+      maingateway alone burns ~8 vCPU / $300+/mo to serve ~191 requests a day. Sizing lives in
+      Terraform at ~/BPR/GitRepos2/BPR1002_mGate_IN/bpr1002.mgate.iaac/services/<svc>/prod/
+      terraform.tfvars (branch bp_rel) and matches live state exactly — so fix it THERE, never by
+      CLI, or the next apply reverts it. NOTE the tfvars comments are wrong by 2x ("cpu = 2048
+      # 1 vCPU per task" — 2048 units IS 2 vCPU), which is likely how the over-sizing crept in.
+      autoscaling_min_capacity=4 on maingateway means lowering desired_count alone will NOT stick.
+      4 services have no autoscaling target at all (portalbackend, callbackapplication,
+      processcallbacksfromfifo, cloudwatch). Right-size plan (2.5-5x headroom on measured peak)
+      cuts 25 vCPU/50 GB -> 5.5 vCPU/16 GB = $952.72 -> ~$227/mo, saving ~$726/mo (76%);
+      Fargate Spot on the non-ALB workers would take it to ~$99/mo (~90%). Full costed plan:
+      07-axon-terminals/deliverables/fargate-cost-reduction-plan.md. NOT APPLIED — awaiting
+      go-ahead (guardrail: confirm before infrastructure changes).
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 0.97
+    source: "session-2026-07-30"
+    tags: [fargate, right-sizing, over-provisioned, ecs, mgate, india, terraform, cost-optimisation, utilisation, plan]
+
+  - id: mem-016
+    type: project_context
+    content: >-
+      2026-07-30 AWS Support case 178448041900761 = a Fargate vCPU QUOTA-INCREASE request (not a
+      fault): "Fargate On-Demand vCPU resource count" (service fargate, quota L-3032A538) ap-south-2,
+      raised 2026-07-19 by iam user Ramaiah, desired 50. AWS PARTIALLY granted it — applied value is
+      30 (AWS default 6) — then auto-closed it on 2026-07-29 for no customer reply. HOW TO LOOK THIS
+      UP: the Support API is unusable on this account (SubscriptionRequiredException — both bnprs and
+      itp are on BASIC support, no Premium plan), but quota cases ARE readable via
+      `aws service-quotas list-requested-service-quota-change-history --region <r>` which returns the
+      CaseId, DesiredValue and Status; compare against `get-service-quota` for what was actually
+      applied. Status CASE_CLOSED (not APPROVED) is the tell for a partial grant. DECISION 2026-07-30:
+      do NOT re-file for 50 — with 25 of 30 vCPU used the rolling-deploy headroom problem is real
+      (maingateway at maximumPercent=200 needs +8 vCPU -> 33 > 30 and would stall), but right-sizing
+      per mem-015 drops usage to ~5.5 vCPU and makes 30 ample, so fix the sizing instead of buying
+      more quota.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [support-case, service-quotas, fargate, quota, basic-support, ap-south-2, how-to, decision]
+
+# Pruning rules
+pruning:
+  max_entries: 500
+  stale_after_days: 90
+  min_confidence: 0.3
+  strategy: "least_recently_used"
