@@ -244,6 +244,9 @@ memories:
       billing ~$3.6/mo each (~$11/mo): 3.74.90.58 = mGate bootstrap/eip (kept by
       design); 3.126.247.176 + 63.182.201.159 = pre-existing, NOT mGate
       (investigate before releasing). Account NOT in an AWS Organization.
+      [CORRECTION 2026-07-30: "pre-existing, NOT mGate" was WRONG — all three were mGate and all
+      Terraform-managed by bootstrap/eip/prod. The two NAT EIPs were released 2026-07-30, see
+      mem-019.]
     created_at: "2026-06-14"
     last_accessed: "2026-06-14"
     access_count: 1
@@ -533,6 +536,36 @@ memories:
     confidence: 1.0
     source: "session-2026-07-30"
     tags: [teardown, playbook, terraform, destroy-blockers, alb-deletion-protection, aurora, force-destroy, lesson, mgate]
+
+  - id: mem-019
+    type: incident_learning
+    content: >-
+      2026-07-30 Released the 2 idle Frankfurt NAT EIPs (~$7.44/mo): 63.182.201.159
+      (eipalloc-0205134489d990b66, mgate-prod-nat-eip-eu-central-1a) and 3.126.247.176
+      (eipalloc-0ef4726071d098f3c, ...-1b). KEPT 3.74.90.58 (mgate-prod-openvpn-eip). eu-central-1
+      now has exactly 1 EIP. CORRECTS mem-012, which had labelled those two "pre-existing, NOT
+      mGate" — in fact ALL THREE were mGate and Terraform-managed (tags ManagedBy=terraform,
+      Component=eip-bootstrap, Project=mgate) by bootstrap/eip/prod. LESSON: an unassociated EIP
+      with no obvious owner is NOT evidence it is foreign — read its tags and check whether a
+      terraform state owns it before labelling or releasing. Releasing terraform-owned resources
+      by CLI leaves state drift and the next apply silently recreates them.
+      GOTCHA on that stack: the India repo's bootstrap/eip/prod/backend.tf points at bucket
+      "mgate-prod-terraform-state", which does NOT exist in this account (AccessDenied — the real
+      state is in mgate-bnprs-prod-terraform-state, renamed per mem-011). bootstrap/eip was never
+      India-adapted (mem-009 lists only ecr/gitlab-ci/sqs/appconfig/iam-appconfig/vendor-config).
+      Workaround used: `terraform init -reconfigure -backend-config="bucket=
+      mgate-bnprs-prod-terraform-state"`, then `terraform destroy -target='aws_eip.nat'` (2
+      destroyed, openvpn untouched). Then set nat_gateway_azs = [] in that stack's
+      terraform.tfvars so a future apply cannot resurrect them, and applied to clear the stale
+      outputs (no infra change). The wrong backend bucket name is still committed in the India
+      repo — worth fixing or deleting the vestigial stack. Verified no Route53 record in any zone
+      pointed at the released IPs before releasing.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30"
+    tags: [eip, cleanup, frankfurt, eu-central-1, terraform, corrects-mem-012, backend-bucket, lesson, cost]
 
 # Pruning rules
 pruning:
