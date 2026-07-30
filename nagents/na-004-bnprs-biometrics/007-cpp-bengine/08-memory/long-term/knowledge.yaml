@@ -403,6 +403,32 @@ memories:
     source: "session-2026-07-30"
     tags: [b3-cleared, all-glue-portable, vexing-parse, grep-warnings-not-just-errors, lesson]
 
+  - id: mem-013
+    type: technical_knowledge
+    content: >-
+      2026-07-30 THE ROOT BUILD LEAKS C++ SYMBOLS FROM EVERY WINDOWS LIBRARY IT PRODUCES.
+      toolchains/toolchain_windows_64.cmake sets
+      CMAKE_SHARED_LINKER_FLAGS "... -Wl,--export-all-symbols ...", so a root-built DLL exports
+      its entire internal C++ surface. Observed concretely on a BprFinger build: alongside the
+      intended Start_Iso_Fp_Matching and bpr_finger_get_version it also exported mangled
+      BprLicense::patIsValidLicense, patGlobalLicGenerator and patGlobalLicVerification.
+      This is the SAME class of bug I made twice inside bengine (mem-004, mem-010) — except here
+      it is in the root toolchain and therefore affects EVERY product the monolithic build ships,
+      not just the biometrics ones. Not fixed: the flag is presumably load-bearing for the
+      existing DLL consumers (with no dllexport on most definitions, --export-all-symbols may be
+      the only reason those DLLs export anything at all — note BPRIDFINGER_EXPORT resolves to
+      dllIMPORT for BprFinger because MY_LIBRARY_EXPORTS is defined only for BprPinblock).
+      Removing it without first giving each library proper export annotations would produce
+      DLLs that export nothing. Worth a deliberate pass; raise before touching.
+      bengine's own libraries are unaffected — they are built by bengine/CMakeLists.txt, which
+      uses hidden visibility plus BPRID_API, verified at 17 BprID_* exports.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 0.95
+    source: "session-2026-07-30"
+    tags: [root-toolchain, export-all-symbols, symbol-leak, windows-dll, my-library-exports-only-pinblock, do-not-remove-blindly]
+
 # Pruning rules
 pruning:
   max_entries: 500

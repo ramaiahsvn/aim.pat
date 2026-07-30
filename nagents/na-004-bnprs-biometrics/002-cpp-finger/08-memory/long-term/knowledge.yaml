@@ -177,6 +177,46 @@ memories:
     source: "session-2026-07-30"
     tags: [overread-fixed, templateextractnew-never-compiled, featureextract-missing, stub-candidate, vendor-sdk-gate, dllimport-regression, mfc-latent-deps, cross-compile-with-mingw, lesson, bb9ba2e]
 
+  - id: mem-006
+    type: incident_learning
+    content: >-
+      2026-07-30 CONFIRMED BY BUILDING IT — the BprFinger WINDOWS BUILD WAS BROKEN, and had been
+      since 2025-02-05. This is measured, not inferred: the pre-change code (commit aafe7fc) was
+      checked out into an isolated git worktree and built with the repo's own toolchain exactly
+      as documented —
+        cmake ../../.. -DCMAKE_TOOLCHAIN_FILE=toolchains/toolchain_windows_64.cmake
+                       -DOUTFILENAME=BprFinger -DPROJECTTYPE=DLL_Windows
+      It FAILED with four errors in cli/BprIDEngine/BprFinger/BprIdFinger_dll_exports.cpp:
+      'struct stat' incomplete; 'FeatureExtract' not declared; 'Encode' not declared;
+      'SysAllocStringByteLen' not declared — plus a warning that bpr_finger_get_version was
+      "redeclared without dllimport attribute".
+      IT IS NOT A MINGW ARTEFACT — two checks rule that out. (1) The root CMakeLists defines
+      -DNO_MFC at line 51, so <afx.h> is skipped in EVERY configuration on EVERY compiler; MFC
+      never supplies struct stat or the OLE declarations, MSVC included. (2) Even when MFC's
+      contribution was force-supplied (-include sys/stat.h -include windows.h -include
+      oleauto.h), 'FeatureExtract' and 'Encode' STILL fail. Those two are compiler-independent,
+      so no toolchain can build this file.
+      SINCE WHEN: `git log -S` places both TemplateExtractnew and its FeatureExtract call in
+      commit 9179a25, 2025-02-05, "64-bit Linux .so file issue resolved" — so it arrived broken
+      in a commit about the LINUX build and Windows was evidently never re-tested. ~6 months.
+      FIXED — the same command on the current tree now produces
+      bin/libBprFinger.dll (19.6 MB), exporting Start_Iso_Fp_Matching and bpr_finger_get_version.
+      TemplateExtractnew is correctly ABSENT, being gated behind
+      BPRFINGER_HAVE_VENDOR_FEATUREEXTRACT.
+      SEPARATE ISSUE SPOTTED IN THAT DLL: it also exports MANGLED C++ symbols
+      (BprLicense::patIsValidLicense, patGlobalLicGenerator, patGlobalLicVerification) because
+      toolchains/toolchain_windows_64.cmake passes -Wl,--export-all-symbols. Same class of
+      visibility leak I hit twice in bengine, but in the ROOT build and affecting every product
+      it builds — worth tightening separately, not fixed here.
+      METHOD WORTH REUSING: a git worktree at the old commit gives a clean before/after build
+      comparison without disturbing the working tree; `git worktree remove --force` afterwards.
+    created_at: "2026-07-30"
+    last_accessed: "2026-07-30"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-30 (verified by cross-compiling both revisions)"
+    tags: [windows-build-was-broken, confirmed-by-building, since-2025-02-05, no-mfc-line-51, not-a-mingw-artefact, dll-now-builds, export-all-symbols-leak, worktree-method]
+
 # Pruning rules
 pruning:
   max_entries: 500
