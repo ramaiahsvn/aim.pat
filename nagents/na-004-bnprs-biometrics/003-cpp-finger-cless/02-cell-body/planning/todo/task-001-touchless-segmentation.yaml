@@ -17,23 +17,12 @@ task:
     What is missing is everything BEFORE it: finding the finger in a full camera frame and
     cropping it. Until that exists T31 needs a caller that has already done the hardest part.
 
-    DO NOT ASSUME THE PALMPRINT/KNUCKLE APPROACH TRANSFERS. Common/HandGeometry (silhouette ->
-    boundary trace -> radial distance profile -> fingers and valleys) works because a hand
-    silhouette has fingers as protrusions around a palm. A touchless capture may well be one
-    or more fingertips filling the frame with no palm and no valleys, in which case none of
-    that machinery applies and this needs a genuinely different method.
-
-    THAT QUESTION IS OPEN AND IS THE FIRST STEP. I had started checking it and stopped. The
-    evidence to settle it is in the reference pipeline, TouchlessCapture/fp_bridge.cpp:
-
-      - extract_rects_native (line 522) — finger RECTANGLE detection, plural
-      - calc_median_finger_size (line 629) — a MEDIAN over a finger vector
-
-    Both names imply MULTIPLE fingers per frame, which would look like a four-finger slap held
-    up to a camera — and if so the hand IS in frame and Common/HandGeometry may apply after
-    all. Read those two functions before choosing an approach. I told the user in an earlier
-    session that the shared layer would not apply here; that was an assumption, not a finding,
-    and these two symbol names are reason to doubt it.
+    DO NOT ASSUME THE PALMPRINT/KNUCKLE APPROACH TRANSFERS — this is now MEASURED, not a
+    caution. Common/HandGeometry (silhouette -> boundary trace -> radial distance profile ->
+    fingers and valleys) works only because a hand silhouette has fingers protruding from a
+    palm. Without the palm it returns real fingertips ALTERNATING WITH WEB POINTS. Full numbers
+    in findings_2026_07_31 below; whether it applies therefore depends entirely on how much of
+    the hand is in frame, which is the one open question.
 
     The reference's own answer to this stage is CaptureNet, a TFLite segmentation model
     (run_capture_net_on_mat, line 1302) producing a mask plus a marker output. Three problems
@@ -56,14 +45,59 @@ task:
   assigned_to: null
   blocked_by: []
   blocks: []
-  estimated_steps: 12
+  estimated_steps: 10
   tags: [fingercless, t31, segmentation, touchless, capturenet, tflite-decision, last-modality]
 
   first_step: >-
-    Read extract_rects_native and calc_median_finger_size in
-    src/BprIDEngine/BprFingerCless/TouchlessCapture/fp_bridge.cpp and establish whether the
-    capture is one fingertip or several fingers with the hand in frame. Everything else
-    depends on that answer.
+    ANSWERED 2026-07-31 — do not repeat this. See findings_2026_07_31 below. The remaining
+    first step is a QUESTION FOR THE USER, not an investigation: how much of the hand is in
+    the camera frame? The code cannot answer it and the answer decides the method.
+
+  findings_2026_07_31: >-
+    Investigated, then deferred. Three things are now settled and one is not.
+
+    1. THE REFERENCE HAS NO DETECTION CODE WE CAN USE. extract_rects_native (line 522) is NOT
+       finger detection despite the name — it iterates a vendor FingerVector and marshals it
+       into Android Rects for the UI overlay. The real chain is:
+         camera frame -> resize to 128x128 -> run_capture_net_on_mat (TFLite CaptureNet,
+         line 1302) -> mask + marker -> Core.findFingers(in, mask, marker, out, 0.9f)
+       findFingers is the VENDOR's, inside libttv_fp_core.so (arm64-v8a only, no source), and
+       the CaptureNet model is not in the repo. So BOTH detection stages are unavailable. This
+       has to be written, not ported.
+
+    2. IT IS A MULTI-FINGER CAPTURE, one print per finger. Confirmed three ways: a FingerVector
+       is iterated by count, calc_median_finger_size (line 629) takes a MEDIAN over the vector,
+       and crop_fingerprint_like_sdk (line 742) cuts a 300x512 image PER FINGER and mirrors it
+       (cv::flip axis 1) because a camera sees the finger reversed relative to a contact scan.
+       Preview size is 144x256 or 256x144 — a phone camera in portrait or landscape.
+
+    3. MEASURED: Common/HandGeometry DOES NOT WORK WITHOUT A PALM. I built a synthetic with the
+       same four fingers at three framings and ran find_silhouette + find_digits on each:
+
+         full hand, palm 145 deep    4 tips, 3 valleys, all correct
+         palm only 40 deep           4 "tips" but one is a WEB POINT between fingers, and a
+                                     real finger was discarded by the thumb rule
+         fingers only, web 12        6 "tips" — real fingertips ALTERNATING with web points
+
+       The reason is structural, not a tuning problem: with no palm the centroid rises into the
+       finger region, so the webs between fingers become radial maxima and pass the protrusion
+       test. The radial-distance-from-centroid model REQUIRES the fingers to protrude from a
+       bulk body. My earlier claim that the shared layer would not apply here was right, but
+       for the wrong reason — it is not that the capture is a single fingertip, it is that
+       there may be no palm.
+
+    4. UNRESOLVED, AND IT DECIDES THE METHOD: how much of the hand is actually in frame. No
+       sample images exist anywhere in bpr.cpp or TRP1001_SbioidS. The app's ic_overlay.PNG on
+       branch enrollmentFlowImpl is a plain rounded corner mask, not a hand guide, and there
+       are no capture-instruction strings. ASK THE USER. The three cases:
+         palm in frame     -> reuse Common/HandGeometry, short job (like knuckle)
+         fingers only      -> new method; do NOT use the radial profile
+         one finger a shot -> find_digits needs >=2 protrusions and fails; single-blob axis
+
+    WHAT THE ROI SHOULD BE, once detection exists: the distal pad, running from the fingertip
+    down the finger. The reference's 300x512 crop is across:along = 1:1.71. Output should have
+    the finger pointing along +y, and it feeds the EXISTING T31 path — Touchless/
+    touchless_preprocess then FingerJetFX — so no new template format is involved.
 
   references:
     module_readme: "bpr.cpp src/BprIDEngine/BprFingerCless/README.md"
