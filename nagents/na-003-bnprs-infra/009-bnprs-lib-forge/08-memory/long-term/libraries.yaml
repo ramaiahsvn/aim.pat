@@ -29,6 +29,8 @@ registry:
 # Latest declared source versions (per src/AprCommon/BprVersions/bpr_versions.h, 2026-05-30)
 # These are the versions to publish once builders hand off artifacts.
 source_versions:
+  BprIDEngine: "2.24.900"   # consolidated engine (all six modalities behind the BprID_* ABI).
+                            # .900 is deliberate: 6xx-8xx is reserved for per-modality releases.
   BprLicBase: "2.27.4"
   BprFace:    "2.24.115"
   BprCardQi:  "2.56.7"
@@ -263,3 +265,103 @@ published:
     coordinate: "ai.bnprs:nativesdk-bprcardqi:2.56.7"
     note: "embeds 2.56.7 native (JNA). win-x64."
   # Go bprcardqi v2.56.7 — proxy artifacts built; NOT published (tag-based registry).
+
+  # NOTE: BprFace 2.24.115 (generic native + maven + nuget + go tag) was published 2026-07-21 by
+  # na-003/010 but never indexed here. It IS in the registry; see that agent's
+  # 08-memory/long-term/bprface-2.24.115-linux-wrappers.md. Backfill when convenient.
+
+  # ================================================================================
+  # BprIDEngine 2.24.900 — the CONSOLIDATED engine: one library, six modalities, one
+  # unified BprID_* C ABI (21 symbols). Published 2026-07-31 in TWO MUTUALLY EXCLUSIVE
+  # VARIANTS. Both ship a library named BprIDEngine exporting the same 21 symbols, so a
+  # consumer that depends on both puts two different natives in one process and which one
+  # loads is undefined. Pick one. The split exists because face T12 is the only modality
+  # that costs anything (OpenCV + ~46 MB of ONNX); everything else is dependency-free, so
+  # a caller that never enrols a face should not pay 120x the size.
+  #
+  # FIRST publish where the Go leg actually shipped — the tag-based limitation noted above
+  # for bprface/bprcardqi is now solved (commit the module + push a SemVer tag).
+  # ================================================================================
+  - package: "ai/bnprs/nativesdk-bpridengine"
+    package_type: "maven"
+    version: "2.24.900"
+    package_id: 40
+    project_id: 230
+    variant: "lean"
+    native_lib: "BprIDEngine"
+    source_repo: "bpr.cpp"
+    source_commit: "ddbb211"
+    built_by: "na-004-bnprs-biometrics (BprIDEngine native)"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-07-31"
+    interop: "JNA; natives extracted from the jar and Native.load'd by absolute path"
+    coordinate: "ai.bnprs:nativesdk-bpridengine:2.24.900"
+    note: "~497 KB. Zero OpenCV. Face T12 absent -> BprID_HasQuality(T12)=0 and Extract returns not-present; M11 cosine still matches. Platforms: linux-x86-64, linux-aarch64, darwin-aarch64."
+  - package: "ai/bnprs/nativesdk-bpridengine-face"
+    package_type: "maven"
+    version: "2.24.900"
+    package_id: 41
+    project_id: 230
+    variant: "t12"
+    native_lib: "BprIDEngine"
+    source_repo: "bpr.cpp"
+    source_commit: "ddbb211"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-07-31"
+    coordinate: "ai.bnprs:nativesdk-bpridengine-face:2.24.900"
+    note: "~60 MB. Adds face T12 extract/match/quality; OpenCV static + bpr.m10001/2/3 ONNX co-extracted beside the native. MUTUALLY EXCLUSIVE with nativesdk-bpridengine."
+  - package: "Bnprs.NativeSdk.BprIDEngine"
+    package_type: "nuget"
+    version: "2.24.900"
+    package_id: 42
+    project_id: 230
+    variant: "lean"
+    source_repo: "bpr.cpp"
+    source_commit: "ddbb211"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-07-31"
+    interop: "P/Invoke + NativeLibrary.SetDllImportResolver (net8.0, NOT netstandard2.0)"
+    coordinate: "Bnprs.NativeSdk.BprIDEngine 2.24.900"
+  - package: "Bnprs.NativeSdk.BprIDEngine.Face"
+    package_type: "nuget"
+    version: "2.24.900"
+    package_id: 43
+    project_id: 230
+    variant: "t12"
+    source_repo: "bpr.cpp"
+    source_commit: "ddbb211"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-07-31"
+    coordinate: "Bnprs.NativeSdk.BprIDEngine.Face 2.24.900"
+    note: "MUTUALLY EXCLUSIVE with Bnprs.NativeSdk.BprIDEngine."
+  - package: "go/bpridengine/v2"
+    package_type: "go"
+    version: "v2.24.900"
+    project_id: 230
+    variant: "lean"
+    source_repo: "bpr.cpp"
+    source_commit: "ddbb211"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-07-31"
+    interop: "purego + //go:embed; picks the native by runtime.GOARCH"
+    module_path: "gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs/go/bpridengine/v2"
+    git_tag: "go/bpridengine/v2.24.900"     # module committed at e30b2c3 on master
+    note: "Publish = commit + SemVer tag (no upload endpoint). /v2 suffix REQUIRED for 2.x."
+  - package: "go/bpridengine-face/v2"
+    package_type: "go"
+    version: "v2.24.900"
+    project_id: 230
+    variant: "t12"
+    source_repo: "bpr.cpp"
+    source_commit: "ddbb211"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-07-31"
+    module_path: "gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs/go/bpridengine-face/v2"
+    git_tag: "go/bpridengine-face/v2.24.900"
+    note: "MUTUALLY EXCLUSIVE with go/bpridengine/v2 — importing both links two natives."
