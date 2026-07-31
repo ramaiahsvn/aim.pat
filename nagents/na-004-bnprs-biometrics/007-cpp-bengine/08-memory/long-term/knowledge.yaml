@@ -1115,6 +1115,77 @@ memories:
     source: "session-2026-07-31 (licences verified against upstream repos and dataset terms; user decision)"
     tags: [t14-t15-weights, user-decision, research-weights-testing-only, not-shippable, architecture-is-mit-apache, dataset-terms-override-repo-licence, ms-celeb-withdrawn, webface260m-noncommercial, synthetic-not-a-loophole, consent-scope-gdpr-dpdp, gate-with-a-default-off-flag, evaluate-before-training, no-weights-in-repo]
 
+  - id: mem-031
+    type: infrastructure
+    content: >-
+      2026-08-01 T14 aFace (AdaFace-CCTV) AND T15 mFace (MagFace) ARE BUILT — both DEFAULT-OFF
+      (bpr.cpp cc619b0). Modality 4A now has adapters for four of its five variants; only T13
+      iFace(InspireFace) has none. Options BENGINE_BUILD_FACE_T14 / _T15, and BUILD_ALL
+      DELIBERATELY DOES NOT ENABLE THEM.
+      THE FLAG IS THE LICENSING CONTROL, not a size one — that is the whole point and the reason
+      it is worth more than a note in a README. Per mem-030 the published checkpoints are
+      research-licensed and must not ship; a default-off option means a RELEASE BUILD CANNOT PICK
+      THEM UP and the swap to BNPRS-trained weights becomes a decision someone makes rather than
+      one they remember. Configuring either prints a CMake WARNING saying so. Same containment B7
+      gave the FingerJetFX LGPL question.
+      ONE IMPLEMENTATION, TWO REGISTRATIONS. AdaFace and MagFace are the same SHAPE — IR backbone
+      over a 112x112 aligned crop, float embedding, cosine — so they are parameterised by an
+      EmbedSpec (tid, model file, input size, mean/scale, swap_rb, dim, magnitude_is_quality)
+      rather than written twice. A third embedding model is a new spec, not a new file. This is
+      the mistake mem-016 recorded and did not fix for CompCode across palmprint and knuckle;
+      not repeating it was deliberate.
+      REUSES YuNet (m10001, 227 KB, already deployed for T12) for detection and does the 5-point
+      ArcFace similarity alignment ITSELF via estimateAffinePartial2D. Consequence worth knowing:
+      it does NOT need cv::FaceRecognizerSF, so the 37 MB SFace model is not required merely to
+      align for a different model. Only cv::dnn does the inference.
+      T15 GETS A QUALITY ASSESSOR FOR FREE, and this is the genuinely interesting property.
+      MagFace's training objective ties EMBEDDING MAGNITUDE to sample quality, so ||embedding||
+      IS the quality signal — no second model, where T12 needs a separate 6.9 MB regressor for
+      the same thing. Two consequences: templates are stored UNNORMALISED so the magnitude
+      survives (the matcher normalises its own copies), and AdaFace deliberately has NO assessor
+      because it has no equivalent property — an absent assessor beats a fabricated one.
+      Normalisation window for magnitude->[0,1] defaults to MagFace's l_a/u_a of 10/110; a
+      checkpoint trained with other bounds will report skewed quality until corrected.
+      NEW BLOB FORMAT 'BFE1' WITH A VARIANT BYTE, distinct from T12's 'BFT1'. A T14 and a T15
+      embedding are BOTH 512 float32 and are NOT comparable — different models, different spaces
+      — so without a discriminator a mis-routed template decodes cleanly and yields a confident,
+      meaningless cosine. decode_face_embed_blob takes the variant it will accept and refuses
+      anything else, so the failure is InvalidInput at the boundary. That is the T11 lesson
+      (na-004/001 mem-006) applied BEFORE it could bite rather than after.
+      MODEL FILE NUMBERS CLAIMED: bpr.m10007.onnx = T14, bpr.m10008.onnx = T15. The .models
+      series ran m10001..m10006 (detect / recog / quality / detect / smoke / fight) and all six
+      were already accounted for. Do not reuse 07 or 08.
+      A SMALL DESIGN POINT THAT BIT AND IS WORTH KEEPING: face_t14_spec()/face_t15_spec() were
+      first defined in face_embed.cpp, which compiles only when the options are ON — so the test
+      asserting the ids failed to LINK in the default build. Specs are pure data, so they moved
+      into face_embed_blob.cpp, which is in bengine_core. RULE: anything a default build must be
+      able to inspect or test cannot live in the optional TU, even when it logically belongs to
+      that adapter.
+      VERIFIED, per configuration: default (both OFF) 44 tests, up from 37 — the codec and specs
+      are in core precisely so a build compiling nothing else of T14/T15 still covers them; both
+      ON 59; BUILD_ALL 106 and does NOT enable them; BUILD_ALL plus both 113. Proof gate 21
+      symbols across all six libraries in every one.
+      NOT VERIFIED, AND MARKED ASSUMPTION IN THE HEADER — no checkpoint exists, so the NUMERICAL
+      path is asserted from the ArcFace-family convention: landmark order into the alignment,
+      (pixel-127.5)/127.5 with RGB order, and 512 dims. THE LIKELIEST ERROR IS YUNET'S LANDMARK
+      ORDER (its row is right-eye, left-eye, nose, right-mouth, left-mouth — the MIRROR of the
+      ArcFace reference, and they are swapped in landmarks_from_yunet accordingly). A mirrored
+      alignment still produces a face-shaped crop and a plausible vector, so it fails SILENTLY.
+      FIRST CHECK WHEN WEIGHTS ARRIVE: a photo should self-match near 1.0 while a MIRRORED COPY
+      of the same photo scores clearly lower. If the order is wrong those two come out the same.
+      WHAT IS TESTED IS THE PATH EVERY DEPLOYMENT WILL ACTUALLY TAKE — MODELS ABSENT, which given
+      the licensing is every machine right now. Construction touches no model (BPRID_REGISTER
+      runs at static init and T12 shipped that abort once, mem-021); a missing model is one
+      ModuleError, not a crash; and MATCHING NEEDS NO MODEL AT ALL, since cosine over stored
+      vectors is arithmetic — so verifying against an existing gallery works where no backbone
+      was ever deployed. Extraction is the only half that needs the weights.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01 (built and verified across four configurations; inference unverifiable without weights)"
+    tags: [t14-t15-built, default-off-is-a-licensing-control, one-embedspec-two-registrations, no-facerecognizersf-needed, magface-magnitude-is-quality, unnormalised-templates, bfe1-variant-byte, m10007-m10008-claimed, specs-must-live-in-core, alignment-unverified, check-the-mirror-first, matching-needs-no-model, cc619b0]
+
 # Pruning rules
 pruning:
   max_entries: 500

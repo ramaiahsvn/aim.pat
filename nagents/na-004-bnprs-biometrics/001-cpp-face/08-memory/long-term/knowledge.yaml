@@ -287,6 +287,47 @@ memories:
     source: "session-2026-07-31 (verified against six cases)"
     tags: [licence-fixed, callers-code-honoured, fail-closed, shipped-behaviour-change, global-check-still-hardcoded, empty-product-code-open, 8dd621a]
 
+  - id: mem-010
+    type: infrastructure
+    content: >-
+      2026-08-01 THIS MODALITY NOW HAS FOUR OF ITS FIVE VARIANTS ADAPTED (bpr.cpp cc619b0).
+      T14 aFace (AdaFace-CCTV) and T15 mFace (MagFace) joined M11 and T12/M12; only T13
+      iFace(InspireFace) has no adapter. Full engineering detail in na-004/007 mem-031, licensing
+      position in mem-030 — this entry is what matters to whoever owns BprFace.
+      BOTH ARE DEFAULT-OFF AND THAT IS A LICENSING CONTROL, NOT A SIZE ONE.
+      BENGINE_BUILD_FACE_T14 / _T15, and BUILD_ALL does not enable them. The architectures are
+      permissively licensed (AdaFace MIT, MagFace Apache-2.0) so a BNPRS-trained checkpoint is
+      unencumbered, but every PUBLISHED checkpoint is trained on a research-only dataset and MUST
+      NOT SHIP. User decision: research weights through TESTING, BNPRS-trained weights before
+      go-live. If you are preparing a BprFace release, THESE TWO STAY OFF unless the weights have
+      been replaced — the flag exists so that is a decision rather than something remembered.
+      WHAT IT MEANS FOR THIS MODULE'S OWN SOURCES: nothing moved. BprFace/sFace_t12 is untouched.
+      The new adapter lives entirely in bengine (src/adapters/face_embed.{cpp} +
+      face_embed_blob.cpp) and reaches into this module for exactly ONE header — BprModelPath.h,
+      which is header-only. It reuses YuNet (bpr.m10001.onnx, already deployed here for T12) for
+      detection and does its own ArcFace alignment, so it does NOT need cv::FaceRecognizerSF and
+      therefore does not drag in the 37 MB SFace model to align for a different one.
+      MODEL FILES CLAIMED FROM THIS MODULE'S SERIES: bpr.m10007.onnx = T14, bpr.m10008.onnx =
+      T15. The series ran 01..06 (detect / recog / quality / detect / smoke / fight); 07 and 08
+      are now spoken for even though no file exists yet. Do not reassign them.
+      A SECOND QUALITY ASSESSOR EXISTS NOW, and it costs nothing. T12's quality is a separate
+      6.9 MB regressor (bpr.m10003); T15's is just ||embedding||, because MagFace ties magnitude
+      to sample quality by construction. Worth knowing when comparing quality across the two —
+      they are not the same measurement and their raw scales differ (T12 reports the legacy
+      0-100 integer, T15 the magnitude itself).
+      DO NOT TRUST A T14/T15 SCORE YET. No checkpoint exists, so alignment, preprocessing and
+      embedding dimension are asserted from convention and unverified. The likeliest fault is the
+      landmark order into the alignment, which fails SILENTLY — a mirrored alignment still yields
+      a face-shaped crop and a plausible embedding. First check when weights land: a photo
+      self-matches near 1.0 while a MIRRORED copy of it scores clearly lower. If both come out
+      the same, the order is wrong.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [t14-t15-adapted, four-of-five-variants, default-off-licensing, keep-off-for-releases, sface-t12-untouched, bprmodelpath-only-dependency, m10007-m10008-reserved, second-quality-assessor, scores-unverified, check-the-mirror, cc619b0]
+
 # Pruning rules
 pruning:
   max_entries: 500

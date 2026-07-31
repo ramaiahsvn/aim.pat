@@ -12,6 +12,18 @@ task:
     own BENGINE_BUILD_FACE_T12 option, so the default consolidated build carries zero OpenCV and
     still matches faces, while enabling the option is a deliberate ~70 MB choice. Option 1 in the
     description below is now the DE FACTO state and just needs writing down.
+  progress_2026_08_01: >-
+    FOUR OF FIVE VARIANTS ARE NOW ADAPTED — T14 aFace(AdaFace-CCTV) and T15 mFace(MagFace) landed
+    (cc619b0), leaving only T13 iFace(InspireFace) without one. Both sit behind their OWN
+    default-off options (BENGINE_BUILD_FACE_T14 / _T15) which BUILD_ALL does not enable, for a
+    LICENSING reason rather than a size one — see na-004/007 mem-030 and mem-031.
+    THIS STRENGTHENS THE ANSWER TO THE OPEN QUESTION rather than complicating it. There are now
+    THREE OpenCV-carrying variants in this modality and all three are opt-in, so the pattern is
+    no longer a one-off accommodation for T12 — it is how modality 4A works: the default
+    consolidated build carries ZERO OpenCV and still matches faces via M11, and every heavyweight
+    variant is a deliberate per-variant choice. Option 1 is now the de facto state three times
+    over and still only needs writing down. Whoever writes it should describe the RULE (an
+    OpenCV-dependent face variant gets its own default-off option) rather than naming T12.
     Original note follows.
 
     M11 IS DONE AND SHIPPED (bpr.cpp 8ad5be2). Reading the module showed the OpenCV question
