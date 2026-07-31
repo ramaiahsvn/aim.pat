@@ -1,0 +1,136 @@
+# Task — bring T12/M12 into bengine from BprSFaceRecog.cpp
+# Raised 2026-07-31 on the user's direction, after the analysis below.
+# OWNER: na-004/001 cpp-face.
+#
+# Supersedes the "adapt T12/M12" half of task-001. task-001 remains open for the wider
+# architectural question (does the CONSOLIDATED BprIDEngine carry OpenCV by default); this task
+# is the concrete work, structured so that question stays answerable either way.
+
+task:
+  id: "task-002"
+  subject: "Adapt BprSFaceRecog.cpp as T12/M12 in bengine, leaving the rest of BprFace as-is"
+  description: >-
+    THE SHAPE, decided by the user: BprSFaceRecog.cpp becomes the bengine T12/M12 adapter's
+    algorithm source. Everything else in BprFace — detection, quality, video streaming, smoke
+    and fight detection — stays exactly as it is today, exposed from the standalone BprFace
+    library. Those are not template/match operations and do not belong in the T/M taxonomy.
+
+    ANALYSIS CONFIRMED THE SPLIT IS CLEAN. BprSFaceRecog.cpp (302 lines) is self-sufficient: its
+    constructor loads all three ONNX models itself and it owns the YuNet detector, so
+    detect -> alignCrop -> feature -> match all happen inside BprFaceRecog. It never calls into
+    BprSFaceDetect.cpp, BprSFaceYolo.cpp, BprSFaceSmoke.cpp or BprSFaceFight.cpp (~2680 lines,
+    all staying put).
+
+      _get_quality_model = readNetFromONNX(resolve("bpr.m10003.onnx"))   quality
+      _recognizer        = FaceRecognizerSF::create(resolve("bpr.m10002.onnx"))  SFace
+      _detector          = FaceDetectorYN::create(resolve("bpr.m10001.onnx"))    YuNet
+
+    Compiling the same source into both the root BprFace target and a bengine target is fine and
+    is already the established pattern — bengine_finger_algo and the root build share the FJFX
+    sources the same way.
+
+  status: completed
+  priority: medium
+  created_at: "2026-07-31"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 8
+  tags: [face, 4a, t12, m12, opencv, onnx-models, bengine-adapter, model-path-bug, blob-format]
+
+  work_items:
+    - id: "a"
+      what: "Fix BprModelPath::getLibraryDir() on Windows"
+      why: >-
+        A REAL BUG that adaptation triggers. The function is asymmetric: the POSIX branch uses
+        dladdr((void*)&getLibraryDir, ...) and correctly asks "which module contains this code",
+        but the Windows branch does GetModuleHandleA("BprFace.dll") — by NAME — falling back to
+        "BprFaced.dll" and then the executable. Inside BprIDEngine.dll that finds the wrong
+        module and resolves models relative to the wrong directory. Silently: it returns a path
+        that does not exist and model loading fails later, or worse finds a stale model.
+        Fix with GetModuleHandleExA + GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, mirroring dladdr. Must land WITH the move.
+
+    - id: "b"
+      what: "Define a T12 template blob"
+      why: >-
+        The current API cannot be reused. Bpr_FaceRecog_T12_Template takes FILE PATHS and reads
+        OpenCV FileStorage YAML keyed "bpr_face_t12_features". bengine needs Template::data to be
+        a byte buffer, so T12 gets its own binary blob in the house style (PalmBlob / IrisBlob /
+        KnuckleBlob): magic, version, rows, cols, cv type, then the float payload.
+        ACCEPTED CONSEQUENCE: bengine T12 templates will NOT interchange with the YAML files the
+        legacy API reads. If that interop is ever needed it is a converter, not a format change.
+
+    - id: "c"
+      what: "Separate build option — BENGINE_BUILD_FACE_T12"
+      why: >-
+        THE COST IS NOT JUST OPENCV, IT IS THE MODELS, and they are not small and not in git
+        (they live in .models/, untracked):
+            bpr.m10001.onnx  YuNet detect      227 KB
+            bpr.m10002.onnx  SFace recognise    37 MB
+            bpr.m10003.onnx  quality           6.9 MB
+            bpr.model.onnx   encrypted blob      72 MB
+        Folding T12 into the existing BENGINE_BUILD_FACE would make turning face on a ~70 MB
+        decision and would give BUILD_ALL an OpenCV dependency it does not have today.
+        So: BENGINE_BUILD_FACE keeps its current meaning (M11 only, zero dependencies) and
+        BENGINE_BUILD_FACE_T12 adds OpenCV + models on top. A lean BprIDEngine still gets face
+        MATCHING; face ENROLMENT is opt-in. This is what keeps task-001's architectural question
+        open rather than answering it by accident.
+
+    - id: "d"
+      what: "The adapter itself — T12 extractor + M12 matcher"
+      why: >-
+        Standard four steps. Sample::path or Sample::bytes in, blob out; matcher decodes two
+        blobs and calls BprFaceRecog::matchFeatures. Register T12/M12 in face_reg.cpp beside M11.
+
+  decisions_taken:
+    licensing: >-
+      The T12 adapter does NOT enforce Bpr_FaceRecog_T12_Init's BprLicBase::Pat_is_valid_license
+      gate. Reason: no bengine adapter does — FJFX, Masek and both CompCodes are all ungated —
+      and BprID_Extract/BprID_Match take no qiCode, so there is nowhere for the caller to supply
+      one. Licensing at the bengine layer is the ABI's concern via bprid_common's BprID_Lic*,
+      not each adapter's. FLAGGED FOR THE USER rather than assumed silently: if T12 must be
+      licence-gated inside the engine, the ABI needs a way to carry the code and that is a
+      change to the unified contract (na-004/007).
+    quality_scoring: >-
+      _face_quality_image moves with the file but stays a standalone export
+      (Bpr_FaceQuality_T12_Image). Quality is not a template/match operation and has no place in
+      the T/M taxonomy — same category as the detect/smoke/fight entry points.
+
+  completed_2026_07_31: >-
+    Done (bpr.cpp 151a751). All four work items landed. Verified end to end through the C ABI
+    out of libBprIDEngine: T12 extract 528 bytes, M12 self 1.0000, cross-image 0.0890. Five
+    distinct faces gave self 1.0000 every time and cross 0.0000-0.4619; the dataset is
+    unlabelled so those are a spread, not genuine/impostor claims.
+
+    TWO DEFECTS FOUND AND FIXED THAT WERE NOT IN THE PLAN:
+
+    EAGER CONSTRUCTION WOULD HAVE ABORTED THE PROCESS AT LIBRARY LOAD. BPRID_REGISTER runs at
+    load and constructs the adapters; building BprFaceRecog in the constructor meant dlopen of a
+    BprIDEngine without the models deployed threw cv::Exception out of a static initialiser and
+    terminated the process, taking every other modality with it over an optional face model.
+    Reproduced by hiding the models. Now built lazily, attempted once, missing model = ModuleError
+    from the call that needed it. This is the generalisable one: ANY adapter that loads a heavy
+    or optional resource must do it lazily, because the registrar constructs it at load.
+
+    ${OpenCV_LIBS} IS NOT A DEPENDENCY LIST. It is every module the OpenCV package built,
+    including opencv_viz -> VTK, absent here, which made the test binary die in dyld 33 seconds
+    into startup. Named the six modules BprSFaceRecog actually needs instead
+    (core imgproc imgcodecs dnn objdetect calib3d); highgui and videoio belong to the streaming
+    entry points that stayed in the standalone library.
+
+    Also: test discovery moved to PRE_TEST. With OpenCV linked, loading ~50 dylibs blows the
+    5-second build-time gtest discovery timeout, and the failure DELETES the executable, which
+    reads as a compile error and is not one.
+
+    THE COST IS QUARANTINED as planned: BUILD_ALL does not enable FACE_T12, the default build
+    still has 98 tests with ZERO OpenCV in libBprIDEngine, and the gate passes on all six.
+
+  references:
+    algorithm_source: "bpr.cpp src/BprIDEngine/BprFace/sFace_t12/BprSFaceRecog.cpp"
+    model_path_bug: "bpr.cpp src/BprIDEngine/BprFace/sFace_t12/BprModelPath.h — getLibraryDir()"
+    legacy_template_api: "Bpr_FaceRecog_T12_Template — FileStorage YAML, key bpr_face_t12_features"
+    m11_precedent: "bpr.cpp src/BprIDEngine/bengine/src/adapters/face_sface.cpp (commit 8ad5be2)"
+    blob_precedent: "bengine/include/bengine/adapters/palmprint_compcode.hpp — PalmBlob"
+    architectural_question: "task-001 (does the consolidated engine carry OpenCV by default)"
+    memories: ["mem-001 (static OpenCV recipe)", "mem-005 (M11)", "na-004/007 mem-020"]

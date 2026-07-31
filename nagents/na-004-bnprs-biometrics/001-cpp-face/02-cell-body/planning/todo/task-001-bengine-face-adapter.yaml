@@ -4,8 +4,16 @@
 
 task:
   id: "task-001"
-  subject: "Adapt T12/M12 (the OpenCV halves of BprFace) — M11 is done"
+  subject: "Decide in writing whether the consolidated BprIDEngine carries OpenCV by default"
   progress_2026_07_31: >-
+    BOTH HALVES ARE NOW ADAPTED — M11 (8ad5be2) and T12/M12 (151a751, task-002). Nothing about
+    modality 4A is blocked on code any more. What is left in THIS task is only the architectural
+    question, and the work has already made it cheaper to answer either way: T12 sits behind its
+    own BENGINE_BUILD_FACE_T12 option, so the default consolidated build carries zero OpenCV and
+    still matches faces, while enabling the option is a deliberate ~70 MB choice. Option 1 in the
+    description below is now the DE FACTO state and just needs writing down.
+    Original note follows.
+
     M11 IS DONE AND SHIPPED (bpr.cpp 8ad5be2). Reading the module showed the OpenCV question
     only covers HALF of modality 4A, and the other half needed no decision:
 
@@ -84,8 +92,8 @@ task:
   assigned_to: null
   blocked_by: ["opencv-in-bpridengine-decision"]   # not a task id — an architectural decision
   blocks: []
-  estimated_steps: 8
-  tags: [face, 4a, t12, m12, m11-done, bengine-adapter, opencv-decision, last-modality-in-gate, na-004-007, na-002]
+  estimated_steps: 2
+  tags: [face, 4a, decision-only, m11-done, t12-done, bengine-adapter, opencv-decision, last-modality-in-gate, na-004-007, na-002]
 
   first_step: >-
     Unchanged in kind, reduced in scope: get the OpenCV-in-BprIDEngine choice made in writing

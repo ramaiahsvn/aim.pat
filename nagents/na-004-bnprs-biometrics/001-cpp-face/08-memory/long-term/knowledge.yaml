@@ -191,6 +191,63 @@ memories:
     source: "session-2026-07-31"
     tags: [stoi-lenient, silent-corruption, validate-at-your-boundary, bprutils-shared-with-license, t11]
 
+  - id: mem-007
+    type: infrastructure
+    content: >-
+      2026-07-31 T12/M12 ARE IN bengine — face ENROLMENT works through the unified ABI
+      (bpr.cpp 151a751). Verified out of libBprIDEngine: T12 extract 528 bytes (16-byte header +
+      128 float32), M12 self 1.0000, cross-image 0.0890. Five distinct faces: self 1.0000 every
+      time, cross 0.0000-0.4619 (dataset unlabelled, so a spread not a genuine/impostor claim).
+      THE SPLIT THE USER CHOSE, and it holds: BprSFaceRecog.cpp is the algorithm source and
+      NOTHING ELSE in BprFace moved. BprFaceRecog loads all three ONNX models in its own
+      constructor and owns the YuNet detector, so detect -> alignCrop -> feature -> match is one
+      self-sufficient class. Detection, quality, video streaming, smoke and fight detection
+      (~2680 lines) stay in the standalone library exposed exactly as before — none of them are
+      template/match operations.
+      COST IS QUARANTINED BEHIND ITS OWN OPTION. BENGINE_BUILD_FACE_T12, separate from
+      BENGINE_BUILD_FACE, and BUILD_ALL does NOT enable it. T12 brings OpenCV plus ~44 MB of
+      ONNX models (72 MB as the encrypted blob), none in git. Default consolidated build is
+      unchanged: 98 tests, ZERO OpenCV, gate passes on all six. A lean engine still MATCHES faces
+      via M11; FACE_T12 buys ENROLMENT. Models deploy beside whichever library holds the code.
+      TEMPLATE FORMAT: binary blob, magic BFT1 — NOT interchangeable with the legacy
+      Bpr_FaceRecog_T12_Template, which reads FileStorage YAML from a PATH. Deliberate; a
+      converter is a converter.
+      LICENSING NOT ENFORCED by the adapter. No bengine adapter is gated and BprID_Extract/Match
+      carry no qiCode. If T12 must be gated inside the engine, the ABI needs to carry the code —
+      na-004/007's call, flagged not assumed.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (verified through the C ABI on real images)"
+    tags: [t12-m12-done, face-enrolment, separate-build-option, bft1-blob, not-yaml-compatible, licensing-open, 151a751]
+
+  - id: mem-008
+    type: incident_learning
+    content: >-
+      2026-07-31 AN ADAPTER THAT LOADS A HEAVY RESOURCE MUST DO IT LAZILY — THE REGISTRAR
+      CONSTRUCTS IT AT LIBRARY LOAD.
+      BPRID_REGISTER runs during static initialisation, so every registered adapter is
+      constructed the moment the library is dlopen'd. I built BprFaceRecog in the T12 adapter's
+      constructor, which loads three ONNX models. On a machine where the models are not deployed
+      that threw cv::Exception out of a static initialiser and TERMINATED THE PROCESS:
+      "libc++abi: terminating due to uncaught exception ... Can't read ONNX file". Every other
+      modality in the library goes down with it, over an OPTIONAL face model. Found by hiding
+      the models and running; it is not a failure mode any test would have caught by accident.
+      Fixed by constructing on first use, attempting once, and returning ModuleError when it
+      fails. Also means processes that never touch face do not parse 44 MB of ONNX at load.
+      SECOND LESSON, same session: ${OpenCV_LIBS} IS NOT A DEPENDENCY LIST. It is every module
+      the package happened to build. Here it included opencv_viz -> VTK, which is absent on this
+      Mac, and the test binary died in dyld 33 seconds into startup — presenting first as a
+      gtest "discovery timeout" and a deleted executable, which looks like a compile error.
+      Name the modules you actually use: core imgproc imgcodecs dnn objdetect calib3d.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [lazy-init-required, registrar-runs-at-load, static-init-abort, opencv-libs-is-not-a-list, name-your-modules]
+
 # Pruning rules
 pruning:
   max_entries: 500

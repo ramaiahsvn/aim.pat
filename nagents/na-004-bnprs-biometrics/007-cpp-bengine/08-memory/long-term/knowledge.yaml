@@ -651,6 +651,33 @@ memories:
     source: "session-2026-07-31"
     tags: [all-six-in-gate, m11-no-opencv, modality-is-not-atomic, bengine-aprutils, object-lib-does-not-propagate-links, 98-tests, 8ad5be2]
 
+  - id: mem-021
+    type: incident_learning
+    content: >-
+      2026-07-31 ANY ADAPTER THAT LOADS A HEAVY OR OPTIONAL RESOURCE MUST DO IT LAZILY. This is
+      an engine-wide rule, learned on T12 (na-004/001 mem-008) but it applies to every adapter
+      anyone adds next.
+      WHY: BPRID_REGISTER runs during static initialisation, so every registered adapter is
+      CONSTRUCTED THE MOMENT THE LIBRARY IS dlopen'd. The T12 adapter built BprFaceRecog in its
+      constructor, which loads three ONNX models; on a machine without them deployed, cv::dnn
+      threw out of a static initialiser and TERMINATED THE PROCESS. Not an error return — an
+      abort, taking all five other modalities down over an optional face model. Nothing in the
+      test suite would have caught it; it was found by deliberately hiding the models.
+      RULE: construct on first use, attempt once, return ModuleError on failure. A missing
+      optional resource must degrade to "that one call fails", never to "the library cannot
+      load". Bonus: processes that never touch the modality do not pay the load cost.
+      RELATED BUILD TRAP from the same work: ${OpenCV_LIBS} (and package-wide LIBS variables
+      generally) is not a dependency list — it is everything the package built. It pulled in
+      opencv_viz -> VTK, absent on this Mac, and the test binary died in dyld 33 seconds into
+      startup, presenting as a gtest discovery TIMEOUT with the executable deleted, which looks
+      exactly like a compile error. Name the modules actually used.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [engine-wide-rule, lazy-init, registrar-constructs-at-load, static-init-abort, package-libs-variables, pre-test-discovery]
+
 # Pruning rules
 pruning:
   max_entries: 500
