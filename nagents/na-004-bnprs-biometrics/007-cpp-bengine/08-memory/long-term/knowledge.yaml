@@ -1303,6 +1303,48 @@ memories:
     source: "session-2026-08-01 (measured pre- and post-fix; guard verified against the actual defect)"
     tags: [registered-is-not-built, four-green-signals-feature-absent, link-propagated-defines, unit-tests-bypass-the-registry, catalogue-is-not-the-registry, proof-gate-checks-symbols-not-behaviour, abi-registration-guard, verify-a-guard-both-ways, assert-the-end-state, cmake-list-not-if-else, c72d7d6]
 
+  - id: mem-034
+    type: incident_learning
+    content: >-
+      2026-08-01 THE T14/T15 ALIGNMENT WAS MIRRORED AND ONLY A BENCHMARK COULD HAVE FOUND IT.
+      LFW accuracy 63.16% -> 99.49% on the identical subset once fixed (bpr.cpp e2a16b0).
+      THE BUG. The ArcFace 5-point template's first point is at x=38.29 — IMAGE LEFT. YuNet
+      reports "right eye" meaning the SUBJECT's right eye, which appears on the IMAGE LEFT. The
+      two conventions describe the same physical point from opposite viewpoints and therefore
+      AGREE positionally: the mapping is STRAIGHT THROUGH. I wrote it swapped, on exactly the
+      reasoning that the labels look mirrored, and that mirrored every alignment.
+      WHY NOTHING CAUGHT IT, and this is the transferable part. It failed SILENTLY through a
+      clean build, 59 passing tests and a green proof gate, because every local signal was still
+      true: detection succeeded, the crop was still face-shaped, the embedding was still 512
+      finite floats, self-matches still returned 1.0. Only the RELATIONSHIP BETWEEN DIFFERENT
+      IMAGES OF THE SAME PERSON was destroyed, and no unit test in this repo looks at that. A
+      geometric preprocessing error does not throw; it quietly moves you to chance.
+      63% IS THE DANGEROUS NUMBER. Not 50% (obviously broken) and not 99% (obviously fine) —
+      near chance but plausible-looking, the kind of figure someone explains away as "CPU
+      model" or "hard dataset".
+      IT WAS PREDICTED AND THE PREDICTION PAID OFF. face_embed.hpp had marked landmark order as
+      the likeliest ASSUMPTION to be wrong and prescribed the exact check: a photo self-matches
+      at ~1.0 while a MIRRORED COPY scores clearly lower, because a mirrored alignment of a
+      mirrored image is the original. WRITING DOWN WHICH ASSUMPTION IS MOST LIKELY WRONG, AND
+      THE CHEAPEST TEST FOR IT, IS WORTH DOING EVEN WHEN — especially when — you cannot run that
+      test yet. Do it for every adapter written against an unavailable model.
+      FIX BEYOND THE ONE LINE: the reference points are now labelled by IMAGE POSITION
+      ("eye, image-LEFT (the subject's RIGHT eye)") rather than by "left"/"right", because that
+      ambiguity is the entire cause. Any 5-point template comment should name the axis, not the
+      anatomy.
+      RELATED, SAME EXPORT PATH: the MagFace ONNX prefix stripper treated a bare `features.` as
+      a DataParallel wrapper, but `features` IS a real layer in iresnet100 (the final BatchNorm).
+      features.weight became weight; the load returned 4 missing / 5 unexpected. Caught only
+      because export_face_embed_onnx.py REFUSES to export a partly initialised network instead of
+      warning. It also re-runs the graph through onnxruntime and compares against torch (AdaFace
+      1.5e-05, MagFace 3.9e-06). Verify a conversion; do not trust it.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01 (measured 63.16% -> 99.49% on the same LFW subset)"
+    tags: [mirrored-alignment, arcface-5point, yunet-landmark-order, image-position-not-anatomy, silent-geometric-error, only-a-benchmark-finds-it, 63-percent-is-the-dangerous-number, write-down-your-assumptions, refuse-partial-state-dict, verify-the-onnx-export, e2a16b0]
+
 # Pruning rules
 pruning:
   max_entries: 500
