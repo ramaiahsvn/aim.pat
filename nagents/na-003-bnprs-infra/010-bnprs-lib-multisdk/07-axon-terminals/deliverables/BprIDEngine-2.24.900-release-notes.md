@@ -202,8 +202,11 @@ releases. Registry versions are immutable, so any fix ships as `2.24.901`.
 
 - **Windows T12 numerics are unverified** — see WINDOWS above and run `verify-windows/`.
 - No `windows-arm64` (no aarch64 mingw toolchain on the build host).
-- The Maven / NuGet / Go packages carry the Linux and macOS natives only. Adding Windows to them
-  means a new version, since published package versions are immutable — it would ship as 2.24.901.
+- The Maven / NuGet / Go packages carry the Linux and macOS natives only, so **they do not run on
+  Windows** — and each loader additionally picks the wrong filename there (`libBprIDEngine.so`
+  rather than the DLL). Compiling on Windows is unaffected; only executing is. Folding the Windows
+  DLLs into the packages needs a new version, since published versions are immutable — 2.24.901.
+  Not built: the current consumer builds on Windows and deploys to Linux, which needs nothing.
 - The `.so` leaks ~30 non-ABI symbols (FJFX, STL, `BprID_LibraryNameImpl`) that the `.dll` does not.
 - Only T12 has a quality assessor; every other modality returns `NOT_IMPL` from `BprID_Quality`.
 - There is no T11 extractor — pat's capture device produces those; the engine only matches them.

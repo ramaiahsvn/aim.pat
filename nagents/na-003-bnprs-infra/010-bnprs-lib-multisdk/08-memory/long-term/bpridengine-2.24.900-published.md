@@ -87,6 +87,17 @@ the same emulation *without* wine, so emulated SIMD is the likely culprit, but t
 not a measurement. `verify-windows/` in the release folder is a one-minute self-test that settles
 it on real hardware. Windows lean IS fully verified.
 
+**OPEN BUG — all three wrappers are broken on Windows** (found 2026-07-31 when a consumer built on
+a Windows workstation). Two independent faults: no Windows native is embedded in any package, and
+each loader selects the filename by asking only "is this macOS?" — so Windows gets
+`libBprIDEngine.so`. Java `BprIDEngineNative`, .NET `BprIDEngine.cs` and Go `nativeName()`/
+`libExt()` all have it. **Compiling on Windows is fine** (javac/csc need only the managed classes),
+so the failure appears as `UnsatisfiedLinkError` on first engine call, and lazily — a test suite
+that never touches the engine still passes. Fixing it means embedding the DLLs (they exist, built
+2026-07-31) plus a real platform switch, shipped as 2.24.901. **Deliberately NOT built**: the
+current consumer (bpr1004.utms.api.bnet.smartpresence) builds on Windows and deploys to Linux,
+which needs nothing. Do it when someone must RUN on Windows.
+
 Auth per leg: see [[gitlab-publish-auth]] — the NuGet leg needs `PUT` **with** a trailing slash
 and HTTP Basic, and the advertised `PackagePublish` URL is wrong for uploads.
 

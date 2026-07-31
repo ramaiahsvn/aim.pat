@@ -30,6 +30,14 @@ JNA comes in transitively. Nothing else to install — **no OpenCV on the host, 
 deploy, no `LD_LIBRARY_PATH`**. The jar carries the natives for `linux-x86-64`, `linux-aarch64`
 and `darwin-aarch64` plus the three models, and stages them to a temp directory at first use.
 
+> **The jar does NOT run on Windows.** It carries no Windows native, and `BprIDEngineNative`
+> asks for `libBprIDEngine.so` on any non-macOS platform — so a Windows JVM fails twice over.
+> This does not affect **compiling** on Windows: javac needs only the `.class` files, which are
+> in the jar, so a Windows workstation deploying to Linux is fine. It bites only when something
+> actually calls the engine on Windows — a local run, or a unit test that touches it — and it
+> surfaces as `UnsatisfiedLinkError` on first use, not at startup, because the native loads
+> lazily. Windows DLLs exist on the release share; folding them into the jar needs 2.24.901.
+
 The lean artifact is `nativesdk-bpridengine` (~497 KB, no face T12). **Never depend on both** —
 same library name, same 21 symbols, undefined winner.
 
