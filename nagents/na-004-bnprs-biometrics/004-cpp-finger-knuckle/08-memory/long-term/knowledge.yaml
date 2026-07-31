@@ -35,9 +35,9 @@ memories:
       bpridengine-library-architecture.md. Contract header:
       bpr.cpp/src/BprIDEngine/bengine/capi/bprid_abi.h.
       WHAT THIS MEANS WHEN THE USER SAYS "BUILD" TO THIS AGENT: build ONLY this modality's
-      library — `cmake --build . --target BprFingerKnuckle` — never the whole engine, never another
+      library — `cmake --build . --target BprOtherBio` — never the whole engine, never another
       modality. The consolidated BprIDEngine is na-004/007's target, not this one's.
-      THE RULE THAT MAKES IT WORK: BprFingerKnuckle and BprIDEngine export the SAME generalized C ABI, and
+      THE RULE THAT MAKES IT WORK: BprOtherBio and BprIDEngine export the SAME generalized C ABI, and
       they do so by linking the SAME compiled objects — not by keeping two definitions in sync.
       So anything added here appears in BprIDEngine on its next build, automatically, with an
       identical signature. There is no second place to update, and no way for the two to drift.
@@ -46,10 +46,10 @@ memories:
         BprID_Extract(tid, sample, out, io_size)
         BprID_Match(mid, probe, plen, gallery, glen, &score, &raw)
       parameterised by TID/MID, where an id is (modality << 8) | variant using the taxonomy's own
-      modality codes 4A..4F. THIS modality is 0x4C (3); its ids are T31 bFingerCless / T32 Inno Ansi-Iso / T33 bFingerKnuckle, and M31 bFingerCless / M32 bFingerKnuckle(PolyU).
+      modality codes 4A..4F. THIS modality is 0x4F (6) as of 2026-07-31; its ids are T61 bFingerKnuckle and M61 bFingerKnuckle(PolyU), and it is the ONLY thing in 4F. [MOVED — was 0x4C (3) shared with na-004/003, as T33/M32. The directory is now src/BprIDEngine/BprOtherBio/ and the library libBprOtherBio. 0x4C03/0x4C02 are RETIRED, not aliased: a stored T33 must be re-enrolled. No more coordinating with na-004/003 over a shared id space. See na-004/007 mem-027.]
       A NEW ALGORITHM IS A NEW TID/MID VALUE, NEVER A NEW SYMBOL. That is what lets all six
       modality agents work independently without breaking each other's hosts, and why swapping
-      BprFingerKnuckle for BprIDEngine needs no host code change — only BprID_ListTemplates() returns more.
+      BprOtherBio for BprIDEngine needs no host code change — only BprID_ListTemplates() returns more.
       Scores returned through BprID_Match must be SIMILARITY normalised to [0,1], higher =
       better, whatever the underlying algorithm's native scale or direction; put the native
       value in out_raw. Fusion across modalities depends on that normalisation.
@@ -70,7 +70,7 @@ memories:
     type: process_note
     content: >-
       2026-07-30 IMPORTANT — THIS AGENT SHARES A MODALITY WITH na-004/003 cpp-finger-cless.
-      The product taxonomy treats FingerKnuckle and FingerCless as ONE modality, 3 (0x4C),
+      [SUPERSEDED 2026-07-31 — they are SEPARATE modalities now: knuckle 4F, cless 4C. See na-004/007 mem-027. Kept for why the code looked like this.] The product taxonomy treated FingerKnuckle and FingerCless as ONE modality, 3 (0x4C),
       product "BprFingerCless/Knuckle", with a single shared id space T31..T33 / M31..M32. The
       repo has two directories and two agents. Coordinate before claiming a TID.
       THIS AGENT OWNS M32 "bFingerKnuckle (PolyU)" and T33 "bFingerKnuckle". CONFIRMED BY THE

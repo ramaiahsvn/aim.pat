@@ -25,35 +25,42 @@
 
 ```
 BprIDEngine/                 ← this agent's scope (the whole tree)
-  BprFace/                   ← na-004/001 cpp-face
-  BprFinger/                 ← na-004/002 cpp-finger
-  BprFingerCless/            ← na-004/003 cpp-finger-cless
-  BprFingerKnuckle/          ← na-004/004 cpp-finger-knuckle
-  BprPalmprint/              ← na-004/005 cpp-palmprint
-  BprIris/                   ← na-004/006 cpp-iris
+  BprFace/                   ← na-004/001 cpp-face            4A
+  BprFinger/                 ← na-004/002 cpp-finger          4B
+  BprFingerCless/            ← na-004/003 cpp-finger-cless    4C
+  BprOtherBio/               ← na-004/004 cpp-finger-knuckle  4F  (was BprFingerKnuckle/)
+  BprPalmprint/              ← na-004/005 cpp-palmprint       4D
+  BprIris/                   ← na-004/006 cpp-iris            4E
+  Common/HandGeometry/       ← THIS agent — shared by palmprint + knuckle segmentation
+  bengine/                   ← THIS agent — the engine project
 ```
 
-As of 2026-07-30 there are **no top-level files** in `BprIDEngine/` — every module is
-self-contained. A shared engine layer does not exist yet; creating one is this agent's
-primary open question (see Pending Actions).
+One directory per modality, one owner each, since knuckle moved out of 4C on 2026-07-31.
+`BprOtherBio/` is named for its MODALITY SLOT; the algorithm inside is still knuckle competitive
+coding, which is why its sources are `knuckle_*`.
+
+A shared layer now EXISTS but is deliberately minimal: `Common/HandGeometry` (mem-019) is the
+only one, extracted because palmprint and knuckle segmentation share their first three quarters.
+Whether it should grow further is still this agent's open question (see Pending Actions).
 
 ## Product taxonomy
 
 Six modalities, codes `4A`..`4F`, each with several template formats (TID) and matcher
-implementations (MID) — **15 formats, 14 matchers**. Encoded as data in
+implementations (MID) — **14 formats, 13 matchers**. Encoded as data in
 `bengine/src/catalogue.cpp`; run `bengine-cli catalogue`. Full detail in mem-006.
 
-Two things it settles that the source tree does not show: `BprFingerCless` and
-`BprFingerKnuckle` are ONE modality (`4C`) despite being two directories owned by two agents
-**and two separate libraries** — the enum was renamed `FingerCK` → `FingerCless` on 2026-07-31,
-so the name no longer says knuckle is in there, but T33 and M32 still are (mem-026) — and
-`OtherBio` (`4F`) is a modality with no directory at all.
+Until 2026-07-31 the taxonomy diverged from the source tree in two ways; **both are now
+resolved** and the tree matches. `BprFingerCless` and `BprFingerKnuckle` used to share modality
+`4C`, and `OtherBio` (`4F`) had no directory. Knuckle now owns `4F` as
+`src/BprIDEngine/BprOtherBio/` (T61/M61, was T33/M32), so `4C` is cless-only and every modality
+has exactly one directory and one owner — see mem-026 (the 4C rename) and mem-027 (the move).
 
 **A modality is not a matcher.** BprFace alone has five of each, so anything keyed on
 `Modality` silently drops implementations — see mem-007.
 
-**M32 reads T33**, not the same-numbered T32; it is the only place the digits do not pair.
-Consequently **T32 is an orphan** — no matcher reads it. Unresolved.
+**Every matcher reads its same-numbered template.** M32-reads-T33 was the one exception and it
+disappeared when knuckle moved to `4F` on 2026-07-31. **T32 is still an orphan** — no matcher
+reads it. Unresolved, and now the only irregularity left in the taxonomy.
 
 ## Scope
 
@@ -75,8 +82,8 @@ Modality module agents (this engine is their parent tree):
 |---|---|
 | na-004/001 cpp-face | `BprFace/` |
 | na-004/002 cpp-finger | `BprFinger/` |
-| na-004/003 cpp-finger-cless | `BprFingerCless/` |
-| na-004/004 cpp-finger-knuckle | `BprFingerKnuckle/` |
+| na-004/003 cpp-finger-cless | `BprFingerCless/` (modality 4C, no longer shared) |
+| na-004/004 cpp-finger-knuckle | `BprOtherBio/` (modality 4F) |
 | na-004/005 cpp-palmprint | `BprPalmprint/` |
 | na-004/006 cpp-iris | `BprIris/` |
 

@@ -52,10 +52,10 @@ Signature identity is guaranteed by linking *the same compiled objects*, not by 
                 │ engine core + ALL bprid_<m>_abi + <m>_algo     │
                 └────────────────────────────────────────────────┘
                      ▲ links the SAME objects as ▼
-   ┌────────────┬────┴────────┬───────────────┬────────────────┬───────────┬─────────┐
-   │ BprFace.so │ BprFinger.so│BprFingerCless │BprFingerKnuckle│ BprPalm.. │BprIris..│
-   └────────────┴─────────────┴───────────────┴────────────────┴───────────┴─────────┘
-                                └─── both are modality 4C ────┘
+   ┌────────────┬────┴────────┬───────────────┬─────────────┬───────────┬─────────┐
+   │ BprFace.so │ BprFinger.so│BprFingerCless │BprOtherBio  │ BprPalm.. │BprIris..│
+   │    4A      │     4B      │      4C       │  4F knuckle │    4D     │   4E    │
+   └────────────┴─────────────┴───────────────┴─────────────┴───────────┴─────────┘
 ```
 
 | Target | Type | Contents | Owner |
@@ -127,7 +127,8 @@ clean on clang. Set globally by the unified CMake. *007.*
 
 **B5 · ~~CLEARED 2026-07-30~~.** All three done: Palmprint (CompCode), FingerCless (T31 preprocessing feeding T21) and FingerKnuckle (CompCode, PolyU baseline). *Originally:* ~~Palmprint~~ **cleared
 2026-07-30** — Competitive Coding implemented, T41/M41 live, in the gate. FingerCless and
-FingerKnuckle still have export glue wired to nothing and no sources; they share modality 4C,
+FingerKnuckle still have export glue wired to nothing and no sources; they shared modality 4C
+[knuckle moved to 4F on 2026-07-31 — see mem-027],
 so 003 and 004 must coordinate. *003, 004.*
 
 **B6 · ~~`imread.cpp:557`~~ — CLEARED 2026-07-30.** Now `!= NULL`. BprIris builds off MSVC for

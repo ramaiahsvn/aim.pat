@@ -177,23 +177,29 @@ memories:
                                       T15 tFace(Tech5).]
         2 (4B) BprFinger              T21 bFinger / T22 Inno Ansi/Iso / T23 Aware Iso
                                       M21 bFinger / M22 IdKit(Innovatrics) / M23 Aw.XM(Aware)
-        3 (4C) BprFingerCless         T31 bFingerCless / T32 Inno Ansi/Iso / T33 bFingerKnuckle
-                                      M31 bFingerCless / M32 bFingerKnuckle(PolyU)
-                                      [RENAMED 2026-07-31 by the user, was "BprFingerCless/Knuckle"
-                                      — NAME ONLY. T33 and M32 are STILL HERE. See mem-026.]
+        3 (4C) BprFingerCless         T31 bFingerCless / T32 Inno Ansi/Iso
+                                      M31 bFingerCless
+                                      [2026-07-31: renamed from "BprFingerCless/Knuckle" (mem-026)
+                                      AND knuckle then MOVED OUT to 4F (mem-027). 4C is now
+                                      cless-only. T33/M32 no longer exist.]
         4 (4D) BprPalmprint           T41 bPalmprint            M41 bPalmprint
         5 (4E) BprIris                T51 mIris / T52 vIris     M51 bIris / M52 Vasir
-        6 (4F) OtherBio               T61 bOtherBio             M61 bOtherBio
-      = 15 template formats, 14 matchers.
-      TWO CORRECTIONS this forced to mem-001/mem-002's picture: FingerCless and FingerKnuckle are
-      ONE modality (4C) in the product taxonomy even though they are two source directories owned
-      by two different agents (na-004/003 and /004); and **OtherBio (4F) is a modality with no
-      source directory at all** under src/BprIDEngine/.
-      MATCHER->TEMPLATE PAIRING: every matcher reads its same-numbered template EXCEPT **M32,
-      which reads T33** (M32 is the knuckle matcher; user-confirmed 2026-07-30). That mapping is
-      catalogue data (MatcherInfo::accepts), so an adapter derives IMatcher::accepts() from it
-      rather than restating it. A test asserts the same-numbered convention with M32 as the one
-      named exception.
+        6 (4F) BprOtherBio            T61 bFingerKnuckle        M61 bFingerKnuckle(PolyU)
+                                      [2026-07-31: was the generic bOtherBio placeholder; knuckle
+                                      moved here from 4C's T33/M32. See mem-027.]
+      = 14 template formats, 13 matchers (was 15/14 before the knuckle move).
+      TWO CORRECTIONS this forced to mem-001/mem-002's picture, BOTH SINCE REVERSED on 2026-07-31
+      (mem-027) — kept because they explain why the code looked the way it did for a year: at the
+      time FingerCless and FingerKnuckle were ONE modality (4C) despite being two source
+      directories owned by two agents, and OtherBio (4F) was a modality with no source directory
+      at all. Knuckle now OWNS 4F and its directory is src/BprIDEngine/BprOtherBio/, so the
+      taxonomy and the tree agree and 4C belongs to na-004/003 alone.
+      MATCHER->TEMPLATE PAIRING: every matcher reads its same-numbered template, WITH NO
+      EXCEPTIONS as of 2026-07-31. Until then M32 read T33 (the knuckle matcher under 4C) and was
+      the only irregular pairing; moving knuckle to 4F made it M61-reads-T61 and the exception
+      was deleted rather than generalised. The mapping is catalogue data (MatcherInfo::accepts),
+      so an adapter derives IMatcher::accepts() from it rather than restating it, and
+      Catalogue.EveryMatcherReadsItsSameNumberedTemplate pins the rule.
       CONSEQUENCE: **T32 (Inno Ansi/Iso, modality 3) is an ORPHAN — no matcher reads it.** It
       duplicates T22's name under modality 2, so presumably M22 (IdKit) serves both — but that
       needs a matcher accepting formats from TWO modalities, which Engine::match forbids today
@@ -874,20 +880,24 @@ memories:
         "BprFingerCless/Knuckle"    -> "BprFingerCless"           (product string, CLI output)
       The VALUE is still 0x4C. No id changed, no template format changed, no exported symbol
       changed; core-only 37/37, BENGINE_BUILD_ALL 99/99, proof gate 21 symbols on all six.
-      THE TRAP THIS CREATES, and it is now the single most misleading name in the taxonomy:
-      4C STILL CONTAINS THE KNUCKLE FORMAT AND ITS MATCHER — T33 bFingerKnuckle and M32. The old
-      name said so; the new one does not. Anyone reading `Modality::FingerCless` and concluding
-      knuckle lives elsewhere will be wrong, and Engine::match still REQUIRES a matcher and its
-      template to share modality 3, so knuckle matching depends on this being one code. Guarded
-      with a loud comment in three places: the enum in types.hpp, the C ABI enum, and a README
-      footnote on the taxonomy table. Do not delete those.
-      THE USER CHOSE THIS DELIBERATELY over the alternative. The obvious reading of the request
-      was to split knuckle out into 4F (renaming OtherBio to FingerKnuckle), which is what makes
-      the name honest. Presented as an option and DECLINED in favour of name-only, because the
-      split is a real migration: T33 -> T61 (0x4C03 -> 0x4F01) and M32 -> M61 changes wire values
-      for a slot that HAS adapters, three test files and half of Common/HandGeometry. mem-024's
-      rule held — reserved-but-empty slots re-point freely, occupied ones do not. If the split is
-      ever revisited, that is the cost.
+      [THE TRAP THIS CREATED IS GONE — SUPERSEDED BY mem-027 the same day. For a few hours 4C was
+      named FingerCless while still holding T33/M32 knuckle, and this entry recorded loud
+      warnings in types.hpp, the C ABI enum and a README footnote to that effect. Knuckle then
+      moved to 4F, so 4C IS cless-only and the name is now simply accurate; those three warnings
+      were removed. Recorded because the reasoning still applies to the next partial rename: a
+      name that stops describing its contents needs a guard, and the guard is cheaper than the
+      confusion.]
+      THE USER CHOSE THIS DELIBERATELY over the alternative — AND THEN REVERSED IT THE SAME DAY.
+      The split (knuckle out to 4F) was offered here and declined in favour of name-only; roughly
+      an hour later the user asked for the BprFingerKnuckle folder to become BprOtherBio, which
+      is the split. It went ahead — see mem-027, which supersedes the "knuckle is still in 4C"
+      half of this entry. WHAT SURVIVES here is the rename itself (enum/alias/macro/short
+      name/product string, value still 0x4C) and the cost estimate, which was right: the move
+      touched the adapter, registrar, three test files and the CMake option.
+      LESSON FOR OFFERING OPTIONS: "declined" was not "declined forever" — the user's earlier
+      remark that "OtherBio and FingerKnuckle are same here" already pointed at the split, and
+      the decline was really a sequencing choice. When an option is turned down but the user's
+      own framing keeps implying it, expect it back.
       BPRID_MODALITY_FINGER_CK SURVIVES as a back-compat #define to the new enumerator. The value
       never moved so no binary needs rebuilding; the alias is purely for existing SOURCES.
       FOUND WHILE DOING IT, and it was already broken: na-004/003 and na-004/004 both stored
@@ -903,6 +913,57 @@ memories:
     confidence: 1.0
     source: "session-2026-07-31 (user-directed, verified by build + proof gate)"
     tags: [modality-4c-renamed, name-only-nothing-moved, knuckle-still-in-4c, misleading-name-guarded, split-to-4f-declined, back-compat-define, bprfingerck-target-never-existed, one-modality-two-libraries]
+
+  - id: mem-027
+    type: infrastructure
+    content: >-
+      2026-07-31 KNUCKLE LEFT 4C AND OWNS MODALITY 4F (bpr.cpp bb05f24). The move mem-026 said
+      had been declined; the user asked for it an hour later, framed as "rename the
+      BprFingerKnuckle folder to BprOtherBio".
+        src/BprIDEngine/BprFingerKnuckle/ -> src/BprIDEngine/BprOtherBio/   (git mv, cli glue too)
+        T33 bFingerKnuckle       -> T61     0x4C03 -> 0x4F01
+        M32 bFingerKnuckle(PolyU)-> M61     0x4C02 -> 0x4F01
+        BENGINE_BUILD_FINGER_KNUCKLE -> BENGINE_BUILD_OTHERBIO
+        libBprFingerKnuckle      -> libBprOtherBio
+      Core-only 37/37, BUILD_ALL 99/99, gate passes on all six at 21 symbols, CLI reports
+      "14 template formats, 13 matchers across 6 modalities" (was 15/14).
+      THIS ONE MOVED DATA, unlike the 4C rename. 0x4C03 and 0x4C02 are RETIRED, NOT REUSED and
+      deliberately NOT aliased to the new ids — a silent forward-map would let a pre-move
+      template through as if the modality had not changed. A stored T33 must be re-enrolled. The
+      header carries that warning where T33/M32 used to be #defined.
+      TWO ODDITIES DIED WITH IT, and both were long-standing:
+      (1) The taxonomy's ONLY non-pairing id is gone — M61 reads T61 like every other matcher.
+      The test became EveryMatcherReadsItsSameNumberedTemplate with the exception branch DELETED,
+      not generalised. If an exception ever returns it has to be argued for there.
+      (2) The tree and the taxonomy agree. 4C was two directories under two agents behind one
+      code, which is why claiming an id there needed cross-agent coordination; now it is
+      na-004/003's alone and 4F is na-004/004's alone.
+      4F IS NO LONGER A PLACEHOLDER. The generic bOtherBio T61/M61 pair is gone — it was never
+      implemented. A genuinely miscellaneous modality now needs a NEW code, not this one.
+      NAMING SPLIT KEPT ON PURPOSE: KNUC_DIR, bengine_knuckle_algo, knuckle_compcode.*,
+      knuckle_reg.cpp and knuckle_test.cpp all keep their names. The MODALITY SLOT is OtherBio;
+      the ALGORITHM is still knuckle competitive coding, and the sources are named for the
+      algorithm. Only the directory, the CMake option, the target and the ids moved.
+      TWO STALE REFERENCES THE MOVE EXPOSED, both of which would have bitten later:
+      (a) bpr_otherbio_src.cmake still pointed BPR_FKNUC_PATH at src/BprIDEngine/BprFingerKnuckle
+      — a dead path the root build would have globbed to nothing, silently producing a library
+      with no sources rather than an error.
+      (b) tests/CMakeLists.txt still guarded knuckle_test.cpp and knuckle_segment_test.cpp on
+      BENGINE_BUILD_FINGER_KNUCKLE, which no longer exists, so BOTH FILES DROPPED OUT OF THE
+      BUILD AND ctest REPORTED A GREEN 80/80 instead of 99. A passing suite that got smaller is
+      the dangerous shape: nothing fails, coverage just leaves. RULE — after renaming a CMake
+      option, grep the whole tree for it (it is referenced from files that do not declare it) and
+      CHECK THE TEST COUNT AGAINST THE PREVIOUS RUN, not just the pass rate.
+      PROOF-GATE GOTCHA worth knowing before the next rename: proof_gate.sh globs libBpr*.dylib
+      in the build directory, so a renamed library leaves its OLD artefact behind and the gate
+      fails against a file no build produces any more. A stale libBprFingerKnuckle.dylib from
+      2026-07-30 did exactly that. Build renames in a FRESH directory, or delete the old artefact.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (user-directed, verified by fresh build + proof gate)"
+    tags: [knuckle-owns-4f, ids-retired-not-aliased, no-non-pairing-ids-left, tree-matches-taxonomy, 4f-not-a-placeholder, modality-slot-vs-algorithm-naming, cmake-option-rename-is-tree-wide, test-count-not-just-pass-rate, proof-gate-stale-artefact, bb05f24]
 
 # Pruning rules
 pruning:

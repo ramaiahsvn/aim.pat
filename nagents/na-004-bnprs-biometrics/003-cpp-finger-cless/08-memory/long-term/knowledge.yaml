@@ -46,7 +46,7 @@ memories:
         BprID_Extract(tid, sample, out, io_size)
         BprID_Match(mid, probe, plen, gallery, glen, &score, &raw)
       parameterised by TID/MID, where an id is (modality << 8) | variant using the taxonomy's own
-      modality codes 4A..4F. THIS modality is 0x4C (3); its ids are T31 bFingerCless / T32 Inno Ansi-Iso / T33 bFingerKnuckle, and M31 bFingerCless / M32 bFingerKnuckle(PolyU).
+      modality codes 4A..4F. THIS modality is 0x4C (3); its ids are T31 bFingerCless / T32 Inno Ansi-Iso, and M31 bFingerCless. [2026-07-31: 4C IS NO LONGER SHARED. T33/M32 (knuckle) moved out to modality 4F / BprOtherBio, so this agent owns 4C's id space alone and no longer needs to coordinate with na-004/004 before claiming one. T32 is still an orphan. See na-004/007 mem-027.]
       A NEW ALGORITHM IS A NEW TID/MID VALUE, NEVER A NEW SYMBOL. That is what lets all six
       modality agents work independently without breaking each other's hosts, and why swapping
       BprFingerCless for BprIDEngine needs no host code change — only BprID_ListTemplates() returns more.
@@ -69,10 +69,13 @@ memories:
   - id: mem-003
     type: process_note
     content: >-
-      2026-07-30 IMPORTANT — THIS AGENT SHARES A MODALITY WITH na-004/004 cpp-finger-knuckle.
-      The product taxonomy treats FingerCless and FingerKnuckle as ONE modality, 3 (0x4C),
+      2026-07-30 [NO LONGER TRUE AS OF 2026-07-31 — knuckle moved to its own modality 4F
+      (BprOtherBio), so 4C is this agent's alone and there is nothing to coordinate. Kept because
+      it explains the shared-id-space language still scattered through older entries. See
+      na-004/007 mem-027.] THIS AGENT SHARED A MODALITY WITH na-004/004 cpp-finger-knuckle.
+      The product taxonomy treated FingerCless and FingerKnuckle as ONE modality, 3 (0x4C),
       product name "BprFingerCless/Knuckle", with a single shared id space T31..T33 / M31..M32.
-      The repo has them as two separate directories owned by two agents. Coordinate before
+      The repo had them as two separate directories owned by two agents. Coordinate before
       claiming a TID — you cannot allocate one without the other agent knowing.
       BLOCKER B1 (blocks consolidated linking): cli/BprIDEngine/BprFingerCless/
       BprIdFingerCless_dll_exports.cpp DEFINES BprLicGeneration() (~line 36) and
