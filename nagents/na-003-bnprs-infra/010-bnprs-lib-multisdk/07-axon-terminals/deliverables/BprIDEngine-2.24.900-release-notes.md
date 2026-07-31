@@ -108,9 +108,31 @@ models and stage them correctly at load, so the directory rule above is handled 
 | NuGet | `Bnprs.NativeSdk.BprIDEngine 2.24.900` | `Bnprs.NativeSdk.BprIDEngine.Face 2.24.900` |
 | Go | `…/go/bpridengine/v2 v2.24.900` | `…/go/bpridengine-face/v2 v2.24.900` |
 
-All from GitLab project 230 (`BPR1000/bpr1000.bnprs-libs`); read access via the
-`bnprs-libs-readonly` deploy token. The raw binaries here are for C/C++ hosts and for anyone who
-needs to deploy without a package manager.
+All from GitLab project 230 (`BPR1000/bpr1000.bnprs-libs`). The raw binaries here are for C/C++
+hosts and for anyone who needs to deploy without a package manager.
+
+### "Dependency not found" is an auth failure
+
+The registry is private, so an unauthenticated request returns **401** — and every client then
+reports it as *missing*: Maven marks the artifact `(absent)`, IntelliJ says *"Dependency
+ai.bnprs:nativesdk-bpridengine-face:2.24.900 not found"*, NuGet says the package does not exist.
+The artifact is there. Check credentials before looking for anything else.
+
+The header depends on which kind of token you have, and the wrong one gives the same 401:
+
+| token type | Maven / NuGet header | value |
+|---|---|---|
+| personal access token (`read_api`) | `Private-Token` | the token |
+| deploy token (`read_package_registry`) | `Deploy-Token` | the token value, **not** the username |
+
+The read-only deploy token is `bnprs-libs-readonly` (username `bnprs-libs-ro`) and it is defined on
+the **group** `BPR1000`, not on project 230 — group scope covers the project. Its value is shown
+once at creation and cannot be retrieved through the API afterwards; mint a new one rather than
+searching for it.
+
+After fixing credentials, clear the cached failure or the old error persists:
+`rm -rf ~/.m2/repository/ai/bnprs/nativesdk-bpridengine-face && mvn -U …`.
+Full walkthrough, including the IntelliJ settings-file override: `hosts/java/README.md`.
 
 ## Licensing
 

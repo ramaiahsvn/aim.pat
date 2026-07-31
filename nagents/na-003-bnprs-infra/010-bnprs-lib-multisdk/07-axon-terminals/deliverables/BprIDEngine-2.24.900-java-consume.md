@@ -33,15 +33,59 @@ and `darwin-aarch64` plus the three models, and stages them to a temp directory 
 The lean artifact is `nativesdk-bpridengine` (~497 KB, no face T12). **Never depend on both** —
 same library name, same 21 symbols, undefined winner.
 
-`~/.m2/settings.xml`, using the read-only deploy token `bnprs-libs-readonly`:
+### Credentials — and what "Dependency not found" actually means
+
+The registry is private. An unauthenticated request returns **401**, Maven then records the
+artifact as `(absent)`, and IntelliJ renders that as *"Dependency
+ai.bnprs:nativesdk-bpridengine-face:2.24.900 not found"*. The artifact is published and fine; the
+request was rejected. This is nearly always the whole problem.
+
+`~/.m2/settings.xml` — the `<id>` **must** match the `<repository><id>` in the pom (`bnprs-libs`):
 
 ```xml
-<settings><servers><server>
-  <id>bnprs-libs</id>
-  <configuration><httpHeaders><property>
-    <name>Private-Token</name><value>${env.BNPRS_LIBS_TOKEN}</value>
-  </property></httpHeaders></configuration>
-</server></servers></settings>
+<settings>
+  <servers>
+    <server>
+      <id>bnprs-libs</id>
+      <configuration><httpHeaders><property>
+        <name>Private-Token</name><value>${env.BNPRS_LIBS_TOKEN}</value>
+      </property></httpHeaders></configuration>
+    </server>
+  </servers>
+</settings>
+```
+
+**The header name depends on which kind of token you hold**, and the wrong one gives an identical
+401:
+
+| token type | header | value |
+|---|---|---|
+| personal access token (`read_api`) | `Private-Token` | the token |
+| deploy token (`read_package_registry`) | `Deploy-Token` | the token value — **not** the username |
+
+The read-only deploy token is `bnprs-libs-readonly`, username `bnprs-libs-ro`, and it lives on the
+**group** `BPR1000` rather than on project 230 — group scope covers the project. Deploy-token
+values are displayed once at creation and cannot be read back through the API, so if nobody kept
+it, mint a new one instead of hunting for it.
+
+### Still "not found" after fixing the token?
+
+Maven caches the failed lookup, so a corrected configuration keeps reporting the old error. Clear
+the poisoned entry:
+
+```bash
+rm -rf ~/.m2/repository/ai/bnprs/nativesdk-bpridengine-face
+mvn -U dependency:resolve
+```
+
+**IntelliJ:** Settings -> Build, Execution, Deployment -> Build Tools -> Maven -> *User settings
+file*: tick **Override** and point it at your settings.xml — IntelliJ does not reliably pick up
+`~/.m2/settings.xml` by itself. Then Maven tool window -> **Reload All Maven Projects**.
+
+Diagnose on the command line before trusting the IDE's one-line message:
+
+```bash
+mvn -X dependency:get -Dartifact=ai.bnprs:nativesdk-bpridengine-face:2.24.900
 ```
 
 ## 2. Call mapping

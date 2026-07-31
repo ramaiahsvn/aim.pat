@@ -16,10 +16,27 @@ per package format** — verified end-to-end in the BprFace 2.24.114 pilot:
 | **Maven** | `…/projects/230/packages/maven/<group-path>/<artifact>/<ver>/<file>` | `Private-Token: $GITLAB_PAT` header (PUT jar + pom) | HTTP 200 |
 | **Go** | `…/projects/230/packages/go` (proxy) | **no upload endpoint** | tag-based: serves SemVer **git tags** from a repo via the Go proxy; publish = commit module + tag |
 
-Consumers (all formats) use the read-only deploy token **`bnprs-libs-readonly`**
-(`read_package_registry`): NuGet via Basic, Maven via `Private-Token` header in
-`settings.xml`, Go via `GOPROXY` + netrc. Token IDs only in
+Consumers use the read-only deploy token **`bnprs-libs-readonly`** (username `bnprs-libs-ro`,
+`read_package_registry`) — defined on the **GROUP `BPR1000` (id 118), NOT on project 230**; group
+scope covers the project. `GET /projects/230/deploy_tokens` returns empty, which looks like the
+token is missing. Check `/groups/118/deploy_tokens`. Token IDs only in
 `01-dendrite/secrets/secrets.yaml`, never values.
+
+**A DEPLOY token is not a `Private-Token`** (corrected 2026-07-31, after a consumer hit it):
+
+| token type | header |
+|---|---|
+| personal access token (`read_api`) | `Private-Token` |
+| deploy token (`read_package_registry`) | `Deploy-Token` — the token VALUE, not the username |
+
+Using `Private-Token` with a deploy token 401s exactly like no credentials at all. And **every
+client reports a 401 as "not found"** — Maven marks the artifact `(absent)`, IntelliJ prints
+"Dependency … not found", NuGet says the package does not exist. Diagnose auth first; a bare
+`curl` against the .pom distinguishes 401 from a genuine 404 in one call. Deploy-token values
+cannot be read back through the API, so a lost one is re-minted, not recovered.
+
+Maven also caches the failure: after fixing credentials,
+`rm -rf ~/.m2/repository/<group-path>/<artifact>` and `mvn -U`, or the stale error persists.
 
 **NuGet has TWO traps, not one** (second one found publishing BprIDEngine 2.24.900, 2026-07-31).
 The service index advertises `PackagePublish/2.0.0` at `…/packages/nuget` with **no** trailing
