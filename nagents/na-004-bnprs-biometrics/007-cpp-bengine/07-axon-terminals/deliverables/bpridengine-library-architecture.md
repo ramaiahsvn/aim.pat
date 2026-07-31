@@ -52,9 +52,10 @@ Signature identity is guaranteed by linking *the same compiled objects*, not by 
                 │ engine core + ALL bprid_<m>_abi + <m>_algo     │
                 └────────────────────────────────────────────────┘
                      ▲ links the SAME objects as ▼
-   ┌────────────┬────┴────────┬────────────┬───────────┬─────────┐
-   │ BprFace.so │ BprFinger.so│ BprFingerCK│ BprPalm.. │BprIris..│
-   └────────────┴─────────────┴────────────┴───────────┴─────────┘
+   ┌────────────┬────┴────────┬───────────────┬────────────────┬───────────┬─────────┐
+   │ BprFace.so │ BprFinger.so│BprFingerCless │BprFingerKnuckle│ BprPalm.. │BprIris..│
+   └────────────┴─────────────┴───────────────┴────────────────┴───────────┴─────────┘
+                                └─── both are modality 4C ────┘
 ```
 
 | Target | Type | Contents | Owner |

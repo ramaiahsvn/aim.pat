@@ -35,9 +35,9 @@ memories:
       bpridengine-library-architecture.md. Contract header:
       bpr.cpp/src/BprIDEngine/bengine/capi/bprid_abi.h.
       WHAT THIS MEANS WHEN THE USER SAYS "BUILD" TO THIS AGENT: build ONLY this modality's
-      library — `cmake --build . --target BprFingerCK` — never the whole engine, never another
+      library — `cmake --build . --target BprFingerKnuckle` — never the whole engine, never another
       modality. The consolidated BprIDEngine is na-004/007's target, not this one's.
-      THE RULE THAT MAKES IT WORK: BprFingerCK and BprIDEngine export the SAME generalized C ABI, and
+      THE RULE THAT MAKES IT WORK: BprFingerKnuckle and BprIDEngine export the SAME generalized C ABI, and
       they do so by linking the SAME compiled objects — not by keeping two definitions in sync.
       So anything added here appears in BprIDEngine on its next build, automatically, with an
       identical signature. There is no second place to update, and no way for the two to drift.
@@ -49,7 +49,7 @@ memories:
       modality codes 4A..4F. THIS modality is 0x4C (3); its ids are T31 bFingerCless / T32 Inno Ansi-Iso / T33 bFingerKnuckle, and M31 bFingerCless / M32 bFingerKnuckle(PolyU).
       A NEW ALGORITHM IS A NEW TID/MID VALUE, NEVER A NEW SYMBOL. That is what lets all six
       modality agents work independently without breaking each other's hosts, and why swapping
-      BprFingerCK for BprIDEngine needs no host code change — only BprID_ListTemplates() returns more.
+      BprFingerKnuckle for BprIDEngine needs no host code change — only BprID_ListTemplates() returns more.
       Scores returned through BprID_Match must be SIMILARITY normalised to [0,1], higher =
       better, whatever the underlying algorithm's native scale or direction; put the native
       value in out_raw. Fusion across modalities depends on that normalisation.

@@ -44,8 +44,10 @@ implementations (MID) — **15 formats, 14 matchers**. Encoded as data in
 `bengine/src/catalogue.cpp`; run `bengine-cli catalogue`. Full detail in mem-006.
 
 Two things it settles that the source tree does not show: `BprFingerCless` and
-`BprFingerKnuckle` are ONE modality (`4C`) despite being two directories owned by two agents,
-and `OtherBio` (`4F`) is a modality with no directory at all.
+`BprFingerKnuckle` are ONE modality (`4C`) despite being two directories owned by two agents
+**and two separate libraries** — the enum was renamed `FingerCK` → `FingerCless` on 2026-07-31,
+so the name no longer says knuckle is in there, but T33 and M32 still are (mem-026) — and
+`OtherBio` (`4F`) is a modality with no directory at all.
 
 **A modality is not a matcher.** BprFace alone has five of each, so anything keyed on
 `Modality` silently drops implementations — see mem-007.

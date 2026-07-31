@@ -177,8 +177,10 @@ memories:
                                       T15 tFace(Tech5).]
         2 (4B) BprFinger              T21 bFinger / T22 Inno Ansi/Iso / T23 Aware Iso
                                       M21 bFinger / M22 IdKit(Innovatrics) / M23 Aw.XM(Aware)
-        3 (4C) BprFingerCless/Knuckle T31 bFingerCless / T32 Inno Ansi/Iso / T33 bFingerKnuckle
+        3 (4C) BprFingerCless         T31 bFingerCless / T32 Inno Ansi/Iso / T33 bFingerKnuckle
                                       M31 bFingerCless / M32 bFingerKnuckle(PolyU)
+                                      [RENAMED 2026-07-31 by the user, was "BprFingerCless/Knuckle"
+                                      — NAME ONLY. T33 and M32 are STILL HERE. See mem-026.]
         4 (4D) BprPalmprint           T41 bPalmprint            M41 bPalmprint
         5 (4E) BprIris                T51 mIris / T52 vIris     M51 bIris / M52 Vasir
         6 (4F) OtherBio               T61 bOtherBio             M61 bOtherBio
@@ -859,6 +861,48 @@ memories:
     confidence: 1.0
     source: "session-2026-07-31 (found by a clean default configure)"
     tags: [test-defect, adapters-are-a-build-option, guard-assertions-not-whole-cases, has-matcher-introspection, partial-guard-reads-as-complete, run-the-default-config, amends-mem-022]
+
+  - id: mem-026
+    type: technical_knowledge
+    content: >-
+      2026-07-31 MODALITY 4C RENAMED FingerCK -> FingerCless. NAME ONLY — NOTHING MOVED, and the
+      distinction is the whole point of this entry.
+        Modality::FingerCK          -> Modality::FingerCless      (enum, types.hpp)
+        kFcK                        -> kFpCl                      (alias, catalogue.cpp)
+        BPRID_MODALITY_FINGER_CK    -> BPRID_MODALITY_FINGER_CLESS (C ABI enum)
+        "finger-ck"                 -> "finger-cless"             (short name, types.cpp)
+        "BprFingerCless/Knuckle"    -> "BprFingerCless"           (product string, CLI output)
+      The VALUE is still 0x4C. No id changed, no template format changed, no exported symbol
+      changed; core-only 37/37, BENGINE_BUILD_ALL 99/99, proof gate 21 symbols on all six.
+      THE TRAP THIS CREATES, and it is now the single most misleading name in the taxonomy:
+      4C STILL CONTAINS THE KNUCKLE FORMAT AND ITS MATCHER — T33 bFingerKnuckle and M32. The old
+      name said so; the new one does not. Anyone reading `Modality::FingerCless` and concluding
+      knuckle lives elsewhere will be wrong, and Engine::match still REQUIRES a matcher and its
+      template to share modality 3, so knuckle matching depends on this being one code. Guarded
+      with a loud comment in three places: the enum in types.hpp, the C ABI enum, and a README
+      footnote on the taxonomy table. Do not delete those.
+      THE USER CHOSE THIS DELIBERATELY over the alternative. The obvious reading of the request
+      was to split knuckle out into 4F (renaming OtherBio to FingerKnuckle), which is what makes
+      the name honest. Presented as an option and DECLINED in favour of name-only, because the
+      split is a real migration: T33 -> T61 (0x4C03 -> 0x4F01) and M32 -> M61 changes wire values
+      for a slot that HAS adapters, three test files and half of Common/HandGeometry. mem-024's
+      rule held — reserved-but-empty slots re-point freely, occupied ones do not. If the split is
+      ever revisited, that is the cost.
+      BPRID_MODALITY_FINGER_CK SURVIVES as a back-compat #define to the new enumerator. The value
+      never moved so no binary needs rebuilding; the alias is purely for existing SOURCES.
+      FOUND WHILE DOING IT, and it was already broken: na-004/003 and na-004/004 both stored
+      `cmake --build . --target BprFingerCK` as their build instruction. THERE IS NO SUCH TARGET —
+      the real ones are BprFingerCless and BprFingerKnuckle, two separate libraries, which the
+      proof gate has been listing separately all along. Corrected in both agents' mem-002. The
+      ABI header carried the same fiction ("BprFingerCK.so registers T31..T33") and now lists both
+      libraries with which ids each registers. ONE MODALITY, TWO LIBRARIES — that is the thing the
+      old name obscured in the other direction.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (user-directed, verified by build + proof gate)"
+    tags: [modality-4c-renamed, name-only-nothing-moved, knuckle-still-in-4c, misleading-name-guarded, split-to-4f-declined, back-compat-define, bprfingerck-target-never-existed, one-modality-two-libraries]
 
 # Pruning rules
 pruning:
