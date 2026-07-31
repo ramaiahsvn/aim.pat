@@ -77,7 +77,8 @@ task:
     ONCE THE DECISION IS MADE, the adapter itself is the standard four steps (bengine README):
     IExtractor/IMatcher over BprFace, a registrar, BENGINE_BUILD_FACE, and the proof gate.
     Modality 4A has FIVE templates and FIVE matchers catalogued (T11 sFace(pat), T12
-    sFace(opencv), T13 bFace(InspireFace), T14 iFace(Innovatrics), T15 tFace(Tech5), and M11-M15)
+    sFace(opencv), T13 iFace(InspireFace), T14 aFace(AdaFace-CCTV), T15 mFace(MagFace), and M11-M15
+    — T13-T15 re-pointed by the user 2026-07-31, see na-004/007 mem-024)
     — do NOT try to implement all of them. Pick one pair, almost certainly T11/M11, and register
     only that; the registry is keyed on TemplateId, not on Modality, precisely so a modality can
     land one variant at a time.

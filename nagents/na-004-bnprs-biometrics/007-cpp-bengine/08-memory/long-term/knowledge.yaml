@@ -167,11 +167,14 @@ memories:
       in bengine/src/catalogue.cpp; `bengine-cli catalogue` prints it, `bengine-cli id T52`
       resolves one entry. Modality codes are the taxonomy's OWN hex values 4A..4F (enum is
       uint8_t) so a modality serialises into a template header / TLV tag with no lookup table.
-        1 (4A) BprFace                T11 sFace(pat) / T12 sFace(opencv) / T13 bFace(InspireFace)
-                                      / T14 iFace(Innovatrics) / T15 tFace(Tech5)
+        1 (4A) BprFace                T11 sFace(pat) / T12 sFace(opencv) / T13 iFace(InspireFace)
+                                      / T14 aFace(AdaFace-CCTV) / T15 mFace(MagFace)
                                       M11 sFace(pat-cosinesimilarity) / M12 Yunet+sFace(opencv)
-                                      / M13 bFace(InspireFace) / M14 iFace(Innovatrics)
-                                      / M15 tFace(Tech5)
+                                      / M13 iFace(InspireFace) / M14 aFace(AdaFace-CCTV)
+                                      / M15 mFace(MagFace)
+                                      [T13-T15 REVISED 2026-07-31 by the user — see mem-024. Was
+                                      T13 bFace(InspireFace) / T14 iFace(Innovatrics) /
+                                      T15 tFace(Tech5).]
         2 (4B) BprFinger              T21 bFinger / T22 Inno Ansi/Iso / T23 Aware Iso
                                       M21 bFinger / M22 IdKit(Innovatrics) / M23 Aw.XM(Aware)
         3 (4C) BprFingerCless/Knuckle T31 bFingerCless / T32 Inno Ansi/Iso / T33 bFingerKnuckle
@@ -195,10 +198,10 @@ memories:
       (matcher and template must share a modality). UNRESOLVED; decide before writing an
       Innovatrics adapter. orphan_templates() reports it, the CLI prints a warning, and a test
       pins T32 as the ONLY orphan so the set cannot drift unnoticed.
-      Several catalogued entries wrap third-party SDKs NOT in this repo (Innovatrics, Aware,
-      Tech5, InspireFace) — catalogued to reserve their IDs before any adapter exists. The
-      catalogue is a CATALOGUE, not a registry: an entry means the ID is defined, not that an
-      adapter is compiled in (Engine::has_matcher answers that).
+      Several catalogued entries wrap third-party code NOT in this repo (Innovatrics, Aware,
+      InspireFace, AdaFace-CCTV, MagFace) — catalogued to reserve their IDs before any adapter
+      exists. The catalogue is a CATALOGUE, not a registry: an entry means the ID is defined,
+      not that an adapter is compiled in (Engine::has_matcher answers that).
     created_at: "2026-07-30"
     last_accessed: "2026-07-30"
     access_count: 1
@@ -424,12 +427,18 @@ memories:
       DLLs that export nothing. Worth a deliberate pass; raise before touching.
       bengine's own libraries are unaffected — they are built by bengine/CMakeLists.txt, which
       uses hidden visibility plus BPRID_API, verified at 17 BprID_* exports.
+      [CORRECTED 2026-07-31 — see mem-023. That last sentence was WRONG for Windows. Hidden
+      visibility is an ELF/Mach-O concept; PE ignores it entirely, so bengine's DLLs leaked too
+      (363 exports, licence generator included) until --exclude-all-symbols was added. The
+      "verified at 17 exports" was verified with nm on a .dylib and never on a .dll.
+      The ROOT-BUILD half of this memory still STANDS and is still unfixed: every DLL the
+      monolithic build ships is affected, and that is not this agent's to fix alone.]
     created_at: "2026-07-30"
-    last_accessed: "2026-07-30"
-    access_count: 1
+    last_accessed: "2026-07-31"
+    access_count: 2
     confidence: 0.95
     source: "session-2026-07-30"
-    tags: [root-toolchain, export-all-symbols, symbol-leak, windows-dll, my-library-exports-only-pinblock, do-not-remove-blindly]
+    tags: [root-toolchain, export-all-symbols, symbol-leak, windows-dll, my-library-exports-only-pinblock, do-not-remove-blindly, partly-corrected-mem-023]
 
   - id: mem-014
     type: infrastructure
@@ -710,12 +719,146 @@ memories:
       because bengine_tests uses the C++ engine and never crosses the ABI where the gate lives.
       Negative paths asserted unconditionally; the positive path SKIPS if the test licence has
       expired, since that is not a defect in the gate.
+      [AMENDED 2026-07-31 — that conditionality was INCOMPLETE and the suite failed in the
+      default build for a year-zero reason: it also depends on the M11 ADAPTER, which the
+      core-only build does not have. See mem-025.]
     created_at: "2026-07-31"
     last_accessed: "2026-07-31"
     access_count: 1
     confidence: 1.0
     source: "session-2026-07-31"
     tags: [abi-licence-gate, fail-closed, callers-code-not-discarded, introspection-ungated, revalidate-not-cache, 19-symbols, legacy-bprface-discards-qicode, 38d9b7e]
+
+  - id: mem-023
+    type: incident_learning
+    content: >-
+      2026-07-31 THE WINDOWS BUILD WORKS AND NOW MATCHES THE OTHER PLATFORMS (bpr.cpp 2aa3c62,
+      pushed). Four defects, ALL Windows-only. The ELF and Mach-O output is byte-identical before
+      and after — a stripped macOS rebuild matched the published darwin-arm64 artifact to 8 bytes
+      with the same exported symbol set — so nothing here changes what the other platforms ship.
+      THE ONE THAT MATTERS: BprIDEngine.dll EXPORTED 363 SYMBOLS INSTEAD OF 21, and among them
+      were BprLicense::patGlobalLicGenerator and BprLicGeneration — THE LICENCE GENERATOR,
+      callable by anyone holding the DLL. mem-013 asserted bengine's own libraries were unaffected
+      by the root toolchain's --export-all-symbols because they use hidden visibility plus
+      BPRID_API. That is TRUE ON ELF AND MACH-O AND MEANINGLESS ON PE. Hidden visibility is not a
+      PE concept: mingw's default is "export every global symbol unless something in the image is
+      dllexport'd", and toolchains/toolchain_windows_64.cmake additionally forces
+      -Wl,--export-all-symbols. Fixed with -Wl,--exclude-all-symbols, which restores the intended
+      rule — nothing exported but what __declspec(dllexport) marks. 21 = the 19 BprID_* of mem-022
+      plus the 2 common licence symbols.
+      GENERAL LESSON, and it is the third time this class of bug has bitten (mem-004, mem-010,
+      now this): I VERIFIED THE EXPORT SET WITH nm ON A .dylib AND CALLED IT VERIFIED. An export
+      policy is per-object-format. `nm -gU` on a Mach-O says nothing about the PE the same source
+      produces. Check every format you ship, or claim only the one you checked.
+      THE DLL IS ALSO SELF-CONTAINED NOW. mingw links libstdc++, libgcc and libwinpthread as DLLs
+      by default, so the output imported libstdc++-6.dll / libgcc_s_seh-1.dll /
+      libwinpthread-1.dll — none present on a stock Windows machine, while the .so and .dylib
+      carry no such dependency. -static pulls all three in (the CRT stays dynamic, api-ms-win-crt-*,
+      which is correct — that ships with Windows). -s on Release then strips the very large symbol
+      table static libstdc++ brings, which PE keeps in the image: lean DLL 16.8 -> 1.5 MB, T12
+      42.9 -> 17.2 MB, the latter matching the .so.
+      Both live in bengine_harden_shared(), the shared-library counterpart to bengine_harden(), so
+      the export policy has ONE place to live. Called from bprid_add_modality() and from the
+      BprIDEngine target — a new modality gets it automatically.
+      TWO SMALLER ONES: (1) -D_isnan=isnan is now NON-WINDOWS ONLY. Windows already has _isnan
+      (MSVC intrinsic, mingw declaration in math.h), so the macro rewrote mingw's own
+      `int _isnan(double)` into `int isnan(double)`, colliding with `using std::isnan` lower in the
+      SAME header and failing EVERY Masek translation unit — including files that never call it,
+      because the collision is in the header, not the code. A compatibility shim for one toolchain
+      is a defect on the toolchain that already has the thing. (2) bengine_aprcommon links
+      `version` on Windows, PUBLIC: BprUtils reads the running module's file version via
+      GetFileVersionInfo* / VerQueryValue, which live in version.dll and are not in mingw's default
+      link set. PUBLIC so it propagates to every Bpr<Modality>.dll and BprIDEngine.dll.
+      STILL UNFIXED, unchanged by this: the ROOT build's --export-all-symbols leak (mem-013)
+      affects every DLL the monolithic build ships, biometrics or not. This commit only fixed the
+      libraries bengine/CMakeLists.txt produces.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (bpr.cpp 2aa3c62, pushed to origin/main)"
+    tags: [windows, pe-ignores-hidden-visibility, licence-generator-was-exported, exclude-all-symbols, bengine-harden-shared, static-mingw-runtime, 21-exports, verify-every-object-format, isnan-shim-non-windows, version-dll, root-leak-still-open, 2aa3c62]
+
+  - id: mem-024
+    type: technical_knowledge
+    content: >-
+      2026-07-31 FACE T13-T15 RE-POINTED BY THE USER. Modality 4A's third, fourth and fifth slots
+      changed vendor. mem-006's table is amended in place; this entry is the WHY and the diff.
+        T13  bFace(InspireFace)      ->  iFace(InspireFace)      -- renamed only, same backend
+        T14  iFace(Innovatrics)      ->  aFace(AdaFace-CCTV)     -- replaced
+        T15  tFace(Tech5)            ->  mFace(MagFace)          -- replaced
+      T11 sFace(pat)/M11 and T12 sFace(opencv)/M12 are UNTOUCHED, and they are the only two with
+      adapters, which is what made this free.
+      NOTHING BUT NAMES MOVED. The ids are positional — (modality << 8) | variant — so T13 is
+      still 0x4A03 and M15 still 0x4A05. No exported symbol, no header constant, no template
+      format, no shipped byte changed; the proof gate still passes at 21 identical symbols on all
+      six libraries and the full suite is 99/99. Renaming a catalogue entry is cheap EXACTLY
+      BECAUSE the taxonomy numbers the slot rather than naming it — the property mem-008's
+      generalized ABI was designed for, now paid off in the direction nobody planned for.
+      THE PRECONDITION, and check it before doing this again: T13/T14/T15 had NO ADAPTERS. A
+      catalogue entry with an adapter has templates in the field carrying that TID, and renaming
+      the slot under them would be a silent reinterpretation of existing data. Reserved-but-empty
+      slots are re-pointable; occupied ones are not.
+      INNOVATRICS AND AWARE ARE STILL IN THE TAXONOMY — on FINGER, not face. T22/M22 IdKit
+      (Innovatrics), T23/M23 Aware Iso, and T32 Inno Ansi/Iso are untouched. Only the FACE row
+      moved; do not read this as dropping those vendors. TECH5 is now gone from the taxonomy
+      entirely — it appeared nowhere else.
+      A SHIFT IN KIND WORTH NOTICING: T13 InspireFace is an SDK, but AdaFace and MagFace are
+      PUBLISHED MODELS (both CVPR-era face-recognition architectures with released weights), not
+      vendor SDKs. So the standing line that "the vendor entries need SDKs we do not have" is no
+      longer true of T14/T15 — they are ONNX-able and would plausibly run through the SAME
+      OpenCV-DNN path T12 already uses, with no new third-party dependency beyond OpenCV, which
+      the engine has already accepted for T12. That makes T14/T15 materially CHEAPER to implement
+      than the vendor-SDK entries they replaced. Wording in README.md, catalogue.hpp and
+      engine.hpp updated to say "SDKs and published models" rather than "SDKs".
+      AdaFace's -CCTV suffix reads as a low-quality/surveillance-imagery variant, which fits
+      AdaFace's quality-adaptive margin; MagFace embeds quality in the embedding MAGNITUDE, which
+      is a natural fit for a quality assessor keyed on TID (quality.hpp). Neither is confirmed —
+      ASK THE USER which weights are intended before writing either adapter.
+      FILES TOUCHED (bpr.cpp, uncommitted at time of writing): bengine/src/catalogue.cpp (the
+      source of truth), capi/bprid_abi.h comments, README.md taxonomy table + two vendor lists,
+      include/bengine/{catalogue,engine,quality}.hpp comments. catalogue_test.cpp needed NO edit —
+      it pins only T11/M11 names for face, plus counts and id structure, all unchanged.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (user-supplied revision, verified by build + proof gate)"
+    tags: [taxonomy-revision, face-t13-t14-t15, ids-are-positional, rename-is-free-without-adapters, tech5-dropped, innovatrics-still-on-finger, adaface, magface, models-not-sdks, cheaper-than-vendor-sdks, ask-which-weights]
+
+  - id: mem-025
+    type: incident_learning
+    content: >-
+      2026-07-31 THE LICENCE SUITE FAILED IN THE DEFAULT BUILD AND HAD SINCE IT WAS WRITTEN —
+      A TEST THAT CROSSES THE ABI MUST NOT ASSUME AN ADAPTER IS COMPILED IN. Found incidentally
+      while verifying the mem-024 rename: a clean `cmake -S . -B <dir>` with no options gave
+      2 of 5 failures in bengine_abi_license_tests. Nothing to do with the rename.
+      CAUSE: the two positive cases assert BprID_Match(M11, ...) == BPRID_OK. The DEFAULT build
+      is core-only and registers NO adapters, so that call correctly returns
+      BPRID_ERR_NOT_PRESENT (-2). The library was right and the test was wrong. It passes under
+      -DBENGINE_BUILD_ALL=ON, which is the only way it had ever been run — mem-022 recorded the
+      suite as passing on exactly that basis.
+      WHY IT HID SO WELL: the suite already HAS a conditional (GTEST_SKIP if the test licence has
+      expired), so it looked like the configuration-dependence had been thought about. It had —
+      for the licence, not for the adapter. A partial guard reads like a complete one.
+      FIX, and the choice inside it matters: guard only the two BprID_Match assertions on
+      BprID_HasMatcher(BPRID_M11) == 1 — do NOT GTEST_SKIP the whole case. Everything else in
+      those two cases (HasLicense, validate-before-store, Fuse) is adapter-independent and is
+      precisely the coverage the default build should keep. Skipping the case would have traded
+      one silent gap for another. BprID_HasMatcher is introspection and therefore ungated, so it
+      reads correctly licensed or not. Result: core-only 37/37 with all five licence cases RUN,
+      not skipped; BENGINE_BUILD_ALL 99/99; proof gate unchanged at 21 symbols on all six.
+      THE GENERAL RULE FOR THIS ENGINE: the set of registered algorithms is a BUILD OPTION, so
+      any assertion that depends on one is configuration-dependent by construction. Ask the ABI
+      what it has (BprID_HasTemplate / BprID_HasMatcher) instead of assuming, and always run a
+      no-options configure before believing a suite is green — BENGINE_BUILD_ALL is not the
+      default and is not what a fresh clone builds.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (found by a clean default configure)"
+    tags: [test-defect, adapters-are-a-build-option, guard-assertions-not-whole-cases, has-matcher-introspection, partial-guard-reads-as-complete, run-the-default-config, amends-mem-022]
 
 # Pruning rules
 pruning:
