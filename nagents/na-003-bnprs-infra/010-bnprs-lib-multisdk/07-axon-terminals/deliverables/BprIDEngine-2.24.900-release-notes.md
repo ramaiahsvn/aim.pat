@@ -11,12 +11,14 @@ functions, so adding a modality never changes the interface a host compiles agai
 ```
 include/bprid_abi.h          the ABI — the only header a host needs
 hosts/java/                  working Java integration + sample (see its README)
+verify-windows/              one-minute Windows self-test (see WINDOWS below)
 lean/<platform>/             the lean native
 t12/<platform>/              the face-T12 native
 t12/models/                  the three ONNX models T12 needs
 ```
 
-Platforms: `linux-x86-64`, `linux-aarch64`, `darwin-arm64`. Windows is not in this drop.
+Platforms: `linux-x86-64`, `linux-aarch64`, `darwin-arm64`, `windows-64`, `windows-32`.
+No `windows-arm64` — there is no aarch64 mingw toolchain on the build host.
 
 ## Two variants — pick one, never both
 
@@ -43,6 +45,57 @@ beside `libBprIDEngine.so`. They are identical for every platform, which is why 
 once here rather than duplicated per folder.
 
 The lean native has no models and no external dependencies at all.
+
+## WINDOWS
+
+The DLL is named **`libBprIDEngine.dll`** — the `lib` prefix is mingw's and matches the other
+libraries on this share. P/Invoke and `LoadLibrary` need that exact name, so either keep it or
+rename the file and the reference together.
+
+**Self-contained.** It imports nothing but `KERNEL32`, `VERSION` and the universal CRT
+(`api-ms-win-crt-*`), all of which ship with Windows. In particular it does **not** need
+`libstdc++-6.dll`, `libgcc_s_seh-1.dll` or `libwinpthread-1.dll` — those are statically linked in.
+Do not ship mingw runtime DLLs alongside it; if an older copy is on the path it will not be used.
+
+**Export surface differs slightly from ELF, in Windows' favour:**
+
+| | windows | linux |
+|---|---|---|
+| `BprID_*` | 20 | 21 |
+| `BprLicGeneration` / `BprLicVerification` | yes | no |
+| `BprID_LibraryNameImpl` | no (correct — internal) | yes (leaks) |
+| FJFX + STL symbols | no | yes (~22 leak) |
+
+Two of those are ELF bugs rather than Windows omissions: `BprID_LibraryNameImpl` is an internal
+helper behind `BprID_LibraryName` and should not be public anywhere, and the FJFX/STL symbols leak
+out of the `.so` because the shared target does not carry the hidden-visibility preset its static
+inputs do. Both are logged against na-004/007 and neither changes behaviour — but a caller writing
+against "whatever the library exports" rather than `bprid_abi.h` will see a different list per
+platform. Write against the header.
+
+**The T12 DLL additionally exports the five legacy BprFace entry points** — `Bpr_FaceRecog_T12_Init`,
+`_DeInit`, `_Image`, `_Template` and `Bpr_FaceQuality_T12_Image` — because `BPR_FACE_EXPORT` is
+`__declspec(dllexport)` on Windows and empty elsewhere. That is an accident of the macro, not a
+design decision, but it is useful: an existing Windows .NET caller can keep its current P/Invokes
+working while it migrates to `BprID_*`, rather than having to switch in one step. Treat them as
+deprecated — they are absent on every other platform and carry the old licence path.
+
+**Verification status — read before deploying T12.**
+
+*lean:* fully verified. Loads, reports `2.24.900`, the capability set is correct
+(T21/T33/T41/T51 present, T12 absent), and a bad licence is rejected.
+
+*t12:* verified for **load and ABI only** — it loads, resolves all 27 exports, accepts a licence
+and extracts a correct 528-byte template. Its **numeric results are NOT verified**: the only
+Windows environment available was wine under x86-64 emulation on Apple Silicon, where the OpenCV
+path returned quality `0.0` and a self-match of `0.0`. A self-match of 0.0 is impossible for a
+valid template, and wine raised an AVX-state assertion, so emulated SIMD is the likely cause — the
+Linux T12 build returns the correct `raw=25` under the same emulation without wine. That is an
+argument, not a measurement.
+
+**Run `verify-windows/` on a real Windows machine before trusting Windows face scores.** It takes a
+minute and prints the expected values to compare against. Until then, treat Windows T12 as
+unproven; Windows lean and every non-Windows platform are unaffected.
 
 ## Prefer the packages over these binaries
 
@@ -125,7 +178,11 @@ releases. Registry versions are immutable, so any fix ships as `2.24.901`.
 
 ## Known gaps
 
-- No Windows build in this drop.
+- **Windows T12 numerics are unverified** — see WINDOWS above and run `verify-windows/`.
+- No `windows-arm64` (no aarch64 mingw toolchain on the build host).
+- The Maven / NuGet / Go packages carry the Linux and macOS natives only. Adding Windows to them
+  means a new version, since published package versions are immutable — it would ship as 2.24.901.
+- The `.so` leaks ~30 non-ABI symbols (FJFX, STL, `BprID_LibraryNameImpl`) that the `.dll` does not.
 - Only T12 has a quality assessor; every other modality returns `NOT_IMPL` from `BprID_Quality`.
 - There is no T11 extractor — pat's capture device produces those; the engine only matches them.
 - Accuracy has been verified for self-match and format correctness, not against a labelled corpus.

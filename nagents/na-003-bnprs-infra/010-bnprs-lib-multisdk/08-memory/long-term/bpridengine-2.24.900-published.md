@@ -56,6 +56,37 @@ the build. Every call needs `runtime.KeepAlive` on the path and pixel slices —
 not know C holds those addresses, and without it you get a use-after-free that only appears under
 load. Both are invisible-at-review defects, so they are asserted, not commented.
 
+**WINDOWS added to the release share 2026-07-31** (`windows-64` + `windows-32`, both variants;
+no `windows-arm64` — no aarch64 mingw on this host). Cross-compiled with mingw-w64 + the prebuilt
+static OpenCV in `bpr.cpp/.deps/opencv-build/windows-{64,32}`. Needed four build fixes, all
+Windows-only (bpr.cpp `2aa3c62`); non-Windows output verified byte-identical after.
+
+**KEY LESSON — PE does not honour hidden visibility, and the toolchain makes it worse.** The
+`.dll` exported **363 symbols instead of 21**, including `BprLicense::patGlobalLicGenerator`, i.e.
+the licence generator. `bengine_harden()` only sets visibility presets, which ELF/Mach-O respect
+and PE ignores; `toolchains/toolchain_windows_64.cmake` additionally forces
+`-Wl,--export-all-symbols`. Fixed with a new `bengine_harden_shared()` applying
+`-Wl,--exclude-all-symbols -static $<$<CONFIG:Release>:-s>`. **Any new shared target here must
+call it** — visibility presets alone are not an export policy on Windows.
+
+Also: mingw declares `_isnan` itself, so `-D_isnan=isnan` rewrote mingw's own declaration and
+broke every Masek file (now non-Windows only); `-lversion` is needed for BprUtils; and `-static`
+is needed or the DLL imports three mingw runtime DLLs absent from stock Windows.
+
+**Windows export surface differs from ELF, in Windows' favour** — and this exposed two ELF bugs
+worth fixing separately: the `.so` leaks `BprID_LibraryNameImpl` (internal) plus ~22 FJFX/STL
+symbols that the `.dll` does not, because the *shared* target lacks the hidden-visibility preset
+its static inputs have. The Windows T12 DLL additionally exports the five legacy `Bpr_FaceRecog_T12_*`
+entry points, because `BPR_FACE_EXPORT` is `dllexport` on Windows and empty elsewhere — an accident
+of the macro, but useful for incremental .NET migration. Kept and documented, not removed.
+
+**Windows T12 numerics are UNVERIFIED.** wine (under x86-64 emulation on Apple Silicon) returned
+quality `0.0` and self-match `0.0` — impossible for a valid template — while raising an AVX-state
+assertion; extraction produced a correct 528-byte record. Linux T12 gives the right `raw=25` under
+the same emulation *without* wine, so emulated SIMD is the likely culprit, but that is an argument
+not a measurement. `verify-windows/` in the release folder is a one-minute self-test that settles
+it on real hardware. Windows lean IS fully verified.
+
 Auth per leg: see [[gitlab-publish-auth]] — the NuGet leg needs `PUT` **with** a trailing slash
 and HTTP Basic, and the advertised `PackagePublish` URL is wrong for uploads.
 
