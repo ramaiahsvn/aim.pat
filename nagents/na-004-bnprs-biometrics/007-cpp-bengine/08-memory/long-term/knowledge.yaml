@@ -1165,6 +1165,11 @@ memories:
       are in core precisely so a build compiling nothing else of T14/T15 still covers them; both
       ON 59; BUILD_ALL 106 and does NOT enable them; BUILD_ALL plus both 113. Proof gate 21
       symbols across all six libraries in every one.
+      [CORRECTION 2026-08-01 — "VERIFIED" ABOVE WAS NOT ENOUGH AND THIS ENTRY OVERSTATED IT.
+      Those 59 tests passed while libBprIDEngine registered NEITHER T14 NOR T15: the adapters
+      never reached the face registrar, so their registration blocks compiled out. Measured
+      before the fix: "0 templates, matchers: M11". Fixed in c72d7d6 alongside T13; a permanent
+      guard now exists. See mem-033 — it is the more important entry of the two.]
       NOT VERIFIED, AND MARKED ASSUMPTION IN THE HEADER — no checkpoint exists, so the NUMERICAL
       path is asserted from the ArcFace-family convention: landmark order into the alignment,
       (pixel-127.5)/127.5 with RGB order, and 512 dims. THE LIKELIEST ERROR IS YUNET'S LANDMARK
@@ -1185,6 +1190,118 @@ memories:
     confidence: 1.0
     source: "session-2026-08-01 (built and verified across four configurations; inference unverifiable without weights)"
     tags: [t14-t15-built, default-off-is-a-licensing-control, one-embedspec-two-registrations, no-facerecognizersf-needed, magface-magnitude-is-quality, unnormalised-templates, bfe1-variant-byte, m10007-m10008-claimed, specs-must-live-in-core, alignment-unverified, check-the-mirror-first, matching-needs-no-model, cc619b0]
+
+  - id: mem-032
+    type: infrastructure
+    content: >-
+      2026-08-01 T13 iFace (InspireFace) IS BUILT — DEFAULT-OFF (bpr.cpp c72d7d6). Modality 4A
+      now has adapters for ALL FIVE catalogued variants. Option BENGINE_BUILD_FACE_T13, which
+      additionally needs INSPIREFACE_ROOT (defaults to .deps/inspireface).
+      LICENSING — USER DECISION AFTER THE CONCERN WAS RAISED, RECORDED AS THEIRS. InspireFace
+      (github.com/HyperInspire/InspireFace) ships NO LICENCE FILE: I checked the whole tree — no
+      LICENSE, no COPYING, no SPDX headers, only a README line restricting the MODELS to academic
+      use. So this is WORSE than T14/T15, not the same: there the architectures are genuinely MIT
+      and Apache-2.0 with real licence files, so BNPRS can train its own weights and own them
+      outright (mem-030). Here NEITHER the SDK code NOR a pack carries a commercial grant and
+      there is NO self-help path. Commercial terms would come from InsightFace
+      (contact@insightface.ai) and must cover BOTH. Raised, the user directed the build anyway,
+      it is their call. Default-off, and configuring it prints a warning.
+      A CORRECTION I MADE MID-TASK AND SHOULD NOT HAVE NEEDED TO: I first told the user "the code
+      is MIT", having carried that across from a search result about INSIGHTFACE
+      (deepinsight/insightface, a different repo under a different org). InspireFace is
+      HyperInspire's and has no licence at all. Verify the LICENSE FILE IN THE ACTUAL REPO, not a
+      sibling project's terms — especially on the one point the decision turns on.
+      IT IS AN SDK, NOT A MODEL FILE, so it does NOT ride the EmbedSpec machinery that serves
+      T14/T15. Own session lifecycle, own detector and tracker, own image-stream type, own
+      comparison call; there is no ONNX to hand to cv::dnn. Forcing it into EmbedSpec would mean
+      an EmbedSpec mostly ignored. It shares ONLY the BFE1 blob, at variant 3 — so that variant
+      byte now separates THREE same-shaped float vectors rather than two, which is more value
+      than it looked like when written.
+      TWO SDK PROPERTIES THAT SHAPED THE ADAPTER, both worth knowing before touching it:
+      (1) HFLaunchInspireFace IS PROCESS-GLOBAL AND ONE-TIME — it loads the pack for the whole
+      process, not per session, so the adapter shares global state with anything else in the
+      process using InspireFace. Behind a std::once_flag, and teardown DELIBERATELY DOES NOT call
+      HFTerminateInspireFace: terminating a global the host may still be using is a worse bug
+      than leaking it, and this library cannot know who else is a client.
+      (2) FEATURE LENGTH IS A RUNTIME PROPERTY OF THE LOADED PACK (HFGetFeatureLength), not a
+      constant — Pikachu and Megatron need not agree. So two T13 templates from different packs
+      carry the SAME TID and are NOT comparable. The matcher refuses a dimension mismatch, which
+      catches the common case but CANNOT catch two packs that happen to share a dimension.
+      ONE PACK PER GALLERY.
+      MATCHING COMPUTES COSINE DIRECTLY rather than calling HFFaceComparison, which would need a
+      launched SDK and a loaded pack merely to take a dot product of two vectors already in hand.
+      That preserves the property T14/T15 have and it matters more here: matching needs no model,
+      so verifying against an existing gallery works where no pack was ever deployed — which,
+      given the licensing, is every machine that has not bought terms.
+      BUILT AS libIFace, via src/BprIDEngine/BprFace/scripts/build-inspireface.sh (committed
+      recipe, git-ignored .deps build tree — the pattern the build-*-selfcontained.sh scripts
+      beside it already established). The rename matches the taxonomy's "iFace" and is COSMETIC:
+      the script, the adapter header and the CMake all state plainly that libIFace IS
+      InspireFace, because with no licence file the provenance is worth more than the tidiness.
+      Two build notes: the bundled MNN needs -DCMAKE_POLICY_VERSION_MINIMUM=3.5 or CMake 4.x
+      refuses to configure it at all, and the target rename is injected by appending
+      set_target_properties(... OUTPUT_NAME IFace) to cpp/inspireface/CMakeLists.txt, idempotently.
+      VERIFIED: default 44 tests, T13 61, T14+T15 60, BUILD_ALL 107 (enabling NONE of T13/14/15),
+      everything-on 122. Proof gate 21 symbols across all six libraries throughout. With
+      everything on the library registers T13 T14 T15 T21 T31 T41 T51 T61 and matchers M11 M13
+      M14 M15 M41 M51 M61.
+      NOT VERIFIED: recognition. No pack is deployed, so detection and extraction are untested.
+      What IS tested is that a missing pack degrades to an error rather than a crash.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01 (user-directed despite the licence finding; built and verified against the real SDK)"
+    tags: [t13-built, all-five-face-variants, no-licence-file-at-all, no-self-help-path, user-decision, verify-the-repos-own-licence, sdk-not-a-model, global-launch-once, never-terminate-a-global, pack-determines-dimension, one-pack-per-gallery, libiface-is-inspireface, mnn-cmake-policy-floor, c72d7d6]
+
+  - id: mem-033
+    type: incident_learning
+    content: >-
+      2026-08-01 AN ADAPTER CAN BE BUILT, TESTED, CATALOGUED AND GATE-CLEAN WHILE THE SHIPPED
+      LIBRARY DOES NOT HAVE IT. T14/T15 went in on 2026-07-31 (cc619b0) and libBprIDEngine
+      registered NEITHER. Found the next day only because adding T13 made me check what the
+      library actually registers. Fixed in c72d7d6.
+      MEASURED, both sides:
+        pre-fix:   BprIDEngine registers 0 templates;   matchers: M11
+        post-fix:  BprIDEngine registers T14 T15;       matchers: M11 M14 M15
+      THE MECHANISM. Each variant target carries its BENGINE_HAVE_<X> define as PUBLIC, and that
+      define is how the modality's registrar decides which blocks to compile.
+      bprid_add_modality() links ONE adapter target into the registrar. The face aggregation
+      (bengine_face_all) had been written for T12 and ONLY T12, so with T14/T15 on and T12 off
+      the else-branch linked bare bengine_face, the defines never arrived, and the registration
+      blocks compiled out of face_reg.cpp.
+      FOUR GREEN SIGNALS, FEATURE ABSENT — this is the part to remember, because each of them
+      looks like verification and none of them is:
+        - the adapters COMPILED — they were built, just not linked to the registrar
+        - their UNIT TESTS PASSED — 59 of them, because they construct adapters DIRECTLY and
+          never go through the library's registry
+        - bengine-cli LISTED them — that prints the static CATALOGUE table, not the registry
+        - the PROOF GATE PASSED — it compares exported SYMBOLS, which do not change when a
+          registration compiles out; the ABI is generalized, so no symbol is per-algorithm
+      The one question none of them asks is WHAT DID THE LIBRARY REGISTER. That is now
+      tests/abi_registration_test.cpp: it links the real BprIDEngine, calls BprID_ListTemplates /
+      ListMatchers, and asserts every enabled adapter is present and nothing unexpected is. The
+      expected list is GENERATED BY CMAKE from the same option checks that enable the adapters,
+      so it cannot drift from the build.
+      VERIFIED THE GUARD BOTH WAYS, which is the only way to trust a regression test: it FAILS on
+      the pre-fix CMakeLists and PASSES on the fixed one. A guard only ever run against the fixed
+      code proves nothing.
+      STRUCTURAL FIX ALONGSIDE IT: the face variant list is now built as a CMake list
+      (_face_variants) with one append per option, so adding a variant is a single line and
+      cannot be half-done. The old shape — an if/else naming targets explicitly — was correct for
+      one variant and silently wrong for the second.
+      GENERAL FORM, applies well beyond this engine: WHEN A FEATURE IS ENABLED IN ONE PLACE AND
+      CONSUMED IN ANOTHER THROUGH A LINK-PROPAGATED DEFINE, the two can disagree silently and
+      every local signal will still be green. Assert the END STATE — ask the artefact what it
+      contains — not the inputs. Compare with the same day's other near-miss: renaming a CMake
+      option silently dropped two test files and the suite went green at 80/80 instead of 99
+      (mem-027). Same shape: a build-system change, no failure, less coverage than before.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01 (measured pre- and post-fix; guard verified against the actual defect)"
+    tags: [registered-is-not-built, four-green-signals-feature-absent, link-propagated-defines, unit-tests-bypass-the-registry, catalogue-is-not-the-registry, proof-gate-checks-symbols-not-behaviour, abi-registration-guard, verify-a-guard-both-ways, assert-the-end-state, cmake-list-not-if-else, c72d7d6]
 
 # Pruning rules
 pruning:

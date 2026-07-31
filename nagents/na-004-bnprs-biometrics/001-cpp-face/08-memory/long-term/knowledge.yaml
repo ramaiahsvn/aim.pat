@@ -328,6 +328,43 @@ memories:
     source: "session-2026-08-01"
     tags: [t14-t15-adapted, four-of-five-variants, default-off-licensing, keep-off-for-releases, sface-t12-untouched, bprmodelpath-only-dependency, m10007-m10008-reserved, second-quality-assessor, scores-unverified, check-the-mirror, cc619b0]
 
+  - id: mem-011
+    type: infrastructure
+    content: >-
+      2026-08-01 ALL FIVE VARIANTS OF THIS MODALITY NOW HAVE ADAPTERS (bpr.cpp c72d7d6). T13
+      iFace (InspireFace) joined M11, T12/M12 and T14/T15. Engine detail in na-004/007 mem-032;
+      the failure worth reading is mem-033.
+      AND MY mem-010 WAS WRONG ABOUT T14/T15. It said they were built and verified. They were
+      built, and libBprFace/libBprIDEngine REGISTERED NEITHER of them — the adapters never
+      reached the face registrar, so their blocks compiled out. Measured pre-fix: "0 templates,
+      matchers: M11". Their 59 passing tests construct adapters DIRECTLY and never cross the
+      library's registry, so nothing noticed. Fixed in the same commit as T13, with a permanent
+      guard (tests/abi_registration_test.cpp) that asks the shipped library what it registered.
+      IF YOU EVER ADD A SIXTH FACE VARIANT, that guard and the _face_variants list in
+      bengine/CMakeLists.txt are the two places that must both know about it. One registrar
+      serves modality 4A, and a variant missing from its link list is invisible in a way four
+      separate green signals will not show you.
+      T13 IS AN SDK, NOT A MODEL FILE — the InspireFace C API, its own session and detector, no
+      ONNX. It touches this module for nothing but header-only BprModelPath.h, so sFace_t12
+      remains untouched by all of T13/T14/T15.
+      LICENSING IS WORSE THAN T14/T15's AND HAS NO ESCAPE. AdaFace and MagFace are MIT and
+      Apache-2.0, so BNPRS can train its own weights and own them. InspireFace ships NO LICENCE
+      FILE AT ALL and its packs are academic-only — neither the SDK nor a pack carries a
+      commercial grant, and there is nothing to train your way out of. The user directed the
+      build knowing this; it is recorded as their decision. FOR A BprFace RELEASE: T13, T14 and
+      T15 ALL STAY OFF unless terms exist. All three are default-off and BUILD_ALL enables none
+      of them, so the default is safe — but do not turn them on for anything shipped.
+      libIFace IS InspireFace, renamed to match the taxonomy by
+      src/BprIDEngine/BprFace/scripts/build-inspireface.sh. Cosmetic only; the provenance is
+      stated in the script, the adapter header and the CMake, deliberately, because there is no
+      licence file to point at.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [t13-adapted, all-five-variants, corrects-mem-010, t14-t15-were-unregistered, registration-guard, add-a-variant-touches-two-places, sdk-not-a-model, no-licence-file, keep-all-three-off-for-releases, libiface-is-inspireface, c72d7d6]
+
 # Pruning rules
 pruning:
   max_entries: 500
