@@ -7,9 +7,10 @@ task:
   id: "task-001"
   subject: "Make bpr_iris_masek_matching and bpr_iris_feature_extraction_masek actually work"
   description: >-
-    Both public entry points of BprIris are non-functional, and both are compiled into the
-    shipped root BprIris library (bpr_iris_src.cmake globs iris_template_matching.cpp and
-    iris_template_creation.cpp). Verified in source 2026-07-31, unchanged.
+    Both public entry points of BprIris are non-functional. Verified in source 2026-07-31,
+    unchanged. They are listed in bpr_iris_src.cmake so they are compiled into the root BprIris
+    library — though see linkage_check_2026_07_31: that library cannot actually be BUILT for
+    Windows or Linux, and nothing calls these wrappers on any platform.
 
     THE MATCHER IS A STUB THAT REPORTS SUCCESS. src/BprIDEngine/BprIris/iris_template_matching.cpp:
 
@@ -38,15 +39,16 @@ task:
     WHAT IS NOT AFFECTED: bengine's T51/M51 adapter (src/adapters/iris_masek.cpp) calls
     Masek::createiristemplate and gethammingdistance DIRECTLY and does not go through these
     wrappers. So BprIDEngine.so / BprIris.so via the generalized ABI are fine, and the proof
-    gate passing says nothing about this. The defect is confined to the legacy root-build path —
-    which is still the path the existing DLL consumers use.
+    gate passing says nothing about this. The defect is confined to the legacy root-build path,
+    which — per linkage_check_2026_07_31 — turns out to have NO consumers and to be unbuildable
+    on Windows and Linux anyway.
 
     DECIDE FIRST, THEN IMPLEMENT. The signature question is the crux: bpr_iris_feature_extraction_masek
     takes (const char* eyeimage_filename, int algType) and returns int, with no out-parameter.
-    Either it gains one (breaking existing callers) or these wrappers are declared dead and
-    REMOVED in favour of the bengine ABI. Removing them may well be the right answer now that
-    T51/M51 work — but that is na-004/007's and na-002's call, not a unilateral one, because
-    something outside this repo may link them.
+    Either it gains one or these wrappers are declared dead and REMOVED in favour of the
+    bengine ABI. The linkage check found NO caller anywhere, in this repo or on GitLab, so
+    removal is the recommended answer — but it is still a shipped-API removal and therefore
+    na-004/007's and na-002's call, not a unilateral one.
 
   status: pending
   priority: high
@@ -54,14 +56,66 @@ task:
   assigned_to: null
   blocked_by: []
   blocks: []
-  estimated_steps: 6
-  tags: [iris, t51, m51, stub, ships-broken, silent-success, memory-leak, signature-decision, t52-m52-unimplemented]
+  estimated_steps: 4
+  tags: [iris, t51, m51, stub, no-consumers, windows-linux-build-broken, silent-success, memory-leak, signature-decision, t52-m52-unimplemented]
 
   first_step: >-
-    Establish whether anything outside bpr.cpp links bpr_iris_masek_matching or
-    bpr_iris_feature_extraction_masek. If nothing does, deleting both wrappers and pointing
-    callers at the bengine ABI is cheaper and safer than fixing them. Ask na-004/007 and
-    na-003/010 (bnprs-lib-multisdk wraps these natives).
+    DONE 2026-07-31 — see linkage_check_2026_07_31. Result: NOTHING links these wrappers.
+    The remaining decision is whether to delete them, which is a shipped-API removal and needs
+    na-004/007 + na-002 rather than being taken here.
+
+  linkage_check_2026_07_31: >-
+    NOTHING ANYWHERE LINKS EITHER WRAPPER. Four independent checks:
+
+      1. In bpr.cpp — no callers. The only mentions outside their own two .cpp files are
+         COMMENTS in bengine/include/bengine/adapters/iris_masek.hpp explaining why the adapter
+         avoids them.
+      2. The export glue does not expose them. cli/BprIDEngine/BprIris/BprIdIris_dll_exports.cpp
+         includes iris_template_creation.h and iris_template_matching.h but exports only
+         BprLicGeneration, BprLicVerification and bpr_iris_get_version, and calls neither
+         wrapper.
+      3. No other local repo. Searched all of ~/BPR/GitRepos1 and GitRepos2 for the symbol
+         names and for "BprIris" generally — zero hits outside bpr.cpp.
+      4. Nothing on GitLab. 54 candidate projects (all non-agent repos matching sbioids,
+         patpos, bnprs-libs, bpass, bnet, ibecs, misc, cperso, utms.api) searched via the
+         per-project blob API for bpr_iris / BprIris / IrisMasek — zero hits. Note the
+         instance-wide blob search is unavailable (Elasticsearch not enabled), so this is
+         "every plausible consumer" rather than literally every repo.
+
+    A BIGGER DEFECT SURFACED WHILE CHECKING, and it changes the framing of this task. The
+    Windows/Linux BprIris target CANNOT BUILD, and has not been able to for some time:
+
+      CMakeLists.txt:135 — the DLL_Windows / SO_Linux branch builds BprIris from
+      ${BPR_IRISV_SOURCES}, the VASIR sources. Only the SO_Android branch (line 137) uses
+      ${BPR_IRISM_SOURCES}, the Masek ones.
+
+    Two consequences, both verified:
+      - It does not compile. VasirAlgo/ImageUtility.h includes "Masek.h", which is not on the
+        include path for that configuration. Confirmed by building: fatal error, Masek.h not
+        found.
+      - Even compiled it would not link. BPR_IRISV_SOURCES lists iris_template_creation.cpp,
+        iris_template_matching.cpp and VasirAlgo/*.cpp — no MasekAlgo/*.cpp — while
+        iris_template_creation.cpp constructs a Masek and calls createiristemplate. Undefined
+        symbol.
+
+    SO THE "IT SHIPS BROKEN" FRAMING NEEDS QUALIFYING. The stub matcher is real, but it cannot
+    be reaching anyone through a Windows or Linux BprIris built from this tree, because no such
+    library can be produced. Only the Android path builds Masek, and nothing calls the wrappers
+    there either. Any BprIris binary in the field is old and predates the current tree.
+
+    RECOMMENDATION: delete both wrappers and their headers rather than fix them. Fixing means
+    changing bpr_iris_feature_extraction_masek's signature (it has nowhere to return a
+    template), and there is no caller to justify it. The working iris path is bengine's T51/M51,
+    which calls Masek directly and is in the proof gate.
+
+    BUT NOTE WHAT DELETION LEAVES BEHIND: BprIris would then export only BprLicGeneration,
+    BprLicVerification and bpr_iris_get_version — a library with no iris functionality at all.
+    That is arguably honest (the functionality lives in bengine now) but it is a shipped-API
+    removal, so it is na-004/007's and na-002's call, not this agent's.
+
+    SEPARATE TASK NEEDED either way: the Windows/Linux branch pointing at Vasir. Whoever fixes
+    it must decide whether that branch should use Masek (matching Android), build both, or
+    whether the legacy BprIris target should be retired in favour of bengine's BprIris.
 
   references:
     matcher_stub: "bpr.cpp src/BprIDEngine/BprIris/iris_template_matching.cpp:13"
