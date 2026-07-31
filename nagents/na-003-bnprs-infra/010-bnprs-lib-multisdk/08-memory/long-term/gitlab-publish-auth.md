@@ -47,10 +47,15 @@ tracked). All `read_package_registry` only, on group 118:
 | 3 | `bnprs-libs-ro-charan` | Charan | none |
 | 4 | `bnprs-libs-ro-harani` | Harani (uTMS smartpresence) | **2027-07-31** |
 
-Token 4 is the first with an **expiry** — builds depending on it break on that date with a 401
+Token 4 is the first with an **expiry** — builds depending on it break on 2027-07-31 with a 401
 that will look exactly like a misconfiguration. Verified on issue: `Deploy-Token` header and
 Basic `username:token` both 200; it cannot read the git repo (401), so package scope is genuinely
-enforced. Re-mint per person rather than sharing one token — revoking one then does not break
+enforced.
+
+**Token 4 was subsequently circulated to `team.dev@bnprs.in`** (2026-07-31), so despite its name it
+is now a TEAM credential, not Harani's. Two consequences: revoking it breaks the whole dev team,
+and its name no longer describes who holds it. Rename or replace with a `bnprs-libs-ro-team` token
+when convenient. General rule otherwise: mint per person, so one revocation does not break
 everyone.
 
 **NuGet has TWO traps, not one** (second one found publishing BprIDEngine 2.24.900, 2026-07-31).
