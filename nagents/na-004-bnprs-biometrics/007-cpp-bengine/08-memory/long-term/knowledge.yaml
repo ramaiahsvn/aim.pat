@@ -821,8 +821,10 @@ memories:
       engine.hpp updated to say "SDKs and published models" rather than "SDKs".
       AdaFace's -CCTV suffix reads as a low-quality/surveillance-imagery variant, which fits
       AdaFace's quality-adaptive margin; MagFace embeds quality in the embedding MAGNITUDE, which
-      is a natural fit for a quality assessor keyed on TID (quality.hpp). Neither is confirmed —
-      ASK THE USER which weights are intended before writing either adapter.
+      is a natural fit for a quality assessor keyed on TID (quality.hpp).
+      [RESOLVED 2026-07-31 — the weights question is answered, see mem-030: no such weights exist
+      in the repo, the public ones are research-licensed, and the user's decision is to use them
+      through the TESTING phase and train BNPRS-owned weights before go-live.]
       FILES TOUCHED (bpr.cpp, uncommitted at time of writing): bengine/src/catalogue.cpp (the
       source of truth), capi/bprid_abi.h comments, README.md taxonomy table + two vendor lists,
       include/bengine/{catalogue,engine,quality}.hpp comments. catalogue_test.cpp needed NO edit —
@@ -1057,6 +1059,61 @@ memories:
     confidence: 1.0
     source: "session-2026-07-31 (measured on mingw x86_64 builds; paused mid-task by the user)"
     tags: [export-leak, paused, stash-0, my-library-exports-guard, exclude-all-symbols, licbase-and-finger-correct, bpricba-zero-exports, declarations-not-definitions, per-library-audit-not-flag-swap, objdump-parsing-gotcha, supersedes-mem-013-numbers]
+
+  - id: mem-030
+    type: project_context
+    content: >-
+      2026-07-31 T14/T15 WEIGHTS — USER DECISION: public research checkpoints during TESTING,
+      BNPRS-trained weights before GO-LIVE. Do not treat the research weights as shippable.
+      WHAT IS ACTUALLY FREE, and it is the important half: the ARCHITECTURES AND LOSSES ARE
+      PERMISSIVELY LICENSED — AdaFace (mk-minchul/AdaFace, CVPR 2022) is MIT, MagFace
+      (IrvingMeng/MagFace, CVPR 2021) is Apache-2.0. IR-50/IR-101 backbones, the quality-adaptive
+      margin and the magnitude-aware margin can all be used commercially. A checkpoint BNPRS
+      trains itself is unencumbered. The restriction is on the PUBLISHED WEIGHTS, not the method.
+      WHY THE PUBLISHED WEIGHTS CANNOT SHIP — every checkpoint checked is trained on a
+      research-only dataset, and the permissive REPO licence does not override the DATASET terms:
+        MagFace flagship (iResNet100, magface_epoch_00025.pth, 283 MB) -> MS1MV2, a derivative of
+          MS-Celeb-1M, which Microsoft withdrew in June 2019; original licence is non-commercial
+          research only. Still mirrored, which changes nothing about the terms. Note the known
+          pattern that redistributed pretrained models usually DROP that designation (only 3 of
+          21 repos carried it forward — arXiv 2108.02922), so "it was on GitHub" is not evidence.
+        AdaFace strongest (IR-101 WebFace4M/12M) -> WebFace260M, whose agreement says academic
+          research only, no commercial purposes, signed agreement by email, no redistribution.
+        AdaFace others (MS1MV2, MS1MV3) -> same MS-Celeb problem. CASIA-WebFace and VGGFace2
+          NOT VERIFIED — treat as unchecked, not cleared.
+      SYNTHETIC IS NOT THE EASY WAY OUT, checked because it looks like one: DigiFace-1M's dataset
+      is non-commercial (though its 3DMM RENDERING PIPELINE may be used commercially — that crack
+      is the useful part), and DCFace depends on an FFHQ-derived generator while FFHQ explicitly
+      bans face-recognition use. Clean data routes are BNPRS's own consented enrolment data,
+      self-rendered synthetic, or a procured commercial set.
+      CONSENT SCOPE IS A REAL GATE ON ROUTE ONE, not a formality: training is a DIFFERENT PURPOSE
+      from verification, so enrolment data gathered for authentication does not automatically
+      carry training rights under GDPR Art 9 / India DPDP. That is na-002-bnprs-core and
+      na-003/008 bnprs-grc to answer, and far cheaper answered before a training run than after.
+      HOW TO KEEP THE DECISION HONEST — reuse the FJFX precedent (mem-017 / B7), where the LGPL
+      question was contained by making it a build flag rather than decided: gate the research
+      weights behind an opt-in option that is OFF by default, so a RELEASE BUILD CANNOT PICK THEM
+      UP and the swap surfaces when someone tries to ship instead of being remembered. "Replace
+      before go-live" as an intention will not survive; as a default-off flag it will.
+      SEQUENCING RECOMMENDED, not yet actioned: before any training spend, have na-004/012
+      rnd-evaluations measure the public AdaFace/MagFace checkpoints against the incumbent T12
+      SFace on BNPRS's own CCTV-grade imagery. Research licences permit that evaluation, it costs
+      about a day, and it answers whether the quality-adaptive margin actually beats what already
+      ships. If it does not, the licensing and training questions both disappear for free.
+      COMPUTE, rough and needing proper sizing: IR-101 over a few million images is single-digit
+      GPU-days to a couple of GPU-weeks multi-GPU — roughly a week on an AWS p4d/g5-class
+      instance in ap-south-2 or us-east-2. Not the blocker; data rights are.
+      NO WEIGHTS EXIST IN-REPO. bpr.cpp/.models holds m10001 detect(YuNet) / m10002 recog(SFace,
+      the T12 model) / m10003 quality / m10004 detect / m10005(+_) smoke / m10006 fight, plus the
+      72 MB bpr.model.onnx blob. All six are accounted for by existing code; nothing is AdaFace or
+      MagFace. The "-CCTV" in the user's T14 name is not a public AdaFace release name and remains
+      unexplained — possibly an intended in-house fine-tune.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (licences verified against upstream repos and dataset terms; user decision)"
+    tags: [t14-t15-weights, user-decision, research-weights-testing-only, not-shippable, architecture-is-mit-apache, dataset-terms-override-repo-licence, ms-celeb-withdrawn, webface260m-noncommercial, synthetic-not-a-loophole, consent-scope-gdpr-dpdp, gate-with-a-default-off-flag, evaluate-before-training, no-weights-in-repo]
 
 # Pruning rules
 pruning:
