@@ -248,6 +248,30 @@ memories:
     source: "session-2026-07-31"
     tags: [lazy-init-required, registrar-runs-at-load, static-init-abort, opencv-libs-is-not-a-list, name-your-modules]
 
+  - id: mem-009
+    type: process_note
+    content: >-
+      2026-07-31 OPEN DECISION FOR THIS AGENT — BprFace DISCARDS THE CALLER'S LICENCE CODE.
+      BprSFace.h: `static bool Pat_is_valid_license(const char* /*qiCode*/, int /*qiCodeSize*/)`
+      ignores both arguments and validates a hardcoded "C884C92A9295C92F" with an empty product
+      code. Every BprFace entry point (Bpr_FaceRecog_T12_Init, Bpr_FaceDetect_T12_Init,
+      Bpr_SmokeDetect_*, Bpr_FightDetect_*) therefore accepts a licence from the caller and
+      checks a compiled-in constant instead. In effect it is an expiry date baked into the build,
+      not per-customer licensing.
+      The user's instruction on 2026-07-31 was explicit that the caller's qiCode must NOT be
+      discarded, and the new BprIDEngine ABI gate honours that (na-004/007 mem-022). This one was
+      NOT changed, on purpose: it is a BEHAVIOURAL change to a SHIPPED library — any existing
+      caller passing a placeholder qiCode works today and would start failing — so it needs a
+      deliberate decision and a rollout, not a quiet edit.
+      If it is fixed: pass qiCode through to BprLicense::patIsValidLicense, and decide whether to
+      also enforce a product code (currently empty, so any valid licence for any product passes).
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [open-decision, licence-gate-is-theatre, hardcoded-licence, shipped-library-behaviour-change, needs-rollout]
+
 # Pruning rules
 pruning:
   max_entries: 500

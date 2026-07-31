@@ -678,6 +678,45 @@ memories:
     source: "session-2026-07-31"
     tags: [engine-wide-rule, lazy-init, registrar-constructs-at-load, static-init-abort, package-libs-variables, pre-test-discovery]
 
+  - id: mem-022
+    type: infrastructure
+    content: >-
+      2026-07-31 THE ABI IS LICENCE-GATED — BprID_Extract, BprID_Match and BprID_Fuse return
+      BPRID_ERR_LICENSE (-8) until BprID_SetLicense(qiCode, len) accepts a code (bpr.cpp
+      38d9b7e). Fail-closed, no implicit default, no build that skips it. 19 exported symbols
+      now (was 17): SetLicense and HasLicense.
+      WHAT IS NOT GATED, and this was a deliberate call: BprID_Version, BprID_LibraryName,
+      BprID_StatusName and the entire introspection set. A host must be able to identify the
+      library and render an error string BEFORE it is licensed — gating BprID_StatusName would
+      make a licence failure literally unreportable. HasLicense is ungated for the same reason.
+      THE CALLER'S CODE IS THE ONE VALIDATED. Worth knowing because the LEGACY PATH DOES NOT DO
+      THIS: BprSFace.h's BprLicBase::Pat_is_valid_license takes a qiCode and DISCARDS it,
+      validating a compiled-in "C884C92A9295C92F" with an empty product code. So every BprFace
+      entry point today accepts a licence and checks a constant — an expiry date baked into the
+      build, not per-customer licensing. Fixing that is a BEHAVIOURAL change to a shipped library
+      (callers passing placeholders would start failing) and was left alone; flagged, not done.
+      RE-VALIDATED ON EVERY CALL, not cached. A cached verdict means a licence expiring
+      mid-process keeps working until restart. The check is a u64 decrypt plus a date compare —
+      nothing beside an extraction.
+      Three details that are easy to get wrong and are already right: validate BEFORE storing so
+      a bad code cannot displace a good one; check the licence BEFORE argument validation so an
+      unlicensed caller cannot probe accepted ids and buffer sizes from error codes; product code
+      left EMPTY to match BprLicVerification so existing licences keep working (setting a
+      four-char code would make BprIDEngine licences distinct but needs them reissued).
+      NOT A SECURITY BOUNDARY and the header says so — the check runs inside the library the
+      holder has, BprCrypt is symmetric, and -Wl,--export-all-symbols makes patIsValidLicense
+      externally callable on Windows. Commercial control, not protection.
+      TESTED in its own executable (bengine_abi_license_tests) linking the real BprIDEngine,
+      because bengine_tests uses the C++ engine and never crosses the ABI where the gate lives.
+      Negative paths asserted unconditionally; the positive path SKIPS if the test licence has
+      expired, since that is not a defect in the gate.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [abi-licence-gate, fail-closed, callers-code-not-discarded, introspection-ungated, revalidate-not-cache, 19-symbols, legacy-bprface-discards-qicode, 38d9b7e]
+
 # Pruning rules
 pruning:
   max_entries: 500
