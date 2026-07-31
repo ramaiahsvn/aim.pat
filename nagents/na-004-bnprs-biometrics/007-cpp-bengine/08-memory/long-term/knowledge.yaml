@@ -954,16 +954,54 @@ memories:
       the dangerous shape: nothing fails, coverage just leaves. RULE — after renaming a CMake
       option, grep the whole tree for it (it is referenced from files that do not declare it) and
       CHECK THE TEST COUNT AGAINST THE PREVIOUS RUN, not just the pass rate.
-      PROOF-GATE GOTCHA worth knowing before the next rename: proof_gate.sh globs libBpr*.dylib
-      in the build directory, so a renamed library leaves its OLD artefact behind and the gate
-      fails against a file no build produces any more. A stale libBprFingerKnuckle.dylib from
-      2026-07-30 did exactly that. Build renames in a FRESH directory, or delete the old artefact.
+      PROOF-GATE GOTCHA that this exposed — NOW FIXED, see mem-028: the gate globbed libBpr*.dylib
+      out of the build directory, so a renamed library left its OLD artefact behind and the gate
+      failed against a file no build produces any more. A stale libBprFingerKnuckle.dylib from
+      2026-07-30 did exactly that and looked like ABI drift.
     created_at: "2026-07-31"
     last_accessed: "2026-07-31"
     access_count: 1
     confidence: 1.0
     source: "session-2026-07-31 (user-directed, verified by fresh build + proof gate)"
     tags: [knuckle-owns-4f, ids-retired-not-aliased, no-non-pairing-ids-left, tree-matches-taxonomy, 4f-not-a-placeholder, modality-slot-vs-algorithm-naming, cmake-option-rename-is-tree-wide, test-count-not-just-pass-rate, proof-gate-stale-artefact, bb05f24]
+
+  - id: mem-028
+    type: infrastructure
+    content: >-
+      2026-07-31 THE PROOF GATE NO LONGER GLOBS — it checks a CMake-generated manifest
+      (bpr.cpp d9b385e). Fixes the trap mem-027 hit: `for lib in $BUILD/libBpr*.dylib` cannot
+      tell a live library from an artefact a rename left behind, so a stale
+      libBprFingerKnuckle.dylib produced a symbol diff against a file no build emits any more —
+      which presents as ABI drift, the most alarming thing this gate can say.
+      HOW: bprid_add_modality() already appended to two global properties; it now also appends
+      Bpr<Name> to BPRID_MODALITY_LIBS, and after the BprIDEngine target a file(GENERATE) writes
+      <build>/bprid_modalities.txt. The expected set therefore comes from THE SAME PLACE THE
+      TARGETS ARE CREATED and cannot disagree with them, and it regenerates on configure so
+      switching a modality off removes it rather than leaving a phantom.
+      THREE OUTCOMES NOW, and the third is the point:
+        PASS   symbols identical to BprIDEngine
+        FAIL   real drift — or a manifest entry whose library was not built (incomplete build)
+        STALE  a libBpr* this configuration does not define: named, NOT compared, reported with
+               the exact `rm` that fixes it
+      STALE still exits NON-ZERO. A dirty build directory hides things and should be cleaned —
+      what changed is the diagnosis, not the severity. That distinction is the whole value: the
+      old gate was not wrong, it was unreadable.
+      TESTED AGAINST ALL FIVE PATHS rather than just the happy one, which is why I trust it:
+      clean (exit 0); planted stale artefact (flagged even though I made its ABI IDENTICAL by
+      copying a live library — being a non-target is the criterion, not the symbols); manifest
+      entry with no file; genuine drift via a substituted one-symbol dylib, which still prints
+      the full diff; and core-only, where the manifest is empty and it exits 2 with "nothing to
+      compare". Suite unaffected at 99/99.
+      GENERAL SHAPE WORTH REUSING: when a check discovers its own inputs by globbing a build
+      directory, it inherits every stale file in there. Have the build system declare what it
+      produced and check against that — the declaration is free, comes from the authoritative
+      place, and converts a confusing failure into a specific one.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (five cases exercised explicitly)"
+    tags: [proof-gate-hardened, manifest-not-glob, bprid-modalities-txt, stale-vs-drift, test-the-failure-paths, dont-glob-build-dirs, d9b385e]
 
 # Pruning rules
 pruning:
