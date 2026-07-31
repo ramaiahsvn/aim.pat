@@ -22,6 +22,16 @@ enrol faces should not pay 120× the size.
 Go tags: `go/bpridengine/v2.24.900`, `go/bpridengine-face/v2.24.900` (commit e30b2c3 on `master`).
 Staging tree: `bpr.cpp/build/bnprs-wrappers/BprIDEngine/v2.24.900{,-t12}/{maven,nuget,go}`.
 
+**Also dropped to the release share** (2026-07-31), for C/C++ hosts and anyone deploying without a
+package manager: `Z_RELEASE/_Shared_Libraries/BprIDEngine/v2.24.900/` — 84 MB, following the
+newest sibling convention (`BprIPersoAgent/v2.59.0`): `RELEASE-NOTES.md`, `SHA256SUMS.txt`,
+`include/bprid_abi.h`, `hosts/java/`, and `lean/` + `t12/` each with three platform folders.
+The T12 models are stored ONCE at `t12/models/` rather than duplicated per platform — they are
+platform-independent, and the notes tell the integrator to copy them beside the native.
+Verified by dlopen from that exact layout: `raw=25`, same as every other path. The lean native
+with NO models present loads fine and reports T12 `not-present` — proof the T12 adapter is lazy,
+which is what stops a missing model from taking down the other five modalities.
+
 **Version scheme — 900 is deliberate.** `BPR_IDENGINE_VER_PATCH 900`; the 6xx–8xx band is left
 free for per-modality releases. 2.24.900 is now burnt: GitLab package versions are immutable, so
 any fix ships as .901.
