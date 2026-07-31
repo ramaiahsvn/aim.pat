@@ -617,6 +617,40 @@ memories:
     source: "session-2026-07-31"
     tags: [common-handgeometry, shared-layer, refactor-existing-consumer-first, own-cmake-target, shared-defaults-coupled, mode-not-new-tid, fingercless-still-missing, 39a0443]
 
+  - id: mem-020
+    type: infrastructure
+    content: >-
+      2026-07-31 ALL SIX MODALITIES ARE IN THE PROOF GATE (bpr.cpp 8ad5be2). BprFace, BprFinger,
+      BprFingerCless, BprFingerKnuckle, BprIris, BprPalmprint — 17 identical BprID_* symbols
+      each, 98 tests. The consolidated architecture is complete in the sense it set out to be.
+      FACE GOT IN WITHOUT THE OPENCV DECISION, which had blocked it since the start. The question
+      "does BprIDEngine take OpenCV" only covers HALF of modality 4A: T12/M12 are the OpenCV pair
+      (cv::FaceRecognizerSF, YuNet), but M11 sFace(pat-cosine) is
+      BprUtils::computeCosineSimilarity_t11 — plain C++ in AprCommon. It went in at zero
+      dependency cost and libBprFace links no OpenCV.
+      THE LESSON WORTH KEEPING: when a task is blocked on a dependency decision, check whether
+      EVERY part of it needs the dependency. A modality is not atomic — the registry is keyed on
+      TemplateId/MatcherId separately precisely so half of one can land.
+      WHAT "SIX MODALITIES" DOES NOT MEAN, and the README now says so: six MODALITIES, not six
+      complete pipelines. Face contributes a matcher with no extractor; finger an extractor with
+      no matcher (M21 still unimplemented). Of 15 catalogued templates and 14 matchers most are
+      unimplemented — the vendor ones need SDKs that are not here, T12/M12 need the OpenCV
+      decision, and T32 has no matcher at all.
+      BUILD CHANGE TO KNOW ABOUT: AprCommon/BprUtils is now its own static target,
+      bengine_aprutils. It used to be compiled into bprid_common; the face adapter needs it too,
+      and two copies inside one shared library is a duplicate-symbol failure. bprid_common LINKS
+      it now. Because bprid_common is an OBJECT library, $<TARGET_OBJECTS:> pulls its objects but
+      NOT its link dependencies — so every Bpr<Name> and BprIDEngine must link bengine_aprutils
+      explicitly. That bit me: BprLicense calls into BprUtils and every per-modality library
+      failed to link until the explicit dependency was added. Remember it for the next shared
+      static.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [all-six-in-gate, m11-no-opencv, modality-is-not-atomic, bengine-aprutils, object-lib-does-not-propagate-links, 98-tests, 8ad5be2]
+
 # Pruning rules
 pruning:
   max_entries: 500

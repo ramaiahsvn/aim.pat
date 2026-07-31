@@ -1,6 +1,6 @@
 # BprIDEngine — unified library architecture
 
-**Status:** **B1–B7 ALL CLEARED** · gate PASSES on 5 of 6 modalities · 2026-07-30
+**Status:** **B1–B7 ALL CLEARED** · gate PASSES on **all 6 modalities** (17 symbols each, 98 tests) · 2026-07-31
 **Owner:** na-004/007 `cpp-bengine` (engine, ABI contract, build integration)
 **Affects:** na-004/001–006 — every modality agent
 

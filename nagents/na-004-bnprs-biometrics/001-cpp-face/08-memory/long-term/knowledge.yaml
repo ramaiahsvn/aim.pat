@@ -132,6 +132,65 @@ memories:
     source: "session-2026-07-30"
     tags: [b1-cleared, glue-edited, license-moved-to-common, bprlicgeneration-semantics-changed, proof-gate]
 
+  - id: mem-005
+    type: infrastructure
+    content: >-
+      2026-07-31 M11 IS IN THE CONSOLIDATED ENGINE — BprFace is in the proof gate and it cost NO
+      OpenCV (bpr.cpp 8ad5be2). All six modalities now export the identical 17-symbol BprID_*
+      ABI; 98 tests.
+      THE INSIGHT THAT UNBLOCKED IT: "does BprIDEngine take OpenCV" only covers HALF of modality
+      4A. T12 sFace(opencv) / M12 Yunet+sFace are the OpenCV pair. M11 sFace(pat-cosine) is
+      BprUtils::computeCosineSimilarity_t11 — plain C++ in AprCommon, decode two float arrays
+      and take the cosine. It went in at zero dependency cost. libBprFace.dylib links no OpenCV
+      (otool -L clean, 706 KB). If a blocked task is blocked on a dependency decision, check
+      whether EVERY part of it actually needs the dependency.
+      A MATCHER WITH NO EXTRACTOR, on purpose. NOTHING IN bpr.cpp PRODUCES A T11 — pat's model
+      does, on the capture device; the only T11 code here is the comparator. So bengine can
+      verify a face against a gallery template but cannot create one. Mirror of BprFinger's T21
+      (extractor, no matcher). orphan_templates() reports T11 as extractor-less and that should
+      STAY visible.
+      T11 WIRE FORMAT, fixed by the BprUtils decoder and not ours to change: ASCII, 8 chars per
+      element, char 0 is the sign ('1' = negative), chars 1-7 the magnitude as 7 decimal digits.
+      Magnitudes are INTEGERS — no fractional part — so the producer's scaling is baked in and
+      both sides of a comparison must come from the same producer. Cosine ignores magnitude,
+      which is what makes that survivable.
+      Score mapping: the negative half of the cosine CLAMPS to 0 in normalized rather than being
+      rescaled to [0,1] — rescaling would push every unrelated pair to ~0.5 and make the number
+      harder to threshold against BprFace's own 0.363 — but raw keeps the sign. Verified through
+      the C ABI: impostor normalized 0.0000, raw -6914.
+      STILL OPEN: T12/M12, which is the OpenCV decision, now scoped to EXTRACTION only rather
+      than to whether face is in the engine.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31 (verified through the C ABI)"
+    tags: [m11-done, no-opencv, all-six-in-gate, matcher-without-extractor, t11-wire-format, clamp-not-rescale, t12-m12-still-open, 8ad5be2]
+
+  - id: mem-006
+    type: incident_learning
+    content: >-
+      2026-07-31 std::stoi DOES NOT THROW ON TRAILING JUNK, and the T11 decoder relies on it to.
+      BprUtils::computeCosineSimilarity_t11 reads each 7-digit magnitude with std::stoi. std::stoi
+      only throws when NO conversion is possible, so "00x1200" parses the leading "00", stops,
+      and returns 0 — no error. The sign character is not checked at all: anything that is not
+      '1' is treated as positive. A corrupted template therefore compares as a valid one with
+      mangled elements and the caller gets a CONFIDENT, WRONG similarity.
+      Found by writing a test that assumed the decoder would reject junk; it returned Ok. The
+      test was right about what SHOULD happen and wrong about what does.
+      Fixed in the bengine M11 adapter, which now validates every character (sign is '0' or '1',
+      chars 1-7 are digits) before calling. NOT fixed in BprUtils: it is shared with BprLicense
+      and the blast radius is wider than this modality — raised as a separate concern.
+      GENERAL FORM: when validation lives in a shared utility you do not own, verify what it
+      actually rejects rather than what its interface implies. Prefer validating at your own
+      boundary.
+    created_at: "2026-07-31"
+    last_accessed: "2026-07-31"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-07-31"
+    tags: [stoi-lenient, silent-corruption, validate-at-your-boundary, bprutils-shared-with-license, t11]
+
 # Pruning rules
 pruning:
   max_entries: 500

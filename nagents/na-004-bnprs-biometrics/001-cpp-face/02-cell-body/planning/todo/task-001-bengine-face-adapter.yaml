@@ -4,8 +4,37 @@
 
 task:
   id: "task-001"
-  subject: "Give BprFace a bengine adapter — after the OpenCV-in-BprIDEngine decision is made"
+  subject: "Adapt T12/M12 (the OpenCV halves of BprFace) — M11 is done"
+  progress_2026_07_31: >-
+    M11 IS DONE AND SHIPPED (bpr.cpp 8ad5be2). Reading the module showed the OpenCV question
+    only covers HALF of modality 4A, and the other half needed no decision:
+
+      T11 sFace(pat)         extraction   nothing in this repo produces one
+      M11 sFace(pat-cosine)  matching     BprUtils::computeCosineSimilarity_t11, plain C++
+      T12 sFace(opencv)      extraction   cv::FaceRecognizerSF, cv::dnn
+      M12 Yunet+sFace        matching     OpenCV
+
+    Only T12/M12 need OpenCV. M11 went in at zero dependency cost, so BprFace is now in the
+    proof gate (all six modalities, 17 identical symbols) and libBprFace links no OpenCV.
+    Verified through the C ABI from both libBprIDEngine and standalone libBprFace: genuine
+    0.9998, impostor clamped to 0.0 with raw -6914, bad length rc=-5.
+
+    WHAT REMAINS is exactly the original decision, now smaller and no longer blocking the
+    modality's presence in the engine — only its EXTRACTION. Nothing in bpr.cpp can produce a
+    face template; T11s arrive from pat's model on the device and T12 extraction is the OpenCV
+    one. The three options in the description below still stand, but option 1 is now much
+    cheaper than when it was written, because M11 already gives the consolidated library a
+    working face matcher without OpenCV.
+
+    ALSO RAISED FROM THIS WORK, and it is this agent's: the T11 decoder in
+    AprCommon/BprUtils is lenient in a way that corrupts silently. std::stoi does not throw on
+    "00x1200" — it parses the leading digits and returns 0 — and any sign char that is not '1'
+    is treated as positive. The bengine adapter now validates every character before calling,
+    but BprUtils itself still accepts corrupt input. Not fixed there because it is shared with
+    BprLicense. Worth its own task.
+
   description: >-
+    [SUPERSEDED IN PART — see progress_2026_07_31; M11 is done and the scope is now T12/M12.]
     Five of six modalities are in the proof gate (T21 finger, T31 fingercless, T33 knuckle,
     T41 palmprint, T51 iris), each exporting the same 17 BprID_* symbols. BprFace (modality 1,
     0x4A) is the only one left, and it is the only one that needs OpenCV — which is precisely
@@ -56,13 +85,13 @@ task:
   blocked_by: ["opencv-in-bpridengine-decision"]   # not a task id — an architectural decision
   blocks: []
   estimated_steps: 8
-  tags: [face, 4a, t11, m11, bengine-adapter, opencv-decision, last-modality-in-gate, na-004-007, na-002]
+  tags: [face, 4a, t12, m12, m11-done, bengine-adapter, opencv-decision, last-modality-in-gate, na-004-007, na-002]
 
   first_step: >-
-    Put the three options above to na-004/007 and na-002-bnprs-core and get one chosen in
-    writing, into the architecture deliverable
+    Unchanged in kind, reduced in scope: get the OpenCV-in-BprIDEngine choice made in writing
+    into the architecture deliverable
     (na-004/007 07-axon-terminals/deliverables/bpridengine-library-architecture.md).
-    No code before that.
+    It now governs only T12/M12 extraction, not whether face is in the engine at all.
 
   references:
     architecture: "na-004/007 07-axon-terminals/deliverables/bpridengine-library-architecture.md"
