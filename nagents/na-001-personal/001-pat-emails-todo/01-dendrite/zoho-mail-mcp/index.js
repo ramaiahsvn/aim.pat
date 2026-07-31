@@ -114,7 +114,8 @@ const TOOLS = [
       properties: {
         to:      { type: 'string', description: 'Recipient email address' },
         subject: { type: 'string' },
-        content: { type: 'string', description: 'Plain text body' },
+        content: { type: 'string', description: 'Body. HTML unless format is set to plaintext.' },
+        format:  { type: 'string', enum: ['html', 'plaintext'], description: 'Default html.' },
         cc:      { type: 'string' },
         bcc:     { type: 'string' },
       },
@@ -129,7 +130,8 @@ const TOOLS = [
       properties: {
         to:      { type: 'string' },
         subject: { type: 'string' },
-        content: { type: 'string' },
+        content: { type: 'string', description: 'Body. HTML unless format is set to plaintext.' },
+        format:  { type: 'string', enum: ['html', 'plaintext'], description: 'Default html.' },
         cc:      { type: 'string' },
       },
     },
@@ -255,7 +257,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         toAddress: args.to,
         subject: args.subject,
         content: args.content,
-        mailFormat: 'plaintext',
+        mailFormat: args.format === 'plaintext' ? 'plaintext' : 'html',
       };
       if (args.cc)  body.ccAddress  = args.cc;
       if (args.bcc) body.bccAddress = args.bcc;
@@ -269,7 +271,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         toAddress: args.to,
         subject: args.subject,
         content: args.content,
-        mailFormat: 'plaintext',
+        mailFormat: args.format === 'plaintext' ? 'plaintext' : 'html',
         action: 'save',
       };
       if (args.cc) body.ccAddress = args.cc;
