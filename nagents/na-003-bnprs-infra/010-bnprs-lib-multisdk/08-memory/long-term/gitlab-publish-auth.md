@@ -38,6 +38,21 @@ cannot be read back through the API, so a lost one is re-minted, not recovered.
 Maven also caches the failure: after fixing credentials,
 `rm -rf ~/.m2/repository/<group-path>/<artifact>` and `mvn -U`, or the stale error persists.
 
+**Group deploy tokens issued** (values NOT stored here — GitLab shows them once, and this file is
+tracked). All `read_package_registry` only, on group 118:
+
+| id | name / username | for | expires |
+|----|-----------------|-----|---------|
+| 1 | `bnprs-libs-readonly` / `bnprs-libs-ro` | general consumers | none |
+| 3 | `bnprs-libs-ro-charan` | Charan | none |
+| 4 | `bnprs-libs-ro-harani` | Harani (uTMS smartpresence) | **2027-07-31** |
+
+Token 4 is the first with an **expiry** — builds depending on it break on that date with a 401
+that will look exactly like a misconfiguration. Verified on issue: `Deploy-Token` header and
+Basic `username:token` both 200; it cannot read the git repo (401), so package scope is genuinely
+enforced. Re-mint per person rather than sharing one token — revoking one then does not break
+everyone.
+
 **NuGet has TWO traps, not one** (second one found publishing BprIDEngine 2.24.900, 2026-07-31).
 The service index advertises `PackagePublish/2.0.0` at `…/packages/nuget` with **no** trailing
 slash, and that URL is a lie for uploads: `POST` there → **404**, `PUT` there → **400 "package is
