@@ -37,8 +37,11 @@ memories:
       NUGET → HTTP BASIC ONLY: curl --user root:$GITLAB_PAT --form package=@x.nupkg …/packages/nuget/ (201);
       a PRIVATE-TOKEN header 401s. MAVEN → PUT jar + pom to …/packages/maven/<group-path>/<artifact>/<ver>/<file>,
       header Private-Token:$GITLAB_PAT (200). GO → NO upload endpoint: commit the module into project 230's
-      git repo under go/<lib>/ + push a SemVer tag go/<lib>/vX.Y.Z; the GitLab Go proxy serves it (go get via
-      GOPROXY=direct + git insteadOf auth works). Consumers use read-only deploy token bnprs-libs-readonly.
+      git repo under go/<lib>/ + push a SemVer tag go/<lib>/vX.Y.Z (default branch is MASTER, not main).
+      The GitLab Go PROXY endpoint …/projects/230/packages/go IS NOT ENABLED — it 404s even authenticated
+      (401 unauthenticated, so it is the feature, not the token), including for modules recorded as working.
+      Consume by DIRECT GIT: GOPROXY=direct, GOPRIVATE='gitlab.bnprs.ai/*', GOSUMDB=off, plus git insteadOf
+      or ~/.netrc auth. Consumers use read-only deploy token bnprs-libs-readonly.
       Full detail: gitlab-publish-auth.md.
     created_at: "2026-07-21"
     last_accessed: "2026-07-21"

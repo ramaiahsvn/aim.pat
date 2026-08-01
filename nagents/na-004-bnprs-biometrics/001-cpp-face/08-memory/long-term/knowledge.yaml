@@ -365,6 +365,51 @@ memories:
     source: "session-2026-08-01"
     tags: [t13-adapted, all-five-variants, corrects-mem-010, t14-t15-were-unregistered, registration-guard, add-a-variant-touches-two-places, sdk-not-a-model, no-licence-file, keep-all-three-off-for-releases, libiface-is-inspireface, c72d7d6]
 
+  - id: mem-012
+    type: technical_knowledge
+    content: >-
+      BPRFACE 2.24.116 PUBLISHED 2026-08-01 (commit 4276770) — LICENCE ENFORCEMENT, A BEHAVIOURAL
+      BREAK. Through 2.24.115 every entry point (Bpr_FaceRecog_T12_Init, Bpr_FaceDetect_T12_Init,
+      Bpr_SmokeDetect_T12_Init, Bpr_FightDetect_T12_Init) accepted a qiCode AND a length from the
+      caller and then ignored both, validating a constant compiled into the binary against an empty
+      product code — any code passed, including empty or garbage. It was an expiry date on the
+      build, not per-customer licensing. The fix (8dd621a) landed 2026-07-31, TEN DAYS AFTER 115
+      was published, and nobody bumped the version — so the 115 ARTIFACT in the registry and the
+      115 SOURCE disagree in behaviour at the same version number. That is why this is 116 rather
+      than a re-release. A host passing a placeholder qiCode SUCCEEDS on 115 and FAILS on 116.
+      Verified functionally in the shipped binary, not just by reading the diff: garbage, empty and
+      truncated codes rejected; the real licence accepted.
+      Pat_is_valid_license_global() is deliberately unchanged — it takes no arguments, so there is
+      no caller code to honour, and it answers "is this BINARY still in its validity window".
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [bprface-2.24.116, licence-enforced, behavioural-break, registry-and-source-disagreed-at-115, verify-the-binary-not-the-diff, 4276770]
+
+  - id: mem-013
+    type: technical_knowledge
+    content: >-
+      THE BPRFACE VERSION LIVES IN THREE FILES AND THEY MUST MOVE TOGETHER —
+      src/AprCommon/BprVersions/bpr_versions.h (BPR_FACE_VER_PATCH),
+      src/AprCommon/BprVersions/bpr_versions.cmake (the BprFace branch's set(VER_PATCH …)), and the
+      root Makefile (VERSION_BprFace). Bumping ONLY the header builds a library still NAMED
+      2.24.115 while its embedded string says the new number, because the filename comes from the
+      other two. The Makefile even carries a "keep in sync" comment. Check all three, then confirm
+      by the ARTIFACT NAME and by `strings <lib> | grep 2\.24\.` before staging.
+      BprIDEngine is NOT in the cmake/Makefile files (bengine has its own CMakeLists reading the
+      header directly), so 2.24.901 was not exposed to this.
+      Also: raw `cmake -S . -B …` does NOT pass LIB_OUTPUT_DIR, which the root Makefile supplies —
+      so on Windows builds libBprFaceDeps.dll lands at the BUILD ROOT, not bin/. It is easy to miss
+      and libBprFace.dll IMPORTS it; shipping without it yields a DLL that cannot load.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [version-in-three-files, bpr_versions-h-cmake-makefile, artifact-name-is-the-check, lib_output_dir, libbprfacedeps-at-build-root, windows-not-self-contained]
+
 # Pruning rules
 pruning:
   max_entries: 500

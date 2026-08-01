@@ -26,5 +26,13 @@ publish_ref:
   mechanism: "Go proxy serves SemVer git tags from a repo — NO package upload API"
   todo: "host the module in a GitLab repo and create tag v<ver>; then it resolves via GOPROXY"
 consume_ref:
-  goproxy: "https://gitlab.bnprs.ai/api/v4/projects/230/packages/go"
-  auth: "~/.netrc for gitlab.bnprs.ai with the bnprs-libs-readonly deploy token; set GONOSUMCHECK/GONOSUMDB as needed"
+  # The GitLab Go PROXY IS NOT ENABLED on this server. Verified 2026-08-01:
+  #   GOPROXY=https://gitlab.bnprs.ai/api/v4/projects/230/packages/go  -> 404 even when
+  #   authenticated (unauthenticated gives 401, so 404 is "feature off", not "bad token").
+  #   This 404s for modules recorded as working, e.g. bprface — the endpoint, not the tag.
+  # Consume by DIRECT GIT against the tag instead:
+  goproxy: "direct  (GOPROXY=direct — the packages/go endpoint does NOT work)"
+  env: "GOPRIVATE='gitlab.bnprs.ai/*'  GOSUMDB=off"
+  auth: "~/.netrc for gitlab.bnprs.ai with the bnprs-libs-readonly deploy token, or url.insteadOf with it"
+  verified: "go get gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs/go/bprface/v2@v2.24.116 -> downloads + builds"
+  branch: "the repo default branch is master, NOT main"

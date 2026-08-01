@@ -29,10 +29,14 @@ registry:
 # Latest declared source versions (per src/AprCommon/BprVersions/bpr_versions.h, 2026-05-30)
 # These are the versions to publish once builders hand off artifacts.
 source_versions:
-  BprIDEngine: "2.24.900"   # consolidated engine (all six modalities behind the BprID_* ABI).
+  BprIDEngine: "2.24.901"   # consolidated engine (all six modalities behind the BprID_* ABI).
                             # .900 is deliberate: 6xx-8xx is reserved for per-modality releases.
+                            # .901 (2026-08-01) is NOT a drop-in for .900 — knuckle moved from
+                            # modality 0x4C to 0x4F, so T33->T61 / M32->M61 and 0x4C03 / 0x4C02
+                            # are RETIRED, not aliased. A knuckle template stored under .900 is
+                            # rejected and must be re-enrolled. ABI change is additive only.
   BprLicBase: "2.27.4"
-  BprFace:    "2.24.115"
+  BprFace:    "2.24.116"
   BprCardQi:  "2.56.7"
   BprCardEmv: "2.57.1"
   BprICBA:    "2.58.1"
@@ -365,3 +369,178 @@ published:
     module_path: "gitlab.bnprs.ai/BPR1000/bpr1000.bnprs-libs/go/bpridengine-face/v2"
     git_tag: "go/bpridengine-face/v2.24.900"
     note: "MUTUALLY EXCLUSIVE with go/bpridengine/v2 — importing both links two natives."
+
+  # ---------------------------------------------------------------------------
+  #  BprIDEngine 2.24.901 — first GENERIC publish of the consolidated engine.
+  #  .900 exists only as maven/nuget wrappers (ids 40-43); there was no generic
+  #  native package before this one.
+  # ---------------------------------------------------------------------------
+  - package: "BprIDEngine"
+    version: "2.24.901"
+    package_id: 44
+    package_type: "generic"
+    project_id: 230
+    variant: "lean"                  # BENGINE_BUILD_ALL=ON; FACE_T12/T13/T14/T15 all OFF
+    source_repo: "bpr.cpp"
+    source_commit: "76c9152"
+    built_by: "na-004/007 cpp-bengine (domain agent)"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-08-01T06:24:22Z"
+    registers:
+      templates: ["T21", "T31", "T41", "T51", "T61"]
+      matchers:  ["M11", "M41", "M51", "M61"]
+    abi: "21 public BprID_* functions + BprLicGeneration/BprLicVerification. macOS/Linux also
+          export BprID_LibraryNameImpl (internal); Windows does not. New in .901: BprID_Preload."
+    models_required: false           # no model-backed extractor in this build
+    verified: "downloaded back from the registry; sha256 matched and the dylib loaded and
+               reported its 5 templates / 4 matchers"
+    licensing: "CONTAINS FingerJetFX OSE (LGPL v3) via T21. Internal registry publish is not
+                conveyance to third parties; obligations attach when a BNPRS PRODUCT ships.
+                Open with na-002-bnprs-core before any customer release. An LGPL-free build
+                exists (-DBENGINE_BUILD_FINGER=OFF) but drops finger entirely."
+    files:
+      - "macos/libBprIDEngine.dylib"
+      - "linux-x64/libBprIDEngine.so"
+      - "linux-arm64/libBprIDEngine.so"
+      - "windows-64/libBprIDEngine.dll"
+      - "<each>.sha256"
+      - "native-manifest.json"
+
+  - package: "BprIDEngine-face"
+    version: "2.24.901"
+    package_type: "generic"
+    project_id: 230
+    variant: "t12"                   # BENGINE_BUILD_ALL + FACE_T12, static OpenCV 4.10.0
+    source_repo: "bpr.cpp"
+    source_commit: "76c9152"
+    built_by: "na-004/007 cpp-bengine"
+    published_by: "bnprs-lib-forge (na-003/009)"
+    published_at: "2026-08-01T06:52:22Z"
+    size: "110 MB (natives ~14-20 MB each + 44 MB models shared once)"
+    registers:
+      templates: ["T12", "T21", "T31", "T41", "T51", "T61"]
+      matchers:  ["M11", "M12", "M41", "M51", "M61"]
+    why: "T12 is the only face EXTRACTOR. The lean build has M11 — a matcher with no extractor —
+          so it can compare face templates but cannot create one. Enrolment needs this variant."
+    mutually_exclusive_with: "BprIDEngine 2.24.901 (lean) — same library name, same BprID_* set;
+                              depending on both puts two natives in one process."
+    abi_differs_from_lean: "28 Windows exports vs 23. The extra 5 are legacy per-modality
+                            Bpr_FaceRecog_T12_* / Bpr_FaceQuality_T12_Image, pulled in with
+                            BprSFaceRecog.cpp. Compatibility layer; new code uses T12/M12."
+    models_required: true            # bpr.m10001/2/3.onnx, stored once under models/
+    verified: "downloaded from the registry; sha256 OK, preload ok, two 528-byte extractions,
+               genuine match 0.3794 — matches the score from the rnd-evaluations run"
+    accuracy_caveat: "T12 measures 96.60% on LFW against a published ~99.4%; the only variant
+                      sensitive to external pre-alignment, fold variance 3x the others. Points at
+                      integration, UNDIAGNOSED. Set thresholds on your own data. See na-004/012
+                      eval-reports/2026-08-01-face-4variant-lfw-orl.md"
+    files:
+      - "{macos,linux-x64,linux-arm64,windows-64}/libBprIDEngine.{dylib,so,dll} (+ .sha256)"
+      - "models/bpr.m10001.onnx, bpr.m10002.onnx, bpr.m10003.onnx (+ .sha256)"
+      - "native-manifest.json"
+
+  # --- multisdk wrappers refreshed to 2.24.901 (na-003/010 builds, forge records) -------------
+  - package: "ai/bnprs/nativesdk-bpridengine"
+    package_type: "maven"
+    version: "2.24.901"
+    project_id: 230
+    variant: "lean"
+    native_lib: "BprIDEngine"
+    interop: "JNA; natives as resource-prefix dirs in the JAR"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_at: "2026-08-01T06:52:22Z"
+    size: "536 KB"
+    note: "POM TRAP: the standalone .pom was a renamed copy of the 900 file and first went out
+           declaring version 2.24.900 at 901 coordinates. Corrected and re-uploaded. Always bump
+           *.pom with the other file types and verify what the registry SERVES."
+  - package: "Bnprs.NativeSdk.BprIDEngine"
+    package_type: "nuget"
+    version: "2.24.901"
+    project_id: 230
+    variant: "lean"
+    interop: "P/Invoke; natives EMBEDDED in the assembly with a resolver, not runtimes/<rid>/"
+    published_at: "2026-08-01T06:52:22Z"
+    size: "536 KB"
+  - package: "ai/bnprs/nativesdk-bpridengine-face"
+    package_type: "maven"
+    version: "2.24.901"
+    project_id: 230
+    variant: "t12"
+    published_at: "2026-08-01T06:52:22Z"
+    size: "59 MB"
+  - package: "Bnprs.NativeSdk.BprIDEngine.Face"
+    package_type: "nuget"
+    version: "2.24.901"
+    project_id: 230
+    variant: "t12"
+    published_at: "2026-08-01T06:52:22Z"
+    size: "59 MB"
+
+  # --- BprFace 2.24.116 — LICENCE ENFORCEMENT (na-004/001 build, forge publish) --------------
+  - package: "BprFace"
+    package_type: "generic"
+    version: "2.24.116"
+    project_id: 230
+    source_repo: "bpr.cpp"
+    source_commit: "4276770"
+    built_by: "na-004/001 cpp-face"
+    published_by: "na-003/009 bnprs-lib-forge"
+    published_at: "2026-08-01"
+    platforms: [macos, linux-arm64, linux-x64, windows-32, windows-64]
+    breaking: >-
+      LICENSING IS NOW ENFORCED. Through 2.24.115 the qiCode argument and its length were
+      accepted and then IGNORED — a constant compiled into the binary was validated instead, so
+      any code passed, including an empty or garbage one. 116 validates the caller's bytes and
+      fails closed on null, empty or negative length. A HOST PASSING A PLACEHOLDER qiCode
+      SUCCEEDS ON 115 AND FAILS ON 116. Affects Bpr_FaceRecog_T12_Init, Bpr_FaceDetect_T12_Init,
+      Bpr_SmokeDetect_T12_Init, Bpr_FightDetect_T12_Init. The fix (8dd621a) landed ten days
+      after 115 shipped and the version was never bumped, so the 115 ARTIFACT and current source
+      share a number and disagree in behaviour — that is why this is 116, not a re-release.
+    windows_not_self_contained: >-
+      libBprFace.dll IMPORTS libBprFaceDeps.dll (OpenCV, split out to keep the main DLL small).
+      Both must ship together, plus bpr.model.onnx and the ffmpeg DLL. The 2.24.115
+      native-manifest.json listed only three binaries and omitted BOTH Windows platforms — a
+      consumer trusting it would have deployed a DLL that cannot load. 116's manifest lists all 9.
+    version_lives_in_three_files: >-
+      bpr_versions.h, bpr_versions.cmake AND the root Makefile. Bumping only the header builds a
+      binary still named 2.24.115 — the name comes from the other two.
+    files:
+      - "{macos,linux-arm64,linux-x64}/libBprFace.{dylib,so}[.2.24.116] (+ .sha256)"
+      - "{windows-32,windows-64}/{libBprFace.dll,libBprFaceDeps.dll,opencv_videoio_ffmpeg*.dll,bpr.model.onnx}"
+      - "manifest.json"
+  - package: "ai/bnprs/nativesdk-bprface"
+    package_type: "maven"
+    version: "2.24.116"
+    project_id: 230
+    native_lib: "BprFace"
+    interop: "JNA; linux-aarch64 + linux-x86-64 only (matches 115)"
+    wrapped_by: "na-003/010 bnprs-lib-multisdk"
+    published_at: "2026-08-01"
+    size: "87 MB"
+    note: >-
+      MAVEN PATH TRAP: first uploaded to .../maven/ai/bnprs/nativesdk/nativesdk-bprface/, which
+      registers as a DIFFERENT package and can never resolve — the POM's groupId is ai.bnprs, so
+      the path is ai/bnprs/<artifactId>. Re-uploaded to the correct path and the wrong-path
+      package (id 51) was deleted. Verified by resolving it as a real consumer, not by reading
+      the 200.
+  - package: "Bnprs.NativeSdk.BprFace"
+    package_type: "nuget"
+    version: "2.24.116"
+    project_id: 230
+    interop: "P/Invoke; linux-arm64 + linux-x64"
+    published_at: "2026-08-01"
+    size: "87 MB"
+    note: "Upload is HTTP Basic (--user root:$TOKEN --form package=@…) with a TRAILING SLASH; a PRIVATE-TOKEN header returns 401, and GitLab reports NuGet auth failures as 404."
+  - package: "go/bprface/v2"
+    package_type: "go"
+    version: "v2.24.116"
+    project_id: 230
+    git_tag: "go/bprface/v2.24.116"
+    branch: "master"          # NOT main — `git push origin main` fails with "src refspec does not match"
+    published_at: "2026-08-01"
+    consume: >-
+      The GitLab Go PROXY IS NOT ENABLED on this server: GOPROXY=…/projects/230/packages/go returns
+      404 even authenticated (401 when unauthenticated, so it is not an auth problem). Consume by
+      DIRECT GIT instead — GOPRIVATE='gitlab.bnprs.ai/*', GOSUMDB=off, and a credential in
+      ~/.netrc or url.insteadOf. Verified: go get …/go/bprface/v2@v2.24.116 downloads and builds.
+    note: "Natives are linux-only; the wrapper returns 'this build supports linux only (GOOS=…)' elsewhere, by design."
