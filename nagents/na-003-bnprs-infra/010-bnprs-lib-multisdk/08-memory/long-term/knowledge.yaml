@@ -143,30 +143,46 @@ memories:
     source: "session-2026-08-01"
     tags: [bprface-2.24.116, wrappers-are-linux-only, bump-the-standalone-pom-too, grep-for-the-old-version, strings-check-the-embedded-native, 87mb-from-onnx]
 
-  - id: "wrapper-sources-are-not-committed"
+  - id: "wrapper-sources-live-in-bpr-cpp-wrappers"
     type: project
     content: >-
-      THE MAVEN AND NUGET WRAPPER SOURCES DO NOT EXIST IN ANY REPO. Searched bpr.cpp, aim.pat and
-      project 230 (BPR1000/bpr1000.bnprs-libs) — 230 holds only go/. The published NuGet package
-      is ONE managed assembly with the natives and models as EMBEDDED RESOURCES
-      (native.<rid>.<file>, e.g. native.osx-arm64.libBprFace.dylib), and the Maven jar is a jar of
-      per-RID directories (darwin-aarch64, linux-aarch64, linux-x86-64, win32-x86-64, win32-x86)
-      plus models/ and compiled .class files. Both were produced in a throwaway workspace.
-      SO A NEW NATIVE RELEASE CANNOT BE REBUILT FROM SOURCE — it has to be repacked. For 2.24.118
-      that meant: download the previous artifact, swap the five natives, bump the version, re-upload.
-      Maven is a plain unzip/rezip. NuGet needs Mono.Cecil to replace the embedded resources in the
-      assembly and set asm.Name.Version. Both verified afterwards by CONSUMING (Java prints
-      2.24.118 and scores 0.7619; .NET prints BprFace.Version() = 2.24.118).
-      WORTH FIXING: commit the two wrapper projects so a release is reproducible instead of a
-      binary edit of the last one.
-      Note the BprFace nuspec description is self-referential ("MUTUALLY EXCLUSIVE with
-      Bnprs.NativeSdk.BprFace") — leftover from the BprIDEngine-face split, carried forward.
+      CORRECTED 2026-08-01 (an earlier note in this file claimed the wrapper sources did not exist
+      — they did, in build/bnprs-wrappers/<Lib>/v<ver>/, which is git-ignored, so a search that
+      pruned build/ missed them). They are now COMMITTED at bpr.cpp wrappers/:
+        wrappers/BprFace/{maven,nuget}       pom.xml + 4 .java  |  .csproj + 2 .cs
+        wrappers/BprIDEngine/{maven,nuget,go}
+      SOURCE ONLY, 92 KB. Natives and models are staged from build/bnprs-libs/ into a scratch copy
+      at build/cmake/wrappers/<Lib>/v<ver>/ — the source tree never holds binaries.
+        scripts/build-wrappers.sh <Lib> [maven|nuget|all]
+        scripts/publish-wrappers.sh <Lib> [maven|nuget|all]
+      VERSION is @BPR_VERSION@ in the committed pom/csproj, substituted at build time from
+      bpr_versions.h / Makefile. Never hardcode it — a bare `mvn package` failing on the
+      placeholder is intentional.
+      PLATFORM NAMES DIFFER PER ECOSYSTEM and this is the easiest thing to get wrong by hand:
+        staged        maven (JNA)        nuget (RID)
+        macos         darwin-aarch64     osx-arm64
+        linux-arm64   linux-aarch64      linux-arm64
+        linux-x64     linux-x86-64       linux-x64
+        windows-64    win32-x86-64       win-x64
+        windows-32    win32-x86          win-x86
+      NuGet embeds natives as resources with explicit <LogicalName> native.<rid>.<file> and
+      resolves via NativeLibrary.SetDllImportResolver (needs net6.0+), NOT runtimes/<rid>/native/.
+      That is why the package is one ~90 MB assembly and why swapping a native means rewriting an
+      embedded resource (Mono.Cecil) if you ever have to repack instead of build.
+      TRAP HIT: bpr.cpp .gitignore had a blanket *.cs (grouped under "large binary files" beside
+      *.onnx/*.pt) and *.mod (Fortran boilerplate). They silently swallowed every C# binding and
+      go.mod, which would have committed a "reproducible" tree that could not be built. Negated
+      for wrappers/ only. ALWAYS diff the filesystem against `git diff --cached --name-only`
+      before trusting that a source tree was committed whole.
+      REPRODUCIBILITY PROVEN: built from a git-archive of the committed tree alone, the jars are
+      byte-identical per entry to the published artifacts (16 entries, no differences) for both
+      2.24.118 and 2.24.903.
     created_at: "2026-08-01"
     last_accessed: "2026-08-01"
     access_count: 1
     confidence: 1.0
     source: "session-2026-08-01"
-    tags: [no-wrapper-source, repack-not-rebuild, mono-cecil, embedded-resources, reproducibility-gap, nuspec-self-reference]
+    tags: [wrappers-committed, bpr-cpp-wrappers, bpr-version-placeholder, rid-vs-jna-names, gitignore-swallowed-cs-and-mod, byte-identical-rebuild]
 
   - id: "go-module-staged-native-by-content-hash"
     type: project
