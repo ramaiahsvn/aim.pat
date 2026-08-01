@@ -569,6 +569,35 @@ memories:
     source: "session-2026-08-01"
     tags: [bprvideo-2.60.0, bprvision-2.61.0, own-libraries, versions-outside-2.24-line, recommended-against-overruled, opencv-is-97-percent, bprface-still-exports-smoke-fight, do-not-load-both, no-runstream-export]
 
+  - id: mem-019
+    type: technical_knowledge
+    content: >-
+      BprVideo/BprVision EXPORT BprFace's EXACT SIGNATURES — user requirement 2026-08-01 (bpr.cpp
+      2c1ad8f), so a consumer switches library by changing the NAME ONLY, no source change. Nine
+      entry points: the 8 Bpr_SmokeDetect_T12_* / Bpr_FightDetect_T12_* plus
+      Bpr_FaceVideo_Streaming. Verified TWO ways, because C linkage will happily link a mismatched
+      signature and tell you nothing: (1) textual diff of every parameter list, normalised for
+      whitespace, against BprFace's own declarations — all nine character-for-character identical;
+      (2) ONE unmodified consumer .c compiled and run against libBprFace and libBprVision, same
+      output from both. Do the same on any future signature-compat claim; do not infer it from a
+      successful link.
+      Bpr_FaceVideo_Streaming MOVED to src/BprCCTV/BprVideo/BprVideoStreaming.cpp — it had ZERO
+      face-engine references (no BprFaceDetect/BprFaceRecog/FaceObj/infer), being a capture-and-save
+      loop with RTSP reconnection. It KEEPS the "Face" in its name deliberately: the .NET sample
+      imports it by that exact name, so renaming to fix a label would break every host. Rename at
+      BprFace's next MAJOR, with an alias for one release. ONE definition, compiled into every
+      library that exports it, so copies cannot drift.
+      CONSEQUENCE — all three libraries now OVERLAP on symbols, so exactly one belongs in a
+      process. Two give an undefined winner while both report plausible versions. Same failure
+      shape as the withdrawn BprIDEngine lean/-face split; stated as a deployment rule in
+      src/BprCCTV/README.md rather than left implicit.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [signature-compatible-exports, name-only-migration, verify-by-textual-diff-and-one-consumer, c-linkage-hides-signature-mismatch, facevideo-streaming-moved-to-bprvideo, keeps-face-in-the-name-on-purpose, one-definition-many-libraries, all-three-overlap-load-one]
+
 # Pruning rules
 pruning:
   max_entries: 500
