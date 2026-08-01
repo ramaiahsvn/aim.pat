@@ -1441,6 +1441,56 @@ memories:
     source: "session-2026-08-01"
     tags: [generic-only-would-delete-the-video-product, two-surfaces-by-design, smoke-fight-are-not-biometrics, abi-is-stateless-still-image, no-callback-primitive, tuning-has-nowhere-to-go, measured-with-nm-and-grep, dotnet-sample-18-imports]
 
+  - id: mem-038
+    type: technical_knowledge
+    content: >-
+      BprID_Preload RETURNS Ok WHEN THE MODEL IS ABSENT — FALSE READINESS, FOUND 2026-08-01, FIX IN
+      902. Verified against the PUBLISHED BprIDEngine-face 2.24.901 artifact in a pristine directory
+      with a fresh TMPDIR and no models anywhere: BprID_Preload(0x4A02) returns 0 (ok). Cause chain:
+      the adapter's warmup() does `return engine_->get() ? Ok : ModuleError`, and Engine12::get()
+      (face_t12.cpp:52) only yields nullptr if the constructor THROWS — but BprFaceRecog's
+      constructor calls cv::dnn::readNetFromONNX / cv::FaceRecognizerSF::create /
+      cv::FaceDetectorYN::create on paths that do not exist, and those do NOT throw here. So the
+      object constructs, get() is non-null, and warmup reports healthy.
+      This defeats the entire point of Preload, which was added in 901 so a host could move model
+      loading to a controlled point AND learn early that a deployment is misconfigured. Instead it
+      reports ok and the failure surfaces later inside BprID_Extract.
+      FIX: warmup must verify the models actually loaded — check the resolved path exists before
+      constructing, and/or assert the nets are non-empty (cv::dnn::Net::empty()) after. Same latent
+      hole applies to any adapter whose warmup only checks a non-null handle. T13's warmup has the
+      same shape and should be re-checked.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [bprid-preload-false-ok, warmup-checks-only-non-null, opencv-create-does-not-throw-on-missing-model, fix-in-902, recheck-t13-warmup, verified-on-published-artifact]
+
+  - id: mem-039
+    type: project_context
+    content: >-
+      BprIDEngine 2.24.901 SHIPS AS TWO SEPARATE GENERIC PACKAGES AND THE DEFAULT NAME HAS NO FACE.
+      `BprIDEngine` (package id 44, ~412 KB) is the LEAN build: extractors 0x4B01 0x4C01 0x4D01
+      0x4E01 0x4F01 and matchers 0x4A01 0x4D01 0x4E01 0x4F01 — i.e. NO FACE EXTRACTOR AT ALL, only
+      the face M11 matcher, so stored face templates can be matched but none can be created.
+      `BprIDEngine-face` (id 47, ~14 MB + models/bpr.m1000{1,2,3}.onnx) additionally registers the
+      T12 extractor and M12 matcher (0x4A02). Both load cleanly and report version 2.24.901; the
+      difference is only what is REGISTERED. First diagnosis to make when someone reports "901 is
+      not loading" for face work: they pulled the default name. Mirrors the wrapper split
+      (nativesdk-bpridengine vs -face; Bnprs.NativeSdk.BprIDEngine vs .Face).
+      NOTE these are NOT duplicate coordinates — the packages API prefix-matches, so filtering
+      package_name=BprIDEngine returns BOTH and makes them look like one shadowed package. Filter on
+      the exact name.
+      PROCESS: neither 901 package has a publish report — both were published with hand-rolled curl
+      instead of publish-library.sh, so neither got the sha-verified re-download or the
+      immutability guard. See lib-forge mem-001.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [901-lean-has-no-face, bpridengine-vs-bpridengine-face, first-diagnosis-for-not-loading, packages-api-prefix-matches, 901-bypassed-the-publish-script]
+
 # Pruning rules
 pruning:
   max_entries: 500
