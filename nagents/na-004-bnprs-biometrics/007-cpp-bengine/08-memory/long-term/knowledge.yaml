@@ -1495,6 +1495,63 @@ memories:
     source: "session-2026-08-01"
     tags: [901-lean-has-no-face, bpridengine-vs-bpridengine-face, first-diagnosis-for-not-loading, packages-api-prefix-matches, 901-bypassed-the-publish-script]
 
+  - id: mem-040
+    type: technical_knowledge
+    content: >-
+      BprIDEngine 2.24.902 — THE LEAN/FACE SPLIT IS WITHDRAWN. ONE PACKAGE. Published 2026-08-01
+      (bpr.cpp db6c516) to generic + maven + nuget + go tag, all under the BASE name; there is no
+      -face artifact at 902 in any registry. Built BENGINE_BUILD_ALL=ON + BENGINE_BUILD_FACE_T12=ON.
+      WHY: 900 and 901 each shipped two builds that were INDISTINGUISHABLE at runtime — identical
+      BprID_LibraryName() "BprIDEngine", identical version string, identical 22 symbols, identical
+      libBprIDEngine.so filename. Only a capability probe separated them, and both on one classpath
+      had an undefined winner. A deployment team took the default name, got the no-face build, and
+      saw a library that loaded and reported the right version while refusing to enrol.
+      THE COST: face is now always compiled in, so a finger/iris/palm/knuckle-only host carries
+      ~21 MB instead of ~450 KB. The MODELS became the opt-in part — omit models/ and the library
+      still loads, the other five modalities work, and face reports -7 module-error.
+      THE SEMANTIC TRAP THIS CREATES, and it is silent: BprID_HasTemplate(T12) NOW ALWAYS RETURNS 1
+      because it answers "compiled in", so it can no longer detect a face-capable deployment. The
+      readiness check MUST become BprID_Preload(tid), which answers "usable" and returns
+      ModuleError when the models are absent. Any 900/901 host gating on HasTemplate will believe
+      face works and fail at the first Extract. Both the Java sample and the release notes were
+      rewritten around this.
+      BprID_Preload existed in the native from 901 but WAS NEVER BOUND in the JNA or P/Invoke
+      wrappers, so no Java or .NET host could call it. Bound from 902.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [902-one-package, lean-face-split-withdrawn, two-builds-were-indistinguishable, models-are-the-opt-in, hastemplate-no-longer-detects-face, preload-is-the-readiness-check, preload-was-unbound-until-902]
+
+  - id: mem-041
+    type: technical_knowledge
+    content: >-
+      WRAPPER PLATFORM COVERAGE WAS A LIE UNTIL 902, AND THE FAILURE WAS LAZY. The 900/901 Maven and
+      NuGet packages carried natives for linux-x86-64, linux-aarch64 and darwin-aarch64 ONLY — no
+      Windows — while the shipped README told developers Windows DLLs "need 2.24.901". Both loaders
+      then fell through to the Linux branch on Windows: BprIDEngineNative.java asked for
+      libBprIDEngine.so whenever !Platform.isMac(), and BprIDEngine.cs did the same in its else
+      branch. Because JNA/P-Invoke load LAZILY, a Windows host failed at FIRST USE with
+      UnsatisfiedLinkError rather than at startup, which reads as an application bug rather than a
+      packaging one. Fixed in 902: win32-x86-64 + win32-x86 in the jar, win-x64 + win-x86 embedded
+      in the NuGet assembly, and both loaders branch on Windows first.
+      GO STILL HAS NO WINDOWS and it is a loader limit, not a missing binary: purego.Dlopen is
+      unix-only, so Windows needs a separate windows.LoadLibrary path behind build tags. The error
+      message now names the Maven/NuGet wrappers as the Windows route.
+      TWO PROCESS TRAPS HIT WHILE DOING THIS. (1) The 902 Go module was assembled by copying the
+      901 FACE wrapper, so go.mod still declared .../go/bpridengine-face/v2 while living at
+      go/bpridengine — `go get` refused it outright. Caught ONLY by resolving the tag as a consumer
+      after pushing. (2) bpr1000.bnprs-libs master is a PROTECTED branch: no force push, so a bad
+      published commit must be fixed with a FOLLOW-UP commit and the tag moved, not an amend.
+      Verify a Go tag by `go get`-ing it, never by a successful push.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [windows-missing-from-wrappers-until-902, loaders-fell-through-to-so, lazy-load-hides-packaging-bugs, go-has-no-windows-purego-unix-only, gomod-path-copied-from-face-wrapper, master-is-protected-no-force-push, verify-a-go-tag-by-consuming-it]
+
 # Pruning rules
 pruning:
   max_entries: 500

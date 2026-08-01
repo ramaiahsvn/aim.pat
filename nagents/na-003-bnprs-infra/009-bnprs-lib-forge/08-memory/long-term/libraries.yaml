@@ -29,7 +29,7 @@ registry:
 # Latest declared source versions (per src/AprCommon/BprVersions/bpr_versions.h, 2026-05-30)
 # These are the versions to publish once builders hand off artifacts.
 source_versions:
-  BprIDEngine: "2.24.901"   # consolidated engine (all six modalities behind the BprID_* ABI).
+  BprIDEngine: "2.24.902"   # consolidated engine (all six modalities behind the BprID_* ABI).
                             # .900 is deliberate: 6xx-8xx is reserved for per-modality releases.
                             # .901 (2026-08-01) is NOT a drop-in for .900 — knuckle moved from
                             # modality 0x4C to 0x4F, so T33->T61 / M32->M61 and 0x4C03 / 0x4C02
@@ -557,3 +557,78 @@ published:
       DIRECT GIT instead — GOPRIVATE='gitlab.bnprs.ai/*', GOSUMDB=off, and a credential in
       ~/.netrc or url.insteadOf. Verified: go get …/go/bprface/v2@v2.24.116 downloads and builds.
     note: "Natives are linux-only; the wrapper returns 'this build supports linux only (GOOS=…)' elsewhere, by design."
+
+  # --- BprIDEngine 2.24.902 — ONE PACKAGE (the lean/face split withdrawn) ---------------------
+  - package: "BprIDEngine"
+    package_type: "generic"
+    version: "2.24.902"
+    project_id: 230
+    source_repo: "bpr.cpp"
+    source_commit: "db6c516"
+    built_by: "na-004/007 cpp-bengine"
+    published_by: "na-003/009 bnprs-lib-forge (publish-library.sh, sha-verified)"
+    published_at: "2026-08-01"
+    platforms: [macos, linux-x64, linux-arm64, windows-64, windows-32]
+    supersedes_note: >-
+      2.24.900 and 2.24.901 EACH shipped two builds — BprIDEngine (lean, no face) and
+      BprIDEngine-face — that were indistinguishable at runtime: same LibraryName "BprIDEngine",
+      same version string, same symbol set, same libBprIDEngine.so filename. A deployment team took
+      the default name, got the build with no face extractor, and saw a library that loaded and
+      reported the right version while refusing to enrol. 902 is ONE package with T12 compiled in.
+      There is no -face artifact at 902 in any registry.
+    models: >-
+      OPT-IN and shipped in the same package under models/. Deploy bpr.m1000{1,2,3}.onnx BESIDE the
+      library (or in ./models/) for face; omit them for a finger/iris/palm/knuckle deployment.
+      Cost of the collapse: a modality-only host carries ~21 MB instead of ~450 KB.
+    readiness_probe: >-
+      BprID_Preload(tid), NOT BprID_HasTemplate(tid). HasTemplate answers "compiled in" and now
+      always returns 1 for T12; Preload answers "usable" and returns ModuleError (-7) when the
+      models are absent. A 900/901 host gating on HasTemplate will believe face works and fail at
+      the first Extract.
+    windows_self_contained: >-
+      YES — unlike BprFace, libBprIDEngine.dll needs no companion deps DLL. objdump shows no
+      non-system imports.
+    verified: >-
+      121 tests; proof gate PASS (22 identical BprID_* across all six family libraries); published
+      binary run in ubuntu:22.04 — models absent gives Preload/Extract -7, models present gives
+      528-byte templates, same-person 0.7619, different-person 0.0000.
+  - package: "ai/bnprs/nativesdk-bpridengine"
+    package_type: "maven"
+    version: "2.24.902"
+    project_id: 230
+    published_at: "2026-08-01"
+    size: "70 MB"
+    note: >-
+      NOW INCLUDES THE WINDOWS NATIVES (win32-x86-64, win32-x86), which 900 and 901 promised in
+      their README and did not deliver — their jars carried only linux-x86-64, linux-aarch64 and
+      darwin-aarch64, so a Windows JVM died with UnsatisfiedLinkError on FIRST USE, not at startup.
+      The JNA loader asked for a .so on every non-macOS platform; fixed. Also added BprID_Preload
+      to the JNA interface — it existed in the native from 901 but was never bound, so no Java host
+      could call it. Resolved as a real consumer before declaring done; the standalone .pom is
+      generated from pom.xml, not copied from the previous version.
+  - package: "Bnprs.NativeSdk.BprIDEngine"
+    package_type: "nuget"
+    version: "2.24.902"
+    project_id: 230
+    published_at: "2026-08-01"
+    size: "70 MB"
+    note: >-
+      Windows added (win-x64, win-x86) — the C# loader also fell through to the Linux branch on
+      Windows. Five natives now embedded; verified by reading the resource names out of the packed
+      assembly. PackageId collapsed from .Face back to the base name.
+  - package: "go/bpridengine/v2"
+    package_type: "go"
+    version: "v2.24.902"
+    project_id: 230
+    git_tag: "go/bpridengine/v2.24.902"
+    branch: "master"
+    published_at: "2026-08-01"
+    note: >-
+      This module was the LEAN build through 901; at 902 it carries T12 and the models. The
+      go/bpridengine-face module is NOT tagged at 902. NO WINDOWS SUPPORT: purego.Dlopen is
+      unix-only and Windows needs a separate LoadLibrary loader behind build tags — the error
+      message now points Windows users at the Maven or NuGet wrapper.
+      TRAP HIT: the module was assembled from the 901 face wrapper, so go.mod still declared
+      .../go/bpridengine-face/v2 and `go get` refused it with "module declares its path as". Caught
+      only by resolving the tag as a consumer. master is PROTECTED — no force push, so the fix had
+      to be a follow-up commit with the tag moved.
