@@ -669,3 +669,42 @@ published:
 # NOT touched: the Zoho release share still holds BprFace v2.24.101-115 and BprIDEngine v2.24.900.
 # Separate channel, separate decision.
 # ============================================================================================
+
+# ---- 2026-08-01 release: BprFace 2.24.117 + BprVideo 2.60.0 + BprVision 2.61.0 --------------
+  - package: "BprFace"
+    package_type: "generic + maven + nuget"
+    version: "2.24.117"
+    project_id: 230
+    source_commit: "2f9f7db"
+    published_at: "2026-08-01"
+    platforms: [macos, linux-x64, linux-arm64, windows-64, windows-32]
+    abi: >-
+      CONVERGED — 30 exports: the 22 generic BprID_* identical to BprIDEngine, plus four legacy
+      T12 streaming entry points, BprLicGeneration/BprLicVerification,
+      Bpr_FaceRecog_T11_CosineSimilarity and Bpr_GLog_Init. Sixteen of 2.24.116's exports are
+      gone; that release was deleted from the registry, so nothing upgrades from it.
+    verified: >-
+      Java consumer built against the PUBLISHED jar and run on linux/amd64 — reports
+      "BprFace 2.24.117", extracts 528-byte templates, matches the LFW Paul_McNulty pair at
+      0.7619. Maven resolved from a throwaway project. Standalone .pom generated from pom.xml,
+      never copied, and its served content re-read after upload.
+  - package: "BprVideo"
+    package_type: "generic"
+    version: "2.60.0"
+    project_id: 230
+    published_at: "2026-08-01"
+    abi: "3 exports — Bpr_FaceVideo_Streaming, Bpr_Video_ProbeSource, Bpr_Video_Version. No models, no licence gate."
+  - package: "BprVision"
+    package_type: "generic"
+    version: "2.61.0"
+    project_id: 230
+    published_at: "2026-08-01"
+    abi: "10 exports — 8 smoke/fight (signatures identical to BprFace 2.24.116's) + Bpr_Vision_Version + Bpr_FaceVideo_Streaming. Ships models m10005/m10006."
+    note: >-
+      NO Maven/NuGet wrapper yet, and neither has BprVideo — generic only. They never had one, so
+      this is new work rather than a rebuild.
+  - cross_cutting_warning: >-
+      BprFace, BprVideo, BprVision and BprIDEngine SHARE symbols by design.
+      Bpr_FaceVideo_Streaming is in the first three; the smoke/fight eight are in BprVision and
+      BprIDEngine. LOAD EXACTLY ONE per process — two give an undefined winner while both report
+      plausible versions. API spec: na-004/001 deliverables/2026-08-01-bprface-bprvideo-bprvision-api.md
