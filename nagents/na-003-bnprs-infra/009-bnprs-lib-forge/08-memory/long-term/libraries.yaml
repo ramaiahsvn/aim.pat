@@ -643,3 +643,29 @@ published:
       .../go/bpridengine-face/v2 and `go get` refused it with "module declares its path as". Caught
       only by resolving the tag as a consumer. master is PROTECTED — no force push, so the fix had
       to be a follow-up commit with the tag moved.
+
+# ============================================================================================
+# REGISTRY CLEANUP 2026-08-01 — old releases deleted on the user's confirmation that nothing
+# consumes them. The registry now holds ONE version per library.
+#
+# DELETED (16 packages, ~1.25 GB):
+#   BprFace              2.24.115, 2.24.116   generic + maven + nuget
+#   BprIDEngine          2.24.900, 2.24.901   maven + nuget (+ generic for 901)
+#   BprIDEngine-face     2.24.900, 2.24.901   maven + nuget (+ generic for 901)
+#   git tags             go/bprface/v2.24.11{5,6}, go/bpridengine{,-face}/v2.24.90{0,1}
+#
+# The Go tags mattered as much as the packages: Go modules resolve from GIT TAGS, not from the
+# package registry, so leaving them would have let `go get ...@v2.24.900` keep succeeding while
+# Maven and NuGet returned 404 for the same version. Deleting a package is not enough to retire a
+# version — check the tags too.
+#
+# The -face variants are gone entirely, which permanently retires the lean/face split that 2.24.902
+# withdrew. There is now one BprIDEngine.
+#
+# KNOWN BREAKAGE, accepted: the uTMS team's pom pins nativesdk-bpridengine-face:2.24.900 and the
+# Java sample on the release share pins the same. Both must repoint at
+# ai.bnprs:nativesdk-bpridengine:2.24.902 — note the artifactId loses the -face suffix.
+#
+# NOT touched: the Zoho release share still holds BprFace v2.24.101-115 and BprIDEngine v2.24.900.
+# Separate channel, separate decision.
+# ============================================================================================
