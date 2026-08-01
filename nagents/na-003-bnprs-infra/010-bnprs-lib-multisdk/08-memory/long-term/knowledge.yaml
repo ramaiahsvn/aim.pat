@@ -98,6 +98,49 @@ memories:
     source: "session-2026-07-21"
     tags: [self-contained-native, no-deps-lib, opencv-static, opencv-dnn, verify-otool-ldd]
 
+  - id: mem-006
+    type: technical_knowledge
+    content: >-
+      MAVEN COORDINATES: THE POM'S groupId DICTATES THE UPLOAD PATH, and getting it wrong is
+      silent. Path = …/packages/maven/<groupId with dots as slashes>/<artifactId>/<version>/<file>.
+      For these wrappers groupId is ai.bnprs and artifactId is nativesdk-<lib>, so the path is
+      ai/bnprs/nativesdk-<lib>/… — NOT ai/bnprs/nativesdk/nativesdk-<lib>/, which is easy to write
+      because the Java package is ai.bnprs.nativesdk.<lib>. THE JAVA PACKAGE NAME IS NOT THE
+      groupId. GitLab accepts the wrong path with HTTP 200 and registers it as a separate package
+      that no consumer can resolve. Happened on BprFace 2.24.116; corrected and the wrong-path
+      package deleted via DELETE /projects/230/packages/<id>. Verify by resolving from a throwaway
+      consumer project, and compare the package NAME the registry lists against the previous
+      release's — they must match exactly.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [maven-coordinates, groupid-not-java-package, wrong-path-registers-silently, delete-package-api, resolve-to-verify]
+
+  - id: mem-007
+    type: technical_knowledge
+    content: >-
+      BPRFACE 2.24.116 WRAPPERS REFRESHED 2026-08-01 (native licence-enforcement break; binding
+      surface unchanged). Built by copying v2.24.115 and swapping natives + bumping versions.
+      Scope matches 115: LINUX ONLY (linux-x86-64/linux-aarch64 for Maven, linux-x64/linux-arm64
+      for NuGet and Go) — no macOS or Windows in the wrappers even though the generic package ships
+      all five platforms. Maven jar and NuGet nupkg are ~87 MB each because bpr.model.onnx (72 MB)
+      is embedded.
+      REFRESH CHECKLIST that caught the real bugs: bump EVERY text file including *.pom (the
+      standalone .pom is a separate file from pom.xml and both must say the new version); then
+      grep the whole wrapper tree for the OLD version and expect zero hits; then confirm the
+      natives inside the built jar/nupkg with `strings … | grep 2\.24\.` rather than trusting
+      that the copy happened.
+      Go: the wrapper correctly refuses on non-linux with "bprface: this build supports linux only
+      (GOOS=…)" — that is by design, not a packaging failure.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [bprface-2.24.116, wrappers-are-linux-only, bump-the-standalone-pom-too, grep-for-the-old-version, strings-check-the-embedded-native, 87mb-from-onnx]
+
 # Pruning rules
 pruning:
   max_entries: 500

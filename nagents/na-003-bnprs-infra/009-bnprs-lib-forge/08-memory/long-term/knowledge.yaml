@@ -4,27 +4,85 @@
 # Format: each entry is a strengthened "synapse"
 memories:
   - id: mem-001
-    type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    type: technical_knowledge
+    content: >-
+      PUBLISH WITH THE WORKFLOW SCRIPT, NOT HAND-ROLLED CURL:
+      04-axon/workflows/publish-library.sh --lib <L> --version <X.Y.Z>. It collects every platform
+      subdir under bpr.cpp/build/bnprs-libs/<Lib>/v<ver>/, generates .sha256 sidecars and
+      manifest.json, uploads, then RE-DOWNLOADS each file and compares hashes. It also has an
+      immutability guard that refuses to overwrite an already-published version without --force.
+      Always run --dry-run first: it prints the exact PUT list, which is how you catch a missing or
+      mis-staged platform BEFORE anything is immutable. This agent publishes only; builder agents
+      produce the artifacts.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.99
+    source: "session-2026-08-01"
+    tags: [publish-library-sh, dry-run-first, immutability-guard, verify-by-redownload, forge-does-not-build]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: technical_knowledge
+    content: >-
+      A 200/201 MEANS "STORED", NOT "CORRECT" — VERIFY WHAT THE REGISTRY SERVES. Burned twice.
+      (1) BprIDEngine 2.24.901: the standalone .pom was a renamed copy of the 900 file and went out
+      declaring version 2.24.900 at 901 coordinates. Both uploads returned 200 and a self-check
+      printed "POM VERSION MISMATCH" that got read past because the 200s looked fine.
+      (2) BprFace 2.24.116: Maven artifacts were uploaded to
+      …/maven/ai/bnprs/nativesdk/nativesdk-bprface/ — GitLab accepted it with 200 and registered it
+      as a SEPARATE package that no consumer could ever resolve, because the POM's groupId is
+      ai.bnprs so the path must be ai/bnprs/<artifactId>. Fix: after upload, DOWNLOAD the pom back
+      and read its <version>, and resolve the dependency as a real consumer (mvn dependency:resolve
+      against a throwaway project). Cross-check the coordinates against the PREVIOUS version's entry
+      — a path that differs from the last release is the tell.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [verify-what-is-served, pom-version-trap, maven-grouppath-trap, groupid-drives-the-path, resolve-as-a-consumer, compare-with-previous-release]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: technical_knowledge
+    content: >-
+      AN INCOMPLETE MANIFEST IS WORSE THAN NO MANIFEST. BprFace 2.24.115's native-manifest.json
+      listed three binaries while the package actually shipped five — it omitted BOTH Windows
+      platforms and, with them, libBprFaceDeps.dll, which libBprFace.dll IMPORTS. A consumer
+      trusting that manifest would have deployed a DLL that cannot load. When staging a release,
+      generate the manifest by WALKING the staged tree, never by editing the previous version's
+      file, and record per-platform whether the native is self-contained (Windows BprFace is not:
+      it needs libBprFaceDeps.dll + bpr.model.onnx + the ffmpeg DLL alongside).
+      Corollary for staging: diff the new version's per-platform file list against the previous
+      release's before publishing — that is what exposed both the missing windows-32 and the
+      missing deps DLL.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [manifest-completeness, walk-the-tree-dont-copy, self-contained-per-platform, diff-against-previous-release, libbprfacedeps]
+
+  - id: mem-004
+    type: technical_knowledge
+    content: >-
+      PER-FORMAT AUTH ON PROJECT 230 (re-confirmed 2026-08-01, all four in one release).
+      GENERIC: PUT …/packages/generic/<pkg>/<ver>/<path>, header PRIVATE-TOKEN (201).
+      MAVEN: PUT jar and pom to …/packages/maven/<group-as-path>/<artifact>/<ver>/<file>, header
+      Private-Token (200).
+      NUGET: HTTP BASIC ONLY — curl --request PUT --user root:$GITLAB_PAT --form package=@x.nupkg
+      …/packages/nuget/ WITH THE TRAILING SLASH (201). A PRIVATE-TOKEN header 401s, and GitLab
+      reports NuGet auth failures as 404, so a 404 here means auth, not a missing route.
+      GO: no upload endpoint at all — commit the module into project 230's git repo under
+      go/<lib>/ and push tag go/<lib>/vX.Y.Z. The default branch is MASTER (pushing "main" fails
+      with "src refspec main does not match any"). The Go PROXY endpoint is NOT enabled on this
+      server: it 404s even authenticated, so consumers use GOPROXY=direct + GOPRIVATE +
+      GOSUMDB=off with git credentials.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 0.99
+    source: "session-2026-08-01"
+    tags: [publish-auth, generic-201, maven-200, nuget-basic-trailing-slash, nuget-404-means-401, go-tag-on-master, go-proxy-disabled, project-230]
 
 # Pruning rules
 pruning:
