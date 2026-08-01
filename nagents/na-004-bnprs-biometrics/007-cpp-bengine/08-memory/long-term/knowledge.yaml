@@ -1552,6 +1552,40 @@ memories:
     source: "session-2026-08-01"
     tags: [windows-missing-from-wrappers-until-902, loaders-fell-through-to-so, lazy-load-hides-packaging-bugs, go-has-no-windows-purego-unix-only, gomod-path-copied-from-face-wrapper, master-is-protected-no-force-push, verify-a-go-tag-by-consuming-it]
 
+  - id: mem-042
+    type: technical_knowledge
+    content: >-
+      CLIENT/SERVER LIBRARY MODEL SETTLED 2026-08-01 (bpr.cpp b80cf52) — ONE API, TWO DISTRIBUTIONS.
+      User requirement: root target keeps building INDIVIDUAL libraries for client distribution
+      (BprFace, BprFinger, BprVideo, BprCardQi...), BprIDEngine stays the SERVER library, face must
+      look identical from both, all six modality libraries must share one signature set, and
+      UNION(6 modality libs) MUST EQUAL BprIDEngine.
+      HOW IT IS BUILT: the root CMakeLists no longer DEFINES the six biometric modalities. It
+      DELEGATES — `elseif(OUTFILENAME MATCHES "^(BprFace|BprFinger|BprIris|BprPalmprint|
+      BprFingerCless|BprOtherBio)$")` forces the matching BENGINE_BUILD_* option ON, everything
+      else OFF, then add_subdirectory(src/BprIDEngine/bengine). Root keeps versioning and output
+      layout; bengine remains the single definition of what a modality library IS, with
+      proof_gate enforcing it. Defining them twice was the alternative and that is exactly how the
+      T14/T15 registration bug happened (mem-032).
+      THE TENSION AND ITS RESOLUTION: BprFace carries 4 legacy streaming entry points that the
+      generic ABI cannot express (it is stateless and still-image). That would make union > engine.
+      Fixed by giving BprIDEngine THE SAME streaming extension, so parity holds by construction.
+      MEASURED END TO END, root-built: BprFinger/Iris/Palmprint/FingerCless/OtherBio all 24 exports
+      and byte-identical; BprFace 30; union exactly 30; BprIDEngine exactly 30; all six of
+      BprFace's extras present in the engine. Proof gate 6/6; macOS + linux-x64 + windows-64 clean.
+      GOTCHAS. (1) add_custom_command(TARGET) only works on a target created in the SAME directory,
+      so the POST_BUILD model copy had to be skipped for delegated targets (BPR_TARGET_DELEGATED).
+      (2) BprOtherBio had NO entry in bpr_versions and emitted libBprOtherBio.0.0.0 — now 2.24.600,
+      first use of the 6xx-8xx range reserved for modalities beyond the original five.
+      (3) The delegated build also emits BprIDEngine from the same registrars; harmless, same
+      objects, and it makes the union invariant checkable from one build tree.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [client-server-library-model, root-delegates-to-bengine, union-of-six-equals-engine, one-definition-proof-gate-enforced, engine-also-gets-face-streaming, bprotherbio-2.24.600, add_custom_command-same-directory-only]
+
 # Pruning rules
 pruning:
   max_entries: 500
