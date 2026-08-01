@@ -94,6 +94,31 @@ variant re-run with `--exclude` on that union: **12,924 pairs, identical for all
 | T15 mFace | 96.54% ± 0.98 | 93.99% | 89.56% |
 | T12 sFace | **89.92% ± 2.30** | 74.75% | **58.04%** |
 
+## 4d. Multi-algorithm fusion — CroppedYale, same 12,924 pairs
+
+| configuration | accuracy | TAR@1e-2 | TAR@1e-3 |
+|---|---|---|---|
+| **T13+T14 mean** | 98.75% ± 0.68 | 98.60% | **96.27%** |
+| T13+T14 **max** | **98.86% ± 0.57** | **98.85%** | 93.13% |
+| all four, mean | 97.75% ± 0.97 | 96.58% | 91.70% |
+| T14+T15 mean | 97.46% ± 1.10 | 96.19% | 92.85% |
+| T12+T14 mean | 96.32% ± 1.46 | 93.55% | 88.17% |
+
+A pair is scored only if **every** listed variant extracted both images, so fused runs and their
+components share a pair set.
+
+## 4e. Processing time — dbase 640×480, single-threaded, per call
+
+| variant | extract | match | first call (incl. model load) |
+|---|---|---|---|
+| T12 sFace | **8.57 ms** | 12.73 µs | 47.5 ms |
+| T13 iFace | 9.83 ms | **0.48 µs** | 15.2 ms |
+| T14 aFace | 35.04 ms | 0.65 µs | 202.9 ms |
+| T15 mFace | 35.25 ms | 0.67 µs | 197.0 ms |
+
+The first extraction pays the lazy model load and is excluded from the mean; cache hits are not
+timed. The first-call figure is load *plus* one inference, so T14's true load is ≈168 ms.
+
 ## 5. Findings
 
 **5.1 — The ranking inverts, and ORL is the reason.** T12 is last on LFW by 2.8 points and first on
@@ -148,6 +173,24 @@ the clearest possible case for directive-driven reading of TAR@FAR rather than a
 1.15 points and by **4.1 on TAR@1e-3**. That is the direction the `-CCTV` naming predicts — a
 quality-adaptive margin should pay off precisely where quality varies — and it is the first
 evidence in this evaluation for choosing between them.
+
+**5.3e — Fusion pays, but only between components that fail differently.** T13+T14 beats *both*
+on all three metrics, and at TAR@1e-3 by **+14.5 points over T13** and +2.6 over T14. The
+predictor was §5.3d's crossover — direct evidence they misclassify different faces. Three
+negative results matter as much: **T14+T15 came out worse than T14 alone** (two IR-101 models
+fail on the same faces, so the weaker drags), **T12+T14 lost 5.5 points of TAR@1e-3 against T14
+alone** — fusion cannot rescue a weak variant, averaging pulls the strong one down — and **all
+four is worse than the best pair.** Choose complementary components, not many. `max` and `mean`
+split by operating point exactly as the crossover predicts: use **mean for strict FAR, max for
+screening**.
+
+**5.3f — timing reframes the whole comparison.** T14/T15 cost **4× T12's extraction** (35 ms vs
+8.6 ms) because IR-101 is 260 MB against SFace's 37 MB. T12 is not only the sole shippable
+variant, it is also the cheapest — which raises the value of fixing it (5.4) above what the
+accuracy table alone suggested. Conversely the best configuration measured anywhere, T13+T14,
+costs ~45 ms per image **and cannot ship**: an upper bound, not a proposal. Matching is
+effectively free (sub-µs), so a 100k gallery adds ~50 ms to a 35 ms extraction — **enrolment is
+the bottleneck, not gallery size.**
 
 **5.4 — T12's deficit looks like integration, not the model.** Two independent signals:
 

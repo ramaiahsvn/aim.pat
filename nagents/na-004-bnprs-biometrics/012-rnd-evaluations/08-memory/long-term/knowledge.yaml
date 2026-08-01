@@ -196,6 +196,64 @@ memories:
     source: "session-2026-08-01"
     tags: [evaluation-finds-what-tests-cannot, mirrored-alignment, near-chance-suspect-geometry, mirror-test, detector-threshold, verify-same-data-before-comparing, fte-parity]
 
+  - id: mem-005
+    type: technical_knowledge
+    content: >-
+      2026-08-01 MULTI-ALGORITHM FUSION AND TIMING — the two axes the first sixteen runs missed.
+      Both prompted by the user asking; neither had occurred to me, and both changed conclusions.
+      FUSION ON CROPPEDYALE, identical 12924 pairs, all figures comparable to the singles:
+        T13+T14 mean  98.75% +/- 0.68  TAR@1e-2 98.60%  TAR@1e-3 96.27%  <-- BEST MEASURED ANYWHERE
+        T13+T14 max   98.86% +/- 0.57  TAR@1e-2 98.85%  TAR@1e-3 93.13%
+        all four mean 97.75% +/- 0.97  TAR@1e-2 96.58%  TAR@1e-3 91.70%
+        T14+T15 mean  97.46% +/- 1.10  TAR@1e-2 96.19%  TAR@1e-3 92.85%
+        T12+T14 mean  96.32% +/- 1.46  TAR@1e-2 93.55%  TAR@1e-3 88.17%
+        (singles: T13 98.27/81.74, T14 97.69/93.63, T15 96.54/89.56, T12 89.92/58.04)
+      FOUR RULES THAT GENERALISE, and the first is the only one people usually know:
+      (1) FUSION PAYS ONLY WHEN THE COMPONENTS FAIL DIFFERENTLY. T13+T14 beats BOTH on all three
+      metrics — TAR@1e-3 96.27% against T13's 81.74% (+14.5) and T14's 93.63% (+2.6). The
+      predictor was the CROSSOVER: T13 won at FAR=1e-2 and T14 at 1e-3, which is direct evidence
+      they misclassify different faces. LOOK FOR A CROSSOVER BEFORE SPENDING ON FUSION.
+      (2) FUSING SIMILAR MODELS HURTS. T14+T15 (both IR-101, similar training data) came out
+      WORSE than T14 alone, 97.46 vs 97.69. No independent information, and the weaker one drags.
+      (3) FUSION CANNOT RESCUE A WEAK VARIANT. T12+T14 lost 5.5 points of TAR@1e-3 against T14
+      alone. Averaging pulls the strong component DOWN; it does not lift the weak one up.
+      (4) MORE IS NOT BETTER. All four fused is worse than the best pair on every metric. Choose
+      COMPLEMENTARY components, not many.
+      MAX vs MEAN SPLITS BY OPERATING POINT, mirroring the crossover exactly: max takes the
+      highest score so it lifts genuine AND impostor scores — best at FAR=1e-2 (98.85%), worse at
+      1e-3 (93.13%). mean damps impostor spikes and wins where authentication lives. USE MEAN FOR
+      STRICT FAR, MAX FOR SCREENING.
+      TIMING (dbase 640x480, single-threaded, per call):
+        T12  8.57 ms extract | 12.73 us match | first call 47.5 ms
+        T13  9.83 ms extract |  0.48 us match | first call 15.2 ms
+        T14 35.04 ms extract |  0.65 us match | first call 202.9 ms
+        T15 35.25 ms extract |  0.67 us match | first call 197.0 ms
+      THIS REFRAMES THE ACCURACY WORK AND THE STANDING RECOMMENDATION. T14/T15 cost 4x T12's
+      extraction — IR-101 (260 MB) against SFace (37 MB). T12 is not merely the only SHIPPABLE
+      variant, it is also the CHEAPEST, so closing its integration gap is worth more than the
+      accuracy table alone implied. Conversely the best configuration measured anywhere,
+      T13+T14, costs ~45 ms per image AND cannot ship (both licence-blocked) — an upper bound,
+      not a proposal.
+      MATCHING IS EFFECTIVELY FREE for the embedding variants: sub-microsecond, so a 100k-entry
+      gallery adds ~50 ms to a 35 ms extraction. GALLERY SIZE IS NOT THE BOTTLENECK, ENROLMENT
+      IS. T12's 12.7 us is 26x the others (it round-trips OpenCV's matcher rather than a plain
+      cosine) and still irrelevant at any realistic scale.
+      HOW TO MEASURE IT HONESTLY — two choices in bengine-eval worth preserving: the FIRST
+      extraction per variant is excluded from the mean and reported separately, because it pays
+      the lazy model load and folding it in would libel whichever variant has the largest model;
+      and CACHE HITS ARE NOT TIMED, or the average improves with dataset redundancy rather than
+      with the algorithm. Note the first-call figure is load PLUS one inference, so T14's true
+      load is ~203-35 = ~168 ms.
+      FUSED RUNS SCORE A PAIR ONLY IF EVERY LISTED VARIANT EXTRACTED BOTH IMAGES, so a fused run
+      and its components share a pair set. Without that, fusion flatters itself by dropping
+      whatever any one component found hard.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01 (user asked; both axes had been missed)"
+    tags: [fusion, timing, crossover-predicts-fusion-gain, similar-models-do-not-fuse, fusion-cannot-rescue-a-weak-variant, more-is-not-better, mean-for-strict-far-max-for-screening, t12-is-4x-cheaper, matching-is-free, enrolment-is-the-bottleneck, exclude-first-call, do-not-time-cache-hits]
+
 # Pruning rules
 pruning:
   max_entries: 500
