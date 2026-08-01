@@ -410,6 +410,41 @@ memories:
     source: "session-2026-08-01"
     tags: [version-in-three-files, bpr_versions-h-cmake-makefile, artifact-name-is-the-check, lib_output_dir, libbprfacedeps-at-build-root, windows-not-self-contained]
 
+  - id: mem-014
+    type: project_context
+    content: >-
+      THE .NET CONSUMER OF libBprFace.dll — analysed 2026-08-01. App:
+      GitRepos2/TRP1001_SbioidS/trp1001.sbioids.face.testapp/BprFaceTest (WinForms, .NET Framework
+      4.7.2, direct DllImport, 18 imported symbols, no wrapper library). Full report:
+      07-axon-terminals/deliverables/2026-08-01-bprfacetest-116-integration-analysis.md.
+      116 IMPACT: the video paths are safe — NO streaming/detection source changed between the 115
+      build (db5b27b) and 116 (4276770); BprSFaceDetect/Recog/Smoke/Fight .cpp are untouched, all
+      18 symbols still exported with identical signatures. But Form1.cs:39-42 passes qiCode "" with
+      length 0 to all four *_Init, which 116 rejects, so every handle is IntPtr.Zero. Six controls
+      are guarded and SILENTLY DO NOTHING; button3/button4 are NOT guarded and HARD-CRASH
+      (_face_recog_image dereferences the null instance at BprSFaceRecog.cpp:162, and the
+      surrounding catch(std::exception) does not catch an SEH access violation); button5
+      Bpr_FaceVideo_Streaming KEEPS WORKING because it is completely ungated — only the four *_Init
+      are gated. Fix is one 16-hex code.
+      SECOND, SUBTLER 116 CHANGE: Windows model resolution FLIPPED. 115 asked
+      GetModuleHandleA("BprFace.dll") — but the DLL is named libBprFace.dll, so it never matched and
+      fell through to the EXE handle, resolving bpr.model.onnx next to the EXE. 116 uses
+      GetModuleHandleExA(FROM_ADDRESS) and resolves next to the DLL. Neutral while both sit in
+      bin\Debug\, but the moment natives move to native\ or runtimes\win-x64\native\ the MODEL
+      MUST MOVE WITH THE DLL.
+      Library gap found: Bpr_*_T12_Init returns nullptr on licence failure WITHOUT writing
+      *errorCode, so a caller cannot tell "bad licence" from "model missing". Worth fixing here.
+      Latent app bugs (pre-existing, 2 in the video path): one _frameCallback field shared by three
+      streams, so starting a second stream unroots the first delegate while a native thread still
+      calls it; FormClosing DeInits while streams may still run (delete on a live instance); size_t
+      length params declared int (stack-passed ones are ABI-undefined); inconsistent bool MarshalAs.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [dotnet-consumer, bprfacetest, video-unaffected-by-116, empty-qicode-breaks-it, facevideo-streaming-is-ungated, model-path-flipped-exe-to-dll, init-does-not-set-errorcode, callback-delegate-unrooted, see-mem-037-for-generic-abi]
+
 # Pruning rules
 pruning:
   max_entries: 500

@@ -1391,6 +1391,13 @@ memories:
       (2) BprFinger is FingerJetFX (T21) and its LGPL position is still open with na-002-bnprs-core;
       the BPR_FINGER_WITH_FJFX=OFF containment flag has NO EFFECT on bengine (now a FATAL_ERROR),
       so publishing that one has a licensing precondition, not just a technical one.
+      SHARPENED 2026-08-01 by [mem-037]: precondition (1) is no longer a future tidy-up. Two
+      libraries already build as libBprFace with DISJOINT ABIs (legacy T12 video surface vs
+      BprID_*), so if both ever ship as "BprFace" a consumer gets one of two incompatible
+      things by provenance — and registry versions are IMMUTABLE, so it cannot be undone.
+      Options for na-004/007 + na-002: rename the bengine output (BprIDFace, or
+      BprIDEngine.Face as the wrappers already do); rename the legacy video library; or never
+      publish per-modality at all and expose only the consolidated BprIDEngine.
       Every family library must pass tests/proof_gate.sh — identical BprID_* export set as
       BprIDEngine — before it is a publishable artifact.
     created_at: "2026-08-01"
@@ -1399,6 +1406,40 @@ memories:
     confidence: 1.0
     source: "session-2026-08-01"
     tags: [per-modality-publish, deferred-not-declined, user-decision, name-collision-with-bprface-product-line, fjfx-lgpl-precondition, proof-gate, immutable-versions]
+
+  - id: mem-037
+    type: technical_knowledge
+    content: >-
+      THE GENERIC BprID_* ABI CANNOT BE THE ONLY SURFACE ON BprFace — MEASURED 2026-08-01, not
+      inferred. Question raised: expose only the generalised methods (BprID_Extract, BprID_Match, …)
+      across every modality AND its library. Checked against the real artifacts:
+      `nm -gU bengine/build-all/libBprFace.dylib` = 21 BprID_* + BprLicGeneration/BprLicVerification
+      and ZERO legacy Bpr_Face*/Bpr_Smoke*/Bpr_Fight* symbols; and
+      `grep -ciE "callback|stream|video|camera|frame" capi/bprid_abi.h` = 0.
+      The legacy T12 surface and the generic surface are COMPLETELY DISJOINT — no overlap to migrate
+      through. A generic-only libBprFace.dll deletes every one of the .NET sample's 18 imports; it
+      throws EntryPointNotFoundException on the first P/Invoke and never opens a window.
+      Coverage of that app: 3 of 18 map (Quality -> BprID_Quality, Image/Template match ->
+      Extract+Match), 8 are subsumed (4 Init -> one SetLicense, 4 DeInit unneeded — no handles), and
+      7 HAVE NO EQUIVALENT: FaceDetect_Stream, FaceDetect_Process, FaceVideo_Streaming,
+      SmokeDetect_Stream/_Image, FightDetect_Stream/_Image.
+      Those 7 are NOT a gap to fill later, for three structural reasons: (a) smoke/fight detection
+      are NOT BIOMETRICS — no template, no probe/gallery, so Extract->Match cannot express them;
+      (b) the ABI is stateless and still-image — BprIDSample is one sample per call, there is no
+      session, frame loop or callback type, so streaming is a different EXECUTION MODEL, not a
+      missing function; (c) per-engine tuning (conf/nms/topK/enableTemplateExtraction/
+      cosine/norm2/dist_type) are constructor args to the legacy handles and BprID_Extract takes no
+      config at all — that uniformity is the design, and it is why those knobs cannot survive.
+      CONCLUSION: keep TWO surfaces. Standalone BprFace (bpr.cpp root build) owns video/streaming/
+      smoke/fight/folder-batch on the legacy T12 entry points; bengine per-modality + BprIDEngine
+      own template extract/match/quality/fuse on BprID_*. "Generic only" is right for the BIOMETRIC
+      TEMPLATE OPERATIONS; applied to the whole library it removes the video product.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [generic-only-would-delete-the-video-product, two-surfaces-by-design, smoke-fight-are-not-biometrics, abi-is-stateless-still-image, no-callback-primitive, tuning-has-nowhere-to-go, measured-with-nm-and-grep, dotnet-sample-18-imports]
 
 # Pruning rules
 pruning:
