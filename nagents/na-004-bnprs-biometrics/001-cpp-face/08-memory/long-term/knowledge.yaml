@@ -631,6 +631,33 @@ memories:
     source: "session-2026-08-01"
     tags: [static-opencv-re-exports-itself, 1325-symbols-in-all-three, elf-interposition-silent, visibility-hidden-plus-exclude-libs, export-macro-must-mark-default-visibility, macos-needs-exported-symbols-list, bprface-not-hardened-on-purpose, glob-matched-symlink-doubled-counts]
 
+  - id: mem-021
+    type: feedback
+    content: >-
+      NEVER `git add -A` IN bpr.cpp — SCOPE EVERY ADD. On 2026-08-01 I committed 3145
+      build-artifact files, 36% of everything tracked, across eight commits, and pushed them.
+      Cause: reaching for bare `git add -A` instead of `git add <paths>`.
+      WHY THE GITIGNORE DID NOT SAVE IT, and this is the trap worth remembering: .gitignore had a
+      `build` entry, which matches a directory named EXACTLY build and nothing else. So build/
+      (6.7 GB of staging) stayed clean and looked like proof the ignore worked, while
+      build-face-macos, build-split2, bd-BprFace, bw117 and ~50 siblings were never covered.
+      A passing case next to a failing one reads as safety.
+      FIXED (a723bea): all scratch CMake trees moved under build/cmake/ — build/ is already
+      ignored — plus explicit patterns build*/ bd-*/ bw*/ bh-*/ b-*/ b[0-9]*/ d[lw]-*/ and the
+      bengine equivalents. VERIFIED BY CREATING each directory name and running git check-ignore,
+      not by reading the globs; note check-ignore reports NOT-ignored for a `dir/` pattern when the
+      path does not exist, which briefly looked like the patterns had failed.
+      Tracked files 8853 -> 4992. Blobs remain in history: purging needs filter-repo plus a
+      force-push to main, which is a separate decision and master is protected.
+      HOW TO WORK: build into build/cmake/<name>, and commit with `git add <explicit paths>` —
+      `git add -A src/` at minimum, never bare.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [never-bare-git-add-A, scope-every-add, gitignore-build-matches-exact-name-only, 3145-artifacts-committed, build-cmake-scratch-location, verify-ignores-by-creating-the-dir, history-still-holds-the-blobs]
+
 # Pruning rules
 pruning:
   max_entries: 500
