@@ -183,12 +183,26 @@ the marshaller writes 4 bytes into an 8-byte slot and the upper half is not guar
 native side does `std::string(gallery_path, gallery_path_len)` with it. It evidently works today,
 but it is undefined by the ABI. Fix on the C# side (`UIntPtr`/`nuint`) to avoid an ABI break.
 
-**(d) `bool` marshalling is inconsistent.**
+**(d) `bool` marshalling is inconsistent — and this one has teeth.**
 Some declarations carry `[MarshalAs(UnmanagedType.I1)]`, others don't —
 `Bpr_FaceQuality_T12_Image`, `Bpr_FaceRecog_T12_Image`, `Bpr_FaceRecog_T12_Template`,
 `Bpr_FaceDetect_T12_Process`, `Bpr_FaceVideo_Streaming` omit it. Default P/Invoke marshalling for
-`bool` is the 4-byte Win32 `BOOL`; native is a 1-byte C++ `bool`. The low byte carries the value so
-it works in practice, but apply `I1` uniformly.
+`bool` is the 4-byte Win32 `BOOL`; native is a 1-byte C++ `bool`.
+
+**On Windows x64 this is benign**, and that is a property of the ABI rather than of the code: every
+stack argument occupies a padded 8-byte slot, so a 4-byte `BOOL` written where a 1-byte `bool` is
+read still presents the right low byte. Your deployment target is safe.
+
+**It is not portable, and the failure is a hard crash.** Demonstrated 2026-08-01 while testing the
+BprCCTV split: a C harness declared `Bpr_FaceDetect_T12_Stream`'s `save_flag`/`vis_flag` as `int`
+instead of `bool`. On Apple arm64, stack arguments are packed at natural size — one byte for a
+`bool`, four for an `int` — so those two parameters shifted every later stack argument, including
+the frame-callback pointer. The library called a garbage address and took `SIGBUS`
+(`EXC_ARM_DA_ALIGN at 0xffffffff00000005`). Same mistake, same signature, fatal instead of
+harmless, purely because the platform packs rather than pads.
+
+That matters here the moment this app is run on .NET on macOS or Linux ARM. Apply `I1` uniformly
+now rather than treating it as cosmetic.
 
 **(e) Dead references.** All 13 `HintPath`s point at `..\BprFaceCpp\packages\`, which does not
 exist in this checkout, including `AForge.Video.DirectShow` — and **no `.cs` file references

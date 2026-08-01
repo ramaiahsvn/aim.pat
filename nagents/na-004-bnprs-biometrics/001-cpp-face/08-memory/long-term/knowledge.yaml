@@ -484,35 +484,57 @@ memories:
   - id: mem-016
     type: technical_knowledge
     content: >-
-      FACE-DETECT STREAM MIGRATED ONTO THE SHARED LOOP 2026-08-01 (bpr.cpp 3fb1648). All three
-      streams now run on BprVideoRunStream. Needed two DEFAULTED additions to IBprFrameAnalyser so
-      smoke/fight were unaffected: windowTitle() (face ships "bNET ==> TSN : <serial>_<timestamp>"
-      and operators recognise their windows by it) and ownsPersistence() (face saves CROPPED FACES
-      gated on per-face quality + tracker distance + saveInterval, which no whole-frame policy can
-      express — returning true stops the loop also writing, so save_flag keeps ONE meaning per
-      analyser).
-      ONE DELIBERATE BEHAVIOUR CHANGE, unlike the rest of the split: visualize() emitted the frame
-      itself from THREE places and the third was INSIDE the per-face for-loop, so an N-face frame
-      fired N imshow calls and N frameCallbacks, each with a progressively-drawn overlay and only
-      the last complete. The host paid N bitmap allocations and N UI marshals per captured frame.
-      Now emitted ONCE per frame with the finished image. Anything counting callbacks to infer a
-      frame rate sees different numbers.
-      PRESERVED ON PURPOSE (do not "fix" these without asking): session-stamped folder and caption;
-      the bnet_oc_raw tree created whether or not save_flag is set; and the FIRST-EVER face-bearing
-      frame going out with no boxes drawn, because the faceTrackerCounter==0 branch never drew any.
-      VERIFICATION LIMIT — IMPORTANT: the LIVE streaming path is NOT verified against a camera. A
-      file-backed substitute is not a valid oracle: the throttle is WALL-CLOCK, so a clip that
-      decodes faster than 1 s/frame produces ZERO analyses (a 1936-frame file gave 0 callbacks),
-      and a 25k-frame clip SIGBUSes identically on the pre-migration published 2.24.116 AND on the
-      migrated build — same failure both sides, so not a regression, but it proves nothing about
-      the loop. That pre-existing crash is worth its own investigation. Verify with a real camera
-      or a rate-limited source.
+      FACE-DETECT STREAM MIGRATED ONTO THE SHARED LOOP 2026-08-01 (bpr.cpp 3fb1648), AND THE EMIT
+      CHANGE IS MEASURED. All three streams run on BprVideoRunStream. Needed two DEFAULTED
+      additions to IBprFrameAnalyser so smoke/fight were unaffected: windowTitle() (face ships
+      "bNET ==> TSN : <serial>_<timestamp>"; operators recognise their windows by it) and
+      ownsPersistence() (face saves CROPPED FACES gated on per-face quality + tracker distance +
+      saveInterval — returning true stops the loop also writing, so save_flag keeps ONE meaning).
+      THE ONE DELIBERATE BEHAVIOUR CHANGE, now measured not asserted: visualize() emitted from
+      THREE places and the third was INSIDE the per-face for-loop, so an N-face frame fired N
+      imshow calls and N frameCallbacks, each with a partially-drawn overlay. A/B on one 25,200-
+      frame clip with four faces per frame, ~6 analysed frames: PRE 21 invocations, POST 6 — one
+      per frame with the finished image. A host counting callbacks to infer frame rate sees
+      different numbers.
+      PRESERVED ON PURPOSE (do not "fix" without asking): session-stamped folder and caption; the
+      bnet_oc_raw tree created whether or not save_flag is set; the FIRST-EVER face-bearing frame
+      going out with no boxes, because the faceTrackerCounter==0 branch never drew any.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 2
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [face-stream-migrated, windowtitle-and-ownspersistence-hooks, n-emits-collapsed-to-one, measured-21-to-6, preserved-oddities]
+
+  - id: mem-017
+    type: technical_knowledge
+    content: >-
+      RETRACTION + A REAL LESSON: THERE IS NO "PRE-EXISTING SIGBUS" IN BprFace. I reported one on
+      2026-08-01 after a long video crashed identically on the published 2.24.116 and on the
+      migrated build, and concluded "same failure both sides, so not a regression". Both crashes
+      were MY TEST HARNESS. It declared Bpr_FaceDetect_T12_Stream's save_flag and vis_flag as int
+      when they are bool. ON APPLE ARM64 STACK ARGUMENTS ARE PACKED AT NATURAL SIZE — a bool takes
+      ONE byte, an int FOUR — and those two parameters are the 9th and 10th, so they land on the
+      stack, not in registers. Declaring them int shifted every later stack argument, including the
+      BprFrameCallback pointer; the library then called a garbage address and took SIGBUS
+      (EXC_ARM_DA_ALIGN at 0xffffffff00000005). One harness bug, both sides, which is exactly why
+      it LOOKED like a pre-existing library defect. Fixed the declaration and both run clean.
+      TWO THINGS TO CARRY FORWARD. (1) "It fails the same before and after" is evidence about the
+      HARNESS as much as the code — when both sides of an A/B fail identically, suspect the shared
+      component first. Read the crash report: ~/Library/Logs/DiagnosticReports/*.ips, parse the
+      json-after-first-line, and the faulting frame plus fault address name the cause in seconds.
+      (2) This is the same defect class as the .NET binding's inconsistent MarshalAs(I1), and it
+      settles the severity question: on WINDOWS X64 it is genuinely benign because every stack slot
+      is padded to 8 bytes so the low byte still lands right; on APPLE ARM64 (packed) the identical
+      mistake is a HARD CRASH. So the .NET app is safe on its Windows target but not if it is ever
+      run on .NET for macOS or Linux ARM. Apply I1 uniformly.
     created_at: "2026-08-01"
     last_accessed: "2026-08-01"
     access_count: 1
     confidence: 1.0
     source: "session-2026-08-01"
-    tags: [face-stream-migrated, windowtitle-and-ownspersistence-hooks, n-emits-per-face-collapsed-to-one, deliberate-behaviour-change, preserved-oddities, live-stream-not-verified, file-source-is-not-a-valid-oracle, pre-existing-sigbus-on-long-clips]
+    tags: [retraction-no-preexisting-sigbus, harness-bug-not-library-bug, bool-as-int-on-apple-arm64, packed-vs-padded-stack-args, identical-failure-both-sides-means-suspect-the-harness, read-the-ips-crash-report, windows-x64-benign-arm64-fatal]
+
 
 # Pruning rules
 pruning:
