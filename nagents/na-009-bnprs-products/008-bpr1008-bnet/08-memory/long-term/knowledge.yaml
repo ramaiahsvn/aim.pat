@@ -5,26 +5,71 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: >-
+      SMARTPRESENCE IS A bNET API AND LIVES IN BPR1004, NOT BPR1008. Repo
+      gitlab.bnprs.ai/BPR1004/bpr1004.utms.api.bnet.smartpresence (project id 34), cloned to
+      /Users/bnprs/BPR/GitRepos2/BPR1004_uTms/bpr1004.utms.api.bnet.smartpresence. The group folder
+      convention is GitRepos2/<GROUP>_<Name>/ with each repo keeping its full GitLab name.
+      THE REPO HAS TWO STACKS AND master IS THE DEAD ONE. It migrated .NET -> Java, and `master`
+      (last touched 2026-03-29) was left on .NET, so a default clone lands on the old code and
+      shows no pom.xml. The live Java line is bp_dev; ai_dev and bp_dev_dotnet were .NET.
+      Check `git ls-tree -r --name-only <branch> | grep pom.xml` before concluding anything about
+      this repo from a single branch.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [smartpresence, bpr1004-not-1008, master-is-stale-dotnet, bp_dev-is-live, two-stacks-in-one-repo]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: project_context
+    content: >-
+      ai_dev FORCE-MIGRATED TO JAVA 2026-08-01 — MR !12 merged, 49 COMMITS DISCARDED BY DESIGN.
+      ai_dev now equals harani_servicesMigration's tree: 530 files, 233 .cs/.csproj/.sln removed,
+      275 .java added, 0 .cs remaining. All 52 conflicts were resolved by taking the source side
+      wholesale on the user's explicit instruction, after being told what it would cost.
+      RECOVERY: tag ai_dev-pre-java-migration-20260801 -> 3c90dfd holds the discarded work.
+      The merge commit daaf1b4 records both parents, so history shows what happened; GitLab then
+      auto-closed MR !12 as merged once ai_dev contained the source branch.
+      NOTE ai_dev is a PROTECTED branch (push: Maintainers). The $GITLAB_PAT on pat-m4p is
+      root/admin so it can push, but that is a deliberate act, not routine.
+      For reference the same source was 16 ahead / 0 behind bp_dev with a 26-file diff — the cheap
+      target, had ai_dev been a misunderstanding. It was not; the user confirmed twice.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [ai_dev-is-now-java, mr-12-merged, 49-commits-discarded, backup-tag, ai_dev-is-protected]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: technical_knowledge
+    content: >-
+      BprIDEngine 2.24.902 IN SMARTPRESENCE — AND THE POM FIX WAS NOT ENOUGH ON ITS OWN.
+      pom.xml depended on ai.bnprs:nativesdk-bpridengine-face:2.24.900, DELETED from the registry
+      2026-08-01 with 2.24.901 and both lean variants. Correct coordinate is
+      ai.bnprs:nativesdk-bpridengine:2.24.902 — the -face suffix is GONE because 902 withdrew the
+      lean/face split; one artifact, and it carries the T12 extractor.
+      THE CODE NEEDED CHANGING TOO, which a pom-only fix would have missed silently:
+      BprIdFaceEngine.init() gated startup on BprID_HasTemplate(T12), which from 902 ALWAYS returns
+      1 because T12 is always compiled in. The gate passed unconditionally, so a deployment missing
+      its ONNX models would start clean and fail on the first enrolment. Now uses
+      BprID_Preload(T12), which loads the models and returns ERR_MODULE when they are absent — and
+      which exists in the 901 native but was never BOUND in that JNA wrapper, so it is callable
+      only from 902. It also moves the ~170 ms first-call load to startup, which matters for an API
+      where every request otherwise looks like the first.
+      RULE: after any BprIDEngine version bump here, grep the Java sources for HasTemplate and for
+      the string "nativesdk-bpridengine-face" — the old failure message told readers to depend on
+      an artifact that no longer exists.
+      Verified end to end: 902 resolves from the registry, BprID_Preload is in its JNA binding
+      (javap the jar), and the module compiles.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [bpridengine-2.24.902, no-face-suffix, hastemplate-no-longer-a-readiness-check, use-preload, pom-fix-alone-is-insufficient, grep-the-java-too]
 
 # Pruning rules
 pruning:
