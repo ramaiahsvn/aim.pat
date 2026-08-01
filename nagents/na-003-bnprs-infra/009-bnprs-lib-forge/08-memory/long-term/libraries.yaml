@@ -36,7 +36,7 @@ source_versions:
                             # are RETIRED, not aliased. A knuckle template stored under .900 is
                             # rejected and must be re-enrolled. ABI change is additive only.
   BprLicBase: "2.27.4"
-  BprFace:    "2.24.116"
+  BprFace:    "2.24.117"
   BprCardQi:  "2.56.7"
   BprCardEmv: "2.57.1"
   BprICBA:    "2.58.1"
@@ -493,6 +493,17 @@ published:
   - package: "BprFace"
     package_type: "generic"
     version: "2.24.116"
+    status: "DELETED from the registry 2026-08-01 — see deletion_note below"
+    deletion_note: >-
+      2.24.115 and 2.24.116 were deleted from generic, Maven and NuGet on 2026-08-01 (6 packages,
+      ~909 MB) on the user's explicit confirmation that nothing consumes them. The reason was the
+      converged BprFace: it exports the generic BprID_* set and drops sixteen of 2.24.116's
+      twenty-two symbols, so leaving the old releases published would have made 2.24.117 a patch
+      upgrade that silently replaced the whole ABI. With no released 2.24.1xx to upgrade FROM, the
+      2.24.x line could be kept. IF EITHER IS EVER RESTORED, 2.24.117's numbering becomes a trap
+      and BprFace must move to a new major.
+      NOTE the Zoho release share still holds v2.24.101 through v2.24.115 — deliberately untouched,
+      a separate channel and a different decision.
     project_id: 230
     source_repo: "bpr.cpp"
     source_commit: "4276770"
