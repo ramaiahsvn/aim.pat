@@ -651,6 +651,15 @@ memories:
       force-push to main, which is a separate decision and master is protected.
       HOW TO WORK: build into build/cmake/<name>, and commit with `git add <explicit paths>` —
       `git add -A src/` at minimum, never bare.
+      HISTORY PURGED 2026-08-01 with git-filter-repo over 54 paths, then force-pushed to main
+      (was a723bea, now 020533b — EVERY SHA BELOW THAT POINT CHANGED, so any other clone must
+      re-clone rather than pull). .git 322 MB -> 171 MB. Bundle backup taken first at
+      /Users/bnprs/BPR/bpr.cpp-prepurge-20260801-1804.bundle (233 MB).
+      VERIFIED THE REWRITE PRESERVED CONTENT, which is the check that matters: HEAD:src, HEAD:cli
+      and HEAD:CMakeLists.txt tree hashes were captured BEFORE and compared after — all identical;
+      4992 tracked files unchanged; 588 commits intact; the deferred BprICBA stash survived; the
+      tree still builds. Confirmed independently by a FRESH CLONE from GitHub, not just locally.
+      filter-repo DELETES the origin remote as a safety measure — re-add it before pushing.
     created_at: "2026-08-01"
     last_accessed: "2026-08-01"
     access_count: 1
