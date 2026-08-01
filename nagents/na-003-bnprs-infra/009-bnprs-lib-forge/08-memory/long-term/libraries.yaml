@@ -44,6 +44,19 @@ source_versions:
   BprIris:    "2.24.500"
   # BprQiEmv 2.50.11 — DEPRECATED, do not publish
 
+# --- PLANNED, NOT YET PUBLISHED -------------------------------------------------------------
+# Per-modality bengine libraries (Bpr<Modality>: Face / Finger / FingerCless / Iris / Palmprint /
+# OtherBio, the BENGINE_BUILD_* targets). User decision 2026-08-01: YES they will be published,
+# but NOT NOW. Only the consolidated BprIDEngine 2.24.901 is in the registry today. Their absence
+# is deliberate — do not "fix" it by publishing them.
+# Two preconditions, both open:
+#   1. NAME COLLISION — BprFace already exists as its own product line (2.24.116, patch range 1xx,
+#      built from a different tree with a different ABI). A bengine per-modality "BprFace" would
+#      clash on coordinates while differing in behaviour. Registry versions are IMMUTABLE, so the
+#      naming scheme must be settled BEFORE the first upload, not after.
+#   2. LICENSING — BprFinger is FingerJetFX (LGPL question open with na-002-bnprs-core).
+# Gate: every family library must pass bengine tests/proof_gate.sh (identical BprID_* export set).
+
 # Published packages — append one entry per (package, version) after publishing.
 # Example shape (none published yet):
 #

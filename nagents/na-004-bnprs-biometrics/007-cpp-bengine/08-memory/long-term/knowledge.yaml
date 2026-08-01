@@ -1374,6 +1374,32 @@ memories:
     source: "session-2026-08-01 (ownership moved to na-004/012 by the user)"
     tags: [pointer-only, results-live-in-na-004-012, evaluation-ownership-moved, harness-here-owned-there, t12-is-the-shippable-one, 96-6-vs-99-4]
 
+  - id: mem-036
+    type: project_context
+    content: >-
+      DECISION 2026-08-01 (user): the per-modality bengine libraries WILL be published to the
+      registry — but NOT YET. Only the consolidated libBprIDEngine is published today (2.24.901,
+      generic + maven + nuget + Go tag on project 230). Deferred, not declined: do not publish
+      Bpr<Modality> artifacts until the user asks, and do not treat their absence from the registry
+      as an oversight.
+      When it is taken up, the candidates are the libraries behind BENGINE_BUILD_FACE / _FINGER /
+      _FINGER_CLESS / _IRIS / _PALMPRINT / _OTHERBIO. Two things to settle first, both known:
+      (1) BprFace ALREADY ships independently as its own product line (2.24.116, patch range 1xx)
+      built from a different tree — a per-modality bengine "BprFace" would collide by name while
+      differing in ABI (BprID_* vs Bpr_FaceRecog_T12_*), so naming/coordinates must be decided
+      before anything is published, since registry versions are immutable.
+      (2) BprFinger is FingerJetFX (T21) and its LGPL position is still open with na-002-bnprs-core;
+      the BPR_FINGER_WITH_FJFX=OFF containment flag has NO EFFECT on bengine (now a FATAL_ERROR),
+      so publishing that one has a licensing precondition, not just a technical one.
+      Every family library must pass tests/proof_gate.sh — identical BprID_* export set as
+      BprIDEngine — before it is a publishable artifact.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [per-modality-publish, deferred-not-declined, user-decision, name-collision-with-bprface-product-line, fjfx-lgpl-precondition, proof-gate, immutable-versions]
+
 # Pruning rules
 pruning:
   max_entries: 500
