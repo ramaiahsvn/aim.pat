@@ -61,6 +61,10 @@ memories:
           RNG draw order, so lexicographic (s1, s10, s11, ... s2) silently yields a different,
           irreproducible protocol. With natural sort make_pairs.py reproduces the older
           make_orl_pairs.py output EXACTLY, which is what made deleting that script safe.
+      (3b) COMMON-SUBSET MODE, for comparing variants that do NOT share a detector: --fte-list
+      <out> writes the image paths a variant could not extract, --exclude <in> skips any pair
+      touching a listed image. Two passes: collect per-variant FTE, union, re-run with --exclude
+      on the union. Paths only — no image data or embeddings leave the process.
       (4) IT NEVER WRITES EMBEDDINGS OR IMAGES TO DISK, per cpp-face directive 1. Templates are
       cached in memory for the run and the output is aggregate statistics only. DO NOT ADD a
       --dump-features flag if asked — offer an in-process analysis instead.
@@ -80,7 +84,7 @@ memories:
   - id: mem-003
     type: technical_knowledge
     content: >-
-      2026-08-01 FACE BASELINE — all four variants on LFW, ORL and dbase. Full report:
+      2026-08-01 FACE BASELINE — all four variants on LFW, ORL, dbase and CroppedYale. Report:
       07-axon-terminals/deliverables/eval-reports/2026-08-01-face-4variant-lfw-orl.md
       Identical protocol and detector settings throughout. FTE: 0 on LFW and ORL; 2 on dbase,
       the SAME 2 for every variant — so all four saw an identical pair set in every case.
@@ -111,6 +115,32 @@ memories:
       from lfw-deepfunneled, where T13/T14/T15 are -0.07/-0.09/-0.07) and its fold variance is 3x
       the others. Published SFace is ~99.4%. Those points are on the ONLY SHIPPABLE VARIANT,
       which makes them worth more than anything the licence-blocked ones can offer.
+      CROPPEDYALE (38 subjects x ~64 illumination directions, 12924 pairs on a COMMON SUBSET —
+      see below): THE ONLY SET THAT GENUINELY STRESSES THESE MODELS.
+        T13 iFace  98.27% +/- 0.56   TAR@1e-2 97.28%   TAR@1e-3 81.74%
+        T14 aFace  97.69% +/- 1.11   TAR@1e-2 96.53%   TAR@1e-3 93.63%
+        T15 mFace  96.54% +/- 0.98   TAR@1e-2 93.99%   TAR@1e-3 89.56%
+        T12 sFace  89.92% +/- 2.30   TAR@1e-2 74.75%   TAR@1e-3 58.04%
+      THREE THINGS ONLY THIS DATASET COULD SHOW:
+      (1) T12 COLLAPSES — TAR@1e-3 of 58% means ~42% OF GENUINE USERS REJECTED at a 1-in-1000
+      false-accept rate, against T14's 93.6%. On LFW it trailed by 2.8 points; here by 36.
+      Whatever ails T12 costs far more on hard imagery than LFW implied.
+      (2) T13 AND T14 CROSS OVER BETWEEN OPERATING POINTS, and this is the single best argument
+      for reading TAR@FAR rather than accuracy. T13 has the BEST accuracy (98.27%) and the best
+      TAR@1e-2 (97.28%), but tightening to FAR=1e-3 costs it 15.5 points while T14 loses only
+      2.9. T13 has a HEAVIER IMPOSTOR TAIL — it separates the bulk well but has more extreme
+      false-accept scores. FOR AUTHENTICATION, WHICH LIVES AT STRICT FAR, T14 IS 12 POINTS BETTER
+      THAN THE VARIANT THAT "WINS" ON ACCURACY.
+      (3) ADAFACE FINALLY SEPARATES FROM MAGFACE. Tied on LFW (0.02), ORL and dbase; here T14
+      leads T15 by 1.15 accuracy and 4.1 on TAR@1e-3 — the direction the -CCTV naming predicts,
+      since a quality-adaptive margin should pay off exactly where quality varies. First evidence
+      in this evaluation for preferring one over the other.
+      HOW THE COMMON SUBSET WAS BUILT, AND WHY IT WAS NECESSARY: first-pass FTE differed by
+      variant (T13 388, others 418) because T13 uses InspireFace's OWN detector, not YuNet, so it
+      survives images the others drop. Different FTE = different pair sets = not a comparison
+      (directive 5 caught this). Collect each variant's failures with --fte-list, union them (481
+      images), re-run all with --exclude on the union -> 12924 identical pairs. USE THIS TWO-PASS
+      PATTERN WHENEVER VARIANTS DO NOT SHARE A DETECTOR.
       DBASE IS THE FIRST SET THAT SEPARATED ANYTHING, AND IT SEPARATED T13 DOWNWARDS. iFace goes
       99.02% (LFW) -> 95.08%, and its TAR@1e-3 collapses 97.37% -> 84.39% — about 1 genuine user
       in 6 rejected at a 1-in-1000 false-accept rate, against ~1 in 30 for the other three, which

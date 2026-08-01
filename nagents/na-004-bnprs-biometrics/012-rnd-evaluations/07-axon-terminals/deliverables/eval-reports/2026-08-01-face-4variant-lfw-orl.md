@@ -1,4 +1,4 @@
-# Face 1:1 verification — all four BprFace variants on LFW, ORL and dbase
+# Face 1:1 verification — all four BprFace variants on LFW, ORL, dbase and CroppedYale
 
 **Date** 2026-08-01 · **Agent** na-004/012 rnd-evaluations · **Requested by** user, via na-004/007 cpp-bengine
 **Engine** bpr.cpp `9e412ff` · **Harness** `bengine-eval` (bengine/apps/bengine-eval)
@@ -76,6 +76,24 @@ comparing them at all.
 
 Same 2 extraction failures for every variant, so all four saw an identical 6,940 scored pairs.
 
+## 4c. Results — CroppedYale (illumination extremes)
+
+38 subjects × ~64 lighting directions, azimuth −130°…+130°, elevation −40°…+90°, 168×192
+grayscale. 20,000 pairs generated (10,000 genuine, capped and sampled, + 10,000 impostor).
+
+**Scored on a COMMON SUBSET.** First pass FTE differed by variant — T13 388, the others 418 —
+because T13 uses InspireFace's own detector rather than YuNet, so it survives images the others
+drop. Different FTE means different pair sets and therefore no valid comparison (directive 5).
+Each variant's failures were collected with `--fte-list`, unioned (**481 images**), and every
+variant re-run with `--exclude` on that union: **12,924 pairs, identical for all four.**
+
+| variant | accuracy | TAR@FAR=1e-2 | TAR@FAR=1e-3 |
+|---|---|---|---|
+| T13 iFace | **98.27% ± 0.56** | **97.28%** | 81.74% |
+| T14 aFace | 97.69% ± 1.11 | 96.53% | **93.63%** |
+| T15 mFace | 96.54% ± 0.98 | 93.99% | 89.56% |
+| T12 sFace | **89.92% ± 2.30** | 74.75% | **58.04%** |
+
 ## 5. Findings
 
 **5.1 — The ranking inverts, and ORL is the reason.** T12 is last on LFW by 2.8 points and first on
@@ -110,6 +128,26 @@ fold*, not by the models: 61 subjects over 10 folds is ~6 subjects per fold, so 
 moves a whole fold. **The 0.25-point spread between T12/T14/T15 is far inside that and means
 nothing.** T13's ~3.5-point deficit is around one std — suggestive on accuracy alone, but the
 TAR@FAR gap is decisive because TAR is computed over the pooled score set rather than per fold.
+
+**5.3d — CroppedYale is the only set that genuinely stresses these models, and it reorders them
+twice.** Two findings that none of the other three databases could have produced:
+
+*T12 collapses.* 89.92% accuracy, and **TAR@FAR=1e-3 of 58.04% — roughly 42% of genuine users
+rejected** at a 1-in-1000 false-accept rate, against 93.63% for T14. On LFW it trailed by 2.8
+points; under illumination extremes it trails by 36. Whatever is wrong with T12 (5.4) is far more
+costly on hard imagery than LFW suggested.
+
+*T13 and T14 cross over between operating points.* T13 has the **best** accuracy (98.27%) and the
+best TAR@1e-2 (97.28%), but tightening to FAR=1e-3 costs it 15.5 points (→81.74%) while T14 loses
+only 2.9 (→93.63%). A heavier impostor tail: T13 separates the bulk well but has more extreme
+false-accept scores, so it degrades fast as the threshold tightens. **For authentication, which
+lives at strict FAR, T14 is 12 points better than the variant that "wins" on accuracy.** This is
+the clearest possible case for directive-driven reading of TAR@FAR rather than accuracy.
+
+*AdaFace finally separates from MagFace.* Tied on LFW (0.02), ORL and dbase; here T14 leads T15 by
+1.15 points and by **4.1 on TAR@1e-3**. That is the direction the `-CCTV` naming predicts — a
+quality-adaptive margin should pay off precisely where quality varies — and it is the first
+evidence in this evaluation for choosing between them.
 
 **5.4 — T12's deficit looks like integration, not the model.** Two independent signals:
 
