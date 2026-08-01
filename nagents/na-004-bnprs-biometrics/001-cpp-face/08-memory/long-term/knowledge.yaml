@@ -481,6 +481,39 @@ memories:
     source: "session-2026-08-01"
     tags: [bprcctv-split-done, source-only-one-library, identical-21-symbol-abi-both-platforms, iframeanalyser-hook, blicbase-promoted-to-aprcommon, t12-infix-kept-deliberately, facedetect-loop-not-migrated, no-stream-cancel]
 
+  - id: mem-016
+    type: technical_knowledge
+    content: >-
+      FACE-DETECT STREAM MIGRATED ONTO THE SHARED LOOP 2026-08-01 (bpr.cpp 3fb1648). All three
+      streams now run on BprVideoRunStream. Needed two DEFAULTED additions to IBprFrameAnalyser so
+      smoke/fight were unaffected: windowTitle() (face ships "bNET ==> TSN : <serial>_<timestamp>"
+      and operators recognise their windows by it) and ownsPersistence() (face saves CROPPED FACES
+      gated on per-face quality + tracker distance + saveInterval, which no whole-frame policy can
+      express — returning true stops the loop also writing, so save_flag keeps ONE meaning per
+      analyser).
+      ONE DELIBERATE BEHAVIOUR CHANGE, unlike the rest of the split: visualize() emitted the frame
+      itself from THREE places and the third was INSIDE the per-face for-loop, so an N-face frame
+      fired N imshow calls and N frameCallbacks, each with a progressively-drawn overlay and only
+      the last complete. The host paid N bitmap allocations and N UI marshals per captured frame.
+      Now emitted ONCE per frame with the finished image. Anything counting callbacks to infer a
+      frame rate sees different numbers.
+      PRESERVED ON PURPOSE (do not "fix" these without asking): session-stamped folder and caption;
+      the bnet_oc_raw tree created whether or not save_flag is set; and the FIRST-EVER face-bearing
+      frame going out with no boxes drawn, because the faceTrackerCounter==0 branch never drew any.
+      VERIFICATION LIMIT — IMPORTANT: the LIVE streaming path is NOT verified against a camera. A
+      file-backed substitute is not a valid oracle: the throttle is WALL-CLOCK, so a clip that
+      decodes faster than 1 s/frame produces ZERO analyses (a 1936-frame file gave 0 callbacks),
+      and a 25k-frame clip SIGBUSes identically on the pre-migration published 2.24.116 AND on the
+      migrated build — same failure both sides, so not a regression, but it proves nothing about
+      the loop. That pre-existing crash is worth its own investigation. Verify with a real camera
+      or a rate-limited source.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [face-stream-migrated, windowtitle-and-ownspersistence-hooks, n-emits-per-face-collapsed-to-one, deliberate-behaviour-change, preserved-oddities, live-stream-not-verified, file-source-is-not-a-valid-oracle, pre-existing-sigbus-on-long-clips]
+
 # Pruning rules
 pruning:
   max_entries: 500
