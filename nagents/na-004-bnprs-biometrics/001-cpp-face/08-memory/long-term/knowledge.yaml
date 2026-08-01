@@ -598,6 +598,39 @@ memories:
     source: "session-2026-08-01"
     tags: [signature-compatible-exports, name-only-migration, verify-by-textual-diff-and-one-consumer, c-linkage-hides-signature-mismatch, facevideo-streaming-moved-to-bprvideo, keeps-face-in-the-name-on-purpose, one-definition-many-libraries, all-three-overlap-load-one]
 
+  - id: mem-020
+    type: technical_knowledge
+    content: >-
+      STATIC OPENCV RE-EXPORTS ITSELF — THE REAL DUPLICATE-EXPORT SURFACE, found 2026-08-01 when
+      asked "any duplicate exports in these 3 libs" (fix: bpr.cpp 8a217c7). The answer was NOT the
+      9 API symbols already documented. Measured on macOS BEFORE hardening: libBprFace exported
+      2968 symbols of which 21 were ours; libBprVideo 1327 of 3; libBprVision 2660 of 10. Pairwise
+      duplicates were 1325 / 2659 / 1325, and 1325 symbols appeared in ALL THREE — 1060 cv::
+      functions, ~141 other C++ mangled, ~123 C symbols (libwebp SharpYuv* etc). On ELF the FIRST
+      library loaded wins for every one of them by interposition, silently and across library
+      boundaries, so two of our libraries in one process quietly share one OpenCV.
+      FIX APPLIED to BprVideo/BprVision: CXX_VISIBILITY_PRESET hidden + C_VISIBILITY_PRESET hidden
+      + VISIBILITY_INLINES_HIDDEN, and -Wl,--exclude-libs,ALL (GNU ld only — guarded with
+      if(NOT APPLE)). CRUCIAL AND EASY TO MISS: the BPR_*_EXPORT macros expanded to NOTHING on
+      non-Windows, so hidden visibility would have hidden the API too; they now expand to
+      __attribute__((visibility("default"))). Result on LINUX: dynamic exports 127->8 (BprVideo)
+      and 392->27 (BprVision); cross-library duplicates 6 / 26 / 6, all deliberate — the
+      signature-compatible C API plus the five BPR_VIDEO_EXPORT C++ functions.
+      TWO LIMITS RECORDED RATHER THAN PAPERED OVER. (1) macOS is only PARTLY fixed: --exclude-libs
+      is GNU ld only, so OpenCV's default-visible symbols survive (BprVision 2660->2545); closing
+      it needs -Wl,-exported_symbols_list. Linux, the deployment target, is clean. (2) BprFace is
+      deliberately NOT hardened — dropping ~460 leaked symbols from a SHIPPED library's export
+      table changes a published artifact and belongs in a version bump with a note.
+      MEASUREMENT NOTE: count exports with the exact versioned filename. A glob like
+      lib$L.2*.dylib matches BOTH the real file and its .2 symlink and silently doubles every
+      number — it briefly made hardening look like it had made things worse.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [static-opencv-re-exports-itself, 1325-symbols-in-all-three, elf-interposition-silent, visibility-hidden-plus-exclude-libs, export-macro-must-mark-default-visibility, macos-needs-exported-symbols-list, bprface-not-hardened-on-purpose, glob-matched-symlink-doubled-counts]
+
 # Pruning rules
 pruning:
   max_entries: 500
