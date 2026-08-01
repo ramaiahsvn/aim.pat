@@ -536,6 +536,39 @@ memories:
     tags: [retraction-no-preexisting-sigbus, harness-bug-not-library-bug, bool-as-int-on-apple-arm64, packed-vs-padded-stack-args, identical-failure-both-sides-means-suspect-the-harness, read-the-ips-crash-report, windows-x64-benign-arm64-fatal]
 
 
+  - id: mem-018
+    type: project_context
+    content: >-
+      BprVideo AND BprVision ARE NOW THEIR OWN LIBRARIES (user decision 2026-08-01, bpr.cpp
+      6838891). BprVideo 2.60.0, BprVision 2.61.0 — built through the root CMakeLists exactly like
+      BprFace (-DOUTFILENAME=BprVideo|BprVision, PROJECTTYPE SO_Linux or DLL_Windows only,
+      FATAL_ERROR otherwise). Versions live OUTSIDE the 2.24.x biometric line and outside its
+      reserved 6xx-8xx modality band, following the BprCardQi/BprCardEmv own-MAJOR.MINOR
+      convention, because neither identifies anyone or produces a template. Entered in all THREE
+      version files.
+      I RECOMMENDED AGAINST THE SPLIT AND WAS OVERRULED; the decision stands and the numbers are
+      worth keeping: own object code across all three folders is 0.4 MB and static OpenCV is 97% of
+      each binary, so deploying all three costs ~33 MB on macOS against 15.6 MB combined. There is
+      no clean partition — dnn (9.8 MB) is needed by BOTH BprVision and BprFace, core+imgproc by
+      all three. BprVideo is the one genuine saving at 5.4 MB because transport needs no dnn.
+      THE LIVE RISK, and it is the same shape as the withdrawn BprIDEngine lean/-face split:
+      libBprFace STILL EXPORTS the same eight Bpr_SmokeDetect_T12_* / Bpr_FightDetect_T12_* symbols
+      (removing them breaks the .NET sample and every other host). So libBprFace and libBprVision
+      OVERLAP — load one or the other, never both in a process, or the winner is undefined and both
+      report plausible versions so it will not be obvious. Exit path: BprFace sheds those eight at
+      its next MAJOR. BprVideo does not overlap; its two exports are new.
+      DESIGN NOTE: BprVideo deliberately does NOT export BprVideoRunStream — the loop is driven
+      through IBprFrameAnalyser, a C++ interface a C host cannot construct, so exporting it would
+      be a false promise. C callers get Bpr_Video_ProbeSource (distinguishes a bad URL, -20, from a
+      device that will not open, -21 — the two need different fixes) and Bpr_Video_Version.
+      BprVision links the BprVideo SOURCES, not the library, so it streams standalone.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [bprvideo-2.60.0, bprvision-2.61.0, own-libraries, versions-outside-2.24-line, recommended-against-overruled, opencv-is-97-percent, bprface-still-exports-smoke-fight, do-not-load-both, no-runstream-export]
+
 # Pruning rules
 pruning:
   max_entries: 500
