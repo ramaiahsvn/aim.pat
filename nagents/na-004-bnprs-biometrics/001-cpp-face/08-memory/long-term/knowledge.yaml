@@ -706,6 +706,51 @@ memories:
     source: "session-2026-08-01"
     tags: [rtsp-windows-only, with-ffmpeg-off, cap-images-fallthrough-is-the-tell, trust-cmakecache-not-scripts, strings-ffmpeg-is-a-false-positive, linux-cctv-blocked, bundle-root-litter, nslocalnetwork]
 
+  - id: "release-2-24-118-ffmpeg-and-export-parity"
+    topic: "2.24.118 release: static FFmpeg on all platforms, one export set everywhere, and how to rebuild/publish"
+    content: |
+      RELEASED 2026-08-01: BprFace 2.24.118, BprIDEngine 2.24.903, BprVideo 2.60.1,
+      BprVision 2.61.1 — generic + Maven + NuGet + Go, all verified by CONSUMING, not by
+      status codes. Supersedes rtsp-unsupported-macos-linux-no-ffmpeg, which was right about
+      macOS/Linux and WRONG that Windows worked.
+      WINDOWS NEVER HAD FFMPEG EITHER. Its CMakeCache said WITH_FFMPEG:BOOL=ON while the build
+      contained NO cap_ffmpeg object — 10 videoio objects vs Linux's 13. On WIN32 OpenCV skips
+      pkg-config and downloads a prebuilt MSVC wrapper DLL; that path does not take with mingw,
+      and it is loaded at RUNTIME so it would have needed shipping beside every library anyway.
+      A cache variable is the REQUEST, not the RESULT. Always check for the cap_ffmpeg object.
+      HOW TO BUILD+PUBLISH NOW (all committed in bpr.cpp):
+        src/BprIDEngine/BprFace/scripts/build-ffmpeg-static.sh   (CROSS_PREFIX=/FF_ARCH= for mingw)
+        src/BprIDEngine/BprFace/scripts/build-{macos,linux,windows}-selfcontained.sh
+        scripts/build-release.sh <plat> | scripts/build-release-linux.sh <plat>
+        scripts/package-release.py   then   scripts/verify-release.py
+      FFmpeg 6.1.2, static, LGPL-only, --disable-everything + RTSP/RTP/TCP/UDP/HTTP and
+      H264/HEVC/MJPEG decode. ~+5 MB per library. Component flags live in config_components.h,
+      NOT config.h (moved in FFmpeg 5.1) — checking config.h reports a good build as broken.
+      Windows OpenCV goes to windows-{32,64}-sc so the older shared tree is untouched.
+      EXPORT PARITY WAS BROKEN ON WINDOWS FOR THREE RELEASES. libBprFace.dll exported 40 where
+      the .dylib/.so exported 30. Causes, both invisible on Unix: (1) BPR_FACE_EXPORT is empty on
+      Unix (so -fvisibility=hidden hid them) but __declspec(dllexport) on Windows, which kept the
+      five legacy Bpr_FaceRecog_T12_*/Bpr_FaceQuality_T12_Image alive after 2.24.117's notes said
+      they were removed; (2) six mangled C++ helpers marked BPR_VIDEO_EXPORT (now
+      BPR_VIDEO_INTERNAL) appeared in all four DLLs, which is why BprFace and BprVideo shared six
+      symbols on Windows and none on Unix. Now 29 everywhere, BprFace == BprIDEngine exactly.
+      SYMBOL HYGIENE: static archives keep default visibility. Fixed with --exclude-libs,ALL PLUS
+      --version-script=cmake/bpr_version_script.map on ELF (exclude-libs alone misses our OWN
+      objects — 59 exports on Linux), -exported_symbols_list=cmake/bpr_exported_symbols.txt on
+      Mach-O, --exclude-all-symbols on PE. Not cosmetic: FFmpeg's x86 asm takes PC32 relocations
+      against preemptible symbols, so without exclude-libs the linux-x64 link FAILS outright with
+      "relocation R_X86_64_PC32 against ff_M24A ... recompile with -fPIC" — misleading, since
+      everything already is -fPIC. arm64 links fine, so it looks x86-64-specific.
+      VERIFIED: quality 46/48, 528-byte templates, match 0.7619 on the Paul_McNulty LFW pair —
+      identical to 2.24.117 — from the C probe, the published Maven jar via Java, and the
+      published NuGet package via .NET. Live RTSP proven against a real H265 camera.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [2-24-118, windows-had-no-ffmpeg, cache-is-the-request-not-the-result, cap-ffmpeg-object-is-the-check, export-parity-windows, bpr-video-internal, version-script-elf, pc32-ff_M24A, config_components-h]
+
 # Pruning rules
 pruning:
   max_entries: 500
