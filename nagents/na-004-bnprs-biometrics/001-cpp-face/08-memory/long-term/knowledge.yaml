@@ -445,6 +445,42 @@ memories:
     source: "session-2026-08-01"
     tags: [dotnet-consumer, bprfacetest, video-unaffected-by-116, empty-qicode-breaks-it, facevideo-streaming-is-ungated, model-path-flipped-exe-to-dll, init-does-not-set-errorcode, callback-delegate-unrooted, see-mem-037-for-generic-abi]
 
+  - id: mem-015
+    type: technical_knowledge
+    content: >-
+      BprCCTV SOURCE SPLIT DONE 2026-08-01 (bpr.cpp bab3a30) — SOURCE ONLY, ONE LIBRARY STILL SHIPS.
+      Layout: src/BprCCTV/BprVideo (capture loop, frame sink, IBprFrameAnalyser hook — no models,
+      no detectors) and src/BprCCTV/BprVision (smoke, fight, shared YOLO detector). Dependency runs
+      BprVision -> BprVideo, NEVER the reverse; that direction is what makes a future library split
+      a build-file edit instead of a redesign. User chose the BprCCTV umbrella folder.
+      PROOF IT WAS BEHAVIOUR-NEUTRAL, and this is the check to repeat on any future move: the
+      exported symbol set is IDENTICAL — 21 symbols, diffed via nm on macOS AND via the DLL export
+      table on Windows against the published 2.24.116, both empty diffs. Licence gate still rejects
+      garbage; the LFW Paul_McNulty pair still scores 0.7619; bengine still builds against the face
+      sources it references directly (121 tests, proof gate 22 symbols x 6 libraries).
+      WHAT MOVED OUT OF BprFace BESIDES THE DETECTORS: (a) BprLicBase -> AprCommon/BprLicense/
+      BprLicBase.h — never a face type, the CCTV entry points call it, and leaving it in the face
+      umbrella header would have forced BprVision to include the face engine; (b) BprFrameCallback,
+      ERR_CAM_* and BprTryOpenCamera -> BprVideo/BprVideoTypes.h + BprVideoCapture.h. BprSFace.h
+      includes both so every existing caller is untouched; it went 409 -> 209 lines.
+      DELIBERATELY UNCHANGED: the T12 infix on Bpr_SmokeDetect_T12_* / Bpr_FightDetect_T12_* (a
+      misnomer — T12 is the FACE template id and these produce no template — but renaming turns a
+      build-layout change into a consumer break; do it with a real library split and an alias).
+      Also scaleFactor and confThr stay accepted-and-ignored on the stream paths, as before the
+      move; giving dead parameters meaning mid-refactor is a hidden behaviour change.
+      STILL IN BprFace ON PURPOSE: BprSFaceDetect.cpp's own stream loop. Richer pipeline (per-face
+      distance/quality thresholds, tracking, selective saving), so converting it to
+      IBprFrameAnalyser is behaviour-risk, not mechanical — own step, own verification.
+      KNOWN GAP CARRIED FORWARD: no way to cancel a stream. BprVideoRunStream blocks until the
+      source ends or ESC in a window a service does not have, and the C ABI has no cancel — so a
+      host tearing down mid-stream deletes an instance the capture thread is still using.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [bprcctv-split-done, source-only-one-library, identical-21-symbol-abi-both-platforms, iframeanalyser-hook, blicbase-promoted-to-aprcommon, t12-infix-kept-deliberately, facedetect-loop-not-migrated, no-stream-cancel]
+
 # Pruning rules
 pruning:
   max_entries: 500
