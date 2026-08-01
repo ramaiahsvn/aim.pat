@@ -1,4 +1,4 @@
-# Face 1:1 verification — all four BprFace variants on LFW and ORL
+# Face 1:1 verification — all four BprFace variants on LFW, ORL and dbase
 
 **Date** 2026-08-01 · **Agent** na-004/012 rnd-evaluations · **Requested by** user, via na-004/007 cpp-bengine
 **Engine** bpr.cpp `9e412ff` · **Harness** `bengine-eval` (bengine/apps/bengine-eval)
@@ -22,23 +22,30 @@
 
 Per directive 1 (document database, version, partition, protocol, date):
 
-| | LFW | ORL / AT&T |
-|---|---|---|
-| Images | 13,233 / 5,749 people | 400 / 40 subjects, 92×112 **grayscale PGM** |
-| Pairs | 6,000 (3,000 + 3,000) | 3,600 (1,800 + 1,800) |
-| Source of pairs | official `pairs.txt` (converted from the shipped `.xlsx`) | **generated** — ORL publishes none |
-| Genuine | official list | all within-subject, exhaustive (40 × C(10,2)) |
-| Impostor | official list | sampled without replacement, seed 20260801, balanced 1:1 |
-| Folds | 10, official partition | 10, **split by subject** |
-| Threshold | fitted on 9 folds, applied to the 10th | same |
-| Reported | mean ± std across folds | same |
+| | LFW | ORL / AT&T | dbase |
+|---|---|---|---|
+| Images | 13,233 / 5,749 people | 400 / 40 subjects, 92×112 **grayscale PGM** | 677 / **61 subjects**, 640×480 colour JPEG |
+| Pairs | 6,000 (3,000 + 3,000) | 3,600 (1,800 + 1,800) | 6,994 (3,497 + 3,497) |
+| Source of pairs | official `pairs.txt` (converted from the shipped `.xlsx`) | **generated** | **generated** |
+| Genuine | official list | all within-subject, exhaustive | all within-subject, exhaustive |
+| Impostor | official list | sampled w/o replacement, seed 20260801, 1:1 | same |
+| Folds | 10, official partition | 10, **split by subject** | 10, **split by subject** |
+| Threshold | fitted on 9 folds, applied to the 10th | same | same |
+| Reported | mean ± std across folds | same | same |
 
-Fold-fitting is per directive 4 — no threshold is chosen on the data it is scored against. ORL folds
-split **by subject** so no identity appears in both the fitting and held-out sets; splitting by pair
-leaks, and on 40 subjects that leak is worth a real fraction of a point.
+**dbase subject keying:** it numbers subjects 1..n *separately* inside `females/` and `males/`, so
+all 22 female ids also exist as male ids. Subjects are keyed by **full relative path**
+(`females/1` ≠ `males/1`); keying on the leaf name would have merged 22 pairs of different people
+and manufactured false genuine pairs.
+
+Fold-fitting is per directive 4 — no threshold is chosen on the data it is scored against. ORL and
+dbase folds split **by subject** so no identity appears in both the fitting and held-out sets;
+splitting by pair leaks, and on 40–61 subjects that leak is worth a real fraction of a point.
 
 Detector settings identical across all variants (YuNet, score 0.6 / NMS 0.3 / top-k 5000).
-**All eight runs: 0 failure-to-extract.**
+**Failure-to-extract: 0 on LFW and ORL; 2 images on dbase — the same 2 for every variant**, so all
+four saw an identical pair set in every case. Per directive 5, that parity is the precondition for
+comparing them at all.
 
 ## 3. Results — LFW
 
@@ -57,6 +64,17 @@ Detector settings identical across all variants (YuNet, score 0.6 / NMS 0.3 / to
 | T15 mFace | 99.80% ± 0.61 | 100% | 100% | 0 |
 | T14 aFace | 99.68% ± 0.95 | 100% | 100% | 0 |
 | T13 iFace | 99.64% ± 0.82 | 99.94% | 99.78% | 0 |
+
+## 4b. Results — dbase
+
+| variant | accuracy | TAR@FAR=1e-2 | TAR@FAR=1e-3 | FTE |
+|---|---|---|---|---|
+| T14 aFace | 98.64% ± 3.85 | 96.83% | **96.83%** | 2 |
+| T15 mFace | 98.60% ± 3.84 | 96.80% | 96.68% | 2 |
+| T12 sFace | 98.39% ± 3.83 | 96.77% | 96.36% | 2 |
+| **T13 iFace** | **95.08% ± 3.72** | 90.39% | **84.39%** | 2 |
+
+Same 2 extraction failures for every variant, so all four saw an identical 6,940 scored pairs.
 
 ## 5. Findings
 
@@ -77,6 +95,21 @@ that AdaFace beats MagFace here, or the reverse, is reading noise.
 operating point: T14/T15 ≈ 98.8% vs T13 97.4% at FAR=1e-3, i.e. **iFace rejects roughly 2.4× as
 many genuine users** at a fixed 1-in-1000 false-accept rate. The accuracy column understates that
 gap by more than half.
+
+**5.3b — dbase is the first set to separate anything, and it separates T13 downwards.** iFace
+drops from 99.02% (LFW) to 95.08%, and its TAR@FAR=1e-3 collapses from 97.37% to **84.39%** —
+roughly **1 genuine user in 6 rejected** at a 1-in-1000 false-accept rate, against ~1 in 30 for
+the other three. The other three land within 0.25 points of each other. The likely explanation is
+that `Pikachu` is InspireFace's *lightweight edge* pack; a small model degrades faster than IR-101
+when the data stops being frontal and clean. **If T13 is ever seriously considered, evaluate the
+`Megatron` pack instead — this result is about the pack, not necessarily about InspireFace.**
+
+**5.3c — read dbase's ±3.8 before ranking on it.** The error bar is ~10× LFW's and near-identical
+across all four variants (3.72–3.85), which says it is driven by *which subjects landed in which
+fold*, not by the models: 61 subjects over 10 folds is ~6 subjects per fold, so one hard identity
+moves a whole fold. **The 0.25-point spread between T12/T14/T15 is far inside that and means
+nothing.** T13's ~3.5-point deficit is around one std — suggestive on accuracy alone, but the
+TAR@FAR gap is decisive because TAR is computed over the pooled score set rather than per fold.
 
 **5.4 — T12's deficit looks like integration, not the model.** Two independent signals:
 
@@ -102,9 +135,12 @@ T13/T14/T15 are **measurements, not options**. See na-004/007 mem-030 and mem-03
 
 ## 7. What these benchmarks do not answer
 
-Both LFW and ORL are frontal, well-lit and saturated. Neither says anything about CCTV-grade
-imagery — which is the entire premise of an AdaFace-**CCTV** variant. A 99% here means the pipeline
+LFW and ORL are frontal, well-lit and saturated; dbase is posed indoor capture. None of the three
+says anything about CCTV-grade imagery — which is the entire premise of an AdaFace-**CCTV** variant. A 99% here means the pipeline
 is wired correctly, not that any of it suits surveillance capture.
+
+dbase is a step closer — 640×480 posed indoor capture, more varied than ORL — and it already
+changed the ranking, which is the point. But it is still cooperative capture, not surveillance.
 
 Closer data already present in `~/BPR/FaceData`: **BioID** (marked-up, varied lighting), **Yale**
 (illumination and expression extremes), **PolyU**. Recommended next evaluation.
@@ -131,7 +167,8 @@ ln -s <repo>/.models/bpr.m1000*.onnx <repo>/.models/Pikachu build/   # resolved 
 
 # protocols
 python3 apps/bengine-eval/protocols/lfw_pairs_from_xlsx.py ~/BPR/FaceData/LFW/pairs.xlsx pairs.txt
-python3 apps/bengine-eval/protocols/make_orl_pairs.py      ~/BPR/FaceData/orl_faces  orl_pairs.txt
+python3 apps/bengine-eval/protocols/make_pairs.py ~/BPR/FaceData/orl_faces orl.txt   --ext .pgm
+python3 apps/bengine-eval/protocols/make_pairs.py ~/BPR/FaceData/dbase     dbase.txt --ext .jpg
 
 # run
 ./build/bengine-eval --data ~/BPR/FaceData/LFW/lfw   --pairs pairs.txt     --tid T14

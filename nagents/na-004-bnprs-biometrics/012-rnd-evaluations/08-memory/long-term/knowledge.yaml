@@ -50,7 +50,17 @@ memories:
       banner still look plausible — read the banner.
       (3) TWO PAIR FORMATS, sniffed from the header: standard LFW pairs.txt, or "#explicit
       <folds>" followed by "<path-a> <path-b> <same:0|1> <fold>" for any other dataset.
-      Generators live in apps/bengine-eval/protocols/ (lfw_pairs_from_xlsx.py, make_orl_pairs.py).
+      Generators in apps/bengine-eval/protocols/: lfw_pairs_from_xlsx.py for LFW, and make_pairs.py
+      for EVERYTHING ELSE — it treats any directory directly containing images as a subject, keyed
+      by FULL RELATIVE PATH. Two things in it are load-bearing rather than tidy:
+        - FULL PATH, because dbase numbers subjects 1..n separately under females/ and males/, so
+          all 22 female ids also exist as male ids. Keying on the leaf name merges 22 pairs of
+          DIFFERENT PEOPLE and manufactures false genuine pairs — which inflates the score and
+          looks like nothing went wrong.
+        - NATURAL SORT, because subject order sets both the round-robin fold assignment and the
+          RNG draw order, so lexicographic (s1, s10, s11, ... s2) silently yields a different,
+          irreproducible protocol. With natural sort make_pairs.py reproduces the older
+          make_orl_pairs.py output EXACTLY, which is what made deleting that script safe.
       (4) IT NEVER WRITES EMBEDDINGS OR IMAGES TO DISK, per cpp-face directive 1. Templates are
       cached in memory for the run and the output is aggregate statistics only. DO NOT ADD a
       --dump-features flag if asked — offer an in-process analysis instead.
@@ -70,9 +80,10 @@ memories:
   - id: mem-003
     type: technical_knowledge
     content: >-
-      2026-08-01 FACE BASELINE — all four variants on LFW and ORL. Full report:
+      2026-08-01 FACE BASELINE — all four variants on LFW, ORL and dbase. Full report:
       07-axon-terminals/deliverables/eval-reports/2026-08-01-face-4variant-lfw-orl.md
-      Identical protocol and detector settings throughout; 0 failure-to-extract in all 8 runs.
+      Identical protocol and detector settings throughout. FTE: 0 on LFW and ORL; 2 on dbase,
+      the SAME 2 for every variant — so all four saw an identical pair set in every case.
       LFW (6000 pairs, 10-fold):
         T14 aFace  99.35% +/- 0.34   TAR@1e-3 98.87%   AdaFace IR-101 / WebFace12M
         T15 mFace  99.33% +/- 0.37   TAR@1e-3 98.80%   MagFace R100 / Glint360K
@@ -80,6 +91,11 @@ memories:
         T12 sFace  96.60% +/- 0.89   TAR@1e-3 93.50%   OpenCV SFace — THE INCUMBENT
       ORL (3600 pairs, folds split BY SUBJECT):
         T12 99.91% +/- 0.28 | T15 99.80% +/- 0.61 | T14 99.68% +/- 0.95 | T13 99.64% +/- 0.82
+      dbase (6994 pairs, 61 subjects, 640x480 colour, folds by subject; same 2 FTE for all four):
+        T14 98.64% +/- 3.85  TAR@1e-3 96.83%
+        T15 98.60% +/- 3.84  TAR@1e-3 96.68%
+        T12 98.39% +/- 3.83  TAR@1e-3 96.36%
+        T13 95.08% +/- 3.72  TAR@1e-3 84.39%   <-- COLLAPSES
       THE RANKING INVERTS AND ORL IS THE REASON. T12 is last on LFW and first on ORL — that is
       ORL failing to discriminate, not T12 excelling. All four within 0.27 points, error bars
       0.28-0.95 overlapping completely, three of four at 100% TAR@1e-3. 40 subjects, controlled,
@@ -95,6 +111,21 @@ memories:
       from lfw-deepfunneled, where T13/T14/T15 are -0.07/-0.09/-0.07) and its fold variance is 3x
       the others. Published SFace is ~99.4%. Those points are on the ONLY SHIPPABLE VARIANT,
       which makes them worth more than anything the licence-blocked ones can offer.
+      DBASE IS THE FIRST SET THAT SEPARATED ANYTHING, AND IT SEPARATED T13 DOWNWARDS. iFace goes
+      99.02% (LFW) -> 95.08%, and its TAR@1e-3 collapses 97.37% -> 84.39% — about 1 genuine user
+      in 6 rejected at a 1-in-1000 false-accept rate, against ~1 in 30 for the other three, which
+      finish within 0.25 points of each other. Likely cause: Pikachu is InspireFace's LIGHTWEIGHT
+      EDGE pack, and a small model degrades faster than IR-101 once the data stops being frontal
+      and clean. SO THIS IS A RESULT ABOUT THE PACK, NOT NECESSARILY ABOUT INSPIREFACE — evaluate
+      the Megatron pack before drawing any conclusion about the SDK.
+      READ DBASE'S +/-3.8 BEFORE RANKING ON IT. That bar is ~10x LFW's and nearly identical across
+      all four variants (3.72-3.85), which means it is driven by WHICH SUBJECTS LANDED IN WHICH
+      FOLD, not by the models — 61 subjects over 10 folds is ~6 per fold, so one hard identity
+      moves a whole fold. The 0.25-point spread between T12/T14/T15 is far inside it and means
+      NOTHING. T13's ~3.5-point deficit is around one std, so on accuracy alone it is only
+      suggestive; the TAR@FAR gap is what makes it decisive, because TAR is computed over the
+      POOLED score set rather than per fold. GENERAL: on a small-subject database, trust TAR@FAR
+      over fold-averaged accuracy.
       NOT QUOTABLE EXTERNALLY: T13/T14/T15 all use research-licensed weights with no commercial
       grant (na-004/007 mem-030, mem-032). Measurements, not options.
     created_at: "2026-08-01"
