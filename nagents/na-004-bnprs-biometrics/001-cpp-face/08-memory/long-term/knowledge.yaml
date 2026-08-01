@@ -667,6 +667,45 @@ memories:
     source: "session-2026-08-01"
     tags: [never-bare-git-add-A, scope-every-add, gitignore-build-matches-exact-name-only, 3145-artifacts-committed, build-cmake-scratch-location, verify-ignores-by-creating-the-dir, history-still-holds-the-blobs]
 
+  - id: "rtsp-unsupported-macos-linux-no-ffmpeg"
+    topic: "BprFace/BprVideo cannot open rtsp:// on macOS or Linux — OpenCV built WITH_FFMPEG=OFF"
+    content: |
+      MEASURED 2026-08-01 against a live IP camera, BprFace 2.24.117 on macOS.
+      Bpr_FaceDetect_T12_Stream ACCEPTS an rtsp:// URL, links and returns cleanly, then fails
+      with code -20: OpenCV falls through to the CAP_IMAGES backend and tries to parse the URL
+      as a numbered-image filename pattern ("expected '0?[1-9][du]' pattern, got: rtsp://...").
+      That fall-through IS the signature of no network-capable capture backend compiled in.
+      AS-BUILT config, from .deps/opencv-build/<plat>/CMakeCache.txt (the CACHES, not the
+      scripts — they disagree, and the cache is what shipped):
+        windows-64   WITH_FFMPEG=ON,  WITH_DSHOW=ON,  WITH_GSTREAMER=ON   -> RTSP WORKS
+        macos        WITH_FFMPEG=OFF, WITH_AVFOUNDATION=ON                -> no RTSP, webcam ok
+        linux-arm64  WITH_FFMPEG=OFF, WITH_V4L=ON                         -> no RTSP, V4L ok
+      So RTSP capture is WINDOWS-ONLY across every library built from this OpenCV — BprFace,
+      and BprVideo/BprVision too, since they find_package the same .deps build. The team's
+      Linux BprIDEngine deployment therefore CANNOT ingest CCTV streams as shipped.
+      videoio IS in BUILD_LIST, which is why this presents as a runtime failure on a valid URL
+      rather than a missing export — nothing at build or link time hints at it.
+      TRAP: do NOT conclude FFmpeg is present because `strings` finds "FFMPEG" in the dylib.
+      OpenCV's backend registry names every KNOWN backend regardless of what was built. I made
+      that mistake; only the runtime fall-through (or the CMakeCache) is decisive.
+      FIX: set -DWITH_FFMPEG=ON in src/BprIDEngine/BprFace/scripts/build-{macos,linux}-selfcontained.sh
+      (both currently pass OFF) and republish. Not addressable from consumer apps.
+      Also note the linux script says WITH_V4L=OFF but the cache says ON — trust the cache.
+      DIAGNOSING A URL: BprFaceTest_v2.Probe --stream <qiCode> <url> [serial] [seconds] runs the
+      detector headlessly, redacts credentials, and separates -20 (backend gap) from -21 (camera
+      authorization) from blocked-with-no-frames (unreachable host).
+      TWO macOS TRAPS found alongside: (1) the detector writes bnet_oc_raw/<serial>_<stamp>/ to a
+      RELATIVE path (BprSFaceDetect.cpp:619) so on Mac Catalyst it lands in the .app bundle root
+      and the NEXT build dies in codesign with "unsealed contents present in the bundle root" —
+      an error that names nothing; chdir away at startup. (2) macOS 15+ needs
+      NSLocalNetworkUsageDescription for ANY LAN address or the connect silently never completes.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [rtsp-windows-only, with-ffmpeg-off, cap-images-fallthrough-is-the-tell, trust-cmakecache-not-scripts, strings-ffmpeg-is-a-false-positive, linux-cctv-blocked, bundle-root-litter, nslocalnetwork]
+
 # Pruning rules
 pruning:
   max_entries: 500
