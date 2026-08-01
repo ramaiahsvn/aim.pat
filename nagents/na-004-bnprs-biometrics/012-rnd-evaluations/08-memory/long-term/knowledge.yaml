@@ -5,26 +5,135 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: >-
+      2026-08-01 THIS AGENT OWNS BIOMETRIC EVALUATION. User decision, taken so that measuring an
+      algorithm does not have to disturb na-004/007 cpp-bengine every time.
+      THE DIVIDING LINE, and it is worth applying literally:
+        cpp-bengine and the cpp-* modality agents own "DOES IT COMPUTE THE RIGHT THING" —
+          adapters, the BprID_* ABI, registration, build options, the proof gate.
+        THIS AGENT owns "HOW GOOD IS IT" — protocols, datasets, pair lists, scores, thresholds,
+          reports, and the numbers themselves.
+      THE HANDOFF WHEN EVALUATION FINDS A DEFECT: report the anomaly, DO NOT fix the adapter.
+      Route it to the owning agent (na-004/001 cpp-face for BprFace, /002 finger, and so on) and
+      re-measure afterwards. That loop ran end to end on 2026-08-01 and caught two real bugs —
+      see mem-004 — so it works; keep the roles separate.
+      RESULTS LIVE HERE, NOT IN THE ENGINE AGENT'S MEMORY. Numbers get re-measured often and
+      would churn cpp-bengine's knowledge base; it keeps a pointer only.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 1.0
+    source: "session-2026-08-01 (user decision)"
+    tags: [ownership, evaluation-is-this-agent, report-do-not-fix, results-live-here, na-004-007-handoff]
 
-  # Example entries:
-  # - id: mem-002
-  #   type: project_context
-  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
-  #   confidence: 0.99
-  #   tags: [branding, bnprs]
+  - id: mem-002
+    type: technical_knowledge
+    content: >-
+      2026-08-01 THE HARNESS — bengine-eval, in bpr.cpp at
+      src/BprIDEngine/bengine/apps/bengine-eval/. THE CODE STAYS THERE because it must link the
+      `bengine` facade; THIS AGENT OWNS IT REGARDLESS. Location is not ownership on this platform
+      — na-004/001 likewise owns BprFace/ inside the engine tree.
+        cmake -S . -B build -DBENGINE_BUILD_FACE_T12=ON [-DBENGINE_BUILD_FACE_T13/T14/T15=ON]
+        cmake --build build -j8
+        ./build/bengine-eval --data <root> --pairs <pairs.txt> --tid T12|T13|T14|T15 [--pack P]
+      Built ONLY when a face variant is enabled, and it links the facade so it discovers which
+      --tid values are live rather than being told.
+      OPERATIONAL FACTS THAT COST TIME TO REDISCOVER:
+      (1) MODELS RESOLVE BESIDE THE BINARY, via BprModelPath (dladdr on the calling module) —
+      for an executable that is the BUILD DIRECTORY, so symlink .models/bpr.m1000*.onnx and the
+      InspireFace pack into it. Missing models do not fail at startup: adapters load lazily, so
+      the symptom is a run of pure extraction failures.
+      (2) DO NOT USE --limit FOR A REPORTED NUMBER. The pair list is ordered fold by fold, so a
+      limit populates the first folds and empties the rest; the CV degenerates but still prints a
+      mean and a std. An early --limit 700 produced "71.5% +/- 21.5". The tool now prints
+      "*** PARTIAL RUN — NOT AN LFW RESULT ***" above such figures, and the figures below that
+      banner still look plausible — read the banner.
+      (3) TWO PAIR FORMATS, sniffed from the header: standard LFW pairs.txt, or "#explicit
+      <folds>" followed by "<path-a> <path-b> <same:0|1> <fold>" for any other dataset.
+      Generators live in apps/bengine-eval/protocols/ (lfw_pairs_from_xlsx.py, make_orl_pairs.py).
+      (4) IT NEVER WRITES EMBEDDINGS OR IMAGES TO DISK, per cpp-face directive 1. Templates are
+      cached in memory for the run and the output is aggregate statistics only. DO NOT ADD a
+      --dump-features flag if asked — offer an in-process analysis instead.
+      (5) 10-FOLD IS DONE PROPERLY: the threshold is fitted on nine folds and applied to the
+      tenth. Fitting one threshold on all pairs and reporting its accuracy inflates LFW by around
+      half a point and is the commonest way these numbers get overstated.
+      STILL MISSING, all of which the nucleus asks for: bootstrap 95% CI on EER (the +/- printed
+      today is the ACROSS-FOLD STD, not a CI — do not describe it as one), DET curves, score
+      histograms, EER and FMR@FNMR tables. Only TAR@FAR is computed.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [bengine-eval, harness, models-beside-the-binary, never-use-limit, two-pair-formats, no-feature-dump, proper-10fold, std-is-not-a-ci, missing-det-eer]
 
-  # - id: mem-003
-  #   type: technical_knowledge
-  #   content: "LibreOffice PDF conversion fails in sandbox environments"
-  #   confidence: 0.95
-  #   tags: [workaround, pdf, libreoffice]
+  - id: mem-003
+    type: technical_knowledge
+    content: >-
+      2026-08-01 FACE BASELINE — all four variants on LFW and ORL. Full report:
+      07-axon-terminals/deliverables/eval-reports/2026-08-01-face-4variant-lfw-orl.md
+      Identical protocol and detector settings throughout; 0 failure-to-extract in all 8 runs.
+      LFW (6000 pairs, 10-fold):
+        T14 aFace  99.35% +/- 0.34   TAR@1e-3 98.87%   AdaFace IR-101 / WebFace12M
+        T15 mFace  99.33% +/- 0.37   TAR@1e-3 98.80%   MagFace R100 / Glint360K
+        T13 iFace  99.02% +/- 0.26   TAR@1e-3 97.37%   InspireFace Pikachu
+        T12 sFace  96.60% +/- 0.89   TAR@1e-3 93.50%   OpenCV SFace — THE INCUMBENT
+      ORL (3600 pairs, folds split BY SUBJECT):
+        T12 99.91% +/- 0.28 | T15 99.80% +/- 0.61 | T14 99.68% +/- 0.95 | T13 99.64% +/- 0.82
+      THE RANKING INVERTS AND ORL IS THE REASON. T12 is last on LFW and first on ORL — that is
+      ORL failing to discriminate, not T12 excelling. All four within 0.27 points, error bars
+      0.28-0.95 overlapping completely, three of four at 100% TAR@1e-3. 40 subjects, controlled,
+      frontal, single session. ORL IS A SMOKE TEST; DO NOT RANK ALGORITHMS WITH IT. As a smoke
+      test it earned its keep: 0 FTE on 92x112 GRAYSCALE PGM tight crops proved the detect/align
+      path handles input well outside LFW's shape.
+      T14 vs T15 IS A STATISTICAL TIE — 0.02 apart against +/-0.35 bars. Ranking them is noise.
+      READ TAR@FAR, NOT ACCURACY. T14/T15 ~98.8% against T13's 97.4% at FAR=1e-3 means iFace
+      rejects roughly 2.4x as many genuine users at a fixed 1-in-1000 false-accept rate; the
+      accuracy column understates that gap by more than half.
+      OPEN, ROUTED TO na-004/001 cpp-face: T12's 2.8-point deficit looks like INTEGRATION rather
+      than the model. It is the ONLY variant whose score depends on external pre-alignment (+0.77
+      from lfw-deepfunneled, where T13/T14/T15 are -0.07/-0.09/-0.07) and its fold variance is 3x
+      the others. Published SFace is ~99.4%. Those points are on the ONLY SHIPPABLE VARIANT,
+      which makes them worth more than anything the licence-blocked ones can offer.
+      NOT QUOTABLE EXTERNALLY: T13/T14/T15 all use research-licensed weights with no commercial
+      grant (na-004/007 mem-030, mem-032). Measurements, not options.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01 (bengine-eval, engine bpr.cpp 9e412ff)"
+    tags: [face-baseline, lfw, orl, ranking-inverts, orl-is-a-smoke-test, t14-t15-tie, read-tar-at-far, t12-integration-gap, not-quotable]
+
+  - id: mem-004
+    type: incident_learning
+    content: >-
+      2026-08-01 EVALUATION FOUND TWO DEFECTS NOTHING ELSE COULD HAVE — the argument for this
+      agent existing. Both were invisible to a clean build, 59 passing unit tests and a green
+      proof gate. Reported from here, fixed by na-004/007 (bpr.cpp e2a16b0, 9e412ff).
+      (1) MIRRORED ALIGNMENT in T14/T15 — 63.16% -> 99.49% once corrected. The ArcFace 5-point
+      template's first point sits at x=38 (IMAGE LEFT) and YuNet's "right eye" is the SUBJECT's
+      right eye, which appears image-left: they already correspond, and the adapter swapped them.
+      IT FAILED SILENTLY — detection succeeded, crops were face-shaped, embeddings were 512
+      finite floats, and a photo still SELF-MATCHED at 1.0. Only the relationship BETWEEN
+      different images of one person was destroyed, and no unit test looks at that.
+      63% IS THE DANGEROUS SHAPE OF WRONG: not 50% (obviously broken), not 99% (obviously fine) —
+      near chance but easy to explain away as "CPU model" or "hard dataset". WHEN A VARIANT LANDS
+      NEAR CHANCE, SUSPECT GEOMETRY BEFORE THE MODEL. Cheap discriminator for a mirrored
+      alignment: a photo must self-match ~1.0 while a MIRRORED COPY scores clearly LOWER. If both
+      score the same, the landmark order is wrong.
+      (2) DETECTOR THRESHOLD MISMATCH — the T14/T15 path used YuNet's default 0.9 score threshold
+      where T12 uses 0.6, discarding 70 faces T12 accepted. Not merely a 0.9% FTE: it meant the
+      two groups were scored on DIFFERENT PAIR SETS, because a failed pair leaves both numerator
+      and denominator. After the fix, FTE 70 -> 0 and accuracy moved within the error bars.
+      THE RULE THIS GIVES THE AGENT: BEFORE COMPARING VARIANTS, VERIFY THEY SAW THE SAME DATA.
+      Equal pair counts and equal FTE are the check. A comparison across different effective test
+      sets is not a comparison, and an FTE difference is the usual way that happens unnoticed.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01"
+    tags: [evaluation-finds-what-tests-cannot, mirrored-alignment, near-chance-suspect-geometry, mirror-test, detector-threshold, verify-same-data-before-comparing, fte-parity]
 
 # Pruning rules
 pruning:
