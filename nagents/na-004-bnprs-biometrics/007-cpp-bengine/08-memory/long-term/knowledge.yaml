@@ -1345,6 +1345,57 @@ memories:
     source: "session-2026-08-01 (measured 63.16% -> 99.49% on the same LFW subset)"
     tags: [mirrored-alignment, arcface-5point, yunet-landmark-order, image-position-not-anatomy, silent-geometric-error, only-a-benchmark-finds-it, 63-percent-is-the-dangerous-number, write-down-your-assumptions, refuse-partial-state-dict, verify-the-onnx-export, e2a16b0]
 
+  - id: mem-035
+    type: technical_knowledge
+    content: >-
+      2026-08-01 ALL FOUR FACE VARIANTS BENCHMARKED — LFW and ORL, one harness (bengine-eval),
+      identical protocol and identical detector settings, ZERO extraction failures everywhere.
+      LFW, 6000 pairs, 10-fold CV, threshold fitted on nine folds and applied to the tenth:
+        T15 mFace  99.33% +/- 0.37   TAR@1e-3 98.80%    MagFace R100 / Glint360K
+        T14 aFace  99.35% +/- 0.34   TAR@1e-3 98.87%    AdaFace IR-101 / WebFace12M
+        T13 iFace  99.02% +/- 0.26   TAR@1e-3 97.37%    InspireFace Pikachu
+        T12 sFace  96.60% +/- 0.89   TAR@1e-3 93.50%    OpenCV SFace (the incumbent)
+      ORL/AT&T, 3600 pairs (1800 genuine exhaustive + 1800 sampled impostor), folds split BY
+      SUBJECT:
+        T12 sFace  99.91% +/- 0.28   TAR@1e-3 100%
+        T15 mFace  99.80% +/- 0.61   TAR@1e-3 100%
+        T14 aFace  99.68% +/- 0.95   TAR@1e-3 100%
+        T13 iFace  99.64% +/- 0.82   TAR@1e-3 99.78%
+      THE RANKING INVERTS BETWEEN THE TWO DATASETS AND THAT IS THE MOST USEFUL THING HERE. T12 is
+      LAST on LFW by 2.8 points and FIRST on ORL. Do not read that as T12 being good: read it as
+      ORL BEING UNABLE TO TELL THESE APART. All four sit within 0.27 points on ORL with error
+      bars of 0.28-0.95 that overlap completely, and three of the four hit 100% TAR at FAR=1e-3.
+      ORL is 40 subjects, controlled lighting, frontal, tightly cropped, same session — every
+      modern embedding saturates it. A benchmark on which everything scores ~99.7% ranks nothing;
+      it only proves the pipeline runs.
+      SO: USE ORL AS A SMOKE TEST, NOT A COMPARISON. It did earn its keep as one — 0 extraction
+      failures on 92x112 GRAYSCALE PGM tight crops shows YuNet handles input far outside LFW's
+      shape, which was not obvious beforehand.
+      WHAT LFW ACTUALLY SEPARATES: T14 and T15 are a STATISTICAL TIE (0.02 apart, +/-0.35 bars —
+      anyone ranking AdaFace against MagFace on this is reading noise). The real gap is
+      T14/T15 vs T13 at the operating point that matters: TAR@FAR=1e-3 of ~98.8% vs 97.4%, i.e.
+      iFace rejects roughly 2.4x as many genuine users at a fixed 1-in-1000 false-accept rate.
+      Accuracy alone hides that; always read TAR@FAR for an authentication decision.
+      T12 IS THE ACTIONABLE FINDING and it is probably an INTEGRATION problem, not the model.
+      Evidence: it is the ONLY variant whose score depends on how the input was pre-aligned
+      (+0.77 from lfw-deepfunneled; every other variant is flat or very slightly worse), and its
+      fold-to-fold variance is 3x the others (+/-0.89 vs +/-0.26-0.37). A recogniser sensitive to
+      EXTERNAL alignment is one whose own alignment is underperforming. Published SFace sits near
+      99.4%; we measure 96.6%. Worth ~2.8 points to the SHIPPING product, which is a better
+      return than any of the licence-blocked variants can offer. Owned by na-004/001.
+      NONE OF THESE NUMBERS MAY BE QUOTED EXTERNALLY. T13/T14/T15 all come from research-licensed
+      weights with no commercial grant (mem-030, mem-032). They are measurements, not options.
+      AND LFW/ORL BOTH ANSWER THE WRONG QUESTION for the actual product: both are frontal,
+      high-quality and saturated. Neither says anything about CCTV imagery, which is the entire
+      premise of an AdaFace-CCTV variant. Judge low-quality performance on low-quality data —
+      the BioID, Yale and PolyU sets sitting beside these in ~/BPR/FaceData are closer.
+    created_at: "2026-08-01"
+    last_accessed: "2026-08-01"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-01 (bengine-eval, all runs 0 FTE, identical detector settings)"
+    tags: [lfw-results, orl-results, ranking-inverts, orl-is-a-smoke-test-not-a-comparison, t14-t15-statistical-tie, read-tar-at-far-not-accuracy, t12-is-an-integration-gap, alignment-sensitivity-is-the-tell, research-weights-not-quotable, lfw-and-orl-answer-the-wrong-question]
+
 # Pruning rules
 pruning:
   max_entries: 500
