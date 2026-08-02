@@ -466,6 +466,33 @@ memories:
     source: "session-2026-07-29"
     tags: [project-create, BPR1004, utms, api-go, project-257, project-258, create-script, new-project-standard, ce-no-custom-templates, enterprise-false, system-hook-option, empty-project-has-no-branches]
 
+  - id: mem-jobtoken-230-allowlist
+    type: technical_knowledge
+    content: >-
+      CI THAT PULLS FROM bnprs-libs (project 230) NEEDS TO BE ON 230's JOB-TOKEN ALLOWLIST. Project
+      230 has inbound_enabled=true on its CI/CD job-token scope, so a CI_JOB_TOKEN from another
+      project can only resolve packages from 230 if that project is on
+      /projects/230/job_token_scope/allowlist. On 2026-08-02 the allowlist had been narrowed to
+      [230] (itself only), which broke every external consumer using CI_JOB_TOKEN — surfacing as
+      Maven "artifact absent" (e.g. ai.bnprs:nativesdk-bpridengine:2.24.902 absent) even though the
+      jar+pom are present and downloadable with a PRIVATE-TOKEN. A 401 from the registry manifests
+      as a not-found in Maven resolution, so it LOOKS like a missing/wrong version — it is not.
+      SmartPresence (project 34) pipeline #3043+ failed this way; #3042 passed before the narrowing.
+      FIX: POST /projects/230/job_token_scope/allowlist?target_project_id=<consumer>. Added 34 on
+      2026-08-02. SmartPresence build passes MAVEN_TOKEN=$CI_JOB_TOKEN into the Dockerfile, mvn auth
+      is settings.xml server bnprs-libs = gitlab-ci-token/${MAVEN_TOKEN}.
+      DIAGNOSIS RULE: "artifact absent" from a 230 registry in CI, when the artifact resolves fine
+      with a PRIVATE-TOKEN, is an ALLOWLIST/auth problem, not a missing package. Bumping the version
+      will not help. Only project 34 currently references 230 in a pom (checked 18/19/20/33/36/37);
+      the bNet .NET apps consume via nuget/generic, not this maven path.
+    created_at: "2026-08-02"
+    last_accessed: "2026-08-02"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-02"
+    tags: [job-token-allowlist, project-230-bnprs-libs, inbound-enabled, artifact-absent-is-auth,
+           smartpresence-pipeline, maven-ci-job-token, project-34]
+
 # Pruning rules
 pruning:
   max_entries: 500
