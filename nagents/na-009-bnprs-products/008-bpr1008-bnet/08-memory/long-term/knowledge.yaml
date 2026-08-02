@@ -6,7 +6,12 @@ memories:
   - id: mem-001
     type: project_context
     content: >-
-      SMARTPRESENCE IS A bNET API AND LIVES IN BPR1004, NOT BPR1008. Repo
+      UTMS (BPR1004) IS AN UMBRELLA PRODUCT, and repo names encode that: SmartPresence is a bNet
+      feature that draws on UTMS capabilities, so its API lives under BPR1004 as
+      bpr1004.utms.api.bnet.smartpresence. The BPR1004 prefix is the UMBRELLA it builds on, not the
+      owning product — bNet still owns the feature. Read <group>.<umbrella>.<kind>.<product>.<feature>
+      rather than assuming the group prefix names the owner; other UTMS-assisted products will
+      follow the same shape. Repo
       gitlab.bnprs.ai/BPR1004/bpr1004.utms.api.bnet.smartpresence (project id 34), cloned to
       /Users/bnprs/BPR/GitRepos2/BPR1004_uTms/bpr1004.utms.api.bnet.smartpresence. The group folder
       convention is GitRepos2/<GROUP>_<Name>/ with each repo keeping its full GitLab name.
@@ -20,7 +25,7 @@ memories:
     access_count: 1
     confidence: 1.0
     source: "session-2026-08-01"
-    tags: [smartpresence, bpr1004-not-1008, master-is-stale-dotnet, bp_dev-is-live, two-stacks-in-one-repo]
+    tags: [smartpresence, utms-is-an-umbrella, repo-prefix-is-the-umbrella-not-the-owner, bpr1004-not-1008, master-is-stale-dotnet, bp_dev-is-live, two-stacks-in-one-repo]
 
   - id: mem-002
     type: project_context
@@ -70,6 +75,112 @@ memories:
     confidence: 1.0
     source: "session-2026-08-01"
     tags: [bpridengine-2.24.902, no-face-suffix, hastemplate-no-longer-a-readiness-check, use-preload, pom-fix-alone-is-insufficient, grep-the-java-too]
+
+  - id: mem-004
+    type: reference
+    content: >-
+      PRIMARY REFERENCE FOR bNET DEPLOYMENT: /Users/bnprs/BPR/GitRepos2/BPR1008_bNet/Backup/
+        bNet_Installation_Guide (1).pdf     11 pages, v1.0.0 (note the space and "(1)" in the name)
+        Final_cqi_bnet_db_only_schema.sql   MySQL/InnoDB, database `cqi_bnet`, 31 tables
+        Final_cqi_bnet_db_only_data.sql     seed data
+        setup.bat                           installs the Windows services
+      STACK: Windows 10/11 64-bit ONLY, .NET Framework 4.7.2+, MySQL 5.5.62, 4 cores / 8 GB / 20 GB.
+      Main app C:\bNet\bNetMain\Bpr.bNet.exe; services under C:\bNet\bNetServices\.
+      SCHEMA is an institutional attendance domain: person/student/staff/faculty, course/programme/
+      semester/department/designation/qualification, camera + cameramapping, imp_events and
+      restricted_events, studentimages, user/role/menu/rolerole. Geography: country/state/district.
+      LICENSING is per-machine: License Manager shows a Hardware ID, BNPRS issues a key, and it is
+      pasted into C:\bNet\bNetServices\BprFace\bpr.face.lic. So bNet consumes BprFace natively on
+      Windows — the same library na-004/001 builds — and setup.bat mirrors BprFace into
+      C:\ProgramData\BprFace while EXCLUDING bnet_oc_raw, which is the detector's cropped-face
+      output directory (BprSFaceDetect saveRoot). That is runtime data, never shipped.
+      FOUR DISCREPANCIES FOUND ON FIRST READ — check before trusting either document:
+        1. Install root disagrees. The guide says C:\bNet; setup.bat writes c:\BNPRS\bNet.
+        2. The guide and setup.bat both name Final_cqi_bnet_db.sql, which does NOT exist here —
+           the Backup folder has the schema and the data as two separate files.
+        3. The guide lists 3 services (Camera, Dedup, Sync); setup.bat installs SIX:
+           bNet_10100_Dedup, bNet_10101_Chain, bNet_10101_Stream, bNet_10102_Chain,
+           bNet_10102_Stream, bNet_SyncService. The 101xx numbers look per-camera.
+        4. MySQL 5.5.62 reached end of life in 2018 — no security patches.
+      SECURITY: the guide prints the MySQL root password in clear text in section 4 and again in
+      8.2. Value deliberately NOT recorded here. Flag it for redaction before the PDF goes to any
+      customer; it is marked "For Internal and End-User Use Only", so it does leave the building.
+    created_at: "2026-08-02"
+    last_accessed: "2026-08-02"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-02"
+    tags: [backup-is-the-reference, cqi_bnet-schema, windows-only-dotnet, mysql-5.5-eol,
+           bpr-face-lic-hardware-id, bnet_oc_raw-is-runtime, guide-vs-setup-bat-disagree,
+           root-password-in-the-pdf]
+
+  - id: mem-005
+    type: project_context
+    content: >-
+      bNET IS TWO REPOS AND THE ai_dev PAIR DOES NOT BUILD. bpr1008.bnet.main references
+      Bpr.bNet.Core.dll, which lives in bpr1008.bnet.shared — and shared/ai_dev is still the
+      2024-08-12 "Initial commit" with ONE file. main/ai_dev (merged 2026-08-02 from
+      harani_appSetup) therefore has no KeycloakApiClient to compile against.
+      THE LIVE PAIR IS main/harani_appSetup + shared/cr-bytearray. Both heads are [#NK-I311] dated
+      2026-07-26. cr-bytearray is cr-licensing plus one commit (nothing is exclusive to
+      cr-licensing), 611 files, and it is the only lineage carrying
+      bNet_Shared/Bpr.Core/Products/_Common/keycloakApiClient.cs.
+      ONLY _BprFws + QiMods ARE ALIVE: 131 .cs and 25 real screens. _BprCore (397 .cs, last touched
+      2020-11-19 initial commit), _bk (132, 2024) and _BprFace (3, 2025) are dead — about 80% of
+      the tree, and every one of the 88 WinForms designers is in them. Scope a migration from the
+      LIVE folders, not from a file count over the repo.
+      ARCHITECTURE AS OF [#NK-I311]: the WPF client no longer talks to MySQL for these paths. It
+      calls the SmartPresence Spring Boot API — ServerAPIsBaseURL
+      utms-smartpresence-api-alb-*.eu-central-1.elb.amazonaws.com — through KeycloakApiClient,
+      which attaches a Bearer token and retries once on 401. That API is bpr1004.utms.api.bnet.
+      smartpresence, the repo whose ai_dev was force-migrated to Java on 2026-08-01, so bNet is its
+      client. Endpoints seen: bnet/ActiveFilteredMatchFace, bnet/FilteredMatchFace, bnet/Courses,
+      bnet/FetchFaculty, bnet/EnrolledStudents, bnet/GetAttendance.
+      TWO SECURITY ITEMS IN _BprFws/App.config, COMMITTED TO GIT: a Keycloak client secret in
+      plaintext for client bnet-sync-service on accounts-uat.itpgateway.com realm UTMS (value NOT
+      recorded here — rotate it), and Api.BypassCertificateValidation=true, which disables TLS
+      verification for every Keycloak and API call. The code itself logs a warning that this must
+      not be left on in production. Encrypted PROD connection strings sit there too.
+    created_at: "2026-08-02"
+    last_accessed: "2026-08-02"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-02"
+    tags: [two-repos, shared-ai_dev-is-empty, cr-bytearray-is-the-pair, only-bprfws-and-qimods-live,
+           80-percent-dead-code, springboot-api-client, keycloak, secret-in-app-config,
+           tls-verification-disabled]
+
+  - id: mem-006
+    type: project
+    content: >-
+      bNET V2 MIGRATION IN PROGRESS at /Users/bnprs/BPR/GitRepos2/BPR1008_bNet/bpr1008.bnet.main.v2
+      (.NET 10 + MAUI, macOS+Windows). Resume guide committed there as RESUME.md — read it first.
+      STATE 2026-08-02: 5 projects (Core/Data/Api/App/tests), 13 screens, builds and runs on macOS
+      against a local MySQL 8 (docker container bnet-mysql :3399, schema+data from Backup/). All
+      committed, NO git remote yet (needs the bpr1008.bnet.main.v2 GitLab project created).
+      LOGIN IS KEYCLOAK PASSWORD GRANT as of commit 15d9381 — operator signs in against the UTMS
+      realm, retiring the local unsalted-SHA-256 path (user's explicit choice over local/both). The
+      grant path is verified reaching the realm and rejecting bad creds cleanly, but a SUCCESSFUL
+      login was NOT confirmed — last attempt returned invalid_grant. Need a real UTMS operator
+      account, possibly with Direct Access Grants enabled. devadmin/bnet@2026 was the OLD local
+      account and no longer works. Local AuthService (SHA-256) remains in Data, unreferenced.
+      KEY SCOPE FACTS: live code is _BprFws+QiMods only (131 .cs, 25 screens); _BprCore/_bk/_BprFace
+      are dead (~80%, all 88 WinForms designers dead) — migrate from the live folders. The camera
+      table IS the Bpr_FaceDetect_T12_Stream configuration. fight/smoke events come from libBprVision.
+      NEXT: confirm a real Keycloak login; then live camera/video screen (reuses BprFaceTest_v2 RTSP
+      work); user CRUD; config panels; add a company claim to the realm so Session.CompanyId stops
+      being hardcoded to 1.
+      INFRA TO FIX (see RESUME.md): rotate the Keycloak client secret (in App.config in git) and
+      $GITLAB_PAT (printed this session); the ALB TLS "bypass" is masking a wrong base URL not a bad
+      cert (add itpgateway DNS for the eu-central ALB); API 500 on bnet/Courses; both bNet repos
+      deadlock merges (CI gate on, no .gitlab-ci.yml).
+    created_at: "2026-08-02"
+    last_accessed: "2026-08-02"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-02"
+    tags: [bnet-v2, maui-dotnet10, keycloak-login-password-grant, resume-md, login-unconfirmed,
+           local-mysql-3399, no-git-remote-yet, live-is-bprfws-qimods, next-camera-screen]
 
 # Pruning rules
 pruning:
