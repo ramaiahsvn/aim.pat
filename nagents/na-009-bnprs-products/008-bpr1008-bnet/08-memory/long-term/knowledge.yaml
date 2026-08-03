@@ -153,34 +153,50 @@ memories:
   - id: mem-006
     type: project
     content: >-
-      bNET V2 MIGRATION IN PROGRESS at /Users/bnprs/BPR/GitRepos2/BPR1008_bNet/bpr1008.bnet.main.v2
+      bNET V2 MIGRATION at /Users/bnprs/BPR/GitRepos2/BPR1008_bNet/bpr1008.bnet.main.v2
       (.NET 10 + MAUI, macOS+Windows). Resume guide committed there as RESUME.md — read it first.
-      STATE 2026-08-02: 5 projects (Core/Data/Api/App/tests), 13 screens, builds and runs on macOS
-      against a local MySQL 8 (docker container bnet-mysql :3399, schema+data from Backup/). All
-      committed, NO git remote yet (needs the bpr1008.bnet.main.v2 GitLab project created).
-      LOGIN IS TWO-PHASE, faithful to v1 (corrected from an earlier wrong Keycloak-password-grant guess) — operator signs in against the UTMS
-      realm, retiring the local unsalted-SHA-256 path (user's explicit choice over local/both). The
-      grant path is verified reaching the realm and rejecting bad creds cleanly, but a SUCCESSFUL
-      login was NOT confirmed — last attempt returned invalid_grant. Need a real UTMS operator
-      account, possibly with Direct Access Grants enabled. devadmin/bnet@2026 was the OLD local
-      account and no longer works. Local AuthService (SHA-256) remains in Data, unreferenced.
-      KEY SCOPE FACTS: live code is _BprFws+QiMods only (131 .cs, 25 screens); _BprCore/_bk/_BprFace
-      are dead (~80%, all 88 WinForms designers dead) — migrate from the live folders. The camera
-      table IS the Bpr_FaceDetect_T12_Stream configuration. fight/smoke events come from libBprVision.
-      NEXT: confirm a real Keycloak login; then live camera/video screen (reuses BprFaceTest_v2 RTSP
-      work); user CRUD; config panels; add a company claim to the realm so Session.CompanyId stops
-      being hardcoded to 1.
-      INFRA TO FIX (see RESUME.md): rotate the Keycloak client secret (in App.config in git) and
-      $GITLAB_PAT (printed this session); the ALB TLS "bypass" is masking a wrong base URL not a bad
-      cert (add itpgateway DNS for the eu-central ALB); API 500 on bnet/Courses; both bNet repos
-      deadlock merges (CI gate on, no .gitlab-ci.yml).
+      STATE 2026-08-02: PUSHED to GitLab https://gitlab.bnprs.ai/BPR1008/bpr1008.bnet.main.v2
+      (project 259, group BPR1008, private; origin/main tracks main; push via oauth2:$GITLAB_PAT URL,
+      keep stored remote clean; history has NO AI attribution). Projects: Core/Data/Api/App/Worker
+      (+tests). Builds and runs on macOS against local MySQL 8 (docker bnet-mysql :3399, schema+data
+      from Backup/). Screens: dashboard, events, cameras(+edit,+live), students, staff, users(+CRUD),
+      attendance, settings(+config panels), 5 lookups. Worker re-hosts the Windows services as
+      cross-platform BackgroundServices: SyncWorker (15 tables), CameraStreamWorker, DedupWorker
+      (variant-driven .tNN.yml), and a ConsoleApps CLI (camera <id> / chain <id> <path>).
+      LOGIN IS TWO-PHASE, faithful to v1 (CurrentCompanyID>0 -> local DB SHA-256 LoginUserCheck; else
+      first-run REMOTE = POST bnet/userlogin, then persist CurrentCompanyID). REMOTE LOGIN IS NOT the
+      Keycloak password grant — that was a removed wrong guess; Keycloak client_credentials is the API
+      transport only. Verified end-to-end on macOS (login, sync 15 tables 0-fail, detection loads
+      native, dedup variant-configurable). USER CRUD verified against cqi_bnet (create/login/deactivate
+      -blocks-login/reactivate/password-change); "delete"=STATUS_ID flip to Inactive=2 (FK into status
+      1=Active/2=Inactive/3=Deleted; 0 is invalid). Session.CompanyId now falls back to persisted
+      CurrentCompanyID (not a magic 1). Server URL (config panel) feeds KeycloakOptions.BaseUrl when
+      BNET_API_BASE unset (env wins).
+      KEY SCOPE FACTS: live code is _BprFws+QiMods only; _BprCore/_bk/_BprFace are dead (~80%, all 88
+      WinForms designers dead) — migrate from the live folders. Camera table IS the
+      Bpr_FaceDetect_T12_Stream configuration. fight/smoke events come from libBprVision. Native worker
+      uses the 2.24.118 generic ABI.
+      MIGRATION FUNCTIONALLY COMPLETE (2026-08-02): all v1 live screens + all in-scope services
+      ported (event-push/1:N verify added as EventPushWorker, commit 70f5bb1). DECISION (user,
+      option A): Student/Faculty/Course stay READ-ONLY list pages, NO local editors — those tables
+      sync FROM the server (server-owned master data), so local edits would be overwritten; read-only
+      is the correct model (same reasoning as user delete = soft STATUS_ID flip). Not ported: niche
+      capture variants (VideoFile, LocalCamera, ucDisplayDevices) — CameraEditPage URL/index covers
+      local webcam + RTSP. CleanupServices + Itp_bNetService OUT (user: not in use).
+      NEXT (NOT code gaps): confirm a real remote (bnet/userlogin) login with a live UTMS operator
+      account; rotate secrets (below).
+      INFRA TO FIX (see RESUME.md): rotate the Keycloak client secret (in v1 App.config in git) and
+      $GITLAB_PAT (printed this session); the ALB TLS "bypass" masks a wrong base URL not a bad cert
+      (add itpgateway DNS for the eu-central ALB); API 500 on bnet/Courses; both bNet repos deadlock
+      merges (CI gate on, no .gitlab-ci.yml).
     created_at: "2026-08-02"
     last_accessed: "2026-08-02"
     access_count: 1
     confidence: 1.0
     source: "session-2026-08-02"
-    tags: [bnet-v2, maui-dotnet10, keycloak-login-password-grant, resume-md, login-unconfirmed,
-           local-mysql-3399, no-git-remote-yet, live-is-bprfws-qimods, next-camera-screen]
+    tags: [bnet-v2, maui-dotnet10, two-phase-login, resume-md, pushed-gitlab-259,
+           local-mysql-3399, live-is-bprfws-qimods, worker-services-rehosted, user-crud-done,
+           config-panels-done, remote-login-unconfirmed]
 
   - id: mem-007
     type: technical_knowledge
@@ -211,6 +227,64 @@ memories:
     source: "session-2026-08-02"
     tags: [two-phase-login, currentcompanyid-decides, bnet-userlogin-not-keycloak-grant,
            keycloak-is-api-transport-only, sync-fills-local-users, follow-v1-logic, mac-sync-caveat]
+
+  - id: mem-008
+    type: project
+    content: >-
+      bNET V2 STATUS 2026-08-03 — updates mem-006; RESOLVES the "add itpgateway DNS / TLS bypass"
+      item from mem-005/006. THE CORRECT API HOST IS https://smartpresence-api-uat.itpgateway.com/
+      — NOT the raw utms-smartpresence-api-alb-429499752.eu-central-1.elb.amazonaws.com. The ALB cert
+      is CN=*.itpgateway.com, so the raw ELB name fails TLS ("no alternative certificate subject name
+      matches"); Route53 (itp acct, zone itpgateway.com) aliases smartpresence-api-uat -> that ALB.
+      With the real host, sync (15/15 tables) and 1:N verify both work over PROPER TLS — the
+      App.config Api.BypassCertificateValidation=true was masking a WRONG BASE URL, not a bad cert;
+      do not ship the bypass. (v1 App.config in bpr1008.bnet.main/_BprFws/App.config was locally
+      edited to the correct host; left UNCOMMITTED pending user decision.)
+      DEPLOY: the API is built+deployed by GitLab project 34 (bpr1004.utms.api.bnet.smartpresence)
+      pipeline on branch uat_temp -> ECS service utms-smartpresence-api, cluster utms-cluster, AWS
+      acct 819144294008, eu-central-1 (Frankfurt). Container logs CloudWatch /ecs/utms-smartpresence-api
+      (Spring Boot; GlobalExceptionHandler logs a traceId). Reach it with AWS_PROFILE=itp.
+      AUTH SPLIT (non-obvious, cost hours): sync/CRUD endpoints are /bnet/* with KEYCLOAK
+      client_credentials (client bnet-sync-service). But verify1toNFace is at /apis/bnet/verify1toNFace
+      (the /apis prefix — its controller is @RequestMapping("/apis"), every other controller is /bnet),
+      and it authenticates with a SHARED BEARER TOKEN, not Keycloak (server gatewayService.isTokenValid).
+      v2 reads that token from env BNET_VERIFY_TOKEN, NEVER hardcoded. The token value is a LEAKED
+      credential in v1 git (bNet_SyncService.cs) — value NOT recorded here; ROTATE it. End-to-end
+      verified: 8/8 querydata rows pushed, ResponseCode 200, Status_ID 9->10.
+      NEW IN V2 THIS SESSION (all pushed to BPR1008/bpr1008.bnet.main.v2 main):
+        * Event-push enabled on the app-managed worker (WorkerController BNET_RUN_EVENTPUSH=true;
+          forwards BNET_API_BASE + BNET_KC_* + BNET_VERIFY_TOKEN; verify base = <api>/apis/bnet).
+        * StudentImageSyncWorker pulls bnet/studentimages (paged, base64->bytes, incremental by latest
+          timestamp) into local studentimages.IMAGE_DATA — v1's PullStudentFaceImageToLocal, which
+          shipped DISABLED, so studentimages was always empty. Runs with BNET_RUN_SYNC. Verified 5
+          students' photos. Image bytes live only in the DB, never logged/filed.
+        * Home "Identified people" panel is now SERVER-DRIVEN (v1 Home.GetMatchedFaceDetailsAsync):
+          GET bnet/ActiveFilteredMatchFace?companyId=&enrollmentYear=&courseId= (names only) + Course
+          and Academic-Year filter pickers (Courses from bnet/Courses; default courseId=0, year 2024),
+          merged with local studentimages photos by studentId. 404 "No Filtered Match Faces found" is
+          the normal empty state (company 1 has no active server matches yet).
+        * WorkerController now enforces a single worker via a pid-file (kills orphans) — multiple
+          concurrent dedup loops had been racing and corrupting face-chain creation while OC kept
+          working.
+      FACE VARIANTS: only T12 (sFace) is in the published libBprFace. T14 (aFace) / T15 (mFace=MagFace)
+      need the EVAL build bpr.cpp/build/cmake/eval/face-variants/libBprFace.dylib + models
+      bpr.m10007.onnx / bpr.m10008.onnx (research-licensed, not shippable). DedupWorker now falls back
+      to T12 if the selected variant can't init (a persisted t14 selection had silently killed the
+      dedup worker while detection/OC kept running).
+      LOCAL DEV (pat-m4p): docker bnet-mysql root/bnetdev :3399 db cqi_bnet; runtime dir
+      /Users/bnprs/BPR/FaceData/bpr-runtime; published worker /Users/bnprs/BPR/FaceData/bnet-worker/
+      (+ libBprFace.dylib); App launched from the built .app with BNET_* env.
+      PENDING: rotate shared verify token + Keycloak client secret + $GITLAB_PAT; provision
+      BNET_VERIFY_TOKEN for the packaged app; decide whether to commit the App.config host fix.
+    created_at: "2026-08-03"
+    last_accessed: "2026-08-03"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-03"
+    tags: [bnet-v2, correct-host-smartpresence-api-uat, raw-elb-fails-tls, tls-bypass-was-wrong-url,
+           deploy-project34-uat_temp-ecs-frankfurt, verify1tonface-is-apis-bnet, verify-shared-token-not-keycloak,
+           rotate-leaked-verify-token, event-push-enabled, studentimages-sync-wired, identified-panel-server-driven,
+           worker-pidfile-singleton, only-t12-ships-t14-t15-need-eval, dedup-falls-back-to-t12]
 
 # Pruning rules
 pruning:
