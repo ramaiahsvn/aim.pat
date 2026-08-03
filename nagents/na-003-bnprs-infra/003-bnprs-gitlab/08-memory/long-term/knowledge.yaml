@@ -485,13 +485,28 @@ memories:
       with a PRIVATE-TOKEN, is an ALLOWLIST/auth problem, not a missing package. Bumping the version
       will not help. Only project 34 currently references 230 in a pom (checked 18/19/20/33/36/37);
       the bNet .NET apps consume via nuget/generic, not this maven path.
+      UPDATE 2026-08-02 (deeper root cause + real fix): the allowlist is necessary but NOT sufficient
+      with $CI_JOB_TOKEN. GitLab gates job-token cross-project PACKAGE reads on the pipeline's
+      TRIGGERING USER having access to the target project; the registry returns 404 (Maven "absent")
+      — NOT 401 — when the user lacks it. So SmartPresence built for admins (root, #3051) and 404'd
+      for developers (Harani1020, no membership in 230, #3058). Registry auth codes confirmed: bad/no
+      creds = 401, unauthorized-user = 404. FIX APPLIED: switched ci/settings.xml + .gitlab-ci.yml from
+      gitlab-ci-token/$CI_JOB_TOKEN to a read-only GROUP deploy token (user-independent). BPR1000
+      (group 118) has read_package_registry deploy tokens: id=1 bnprs-libs-readonly (team), id=3
+      -charan, id=4 -harani, and id=5 bnprs-libs-ro-utms (created this session for the SmartPresence
+      CI). Deploy-token secret stored ONLY as masked CI var MAVEN_TOKEN in project 34; settings.xml
+      username=bnprs-libs-ro-utms (usernames are not secret). Commit 0cfc40be, pipeline #3077.
+      RULE: for CI pulling another project's packages, prefer a read-only deploy token over
+      $CI_JOB_TOKEN — the job token's package access depends on who pushed, which is a latent
+      works-for-me trap.
     created_at: "2026-08-02"
     last_accessed: "2026-08-02"
     access_count: 1
     confidence: 1.0
     source: "session-2026-08-02"
     tags: [job-token-allowlist, project-230-bnprs-libs, inbound-enabled, artifact-absent-is-auth,
-           smartpresence-pipeline, maven-ci-job-token, project-34]
+           smartpresence-pipeline, maven-ci-job-token, project-34, deploy-token-not-job-token,
+           job-token-user-scoped-404]
 
 # Pruning rules
 pruning:
