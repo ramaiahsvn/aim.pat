@@ -323,6 +323,33 @@ memories:
     confidence: 1.0
     tags: [circletech.me, website, s3, cloudfront, acm, hosted-here, bnprs-websites, cost]
 
+  - id: mem-014
+    type: incident_learning
+    content: >
+      2026-08-02: vpn-mgate-prod-temp is an OpenVPN Access Server appliance on an EC2 instance
+      (i-0b392b15a44ea6ab0, t3.micro, Ubuntu) in us-east-2 (NOT eu-central-1, NOT a Client VPN or
+      Site-to-Site — those are empty). EIP 3.149.123.56 (eipalloc-0daef2cbeae9d5284, terraform-tagged
+      mgate-prod-temp-openvpn-eip), VPC vpc-089ccf86b097f0aef, subnet subnet-07486798030afee85, SG
+      sg-0bfc47a7c3d24885b (opens UDP 1194, TCP 443/943, SSH 22 from 103.106.181.48/32). VPN on TCP 443
+      + UDP 1194, admin UI 943, DNAT 443->internal 914, NAT to 10.30.0.0/16. SSM agent Online (snap).
+      INCIDENT: "not working" was NOT a network/infra fault — infra, daemons, SG, routing, EIP all
+      healthy (live nftables packet counters confirmed traffic arriving). Root cause = AUTH: the client
+      (ITPCore Windows gateway, EIP 3.132.245.139 / i-0eb9ed19151bcd26f) logged in as local user
+      "openvpn" with a password that no longer matched -> "password verification failed" -> repeated
+      failures -> account LOCKOUT. Credential drifted because the box was reworked that day (ali.faiq
+      stop/start + userData edits, murali reboot) and the userData has no OpenVPN bootstrap to re-set it.
+      FIX APPLIED (via SSM, itp profile, us-east-2): sacli --user openvpn --new_pass '<value not stored>'
+      SetLocalPassword; sacli start (applies + clears lockout). Verified: client got AUTH SUCCESS and the
+      AES-256-GCM data channel established. RULE: for this box, "VPN down" is almost always the openvpn
+      local password/lockout, not AWS networking — check /var/log/openvpnas.log first; reset with sacli
+      SetLocalPassword and it must match what the client presents (both sides). Also cosmetic:
+      cloud-final.service FAILS every boot because userData dpkg-installs an SSM agent already present via
+      snap — harmless, VPN-unrelated; fix by guarding/removing that userData block.
+    created_at: "2026-08-02"
+    confidence: 1.0
+    tags: [vpn, openvpn-access-server, vpn-mgate-prod-temp, us-east-2, i-0b392b15a44ea6ab0,
+           auth-not-network, sacli-setlocalpassword, lockout, ssm-fix, cloud-final-noise]
+
 # Pruning rules
 pruning:
   max_entries: 500
