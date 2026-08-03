@@ -17,10 +17,24 @@ define), so this document reflects what the binaries actually export.
 | **BprVision** | 2.61.0 | 10 | client — smoke and fight detection (not biometrics) |
 | *(BprIDEngine* | *2.24.902* | *30* | *server — all six modalities, same generic ABI)* |
 
-> ### ⚠ Load exactly ONE of these per process
-> They share symbols by design, so a host that loads two gets an undefined winner while both
-> report plausible versions. `Bpr_FaceVideo_Streaming` is in all three; the eight smoke/fight
-> entry points are in BprVision and BprIDEngine. Pick the one library that covers your needs.
+> ### Loading more than one — CORRECTED 2026-08-01
+> An earlier draft of this document said "load exactly ONE per process". That was written when
+> BprFace still carried the video and smoke/fight entry points. **It is no longer true**, measured
+> against the published artifacts:
+>
+> | | overlap |
+> |---|---|
+> | BprFace ∩ BprVideo | **0 symbols** |
+> | BprFace ∩ BprVision | **0 symbols** |
+> | BprVideo ∩ BprVision | 1 — `Bpr_FaceVideo_Streaming` |
+>
+> So **BprFace can safely sit alongside either of the other two.** Only BprVideo and BprVision
+> genuinely collide, and only on that one symbol. A P/Invoke or JNA host binds per (library,
+> symbol) so even that resolves deterministically; the hazard is a host that dlopens both with
+> `RTLD_GLOBAL`.
+>
+> The old warning still applies to **BprIDEngine**, which carries everything: do not pair it with
+> a per-modality library.
 
 ---
 
