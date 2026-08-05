@@ -331,10 +331,16 @@ Verify in UI: Admin Area → CI/CD → Runners — runner should appear green/ac
 ### Schedule (root crontab)
 
 ```
-30 18 * * 5 /usr/local/bin/gitlab-backup-upload.sh >> /var/log/gitlab-backup.log 2>&1
+30 18 1 * * /usr/local/bin/gitlab-backup-upload.sh >> /var/log/gitlab-backup.log 2>&1
 ```
 
-Every **Friday at 18:30 UTC** = **Friday midnight IST (UTC+5:30)**. Manage with `sudo crontab -e`.
+**Monthly**, on the **1st at 18:30 UTC** = **midnight IST on the 2nd**. Manage with `sudo crontab -e`.
+
+> **MONTHLY IS THE USER'S INTENT** (re-confirmed 2026-08-05). This file previously documented a
+> *weekly* Fri 18:30 schedule; on 2026-06-08 the cron was "corrected" to match that doc, which was
+> wrong. Weekly at ~6.6 GB/backup exhausted both the 49 GB server disk and the Zoho quota.
+> Do not change the cadence back without asking — and if this doc and the live crontab ever
+> disagree again, **the live crontab and the user are the authority, not this file**.
 
 ### Backup Process (in order)
 

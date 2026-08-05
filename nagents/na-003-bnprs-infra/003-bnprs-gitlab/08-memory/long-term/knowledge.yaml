@@ -508,6 +508,47 @@ memories:
            smartpresence-pipeline, maven-ci-job-token, project-34, deploy-token-not-job-token,
            job-token-user-scoped-404]
 
+  - id: mem-029
+    type: incident
+    content: >-
+      2026-08-05: BACKUPS HAD BEEN SILENTLY BROKEN SINCE 2026-07-31 — last good backup 2026-07-24.
+      Discovered while answering the user's question "I remember we configured monthly backup, but it
+      is taking backup every week". BOTH answers matter.
+      (A) CADENCE — the user was RIGHT. The root cron WAS monthly (0 2 1 * *, plus a stray DAILY in the
+      ubuntu crontab). On 2026-06-08 [[mem-017]] the daily was removed and root was set to WEEKLY
+      (30 18 * * 5) "to match the docs" — but the DOC was the thing that was wrong, not the cron.
+      Never let a nucleus doc override live config + user intent. Reverted 2026-08-05 to
+      `30 18 1 * *` (1st of month, 18:30 UTC = midnight IST on the 2nd); old crontab saved to
+      /root/cronfix-backup-20260805-023048/root.crontab. Nucleus now carries a DO-NOT-REVERT note.
+      (B) THE FAILURE — weekly was not just unintended, it was unsustainable. Backup size grew
+      4.7 G (Jun 1) -> 5.3 -> 5.4 -> 5.6 -> 5.9 -> 6.0 -> 6.1 -> 6.6 G (Jul 24), ~40% in 8 weeks.
+      `gitlab-backup create STRATEGY=copy` needs the tar's full size FREE on the 49 G root disk while
+      the previous tar is still there, so on Jul 31 it hit "No space left on device" mid-run: gitaly
+      bundle write failed on BPR1000/bpr1000.bnprs-libs and the packages rsync died on
+      nativesdk-bprface-2.24.115.jar. Both create attempts logged "Creating archive ... failed" ->
+      one 7.0 G junk tar + one 62 MB junk tar. The script then uploaded the 62 MB PARTIAL as if it
+      were the backup (it picks `ls -t | head -1` with no integrity check) into Zoho, which was ALSO
+      full — HTTP 507 INSUFFICIENT_STORAGE, 0/7 chunks. KEEP_LOCAL/KEEP_REMOTE pruning never ran
+      because the run aborted before it, so 14 G of tars piled up and disk sat at 91-93% for 12 days.
+      disk-alert.sh DID fire correctly every 12h from Jul 24 (86% -> 93%) — the alerting worked, the
+      alerts just weren't acted on. Freed 7.5 G on 2026-08-05 (both Jul 31 junk tars + a 429 MB
+      leftover backups/packages staging dir): 91% -> 77%.
+      RULES LEARNED: (1) "Creating archive ... failed" in the log means the tar is JUNK regardless of
+      its size — a 7 GB file is not evidence of a good backup; check for "=== Backup complete ===".
+      (2) The script has NO integrity check between create and upload — it will happily ship a partial.
+      (3) On a 49 G disk with a ~7 G backup, KEEP_LOCAL=1 is already marginal; create needs
+      2x backup size free. (4) Zoho WorkDrive quota (24.4 GiB used, FULL) is the binding constraint on
+      retention: KEEP_REMOTE=4 x 6.6 G ~= 26 G does not fit. STILL OPEN as of 2026-08-05: Zoho is full,
+      no successful backup since Jul 24, next scheduled run 2026-09-01. [[mem-002]] [[mem-016]] [[mem-017]] [[mem-018]]
+    created_at: "2026-08-05"
+    last_accessed: "2026-08-05"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-05"
+    tags: [incident, backup-broken, monthly-not-weekly, doc-overrode-user-intent, disk-full,
+           zoho-quota-507, partial-backup-uploaded, no-integrity-check, backup-growth,
+           creating-archive-failed, cron-reverted, still-open]
+
 # Pruning rules
 pruning:
   max_entries: 500
