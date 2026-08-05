@@ -6,7 +6,7 @@
 # ============================================================
 
 agent:
-  name: "bnprs-admin"
+  name: "bnprs-admin-hr"
   code: "002"
   group: "na-002-bnprs-core"
   version: "1.0.0"

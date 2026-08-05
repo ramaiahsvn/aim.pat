@@ -14,7 +14,7 @@
 | 005  | na-001 | pat-assets | Personal Asset Manager | active | 2026-05-26 |
 | 006  | na-001 | pat-patents | Patents and IP Manager | active | 2026-05-26 |
 | 001  | na-002 | bnprs-chat | Messaging and Communications Manager | active | 2026-05-26 |
-| 002  | na-002 | bnprs-admin | Admin, HR, Legal and Compliance | active | 2026-05-26 |
+| 002  | na-002 | bnprs-admin-hr | Admin, HR, Legal and Compliance | active | 2026-05-26 |
 | 003  | na-002 | bnprs-finance | Business Finance, Accounting, Tax | active | 2026-05-26 |
 | 004  | na-002 | bnprs-sales | Sales, Marketing and Customer | active | 2026-05-26 |
 | 005  | na-002 | bnprs-websites | Website and Digital Presence | active | 2026-05-26 |
@@ -239,7 +239,7 @@
 - 05 pat-assets nucleus (`03-nucleus/CLAUDE.md`) is a template shell — lands, flats, properties, real estate portfolio domain not yet filled in
 - 06 pat-patents nucleus (`03-nucleus/CLAUDE.md`) is a template shell — patents, trademarks, copyrights, IP portfolio domain not yet filled in
 - na-002/01 bnprs-leadership nucleus (`03-nucleus/CLAUDE.md`) is a template shell — CEO/CTO vision, strategy, certifications domain not yet filled in
-- na-002/02 bnprs-admin nucleus (`03-nucleus/CLAUDE.md`) is a template shell — admin, HR, legal, compliance domain not yet filled in
+- na-002/002 bnprs-admin-hr nucleus (`03-nucleus/CLAUDE.md`) is a template shell — admin, HR, legal, compliance domain not yet filled in. **Renamed from `bnprs-admin` on 2026-08-05**; code 002 unchanged (codes are permanent, names are not)
 - na-002/03 bnprs-finance nucleus (`03-nucleus/CLAUDE.md`) is a template shell — business finance, accounting, tax domain not yet filled in
 - na-002/04 bnprs-sales nucleus (`03-nucleus/CLAUDE.md`) is a template shell — sales, marketing, customer relations domain not yet filled in
 - na-002/05 bnprs-websites nucleus (`03-nucleus/CLAUDE.md`) is a template shell — bnprs.ai, bnprs.in, bnprs.com web presence domain not yet filled in

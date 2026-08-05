@@ -23,10 +23,11 @@ registry:
     created_by: "bnprs"
 
   - code: "002"
-    name: "bnprs-admin"
-    label: "bnprs-admin"
+    name: "bnprs-admin-hr"
+    label: "bnprs-admin-hr"
     role: "Administration, HR, Legal and Compliance Manager"
-    path: "002-bnprs-admin"
+    path: "002-bnprs-admin-hr"
+    renamed_from: "bnprs-admin"          # renamed 2026-08-05; code 002 unchanged (permanent)
     status: "active"
     created_at: "2026-05-26"
     created_by: "bnprs"
