@@ -79,6 +79,73 @@ memories:
     source: "session-2026-07-30 (pre-commit key grep, verified against git log and the file)"
     tags: [security, committed-private-key, k3-fleet-cert, empty-pfx-password, fleet-wide, ten-year-cert, in-git-history-8ad7ad3, rotation-is-a-release-decision]
 
+  - id: mem-005
+    type: debugging_log
+    content: >-
+      2026-08-07 GnD central-perso "-444" ROOT-CAUSED, FIXED, RELEASED AS 2.22.28.
+      Code owner is na-005/004 cpp-card-pure (bpr.cpp/src/BprScripts/QiScript/gnd) — recorded here
+      because the -444 arrived through this agent's card-I/O surface.
+      THE BUG: apdu_qi_write_central_perso_gnd.cpp emitted "00E20000" + a61_QiFA_S_1394_255, but
+      a61 is DECLARED (line 257) and USED (1069/1071) and NEVER ASSIGNED — the parse block
+      (748-774) starts at a62 / offset 1648, and QiFA lives at offset 1394, below that window.
+      So APDU 39 of 124 went out as a bare 4-byte case-1 STORE DATA with no Lc and no data.
+      Introduced 2025-08-19 by commit 983a0f8 "arOffset is added" (before it, da1f690, the command
+      was not emitted at all); second occurrence added 2025-11-12 by 7a8b07d (the T1 branch).
+      WHY RASPBERRY "WORKED" AND WINDOWS DID NOT — the hosts JUDGE the card's answer differently,
+      the script is equally broken on both:
+        * Raspberry (trp1002.cperso.qiscript.jni QiScripts.cpp:167-180) accepts SW starting 0x90,
+          0x61, **0x67 (WRONG LENGTH)** and **0x69 (COMMAND NOT ALLOWED)** as OK, tests only
+          pbRecvBuffer[0] (the FIRST byte, not the last two), and skips the last 4 commands
+          entirely (cnt >= numberOfCommands - 4). The malformed APDU answers 67xx/69xx -> "OK".
+        * Windows (gnd/jni/qiscript_jni.cpp:139) requires exactly 90 00 on the LAST two bytes, and
+          maps any non-9000 to -444 at line 200, discarding index and SW.
+      So the defect is deterministic; the FAILURE is not — it depends on the host's SW policy.
+      A latent bug of ~1 year was surfaced, not created, by the Windows port.
+      FIX (this session): emit the QiFA STORE DATA only when the field is non-empty -> 124 -> 123
+      APDUs, verified for protocol 0 and 1 via a native macOS dry-dump harness. Deliberately did
+      NOT add a parse line for QiFA: offset 1394 is outside the record the caller supplies, so
+      populating it would change the calling contract — a GnD embossing-layout decision.
+      STILL OPEN AND MORE SERIOUS THAN THE TICKET: the Raspberry accept-list means perso runs there
+      have been silently continuing past real card rejections for about a year, and the last 4
+      commands were never checked at all — a "successful" Raspberry perso does NOT prove the card
+      was fully personalized. Cards issued via that path should be read back and verified.
+      Also: -444 should carry the failing APDU index + SW; it does not, and that is why this needed
+      a source investigation instead of a one-line answer from the tester.
+    created_at: "2026-08-07"
+    last_accessed: "2026-08-07"
+    access_count: 1
+    confidence: 1.0
+    source: "session 2026-08-07 — dry APDU dump + git archaeology (983a0f8/7a8b07d) + both hosts' source"
+    tags: [gnd, qiscript, -444, perso-failed, a61-qifa, empty-store-data, raspberry-accept-list, 67xx, 69xx, latent-bug, 2.22.28]
+
+  - id: mem-006
+    type: technical_knowledge
+    content: >-
+      2026-08-07 BUILD TRAP — JDK 24+/Temurin 25 SILENTLY BREAKS THE 32-BIT WINDOWS JNI DLL.
+      The host JDK's include/jni.h does an UNCONDITIONAL "#define JNICALL" at line 51, AFTER it
+      includes jni_md.h. That overwrites the win32 "#define JNICALL __stdcall" from our vendored
+      gnd/jni/mingw-jni/jni_md.h (whose comment assumed jni.h is platform independent — no longer
+      true). The cross-build still SUCCEEDS with only a "'JNICALL' redefined" warning, but the x86
+      entry point is then compiled **cdecl while the JVM calls it __stdcall** — stack cleaned twice,
+      corruption on the FIRST call. x86-64 is unaffected (one calling convention).
+      THE ONLY OUTWARD SIGN: the decorated export "Java_com_bnprs_jni_qiScript_qiCardTransmit@36"
+      (produced by -Wl,--add-stdcall-alias) DISAPPEARS from windows-32. Released 2.22.27 exports
+      BOTH names; a broken build exports only the undecorated one.
+      ALWAYS CHECK THE x86 EXPORT TABLE AFTER BUILDING — objdump -p | grep qiCardTransmit must show
+      TWO entries for windows-32, one for windows-64.
+      FIX committed: gnd/jni/mingw-jni/jni.h — a wrapper that #include_next's the JDK's jni.h then
+      restores "#define JNICALL __stdcall". mingw-jni/ is first on the include path so <jni.h>
+      resolves to the wrapper.
+      RELATED GAP: Bpr.QiScript.dll carries NO version of its own — no VS_VERSION_INFO, no version
+      export, no bpr_versions.h entry. The Z_RELEASE folder NAME is the only identifier, so a
+      deployed DLL can only be identified by sha256. Worth stamping.
+    created_at: "2026-08-07"
+    last_accessed: "2026-08-07"
+    access_count: 1
+    confidence: 1.0
+    source: "session 2026-08-07 — first 2.22.28 x86 build lost the @36 alias; traced to temurin-25 jni.h:51"
+    tags: [jni, jnicall, stdcall, cdecl, mingw, cross-compile, jdk25, temurin, windows-32, add-stdcall-alias, no-version-resource]
+
 # Pruning rules
 pruning:
   max_entries: 500
