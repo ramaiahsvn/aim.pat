@@ -55,12 +55,124 @@ memories:
       shared team edits the clients directly. Request drafted:
       07-axon-terminals/deliverables/keycloak-prod-redirect-uris-request.md. Once unblocked, apply via the
       keycloak Admin API (GET client, append redirectUris+webOrigins, PUT).
+      ---
+      RESOLVED — verified 2026-08-09. Both prod redirect URIs are now registered on the shared realm.
+      Live PKCE authorization request (response_type=code, code_challenge_method=S256) against
+      accounts-uat.itpgateway.com/realms/BNPRS-enterprise returns HTTP 200 + the Keycloak login form for
+      BOTH client hr-spa -> https://d393t8cl2frfgi.cloudfront.net/ and projects-frontend ->
+      https://d3gkxmmnojgivv.cloudfront.net/. Prod login works. Who applied it / when is unrecorded.
+      NEW FINDING from the same test: a control request with a deliberately UNREGISTERED redirect_uri
+      (https://evil-not-registered.example.com/) ALSO returned the login form for client hr-spa — so
+      hr-spa has a wildcard `*` valid-redirect-URI on the shared realm. That is an open redirector:
+      an attacker can run a victim through a genuine accounts-uat.itpgateway.com login and have the
+      authorization code delivered to a host they control. Needs tightening to explicit URIs by the
+      utms/shared-keycloak team (same owners, same admin-credential blocker as above). NOT yet raised.
     created_at: "2026-07-26"
-    last_accessed: "2026-07-26"
+    last_accessed: "2026-08-09"
+    access_count: 2
+    confidence: 1.0
+    source: "session-2026-07-25/26; verified session-2026-08-09"
+    tags: [nagents-prod, keycloak, redirect-uri, resolved, shared-idp, open-redirect, security, phase-6]
+
+  - id: mem-004
+    type: incident_learning
+    content: >-
+      2026-08-09 MERGE CORRUPTION (found during a Keycloak code review, fixed same session).
+      Merge 6de1cde "Merge origin/bp_rel into bp_dev_conflict_fix" silently GUTTED the shared module
+      nagents-platform/modules/ecs/service: main.tf truncated 197 -> 58 lines, deleting
+      aws_ecs_service.this, aws_security_group.task, aws_security_group_rule.from_alb,
+      aws_cloudwatch_log_group.task, aws_appautoscaling_target.ecs, aws_appautoscaling_policy.ecs_cpu,
+      data.aws_region.current and locals — only aws_ecs_task_definition.this survived. The same merge
+      declared variable "command" TWICE (variables.tf lines 36 + 48). outputs.tf still referenced the
+      deleted resources, so `terraform validate` failed with 6 errors on ALL 9 stacks using the module,
+      including live erp-hr-service/prod and projects-backend/prod. Nothing could plan, so nothing was
+      silently destroyed — but the trap was real: "fixing" it by trimming the dangling outputs.tf
+      references instead of restoring main.tf would have made the next apply plan a DESTROY of the live
+      ECS services, log groups, SGs and autoscaling. FIX: restored the whole module directory from
+      origin/nagents_prod (pardhiv's branch was always clean — 197 lines, one `command` var), which is
+      byte-identical per-file to 331eccb, the last intact commit and the version the live prod services
+      were deployed from => no drift by construction. Commit de4b4aa, pushed to BOTH bp_rel and bp_dev
+      (bp_dev was an ancestor of bp_rel, so a --ff-only back-merge resynced them at de4b4aa). All 9
+      stacks validate after. LESSONS: (1) a conflict-fix merge can delete resources with zero conflict
+      markers left behind — always `terraform validate` every consumer of a shared module after a
+      merge, never just the stack you are working on; (2) check the feature author's own branch before
+      rewriting anything — the clean copy usually already exists; (3) fix corrupted modules by
+      restoring, never by deleting the references that expose the corruption.
+    created_at: "2026-08-09"
+    last_accessed: "2026-08-09"
     access_count: 1
     confidence: 1.0
-    source: "session-2026-07-25/26"
-    tags: [nagents-prod, keycloak, redirect-uri, blocker, shared-idp, manage-clients, phase-6]
+    source: "session-2026-08-09"
+    tags: [nagents-prod, terraform, ecs-module, merge-conflict, bp_rel, bp_dev, incident, regression]
+
+  - id: mem-005
+    type: technical_knowledge
+    content: >-
+      2026-08-09 platform/prod apply (state serial 15 -> 16, 87 resources, TF 1.9.8). Plan was
+      1 to add / 0 change / 0 destroy — created module.alarms.aws_sns_topic_subscription.email for
+      ramaiah.polyu@gmail.com on arn:aws:sns:ap-south-2:819144294008:nagents-prod-alarms. Re-plan after
+      = "No changes". CAVEAT: the subscription stays PendingConfirmation until the confirm link emailed
+      to ramaiah.polyu@gmail.com is clicked; until then prod CloudWatch alarms (rds_cpu,
+      rds_low_storage, redis_cpu) fire into a topic with no live subscriber, AND this same 1-resource
+      diff REAPPEARS on every plan, because Terraform drops unconfirmed subscriptions from state on
+      refresh. That is why it showed up at all. Two traps hit this session, both worth remembering:
+      (1) bp_rel had `tls_certificate_arn = null` in platform/prod/alb.tf while the live ALB has had an
+      HTTPS :443 listener on ACM *.prod.itpgateway.com since serial 15 — applying clean bp_rel would
+      have DESTROYED aws_lb_listener.https. Fixed and committed as 7b1c414; bp_rel now matches deployed.
+      (2) platform/prod/terraform.tfvars is git-ignored (*.tfvars, .gitignore:31) and UNTRACKED, and it
+      disappeared from the working tree during the branch switch to bp_rel. The only copy in git history
+      is a stale FILL_ME template (3201b83 "untrack tfvars"). It had to be rebuilt by hand. Real values:
+      openvpn_enabled=false, openvpn_ami_id=ami-003c24952faf975ae, redis_num_cache_clusters=2,
+      alarm_emails=["ramaiah.polyu@gmail.com"], db_multi_az=false, db.t4g.medium, cache.t4g.medium.
+      This file is one branch switch from gone — it belongs in SSM Parameter Store or the team vault.
+      The service stacks' own terraform.tfvars are gone too (db_password, redis_password,
+      keycloak_admin_client_secret, internal_api_token), which is why prod service stacks cannot be
+      planned locally without recovering them first.
+    created_at: "2026-08-09"
+    last_accessed: "2026-08-09"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-09"
+    tags: [nagents-prod, terraform, apply-record, sns, tfvars, alb-tls, ap-south-2, gotcha]
+
+  - id: mem-006
+    type: project_context
+    content: >-
+      2026-08-09 Keycloak prod status: the services/keycloak/prod stack EXISTS in bp_rel as code
+      (authored by pardhiv — ac4442d, e5118ea, 5b39824) but is NOT DEPLOYED. Verified across every
+      surface in ap-south-2: no terraform state under services/keycloak/prod/, no ECS service in
+      nagents-prod-ecs (only erp-hr-service + projects-backend), no keycloak target group, no ALB rule
+      (:443 and :80 both carry only projects-api pri 200 / erp-api pri 300 / default), no
+      nagents-prod-keycloak task definition, no nagents/prod/keycloak secret, and none of
+      accounts|keycloak|auth.prod.itpgateway.com resolve. So there is NO prod Keycloak URL to hand the
+      team — prod authenticates against the SHARED IdP at
+      https://accounts-uat.itpgateway.com/realms/BNPRS-enterprise (note the misleading `-uat` in a
+      hostname that serves prod; this is the usual source of confusion). Code review of the stack: it
+      validates cleanly and the platform remote-state outputs it consumes all exist, but 5 changes are
+      wanted before apply — (1) host_header_values defaults to [] which emits an ALB listener rule with
+      ZERO conditions; AWS rejects that, so apply FAILS unless it is set alongside keycloak_hostname;
+      (2) db_username defaults to nagents_admin, the RDS MASTER superuser, and its password is copied
+      into a second secret — exactly the rotation failure already recorded for utms in mem-003; use a
+      dedicated keycloak role owning only the keycloak schema; (3) KEYCLOAK_ADMIN /
+      KEYCLOAK_ADMIN_PASSWORD are deprecated on KC 26 (now KC_BOOTSTRAP_ADMIN_USERNAME /
+      KC_BOOTSTRAP_ADMIN_PASSWORD) and only take effect on first boot against an empty DB;
+      (4) command=["start"] without --optimized re-runs Quarkus augmentation every task start and the
+      ecs/service module has NO health_check_grace_period_seconds, while the TG kills at 3x30s=90s =>
+      likely crash-loop, almost certainly what drove commit 5b39824; (5) KC_FEATURES="scripts" is a
+      preview feature allowing server-side JS in protocol mappers — real attack surface on an IdP,
+      confirm it is needed rather than utms parity. Route53 record is intentionally left commented out
+      pending the FQDN decision (devops' call, and correct) — when chosen it MUST be a single label
+      under prod.itpgateway.com (accounts.prod.itpgateway.com OK; anything deeper is not covered by the
+      *.prod.itpgateway.com ACM cert), and KC_HOSTNAME + host_header_values + the A record must all be
+      that same name. Also note the :80 rule forwards rather than redirects, so Keycloak would serve
+      login and the admin console over plaintext HTTP — the existing erp-api/projects-api rules do the
+      same, so it is a platform-wide convention issue, but it matters far more for an IdP.
+    created_at: "2026-08-09"
+    last_accessed: "2026-08-09"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-09"
+    tags: [nagents-prod, keycloak, not-deployed, shared-idp, code-review, alb, blockers]
 
   # Example entries:
   # - id: mem-002
