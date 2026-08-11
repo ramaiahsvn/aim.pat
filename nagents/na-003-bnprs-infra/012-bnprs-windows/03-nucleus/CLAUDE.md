@@ -57,6 +57,14 @@ na-005/002 cpp-card-qi, which owns the library but not the machine.
    is the single most common false failure.
 5. **Report exact output.** Quote the actual code and message; never paraphrase a result.
 6. Prefer a no-side-effect dry run first when the real run is irreversible.
+7. **Never hardcode a host address.** Every IP, hostname, port, user and key path comes
+   from `01-dendrite/connectors/windows-hosts.yaml` — the single source of truth. Do not
+   put an address in a script, a workflow, a memory entry or a deliverable, and do not
+   carry one in conversation as if it were configuration. If a machine moves, that file
+   is the only edit.
+8. **Never guess a username, and never act on an unconfirmed host.** `user: ""` is a hard
+   stop, and `confirmed: false` means a human has not yet verified the machine is the
+   intended one. Inferred hosts stay unconfirmed until confirmed.
 
 ## Guardrails
 
@@ -120,10 +128,32 @@ certutil -hashfile <file> SHA256
 A JRE is enough to *run* Java; `javac` is only needed to compile, and bytecode is portable, so
 class files can be compiled elsewhere and copied in.
 
+## Host inventory — read this at activation
+
+`01-dendrite/connectors/windows-hosts.yaml` holds every host this agent can reach. Read it
+first, every session, before proposing any connection.
+
+```sh
+./01-dendrite/connectors/win-ssh.sh --list          # inventory + what is still blocking
+./01-dendrite/connectors/win-ssh.sh --probe [id]    # up? is 22 open? (no login)
+./01-dendrite/connectors/win-ssh.sh [id] [command]  # connect / run one command
+```
+
+`address` wins; leave it **empty** to resolve via `hostname` instead, which survives DHCP
+changes. So a moved machine is either a one-line `address` edit or no edit at all.
+
+The helper refuses to connect when `user` is unset, and warns when `confirmed` is not true.
+
+**ICMP is not a verdict on Windows.** Windows Firewall blocks inbound echo by default, and a
+single packet can also miss while a WiFi NIC wakes. Judge liveness by TCP: if 22 is closed but
+445/3389/135/139 answers, the host is alive and sshd simply is not running.
+
 ## Project Conventions
 
 - Deliverables → `07-axon-terminals/deliverables/`
 - Test logs and captured output → `07-axon-terminals/deliverables/test-runs/`
 - Record every verified run with the artefact's **sha256**, since some DLLs here carry no
   version resource at all
-- Persist host facts (hostname, access method, JVM, readers) to `08-memory/long-term/`
+- **Host connection facts belong in the inventory, not in memory.** `08-memory/long-term/` is
+  for what was *learned* (a trap, a root cause, a decision); addresses, users and port state
+  are configuration and live in `windows-hosts.yaml`, where they can be corrected in one place.

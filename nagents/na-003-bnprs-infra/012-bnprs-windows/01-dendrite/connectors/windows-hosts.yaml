@@ -1,0 +1,70 @@
+# =============================================================================
+#  Windows Host Inventory  —  01-dendrite (Resources / Inputs)
+#  na-003/012 bnprs-windows
+#
+#  >>> THIS IS THE ONLY PLACE A HOST ADDRESS IS RECORDED. <<<
+#  Edit it before activating the agent. No script, workflow, memory entry or
+#  deliverable in this agent may hardcode an IP — they all resolve through here.
+#
+#  If a machine's IP changes, change `address` below and nothing else.
+#  Leave `address` empty to fall back to `hostname` (mDNS / DNS resolution),
+#  which survives DHCP churn.
+#
+#  Read it with:   ./01-dendrite/connectors/win-ssh.sh --list
+#  Connect with:   ./01-dendrite/connectors/win-ssh.sh <host-id> [command...]
+# =============================================================================
+
+id: connector-windows-hosts
+name: "Windows Host Inventory"
+type: ssh-host                 # extends the _template.yaml enum (ssh is not an MCP connector)
+protocol: ssh
+version: "1.0"
+
+# Which host is used when no id is given on the command line
+default_host: mces2
+
+# How an address is resolved: `address` wins; if blank, `hostname` is used.
+resolution_order: [address, hostname]
+
+hosts:
+  - id: mces2
+    label: "cPerso / MCES2 station"
+    # ---- change this one line if the IP moves ----
+    address: "192.168.1.235"
+    # ---- used automatically when `address` is empty ----
+    hostname: "mces2.lan"
+    port: 22
+    # REQUIRED before connecting — the agent must refuse to guess this
+    user: ""
+    # true = account is in the Administrators group, so sshd reads
+    #        %ProgramData%\ssh\administrators_authorized_keys, NOT ~\.ssh\authorized_keys.
+    # null = not yet known; enable-ssh.ps1 reports it.
+    admin_account: null
+    identity: "~/.ssh/id_ed25519_qitest_win"
+    # Has a human confirmed this is the right machine? Inferred hosts stay false.
+    confirmed: false
+    purpose: >
+      Bpr.QiScript 2.22.28 first Windows run — has the PC/SC reader and the test card.
+    observed:
+      # From a probe on 2026-08-11 from pat-m4p (192.168.1.107/24, gw 192.168.1.1):
+      # ping OK ~24ms; 445/tcp OPEN (SMB → Windows); 22, 3389, 5985 CLOSED.
+      last_probe: "2026-08-11"
+      ports_open: [445]
+      ports_closed: [22, 3389, 5985]
+      ssh_ready: false          # flips true once enable-ssh.ps1 has been run
+      jvm_present: false        # neither java nor javac found on PATH
+    notes: >
+      Identified from this Mac's ARP cache as mces2.lan; the name matches
+      trp1002.cperso.mces2 in the cPerso repo. NOT yet confirmed by a human —
+      treat as a candidate until `confirmed: true`.
+      TeamViewer reaches this box but provides no IP route; SSH works because it
+      is on the same /24 as pat-m4p.
+
+# -----------------------------------------------------------------------------
+#  Add further hosts by copying the block above. Keep `confirmed: false` until
+#  a human has verified the machine, and never fill `user` by guessing.
+# -----------------------------------------------------------------------------
+
+# Signal strength: how the soma prioritizes this input
+priority: high
+rate_limit: 60/min

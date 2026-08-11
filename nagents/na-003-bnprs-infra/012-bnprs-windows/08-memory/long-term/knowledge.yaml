@@ -106,13 +106,24 @@ memories:
         fingerprint SHA256:1cEhqhCjmx+QLy2UyYr8z4BMpAeGbvKSPMabYrdoh2M
       CLEAN UP when the task is done: delete both key files and remove the authorized_keys line
       on the Windows side. Do not leave a long-lived passwordless key installed.
-      STILL NEEDED FROM THE USER: the PC's hostname/IP, the Windows username, whether that
-      account is an Administrator, and confirmation that sshd is running.
-      HARD CAVEAT: SSH only works if there is an actual IP route from the Mac to that PC.
-      TeamViewer is its own relay and provides no route. If the PC is on another network or behind
-      NAT, fall back to the ONE-SHOT SCRIPT pattern: ship a self-contained zip plus a run-test.cmd
-      that locates the JVM, verifies the DLL hash, lays out the working directory, runs once with
-      no card, prompts for the test card, runs again, and writes a log the user pastes back.
+      HOST DETAILS ARE CONFIGURATION, NOT MEMORY — they live in
+      01-dendrite/connectors/windows-hosts.yaml and are deliberately NOT recorded here, so that a
+      changed IP is a one-line edit in one place. Use ./01-dendrite/connectors/win-ssh.sh
+      (--list / --probe / connect). `address` wins; blank it to resolve via `hostname` instead,
+      which survives DHCP churn. Outstanding fields there: `user` (unset — the helper refuses to
+      connect and must never guess) and `confirmed` (false — the host was inferred from this Mac's
+      ARP cache, not verified by a human).
+      ROUTE CONFIRMED 2026-08-11: the target sits on the same /24 as pat-m4p and answers on TCP,
+      so SSH is viable once sshd is enabled — the earlier "is there even a route" caveat is closed.
+      TeamViewer still provides no IP route; it happens to reach the same box independently.
+      IF A FUTURE HOST IS off-subnet or behind NAT, fall back to the ONE-SHOT SCRIPT pattern:
+      run-test.cmd already implements it — locates the JVM, verifies the DLL sha256 and refuses on
+      mismatch, lays out a working dir, runs stage 1 with no card and stage 2 with the test card,
+      and writes a log to paste back.
+      GOTCHA worth keeping: ICMP IS NOT A VERDICT ON WINDOWS. Windows Firewall blocks inbound echo
+      by default, and a single ping can also miss while a WiFi NIC wakes from power saving — this
+      actually happened during the probe and briefly read as "host down" when the host was fine.
+      Judge liveness by TCP: 22 closed but 445/3389/135/139 open means alive-but-no-sshd.
       WINDOWS OPENSSH ADMIN TRAP (recorded because it is the usual cause of "key ignored"):
       sshd_config has a `Match Group administrators` block redirecting to
       C:\ProgramData\ssh\administrators_authorized_keys. For an admin account the key MUST go
