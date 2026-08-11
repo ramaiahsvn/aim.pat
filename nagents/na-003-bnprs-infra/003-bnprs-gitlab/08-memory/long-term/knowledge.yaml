@@ -549,6 +549,73 @@ memories:
            zoho-quota-507, partial-backup-uploaded, no-integrity-check, backup-growth,
            creating-archive-failed, cron-reverted, still-open]
 
+  - id: mem-030
+    type: operation
+    content: >-
+      2026-08-11: RENAMED the 6 wGate repos in group BPR1007 (group id 13) to bruid, names AND paths.
+      Group PATH stays "BPR1007" — unchanged, so only the project slug moved. FINAL STATE (verified by
+      re-reading the API, not trusted from the write response):
+        15  bpr1007.wgate.acs            -> bpr1007.bruid.acs
+        16  bpr1007.wgate.acs.extensions -> bpr1007.bruid.acs.extensions
+        17  bpr1007.wgate.risk-engine    -> bpr1007.bruid.acs.risk-engine
+        116 bpr1007.wgate.iaac           -> bpr1007.bruid.acs.iaac
+        117 bpr1007.wgate.ui.web         -> bpr1007.bruid.acs.ui.web
+        118 bpr1007.wgate.ui.api         -> bpr1007.bruid.acs.ui.api
+      All flat SIBLINGS (user-confirmed) — `acs` is NOT a subgroup. Branch counts identical before/after
+      (16/10/6/12/5/5), default branch + visibility unchanged, four-branch standard intact on all 6.
+      SSH form is the standard shorthand git@gitlab.bnprs.ai:BPR1007/<path>.git — NOT the :2222 form
+      (2222 is the docker host port, not what the hostname serves).
+      RESERVED PATHS — DO NOT REUSE. The user revised the target names twice mid-execution, so the repos
+      passed through INTERMEDIATE names that now also hold redirects: bruid.risk-engine, bruid.iaac,
+      bruid.ui.web, bruid.ui.api. Together with the 6 original wgate.* paths that is 10 reserved names.
+      A GitLab redirect dies SILENTLY the moment a new project claims that path, so creating anything
+      with one of these names would break stale remotes with no error at creation time.
+      GROUP NAME left as "BPR1007 - bRuID ACS". The agent set "BPR1007 - BRUID" and verified it; the
+      string was then changed externally (UI) and the agent deliberately did NOT overwrite it —
+      clobbering a human edit is worse than reporting a mismatch. Confirm the intended casing before
+      touching it again.
+      SCOPE HELD: names/paths only. No file edits, no commits, no protection/member/CI/webhook changes,
+      nothing deleted. Source references were deliberately NOT fixed (user's decision).
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11"
+    tags: [rename, bpr1007, wgate-to-bruid, bruid-acs, group-13, flat-siblings, redirects,
+           reserved-paths, intermediate-names, group-name-external-edit, verified-by-reread]
+
+  - id: mem-031
+    type: technical_knowledge
+    content: >-
+      2026-08-11 BLAST-RADIUS MAP for the wgate->bruid rename ([[mem-030]]), and what a project rename
+      does NOT carry with it.
+      ZERO CI/SUBMODULE COUPLING — authoritative: `.gitlab-ci.yml` and `.gitmodules` were fetched from
+      ALL 230 projects via the FILES API (not search, so not rate-limited); no `include:`, no `trigger:`,
+      no submodule anywhere references wgate or bpr1007. Also clean: no deploy tokens, no deploy keys,
+      no CI/CD variables (project or group) containing wgate. Each of the 6 job-token allowlists holds
+      only itself, and project 230's allowlist has 2 entries, neither a wgate project.
+      CONTAINER REGISTRY: all 6 had ZERO images, so the "images do not follow a project rename" trap did
+      not apply here. It still applies in general — check registry/repositories BEFORE any future rename.
+      WHAT A RENAME DOES NOT FIX — MAVEN PACKAGE COORDINATES. Project 16 publishes
+      org/bnprs/wgate/cas/card-auth-server-extensions and ...-integrations. Package names are independent
+      of project path, so consumers keep pulling "wgate" coordinates until republished under new ones.
+      THE wgate ESTATE SPANS MORE THAN BPR1007 — renaming that group covered only part of it. External
+      source references remain in: BPR1005/bpr1005.bpass.engine (Java pkg org/bnprs/wgate/bengine/... +
+      pom.xml — this is the "bengine" that the eu-central-1 wgate-uat-bengine ALB serves, and it explains
+      why no bengine repo exists under BPR1007), BPR1010/bpr1010.misc.dev-playground (a whole
+      "WGate Connect/" Android tree, com.bnprs.wgateconnect), and BPR1003/bpr1003.patpos.core
+      (ECR.vcxproj, EcrService.bat). Counts are FLOORS — search pages cap at 100.
+      GOTCHA — THE SEARCH API SILENTLY DEGRADES. GitLab throttles /search at roughly 30 req/min and
+      returns HTTP 429. A sweep that does not check for 429 will skip most projects and still print a
+      confident total: the first pass here reported "155 hits" that was largely built from errors, and
+      had to be discarded and re-run paced. SAME CLASS OF BUG as a scan that reports clean because it
+      examined nothing. RULE: when sweeping this instance, pace under 30/min, assert the HTTP status of
+      every call, and prefer the Files API over /search whenever the filename is known.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11"
+    tags: [blast-radius, rename, files-api-over-search, search-429-rate-limit, silently-degraded-scan,
+           maven-package-coordinates, container-registry-not-renamed, job-token-allowlist,
+           wgate-estate-spans-groups, bpass-engine-bengine, floors-not-totals]
+
 # Pruning rules
 pruning:
   max_entries: 500

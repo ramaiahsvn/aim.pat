@@ -191,6 +191,97 @@ memories:
            size-proves-nothing, non-reproducible-build, sha256, handoff-out, na-003-012-bnprs-windows,
            raspberry-accept-list-still-open]
 
+  - id: mem-008
+    type: operation
+    content: >-
+      2026-08-11 FIRST WINDOWS RUN ACHIEVED, and TWO RELEASES CUT. Ran the released JNI library on a
+      real Windows host with a real card for the first time (MCES2 via na-003/012 bnprs-windows).
+      SOFTWARE IS PROVEN; the card was the problem. bpr.cpp commit faca401.
+      2.22.34 — BprLogs diagnostics. Closes the open item from [[mem-005]]: -444 discarded BOTH the
+      failing APDU index and the SW. The transmit loop now logs index/total, the 5-byte header
+      (CLA INS P1 P2 Lc), byte length and SW to BprLogs/ in the WORKING directory. Uses the existing
+      header-only shim src/AprCommon/BprLog, so build-win.sh gained one -I and NO new link dependency
+      (DLL imports unchanged). PCI: the DATA FIELD IS NEVER LOGGED, nor the licence — verified, the
+      longest hex run in real output is the 10-char header against a 21-byte command.
+      2.22.35 — tolerates SW1 90/61/67/69 to match the Raspberry host, at the USER'S EXPLICIT
+      REQUEST after being told the cost. 67xx=WRONG LENGTH, 69xx=COMMAND NOT ALLOWED are real
+      refusals, so A RETURN OF 0 NO LONGER PROVES THE CARD WAS PERSONALISED. Every tolerated refusal
+      logs at WARNING and the run ends with a summary warning, so a permissive pass is never silent.
+      6A89 stays FATAL on purpose — in a create-file sequence "already exists" means the card is not
+      blank and tolerating it would corrupt an existing card.
+      Also: the version is now stamped in source and emitted on every run, so a deployed DLL is no
+      longer identifiable only by sha256 (the [[mem-006]] gap).
+      TWO BUG FIXES vs the Raspberry implementation: we test SW1 (second-to-last byte), NOT
+      pbRecvBuffer[0] which is a DATA byte whenever the card returns data — that is why the Pi needs
+      special cases for responses starting 3F0090/A00090 and we need none. And nothing is skipped.
+      SHA256 (windows-32 / windows-64):
+        2.22.34  20711b71d30feb23520668f3e1a7af6c62e8a51b62f8fa98271d0140cbff5988
+                 dc970f7ae551b3c20d37225a12079ef5a5ae2c27de397ebdf7a49a0fe984b948
+        2.22.35  ca0694d21f6248690e513f07a4475577d64b9bbdb4086bf293d0fbf3d826e615
+                 36c5dfeda1c2889ff3d67d373271dd140a6abd4e54425699ab31c0cb57721946
+      RELEASE-FOLDER CONVENTION for _GnD (user corrected me twice): BINARIES ONLY — no README.md and
+      no SHA256SUMS.txt. I added both to 2.22.34/2.22.35; the user deleted them and asked for them
+      gone. So 2.22.28 was never "missing" them as I had assumed. All four Windows versions are now
+      7-9 files, docs excluded. Do not re-add them.
+      windows-32 has NEVER BEEN EXECUTED — no 32-bit JVM on the host. Its export table is correct
+      (2 names incl the @36 alias), which is the specific defect that affected x86, but the binary
+      has not run. No successful end-to-end perso observed either.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11 — live run on MCES2"
+    tags: [2.22.34, 2.22.35, bprlogs, pci-header-only, accept-list, sw1-not-byte0, version-stamp,
+           faca401, release-convention-binaries-only, windows-32-unexecuted, first-windows-run]
+
+  - id: mem-009
+    type: technical_knowledge
+    content: >-
+      2026-08-11 WHAT THE GnD CENTRAL-PERSO SCRIPT ACTUALLY IS, and why the test card rejected it.
+      Established from the full 123-APDU dump (native macOS harness over the C-ABI, no card needed).
+      IT IS A NATIVE FILE-SYSTEM BUILD, NOT APPLET INSTALL/INSTANTIATION. Breakdown of all 123:
+        00D6 UPDATE BINARY x49, 80E0 CREATE FILE x35, 00E2 APPEND RECORD x23,
+        00A4 SELECT FILE x7, 007C x5 (proprietary), 908C x2, 903C x1, 903a x1.
+      ZERO occurrences of 80E6 INSTALL, 80E8 LOAD, 8050 INITIALIZE UPDATE, 8482 EXTERNAL AUTHENTICATE.
+      DECISIVE PROOF it never touches an applet: ALL SEVEN SELECTs are `00A4 00 00 02` — P1=00, select
+      by 2-byte FILE ID. Not one is P1=04 (by AID). Applets are addressed by AID; this script never
+      selects one, so it cannot be installing or instantiating anything.
+      The four CLA 90 commands are the vendor's INITIALISATION: 903C + 908C unlock the card into the
+      state where files may be created; 903a (line 1422) stamps identity as
+      "903a00000800080103" + CARD_ID. So "initiation" is the right instinct, "applet" is not.
+      WHY THE TEST CARD FAILED (verified live, not inferred): APDU 0 (903C) -> 6900 COMMAND NOT
+      ALLOWED; APDU 1 (908C) -> 9000; APDU 2 (80E0) -> 9000; APDU 3 (80E0) -> 6A89 FILE ALREADY
+      EXISTS. The card is ALREADY PERSONALISED — it has a populated file system, so it is past the
+      pre-perso lifecycle stage that 903C unlocks. A successful run needs a VIRGIN card. My earlier
+      hypothesis that it was a JavaCard/GlobalPlatform card was WRONG and is disproven: it accepted a
+      native 80E0 CREATE FILE with 9000.
+      NOTE the skip-test wrote to the card: skipping APDUs 0-1 let APDU 2 create a file (9000) on an
+      already-personalised card, so that card is no longer a clean reference sample.
+      SECURITY — TWO HARDCODED CREDENTIALS. apdu_qi_write_central_perso_gnd.cpp:794 and :802 hold the
+      903C and 908C APDUs as string literals, each carrying a FIXED 16-BYTE payload, identical for
+      every card, no comment. A 16-byte constant presented to a proprietary authenticate command is a
+      KEY. Same class as [[mem-004]], and note commit 8ad7ad3 was titled "replace hardcoded 3DES key
+      with cloud mTLS API" — that removed one from BprCardQi while these two remained. VALUES ARE
+      DELIBERATELY NOT RECORDED HERE; refer to the file:line. Route via na-005/004 cpp-card-pure and
+      na-003/007 bnprs-grc-kms.
+      THE RASPBERRY ACCEPT-LIST WOULD HAVE CALLED THIS REJECTION A SUCCESS — concrete evidence for
+      the [[mem-005]] warning. Raspberry v2.22.31 and Windows 2.22.28 have BYTE-IDENTICAL inputs
+      (qiscript.ini, qiscript.c.perso-bio.dat, qiScript.java, ErrorCodes, header), so both generate
+      the same 123 APDUs. The card's 6900 is host-independent. But QiScripts.cpp:168-181 accepts
+      pbRecvBuffer[0]==0x69, and 6900's first byte IS 0x69 — so the Pi would have printed "-> OK" for
+      the exact rejection diagnosed here, continued, and skipped the last four commands.
+      "It was working on Raspberry" is therefore NOT evidence a card was personalised.
+      AND THE SKIPPED COMMANDS ARE THE BIOMETRIC PAYLOAD: the last five are the 007C writes at
+      indices 118-122, 226-238 bytes each, from qiscript.c.perso-**bio**.dat. The Pi's
+      `cnt >= numberOfCommands - 4` guard means the largest and most important writes were never
+      checked by anything. This makes the read-back recommendation in [[mem-005]] materially more
+      urgent than "a few commands go unchecked".
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11 — 123-APDU dry dump + per-APDU live trace on MCES2"
+    tags: [gnd-script-anatomy, native-filesystem-not-applet, select-by-fid-not-aid, 6900, 6A89,
+           card-already-personalised, needs-virgin-card, hardcoded-16-byte-credentials,
+           raspberry-accept-list-masks-failure, 007C-biometric-writes, skipped-last-4,
+           javacard-hypothesis-disproven]
+
 # Pruning rules
 pruning:
   max_entries: 500

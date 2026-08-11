@@ -35,30 +35,53 @@ hosts:
     hostname: "mces2.lan"
     port: 22
     # REQUIRED before connecting — the agent must refuse to guess this
-    user: ""
+    user: "MCESII"
     # true = account is in the Administrators group, so sshd reads
     #        %ProgramData%\ssh\administrators_authorized_keys, NOT ~\.ssh\authorized_keys.
     # null = not yet known; enable-ssh.ps1 reports it.
-    admin_account: null
+    # INFERRED true (elevation guard passed, so the account can elevate) but NOT yet
+    # proven by the script's own group-membership test, which runs later in step [3].
+    # Left null on purpose: enable-ssh.ps1 decides the key path itself, so nothing
+    # depends on guessing this correctly here.
+    admin_account: true
     identity: "~/.ssh/id_ed25519_qitest_win"
-    # Has a human confirmed this is the right machine? Inferred hosts stay false.
-    confirmed: false
+    # Confirmed 2026-08-11: the PowerShell transcript from this machine reports
+    # "Machine: MCES2" and "Username: MCES2\MCESII", matching mces2.lan at this address.
+    confirmed: true
     purpose: >
-      Bpr.QiScript 2.22.28 first Windows run — has the PC/SC reader and the test card.
+      Bpr.QiScript 2.22.28 first Windows run — intended to have the PC/SC reader and
+      the test card. NOTE: the reader has NOT been enumerated yet, so that part is
+      still unverified.
     observed:
-      # From a probe on 2026-08-11 from pat-m4p (192.168.1.107/24, gw 192.168.1.1):
-      # ping OK ~24ms; 445/tcp OPEN (SMB → Windows); 22, 3389, 5985 CLOSED.
+      # Probes on 2026-08-11 from pat-m4p (192.168.1.107/24, gw 192.168.1.1):
+      # 445/tcp OPEN (SMB); 22, 3389, 5985 CLOSED. ICMP replied on some runs and not
+      # others — informational only, never a verdict (see the note in 03-nucleus).
       last_probe: "2026-08-11"
-      ports_open: [445]
-      ports_closed: [22, 3389, 5985]
-      ssh_ready: false          # flips true once enable-ssh.ps1 has been run
-      jvm_present: false        # neither java nor javac found on PATH
+      ports_open: [22, 445]
+      ports_closed: [3389, 5985]
+      ssh_ready: true           # OpenSSH_for_Windows_9.5, key auth verified 2026-08-11
+      jvm_present: true         # NOT on PATH - Android Studio's bundled JDK
+      jvm_path: "C:\\Program Files\\Android\\openjdk\\jdk-21.0.8\\bin\\java.exe"
+      jvm_version: "21.0.8"
+      jvm_bits: 64              # amd64 only - CANNOT exercise the windows-32 __stdcall fix
+      javac_present: true
+      scardsvr: "RUNNING"
+      pcsc_readers:
+        - "HID Global OMNIKEY 5422 Smartcard Reader 0"      # contact - use this for crName
+        - "HID Global OMNIKEY 5422CL Smartcard Reader 0"    # contactless
+      os: "Windows NT 10.0.26200.0"
+      powershell: "5.1.26100.8457 (Desktop)"
+      machine_name: "MCES2"
     notes: >
-      Identified from this Mac's ARP cache as mces2.lan; the name matches
-      trp1002.cperso.mces2 in the cPerso repo. NOT yet confirmed by a human —
-      treat as a candidate until `confirmed: true`.
-      TeamViewer reaches this box but provides no IP route; SSH works because it
-      is on the same /24 as pat-m4p.
+      First found via this Mac's ARP cache as mces2.lan; the name matches
+      trp1002.cperso.mces2 in the cPerso repo, and the transcript confirmed it.
+      TeamViewer reaches this box but provides no IP route; SSH is viable because it
+      sits on the same /24 as pat-m4p.
+      BLOCKED 2026-08-11: `Add-WindowsCapability -Online OpenSSH.Server` fails with
+      "The operation could not be completed due to pending operations" — the component
+      store is held by another servicing operation (usually a pending reboot from
+      Windows Update). Nothing has been modified on the host; both failures so far were
+      reads that refused. Diagnosis of which pending state is outstanding.
 
 # -----------------------------------------------------------------------------
 #  Add further hosts by copying the block above. Keep `confirmed: false` until

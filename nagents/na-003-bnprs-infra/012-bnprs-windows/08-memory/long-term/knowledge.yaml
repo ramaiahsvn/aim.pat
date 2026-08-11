@@ -179,6 +179,69 @@ memories:
     tags: [create-agent-sh, macos, bash-3.2, mapfile, bsd-sed, sed-ampersand, hand-scaffold,
            portability, open-item, tooling]
 
+  - id: mem-005
+    type: operation
+    content: >-
+      2026-08-11 HANDOFF COMPLETE — MCES2 is reachable, keyed, and ran the artefact. The task from
+      [[mem-001]] is done as far as this agent's remit goes: the Windows host works and the library is
+      proven on it. Host connection facts live in windows-hosts.yaml, NOT here.
+      SSH: OpenSSH_for_Windows_9.5 on 22, key auth working as mces2\mcesii, inAdmins=True so the key
+      went to %ProgramData%\ssh\administrators_authorized_keys with ACLs restricted to
+      Administrators+SYSTEM. The admin-file trap in [[mem-003]] was real and enable-ssh.ps1 handled it
+      automatically — worth keeping that self-detection in any future host script.
+      THE BLOCKER THAT ACTUALLY DELAYED IT was not networking: `Add-WindowsCapability -Online
+      OpenSSH.Server` failed twice with "The operation could not be completed due to pending
+      operations" — the component store was held by a pending Windows Update. It cleared itself
+      between attempts (PowerShell build went 5.1.26100.8457 -> .8875, i.e. the update finalised), and
+      the install then succeeded with no intervention. LESSON: on that error, check whether the
+      servicing state has moved before doing anything drastic; enable-ssh.ps1 now diagnoses it and
+      names the specific pending flag rather than throwing a raw COMException.
+      A JVM DID EXIST after all, just not on PATH: Android Studio's bundled
+      C:\Program Files\Android\openjdk\jdk-21.0.8 (with javac). So no portable JDK was needed — ALWAYS
+      run the Program Files sweep before proposing a download. BUT it is x64 ONLY, so the windows-32
+      DLL still cannot be exercised on this host, and the __stdcall/JNICALL fix therefore remains
+      unverified in execution. A 32-bit JVM is the only thing that would close that.
+      READERS (exact PC/SC strings, from WinSCard SCardListReaders — the driver FriendlyName is a
+      DIFFERENT string and is not what crName wants):
+        "HID Global OMNIKEY 5422 Smartcard Reader 0"    <- contact, use this
+        "HID Global OMNIKEY 5422CL Smartcard Reader 0"  <- contactless
+      OUTCOME: the library is fine; the test card is already personalised and rejects the perso script
+      (see na-005/002 mem-009). Releases 2.22.34 and 2.22.35 were cut from this work.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11"
+    tags: [mces2, ssh-working, administrators-authorized-keys, pending-operations-selfcleared,
+           android-studio-jdk-21, x64-only, windows-32-unexecuted, omnikey-5422, pcsc-names,
+           handoff-complete]
+
+  - id: mem-006
+    type: technical_knowledge
+    content: >-
+      2026-08-11 CARD-SAFETY PATTERN, learned from a near miss worth not repeating.
+      Before running anything that writes to a smart card, DETERMINE CARD PRESENCE — and make the
+      check fail CLOSED. My first presence check used SCardGetStatusChange and its struct did not
+      marshal back through PowerShell, so dwEventState came back 0x0 with neither the PRESENT (0x20)
+      nor EMPTY (0x10) bit set. The script treated "neither bit" as empty and printed
+      "safe to run". A card WAS in the reader. Acting on that would have personalised it irreversibly.
+      RELIABLE CHECK: SCardConnect per reader — rc 0 means CARD PRESENT (disconnect immediately with
+      SCARD_LEAVE_CARD, no APDU sent, nothing altered); 0x8010000C SCARD_E_NO_SMARTCARD means empty;
+      ANYTHING ELSE MUST BE REPORTED AS INDETERMINATE AND TREATED AS UNSAFE. Never default an unknown
+      state to "safe".
+      A SAFE DRY RUN WITHOUT REMOVING THE CARD: the GnD library reads the licence and generates all
+      APDUs BEFORE it connects to a reader, so passing a deliberately NON-EXISTENT reader name
+      exercises the whole DLL-load / JNI / licence / script-generation path and stops at
+      -2146435063 SCARD_E_UNKNOWN_READER without any possibility of touching a card. That is a better
+      stage-1 than "remove the card", because it needs no physical action and cannot go wrong.
+      ALSO: ICMP is not a liveness verdict on Windows (firewall blocks echo by default, and a single
+      ping can miss while a WiFi NIC wakes) — judge by TCP. And `certutil -scinfo` printed no
+      "Reader:" lines even with two readers attached; use WinSCard SCardListReaders for the authoritative
+      names, and Get-PnpDevice -Class SmartCardReader only to confirm hardware is present.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11 — near miss on a live card"
+    tags: [card-safety, fail-closed, scardconnect-not-getstatuschange, indeterminate-is-unsafe,
+           bogus-reader-dry-run, icmp-not-a-verdict, scardlistreaders-authoritative, near-miss]
+
 # Pruning rules
 pruning:
   max_entries: 500
