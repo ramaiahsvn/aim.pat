@@ -1,0 +1,161 @@
+# Long-Term Memory — Persistent Knowledge (LTP)
+# Survives across sessions. The agent's accumulated wisdom.
+
+# Format: each entry is a strengthened "synapse"
+memories:
+  - id: mem-001
+    type: project_context
+    content: >-
+      2026-08-11 HANDOFF IN — first Windows run of Bpr.QiScript 2.22.28 (GnD central perso).
+      Handed over from na-005/002 cpp-card-qi, which owns the library but not the machine.
+      This agent was created for this task.
+      GOAL: run the released JNI library on a physical Windows PC with a PC/SC reader and a TEST
+      card, and report the result code. This is the FIRST time these DLLs will run on Windows at
+      all — the release README's own "Verification status" section says so explicitly.
+      WHAT IS BEING VERIFIED, two fixes from bpr.cpp commit 64b696a (2026-08-07):
+        (1) -444 / empty QiFA STORE DATA — a61_QiFA_S_1394_255 was declared and used but never
+            assigned, so APDU 39 of 124 went out as a bare case-1 "00E20000" with no Lc and no
+            data. Now emitted only when non-empty. EXPECT 123 APDUs instead of 124 when QiFA is
+            empty — that is the fix working, not a truncated script.
+        (2) __stdcall restored on windows-32 — Temurin 25's jni.h:51 unconditionally redefines
+            JNICALL to nothing AFTER jni_md.h, so the x86 entry point compiled cdecl while the
+            JVM calls it __stdcall; stack cleaned twice, corruption on the FIRST call. Fixed by a
+            wrapper jni.h that #include_next's the JDK header then restores __stdcall.
+      ALREADY DONE ON THE MAC (do not redo):
+        * Export check on the RELEASED artefacts PASSED — windows-32 exports BOTH
+          Java_com_bnprs_jni_qiScript_qiCardTransmit and ...@36; windows-64 exports one. This is
+          the check that proves fix (2) is in the shipped binary, and it had been open since 08-07.
+        * The bug was reproduced live by building the PARENT commit 8c088ce with the same
+          toolchain: its windows-32 exports only ONE name, no @36. So the check discriminates.
+        * Size is NOT a discriminator — released, post-fix rebuild and pre-fix rebuild are all
+          byte-identical in size (1,064,036 / 1,084,434); section alignment absorbs the change.
+        * mingw PE output is NOT reproducible (27,250 bytes differ between release and rebuild),
+          so byte-provenance of the release CANNOT be established. Fix (1) being present follows
+          from commit topology (wrapper + QiFA guard landed in the SAME commit, no intermediate
+          state), NOT from byte comparison. Keep that distinction if it is ever audited.
+      RELEASE FOLDER (self-contained, use this — do NOT write into it, user said so):
+        ~/Library/CloudStorage/ZohoWorkDriveTrueSync-bnprs/Z_RELEASE/TRP1002-cPerso/
+          BprQiScript.2/_GnD/2.22.28/
+        contains windows-32/ + windows-64/ Bpr.QiScript.dll, com/bnprs/jni/qiScript.java,
+        ErrorCodes, and CRUCIALLY qiscript.ini (licence, 16 B) + qiscript.c.perso-bio.dat
+        (19,508 B — offset 1648 is inside the record). qiScript.java and ErrorCodes are
+        byte-identical to the repo copies.
+        MISSING from the release: README.md and SHA256SUMS.txt (the README's own Files list claims
+        the latter ships). Since the DLL has no VS_VERSION_INFO and no bpr_versions.h entry,
+        sha256 is the ONLY identifier. Expected values:
+          windows-32  aab1eefc392e72b58e0c4c3f37e91b2892a8a27a317cfa16f061eecda9af7e55
+          windows-64  918415ce493e7dcb25cf8cf63a18ea411abee15c86170b9d97037fea73093031
+      Verify on Windows with: certutil -hashfile Bpr.QiScript.dll SHA256
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "handoff from na-005/002 cpp-card-qi, session 2026-08-11"
+    tags: [handoff, bpr-qiscript, 2.22.28, gnd, central-perso, jni, windows, first-run,
+           -444, qifa, jnicall, stdcall, sha256-only-identifier, release-folder]
+
+  - id: mem-002
+    type: project_context
+    content: >-
+      2026-08-11 STATE OF THE TARGET WINDOWS PC (the blocker to resolve first).
+      The PC is reachable by the user over TeamViewer, already connected. Findings so far:
+        * `javac` is NOT recognised — no JDK on PATH.
+        * `java` is ALSO not recognised — there is NO JVM on that box at all.
+      A JVM is unavoidable: the JNI library IS the card-I/O path. The C-ABI sibling
+      (QiScript/gnd/capi -> QiGndPerso.dll) does NOT help — its own README states it is pure
+      computation that "never touches a reader", card I/O stays in the host app, and its Java
+      binding needs a JVM anyway. So: no JVM, no test.
+      NEXT STEPS, in order:
+        1. Look for a JRE bundled inside another installed app before downloading anything:
+           `where /R "C:\Program Files" java.exe` and the (x86) equivalent.
+        2. Otherwise a PORTABLE ZIP JDK/JRE — unzip to e.g. C:\jdk and call by full path. No
+           installer, no admin, no PATH change. These perso stations are locked down (see
+           na-005/002 mem-003), so the zip route is the right one. Can be downloaded on the Mac
+           and carried over if the PC has no internet.
+        3. BITNESS DECISION: a 64-bit JVM only loads windows-64. To exercise the build that was
+           actually broken (windows-32, the cdecl/__stdcall corruption) a 32-bit JVM is needed.
+           Azul Zulu reliably publishes Windows x86 32-bit zips; Temurin's 32-bit coverage varies
+           by version. With only a 64-bit JVM the run still validates the -444/QiFA fix and the
+           card transaction, but NOT the JNICALL fix, since x64 was never affected.
+      A PRECOMPILED CLASS IS READY so no javac is needed on the target — class-file version 52,
+      runs on any JRE 8+. It is the released qiScript.java with ONLY main() changed: reader name,
+      data file, card number, offset and protocol are now argv with the released values as
+      defaults, so a wrong reader name can be retried without recompiling. package, class name,
+      native method signature and System.loadLibrary are byte-for-byte the release.
+      Staged (session scratchpad — RE-CREATE if gone, source is in the release folder):
+        scratchpad/qitest-precompiled/com/bnprs/jni/qiScript.class
+      Run as: <jdk>\bin\java.exe -Djava.library.path=. com.bnprs.jni.qiScript "<exact reader name>"
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session 2026-08-11 — live probing of the target PC via the user"
+    tags: [target-pc, no-jvm, no-javac, portable-jdk, zulu-32bit, bitness, precompiled-class,
+           capi-does-not-help, teamviewer, blocker, next-steps]
+
+  - id: mem-003
+    type: technical_knowledge
+    content: >-
+      2026-08-11 ACCESS ROUTES to the target Windows PC, and what is genuinely possible.
+      CANNOT be driven from this Mac: the TeamViewer DESKTOP APP. There is no macOS GUI control
+      available here — only a shell on the Mac plus Chrome page automation (and the Chrome
+      extension was not even connected). Driving a remote desktop through a video canvas by
+      screenshot-and-click was rejected as unreliable for command entry and unsafe given the last
+      step writes irreversibly to a card.
+      SSH SETUP IN PROGRESS (user chose this route). A dedicated throwaway keypair was generated
+      on the Mac, separate from the user's existing id_ed25519:
+        private ~/.ssh/id_ed25519_qitest_win   (no passphrase — needed non-interactively)
+        public  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKub+SnGuT7LDF35xGkqsb+EEm9If8aPx0I9r2XfKztE
+                claude-code-qitest-20260811
+        fingerprint SHA256:1cEhqhCjmx+QLy2UyYr8z4BMpAeGbvKSPMabYrdoh2M
+      CLEAN UP when the task is done: delete both key files and remove the authorized_keys line
+      on the Windows side. Do not leave a long-lived passwordless key installed.
+      STILL NEEDED FROM THE USER: the PC's hostname/IP, the Windows username, whether that
+      account is an Administrator, and confirmation that sshd is running.
+      HARD CAVEAT: SSH only works if there is an actual IP route from the Mac to that PC.
+      TeamViewer is its own relay and provides no route. If the PC is on another network or behind
+      NAT, fall back to the ONE-SHOT SCRIPT pattern: ship a self-contained zip plus a run-test.cmd
+      that locates the JVM, verifies the DLL hash, lays out the working directory, runs once with
+      no card, prompts for the test card, runs again, and writes a log the user pastes back.
+      WINDOWS OPENSSH ADMIN TRAP (recorded because it is the usual cause of "key ignored"):
+      sshd_config has a `Match Group administrators` block redirecting to
+      C:\ProgramData\ssh\administrators_authorized_keys. For an admin account the key MUST go
+      there, and the file needs
+        icacls <f> /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"
+      or sshd rejects it as "bad ownership or modes" and silently falls back to a password prompt.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session 2026-08-11"
+    tags: [ssh, openssh-windows, administrators-authorized-keys, icacls, throwaway-key,
+           key-cleanup, teamviewer-no-route, no-macos-gui-control, one-shot-cmd-fallback]
+
+  - id: mem-004
+    type: incident_learning
+    content: >-
+      2026-08-11 ./create-agent.sh CANNOT RUN ON THIS MAC (pat-m4p). This agent (012) had to be
+      scaffolded by hand because the script fails on macOS:
+        * it uses `mapfile`, a bash 4+ builtin — /bin/bash here is 3.2.57, and with
+          `set -euo pipefail` the script dies at the first mapfile before creating anything (so
+          there is no partial-state risk, it just never starts);
+        * it uses GNU-style `sed -i "s|...|...|"` — BSD sed needs `sed -i ''` and would otherwise
+          consume the expression as a backup suffix. No gsed installed.
+      The hand-scaffold reproduced the script exactly: same 30 dirs / 32 files from
+      nagent-template, same placeholder substitutions, same registry entry shape appended before
+      the "# ---- CODE ALLOCATION RULES ----" block.
+      GOTCHA HIT WHILE DOING IT: an `&` in the sed REPLACEMENT means "the whole match", so a role
+      string of "Windows Endpoint & Remote Access Manager" produced
+      "Windows Endpoint <Primary Role> Remote Access Manager" in both agent.yaml and
+      03-nucleus/CLAUDE.md. create-agent.sh itself guards against this with ${AGENT_ROLE//&/\\&}.
+      Repaired by rewriting the two lines; the role is now "Windows Endpoint and Remote Access
+      Manager" (no ampersand) to keep it sed-safe.
+      OPEN: create-agent.sh should be made portable (replace mapfile with a while-read loop, use
+      `sed -i ''` or gsed) or every future agent creation on this Mac needs hand-scaffolding.
+      Flagged to the user; not changed, since it was outside the handoff request.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session 2026-08-11 — creating this agent"
+    tags: [create-agent-sh, macos, bash-3.2, mapfile, bsd-sed, sed-ampersand, hand-scaffold,
+           portability, open-item, tooling]
+
+# Pruning rules
+pruning:
+  max_entries: 500
+  stale_after_days: 90
+  min_confidence: 0.3
+  strategy: "least_recently_used"

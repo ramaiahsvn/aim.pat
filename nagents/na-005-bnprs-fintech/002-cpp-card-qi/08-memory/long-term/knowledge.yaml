@@ -146,6 +146,51 @@ memories:
     source: "session 2026-08-07 — first 2.22.28 x86 build lost the @36 alias; traced to temurin-25 jni.h:51"
     tags: [jni, jnicall, stdcall, cdecl, mingw, cross-compile, jdk25, temurin, windows-32, add-stdcall-alias, no-version-resource]
 
+  - id: mem-007
+    type: operation
+    content: >-
+      2026-08-11 VERIFIED THE RELEASED 2.22.28 ARTEFACT, then HANDED THE WINDOWS RUN OFF to the
+      new agent na-003/012 bnprs-windows. This closes the export-table check left open by
+      [[mem-006]] and hands on what this agent cannot do (own a Windows host).
+      RELEASE LOCATION: ZohoWorkDrive Z_RELEASE/TRP1002-cPerso/BprQiScript.2/_GnD/2.22.28 —
+      self-contained, including qiscript.ini and qiscript.c.perso-bio.dat (19,508 B, offset 1648
+      inside the record). qiScript.java and ErrorCodes are byte-identical to the repo.
+      EXPORT CHECK PASSED on the SHIPPED binaries: windows-32 exports BOTH
+      Java_com_bnprs_jni_qiScript_qiCardTransmit and ...@36; windows-64 exports one. So the
+      __stdcall fix is confirmed in the artefact, not just in source.
+      THE CHECK IS A REAL DISCRIMINATOR — proven by building the PARENT commit 8c088ce with the
+      same toolchain (Temurin 25 + mingw-w64): its windows-32 exports only ONE name, no @36. The
+      mem-006 bug reproduces on demand.
+      TWO THINGS THAT DO **NOT** WORK AS PROVENANCE EVIDENCE, learned the hard way:
+        * SIZE proves nothing — released, post-fix rebuild AND pre-fix rebuild are all identical
+          in size (1,064,036 win32 / 1,084,434 win64). Section alignment absorbs a change this
+          small. An earlier "size discrepancy" concern of mine was simply wrong.
+        * mingw PE output is NOT REPRODUCIBLE — 27,250 of 1,064,036 bytes differ between the
+          release and a fresh build of the same commit. So byte-provenance CANNOT be established.
+          That fix (1) (the QiFA guard) is in the release follows from COMMIT TOPOLOGY — the
+          wrapper jni.h and the QiFA guard landed in the same commit 64b696a with no intermediate
+          state — and NOT from byte comparison. Keep that distinction if this is ever audited.
+      SHA256 of the released DLLs (the ONLY identifier — still no VS_VERSION_INFO, still no
+      bpr_versions.h entry; the release is also MISSING the SHA256SUMS.txt its own README lists):
+        windows-32  aab1eefc392e72b58e0c4c3f37e91b2892a8a27a317cfa16f061eecda9af7e55
+        windows-64  918415ce493e7dcb25cf8cf63a18ea411abee15c86170b9d97037fea73093031
+      HANDED TO na-003/012 bnprs-windows: getting onto the Windows PC and running it. The target
+      box has NO JVM AT ALL (neither java nor javac), which is the current blocker; a JVM is
+      unavoidable because the JNI library IS the card-I/O path — the capi sibling QiGndPerso.dll
+      is script-generation only and "never touches a reader" by its own README.
+      STILL OWNED HERE (not handed off): the -444 code path, the missing version resource, and
+      making -444 carry the failing APDU index + SW instead of discarding both
+      (qiscript_jni.cpp:200). Also still open and more serious, per [[mem-005]]: the Raspberry
+      accept-list in trp1002.cperso.qiscript.jni QiScripts.cpp:168-181 STILL accepts 67xx/69xx as
+      OK, still tests only pbRecvBuffer[0] instead of the trailing SW, and still skips the last 4
+      commands — verified unchanged this session. A green Windows run does not clear that.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session 2026-08-11 — export check on Z_RELEASE 2.22.28 + parent-commit reproduction"
+    tags: [2.22.28, release-verified, export-table, stdcall-confirmed, parent-commit-reproduction,
+           size-proves-nothing, non-reproducible-build, sha256, handoff-out, na-003-012-bnprs-windows,
+           raspberry-accept-list-still-open]
+
 # Pruning rules
 pruning:
   max_entries: 500

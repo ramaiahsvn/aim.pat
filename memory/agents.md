@@ -34,6 +34,7 @@
 | 009  | na-003 | bnprs-lib-forge | Shared Library Package Registry & Distribution Manager (GitLab Generic, proj 230) | active | 2026-05-30 |
 | 010  | na-003 | bnprs-lib-multisdk | Native SDK Multi-Language Wrapper Builder (Maven/JNA, NuGet/P-Invoke, Go/purego) | active | 2026-06-01 |
 | 011  | na-003 | bnprs-lib-license | Shared Library Licensing & Activation Manager (hwid/appid, per-product, BprLicBase) | active | 2026-06-01 |
+| 012  | na-003 | bnprs-windows | Windows Endpoint and Remote Access Manager (OpenSSH/RDP/TeamViewer/SSM, JVM prereqs, PC-SC hosts) | active | 2026-08-11 |
 | 001  | na-004 | cpp-face | BprFace C++ Module (face detection, recognition, expression, action) | active | 2026-05-27 |
 | 002  | na-004 | cpp-finger | BprFinger C++ Module (Fjfx, Forg, M3gl, Nbis, Nfiq2, Nnmq) | active | 2026-05-27 |
 | 003  | na-004 | cpp-finger-cless | BprFingerCless C++ Module (contactless fingerprint preprocessing) | active | 2026-05-27 |

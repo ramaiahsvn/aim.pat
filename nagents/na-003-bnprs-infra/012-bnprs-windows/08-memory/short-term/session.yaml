@@ -1,0 +1,23 @@
+# Short-Term Memory — Working Memory Buffer
+# Temporary, session-scoped. Cleared when session ends.
+
+session:
+  id: null
+  started_at: null
+  context_window_tokens: 0
+  max_tokens: 200000
+
+  # Active conversation context
+  conversation: []
+  # - role: user
+  #   content: "..."
+  #   timestamp: "..."
+
+  # Temporary facts for this session
+  working_facts: []
+  # - fact: "User wants BNPRS branding with green/gold palette"
+  #   confidence: 0.95
+  #   source: "user_message"
+
+  # Files touched this session
+  active_files: []

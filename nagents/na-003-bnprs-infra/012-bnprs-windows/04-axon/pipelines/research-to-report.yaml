@@ -1,0 +1,21 @@
+# Pipeline: Research to Report
+# Chains multiple workflows into a composite execution
+
+id: pipe-research-report
+name: "Research to Report Pipeline"
+description: "Web research → synthesis → formatted document"
+
+stages:
+  - workflow: wf-web-research
+    outputs_to: next
+
+  - workflow: wf-synthesis
+    inputs_from: previous
+    outputs_to: next
+
+  - workflow: wf-doc-creation
+    inputs_from: previous
+    outputs_to: terminals
+
+parallel_allowed: false
+estimated_duration: "5-15 minutes"

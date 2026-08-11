@@ -1,0 +1,33 @@
+# Available Actions — What Neurotransmitters Can This Neuron Release?
+
+actions:
+  create_file:
+    description: "Generate and save a file to deliverables"
+    output_types: [docx, xlsx, pptx, pdf, html, md, csv, json]
+    requires_confirmation: false
+    target: "deliverables/"
+
+  send_message:
+    description: "Send a message via connector (Slack, email, etc.)"
+    requires_confirmation: true    # Explicit permission needed
+    target: "dendrites/connectors/"
+
+  api_call:
+    description: "Make an API call to an external service"
+    requires_confirmation: true
+    target: "dendrites/connectors/"
+
+  notify_user:
+    description: "Send a notification to the user"
+    requires_confirmation: false
+    target: "notifications/"
+
+  schedule_task:
+    description: "Create a scheduled/recurring task"
+    requires_confirmation: true
+    target: "axon-hillock/todo/"
+
+  update_memory:
+    description: "Persist a learning to long-term memory"
+    requires_confirmation: false
+    target: "plasticity/"

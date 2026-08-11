@@ -112,6 +112,15 @@ registry:
     created_at: "2026-06-01"
     created_by: "bnprs"
 
+  - code: "012"
+    name: "bnprs-windows"
+    label: "bnprs-windows"
+    role: "Windows Endpoint and Remote Access Manager"
+    path: "012-bnprs-windows"
+    status: "active"
+    created_at: "2026-08-11"
+    created_by: "bnprs"
+
 # ---- CODE ALLOCATION RULES ---- #
 # 001–063   Cloud infrastructure agents
 # 064–127   Provisioning and automation

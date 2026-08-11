@@ -350,6 +350,199 @@ memories:
     tags: [vpn, openvpn-access-server, vpn-mgate-prod-temp, us-east-2, i-0b392b15a44ea6ab0,
            auth-not-network, sacli-setlocalpassword, lockout, ssm-fix, cloud-final-noise]
 
+  - id: mem-015
+    type: incident_learning
+    content: >-
+      2026-08-05 vpn-mgate-prod-temp DOWN AGAIN — but a COMPLETELY DIFFERENT fault from [[mem-014]],
+      and the mem-014 rule ("VPN down here is almost always the openvpn local password") LED THE WRONG
+      WAY. Nobody could reach it, including murali. Root cause: the box never finished booting — it sat
+      in systemd EMERGENCY MODE at "Press Enter for maintenance", so sshd/ssm-agent/openvpnas never
+      started. Console showed: `FAT-fs (nvme0n1p15): IO charset iso8859-1 not found` -> `Failed to mount
+      boot-efi.mount` -> `Dependency failed for local-fs.target` -> `emergency.target`. Everything else
+      was a SYMPTOM of that: instance status check impaired, SSM offline, and cloud-init's 240s of IMDS
+      retries ending in "IMDS's HTTP endpoint is probably disabled" — which is a LIE, MetadataOptions
+      showed HttpEndpoint=enabled; cloud-init just had no network because emergency mode never
+      configured it. Do not chase IMDS on that message alone.
+      REAL ROOT CAUSE (proven, not guessed): kernel 6.17.0-1012-aws was installed INCOMPLETELY back in
+      April — its /lib/modules/6.17.0-1012-aws had the .ko.zst files but NO modules.dep / modules.dep.bin
+      (depmod never ran) and NO initramfs in /boot. Without modules.dep, modprobe cannot find
+      nls_iso8859-1, so the vfat mount of the ESP is rejected. It stayed harmless while the box ran 1010.
+      Then on 2026-08-05 06:07 UTC `unattended-upgrade` REMOVED linux-image/linux-modules-6.17.0-1007-aws,
+      which regenerated GRUB; with GRUB_DEFAULT=0 the newest entry (the broken 1012) became default, and
+      murali's reboots at 12:32/12:46/12:53 IST + stop/start at 13:01 IST booted straight into it.
+      The apt trigger is visible in /var/log/apt/history.log; the demotion is visible as
+      /boot/vmlinuz.old -> vmlinuz-6.17.0-1012-aws dated Aug 5 06:07.
+      FIX APPLIED (root vol vol-020e5d691b0217df8 detached, repaired on a throwaway t3.micro helper, put
+      back): `chroot depmod -a 6.17.0-1012-aws` (rebuilt modules.dep, 90KB, nls_iso8859-1 now indexed),
+      `update-initramfs -c -k 6.17.0-1012-aws`, `update-grub`, plus `nofail` added to the /boot/efi line
+      in /etc/fstab (backup at /etc/fstab.bak-20260805) so a future ESP failure degrades instead of
+      dropping the box into an emergency shell. Pre-repair snapshot snap-0a66c1c9499f0146a.
+      VERIFIED FROM OUTSIDE, not from exit codes: status checks 2/2, SSM Online, booted 6.17.0-1012-aws,
+      /boot/efi actually mounted with iocharset=iso8859-1 (proving the module now loads), openvpnas
+      active, nft DNAT tcp->10.30.0.88:914 / udp->10.30.0.88:916 present, ip_forward=1, and from the
+      internet TCP 443 + 943 both OPEN returning HTTP 200 on 3.149.123.56.
+      RULES: (1) For this box, TRIAGE BOOT STATE FIRST — get-console-output and the instance status
+      check — and only apply the mem-014 password rule once the OS is confirmed up. (2) An EBS volume
+      from a MARKETPLACE AMI (OpenVPN AS is one) CANNOT be attached to a RUNNING instance —
+      "IncorrectInstanceState ... with Marketplace codes"; the target must be stopped first, so rescue
+      work needs a stoppable/throwaway helper, not a live box. (3) Beware LABEL COLLISION during rescue:
+      both the helper and the target have partitions labelled UEFI and BOOT, so the helper auto-mounted
+      the TARGET's /boot and /boot/efi — unmount those before chrooting. (4) `chroot ... modprobe` uses
+      the HELPER's running kernel unless you pass `-S <kernelver>`; a FATAL "not found in directory
+      /lib/modules/<helper-kernel>" is a bad test, not a bad fix. (5) iocharset=utf8 would NOT have been
+      a workaround — nls_utf8 is equally a module, so it fails the same way when modules.dep is missing;
+      `nofail` is the correct hardening.
+      STILL OPEN: unattended-upgrades is ENABLED on this VPN appliance and will remove/promote kernels
+      again unannounced — consider pinning linux-* or disabling unattended kernel upgrades here; and
+      verify 6.17.0-1010-aws is complete (it has modules.dep + initramfs) so there is a working fallback.
+      Also the pre-existing cloud-final.service failure from [[mem-014]] is still present and still
+      harmless (systemd reports "degraded" for that one unit only).
+    created_at: "2026-08-05"
+    last_accessed: "2026-08-05"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-05"
+    tags: [vpn, vpn-mgate-prod-temp, i-0b392b15a44ea6ab0, emergency-mode, boot-efi, nls-iso8859-1,
+           missing-modules-dep, incomplete-kernel-install, unattended-upgrades, grub-default-0,
+           marketplace-volume-attach-restriction, label-collision-rescue, chroot-depmod,
+           initramfs-missing, nofail-fstab, boot-state-before-auth, verified-externally]
+
+  - id: mem-016
+    type: cost_optimization
+    content: >-
+      2026-08-11 August cost forecast review. Forecast ~$15,050 and WILL breach the $15,000 budget
+      (budget name `monthly-15k-alert`) around Aug-30. Unlike the 2026-07-03 scare in [[mem-004]] this is
+      REAL run-rate, not a CE artifact: three independent methods converge — CE get-cost-forecast $15,013,
+      budget forecast $15,211, and my own ex-tax-daily x 31 + tax = $15,052. Aug 1-9 actual $4,530.39 =
+      $503.38/day ($478.26/day ex the $226.02 tax lump that posts on the 1st). Trend: May $12,825.83,
+      Jun $12,629.47, Jul $14,263.42, Aug ~$15,050 (+5.5% MoM, +19% vs Jun).
+      ATTRIBUTION (Jul 1-9 vs Aug 1-9 ex-tax, +$1,337/mo total): eu-central-1 $845.19->$1,030.56
+      (+$626/mo, the actionable one); ap-south-2 $15.84->$133.66 (+$398/mo, INTENTIONAL = nagents-prod);
+      us-east-2 $3,028.88->$3,105.06 (+$257/mo, organic/healthy — us-east-2 ECS flat ~$90/day all month,
+      NO repeat of the July SQS surge). mgate-prod-temp-db grows ~10GB/day Aurora storage (829GB) = real
+      product growth.
+      eu-central-1 drivers: ECS +$199/mo (utms 21->24 tasks, nagents-uat 2->6), AWS Config +$148/mo,
+      CloudWatch +$124/mo, CloudTrail +$67/mo, ELB +$64/mo, new OpenSearch domain utms-logs
+      (t3.small.search x1 + 20GB) +$34/mo.
+      REGRESSION FOUND: Container Insights is RE-ENABLED on utms-cluster and nagents-uat-ecs, undoing the
+      2026-07-04 action in [[mem-007]] (only wgate-uat-cluster held). Proof is in the bill:
+      EUC1-CW:MetricMonitorUsage $11.52 -> $40.53 per 9 days (~$40/mo -> ~$137/mo). Almost certainly a
+      Terraform re-apply. RULE: fix this in the IaC module that owns the clusters — a CLI
+      update-cluster-settings will just revert a third time.
+      AWS Config eu-central-1 is now $374/mo and climbing, from ONE recorder: `wgate-uat-config-recorder`
+      (a UAT-named recorder!) with allSupported=true + includeGlobalResourceTypes=true +
+      recordingFrequency=CONTINUOUS + recordingScope=PAID, so it records every configuration item region-wide
+      including high-churn types (ECS::TaskDefinition, EC2::EIPAssociation, Backup::RecoveryPoint).
+      DAILY frequency and/or excluding churn types should recover $150-250/mo.
+      SAVINGS PLAN still 0.0% coverage (unchanged since 2026-07-03). Current CE rec: Compute SP 1yr
+      no-upfront $5.166/hr commit -> $944.18/mo (17.94%) on $10,383.70 covered on-demand. Largest single
+      lever, needs approval only, no resource change.
+      Report written to 07-axon-terminals/deliverables/cost-reports/aws-itp-cost-forecast-2026-08-11.html
+      See [[mem-017]] for the unused-resource inventory from the same session.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11"
+    tags: [cost, forecast, budget-breach, real-not-artifact, eu-central-1, ap-south-2, nagents-prod,
+           container-insights-regression, aws-config, savings-plan, open-items]
+
+  - id: mem-017
+    type: cost_optimization
+    content: >-
+      2026-08-11 UNUSED-RESOURCE SWEEP (us-east-2 + eu-central-1 + ap-south-2). Found ~$1,150/mo of
+      genuinely unused resources; with the $944/mo Savings Plan from [[mem-016]] that is ~$2,100/mo (14%),
+      taking the run-rate from $15.05k to ~$12.9k. Every figure derived from an actual CE usage-type line
+      or a measured CloudWatch metric, NOT list prices. NOTHING WAS CHANGED — all read-only, all items open.
+      BIGGEST FINDS (both new, both dwarf everything previously tracked):
+      (1) Aurora `mgate-rds` us-east-2 STOPPED ~$350/mo — 1,457GB on IO-OPTIMIZED storage (StorageType
+      aurora-iopt1) = $305/mo, and it is the ONLY iopt1 cluster in the account so the whole
+      Aurora:IO-OptimizedStorageUsage line is this one cluster. It also AUTO-RESTARTS EVERY 7 DAYS
+      (describe-events: "being started due to it exceeding the maximum allowed time being stopped",
+      started 08-03, ran to 08-06) burning 2x db.t4g.medium ~$48/mo. IO-Optimized is the wrong tier for
+      an idle DB.
+      (2) Aurora `database-1` us-east-2 STOPPED SINCE 2021 ~$275/mo — 2,209GB standard Aurora ~$206/mo
+      PLUS ExtendedSupport:Yr1-Yr2:AuroraMySQL2 $51/mo (MySQL 5.7 past standard support) plus backups.
+      Created 2021-06-15. This is the item logged as a minor "snapshot+delete" in [[mem-008]] — it is
+      actually a $275/mo item.
+      (3) 19 VPC interface endpoints in eu-central-1 UAT = $333/mo — EUC1-VpcEndpoint-Hours $333/mo vs
+      EUC1-VpcEndpoint-Bytes only $0.64/mo, i.e. they carry essentially NO traffic, and all 3 UAT VPCs
+      already have NAT gateways. wgate-uat VPC (vpc-03f6a4527469ebc5d) alone has 11 (~$160/mo) incl xray,
+      kms, sts, monitoring, ec2messages. NAT data at $0.045/GB would need ~7TB/mo to justify them;
+      measured is ~14GB/mo. us-east-2 endpoints ARE used ($88/mo hours + $30/mo bytes) — keep those.
+      (4) 9 archive-tier EBS snapshots, 8,286GB, $104/mo — the 90-day archive minimum EXPIRES 2026-08-12,
+      so deletable from then with no early-deletion charge (the [[mem-004]] "revisit after 2026-08-12" item).
+      (5) Transit Gateway tgw-0819781f74713e0df $36/mo with EXACTLY ONE attachment (vpc-4a606822) — a TGW
+      with one attachment transits nothing.
+      (6) Global Accelerator `itpgatewaylbAccelerator` ~$25/mo — 0 NewFlowCount over 14 days. IMPORTANT
+      CAVEAT: it fronts TWO endpoints, the dead itpgateway-lb AND the LIVE maingateway-prod-temp-alb, so
+      it is not purely dead; zero flows means clients bypass it and hit the ALBs directly. Its DNS is
+      a6f8eeaad28002f5b.awsglobalaccelerator.com. Removing itpgateway-lb from the endpoint group is the
+      prerequisite for deleting that ALB.
+      (7) itpgateway-lb ALB + itpgateway-tg ~$18/mo — 0 targets, 0 requests/14d, created 2021-06-07.
+      Still open from [[mem-008]]; DNS check still not done.
+      (8) Idle public IPv4 ~$17/mo (PublicIPv4:IdleAddress in all 3 regions). 2 unassociated EIPs in
+      ap-south-2: eipalloc-0351d7a787b584238 (16.112.153.11, tagged nagents-prod-livekit-nlb-1 — NO livekit
+      NLB exists in that region) and eipalloc-0e3ff29df394db299 (16.113.69.83, nagents-prod-openvpn).
+      (9) 3 stopped EC2 ~$3/mo EBS — vpn-itpcore0 (t2.small, 8GB gp2, stopped 07-14),
+      smartpresence-efs-jumpbox (t3.micro, 8GB gp3, 08-04), wgate-sandbox (t3a.large, 15GB gp3, stopped by
+      Server.InternalError = an AWS-side failure, NOT a deliberate stop — needs a decision).
+      (10) 8 orphaned mGate UAT log groups eu-central-1, 73GB still at 365-day retention though the
+      resources were destroyed 2026-06-08 (~$2/mo, the [[mem-007]] hygiene item still open).
+      ZERO-COST HYGIENE: orphan target groups itptms-tg-8883, tmsitp-tg-tcp-1883 (us-east-2),
+      callbackapplication-tg-8087 (eu-central-1); empty ECR repos mgate-prod-temp-cloudwatch,
+      bpr1004.utms.api, and nagents/{bnprs-dashboard,chats-go-api,chats} in ap-south-2.
+      VERIFIED IN USE, DO NOT TOUCH: no unattached EBS and no unassociated EIPs in us-east-2/eu-central-1
+      (the July cleanup held); bpr1000-lic-redis (34 peak conns), bpr1000-lic-postgres (8 conns),
+      BPR-uTMS-LB (430,132 req/14d), itptms-lb (5,134,852 req/14d), and every utms/wgate-uat/nagents-uat/
+      nagents-prod target group healthy. ap-south-2's 4 interface endpoints ($76/mo, no measured data yet)
+      are the new nagents-prod env — HOLD until it ramps.
+      CRITICAL SAFETY NOTE for the Aurora deletions: the existing rds:mgate-rds-2026-08-06-06-50 and
+      rds:database-1-2026-08-06-09-59 are AUTOMATED snapshots and are deleted along with the cluster —
+      they are NOT a safety net. Take a MANUAL snapshot before deleting either cluster.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11"
+    tags: [unused-resources, leakage, aurora-stopped, mgate-rds, database-1, io-optimized,
+           aurora-extended-support, vpc-interface-endpoints, archive-snapshots, transit-gateway,
+           global-accelerator, itpgateway-lb, idle-eip, orphan-log-groups, ap-south-2, findings,
+           nothing-actioned, open-items]
+
+  - id: mem-018
+    type: technical_knowledge
+    content: >-
+      2026-08-11 AWS/CLI gotchas learned while doing the cost sweep (add to the CE gotchas in [[mem-005]]
+      and [[mem-007]]):
+      (1) BILLING REGION CODE APS5 = ap-south-2 (Hyderabad), NOT ap-southeast-5. I guessed ap-southeast-5
+      first and every call failed with AuthFailure / InvalidClientTokenId, which looks like a credentials
+      problem but is really "that opt-in region is not enabled". To map a billing prefix to a real region,
+      group Cost Explorer by DIMENSION=REGION instead of guessing from the usage-type prefix.
+      (2) macOS has NO `timeout` command — `timeout 90 aws ...` fails with "command not found". Use the
+      tool's own timeout, or gtimeout from coreutils.
+      (3) zsh does NOT word-split unquoted variables (already in global memory, but it bit me in a NEW way):
+      `tgs=$(aws ... --query 'TargetGroups[].TargetGroupArn' --output text); for tg in $tgs` passes the whole
+      tab-separated list as ONE argument, so describe-target-health throws "is not a valid target group ARN"
+      and the loop silently reports healthy=0/0 for every multi-target-group load balancer. That produced a
+      WRONG first answer (7 LBs looked idle that were actually healthy). Iterate with
+      `... --output text | while IFS=$'\t' read -r ...` instead, and treat a ValidationError inside a loop as
+      a broken loop, not a broken resource.
+      (4) To tell whether a stopped Aurora cluster is being auto-restarted by the 7-day rule, use
+      `aws rds describe-events --source-type db-cluster --source-identifier <id> --duration <minutes>`;
+      the message is "DB cluster is being started due to it exceeding the maximum allowed time being stopped".
+      (5) Aurora storage tier is visible as `DBClusters[].StorageType` — `aurora-iopt1` = IO-Optimized
+      (~$0.225/GB-mo), null/None = standard (~$0.10/GB-mo). Cluster volume size is NOT in the API
+      (AllocatedStorage reads 1); get it from the CloudWatch metric AWS/RDS VolumeBytesUsed with
+      Name=DBClusterIdentifier.
+      (6) A VPC interface endpoint is billed per-AZ, so cost = endpoints x subnets x $0.01/hr. The honest
+      test of whether endpoints earn their keep is comparing the CE `*-VpcEndpoint-Hours` line against the
+      `*-VpcEndpoint-Bytes` line — hours with no bytes means idle infrastructure.
+      (7) RDS automated snapshots are named `rds:<cluster>-<timestamp>` and are DELETED WITH THE CLUSTER.
+      Only a manual snapshot survives a cluster delete.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11"
+    tags: [gotchas, aws-cli, ce-region-codes, aps5-ap-south-2, macos-no-timeout, zsh-word-split,
+           target-health-loop, aurora-auto-restart, aurora-iopt1, volumebytesused, vpc-endpoint-hours-vs-bytes,
+           automated-vs-manual-snapshot]
+
 # Pruning rules
 pruning:
   max_entries: 500

@@ -1,0 +1,254 @@
+<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:#222;max-width:900px;margin:0 auto;padding:24px;">
+
+  <p style="font-size:13px;color:#666;margin:0 0 4px;">bnprs-aws-itp &middot; na-003/002 &middot; ITPCore AWS account 819144294008 &middot; profile <code>itp</code></p>
+  <h1 style="font-size:22px;margin:0 0 4px;color:#2D4A3E;">August 2026 cost forecast &amp; unused-resource sweep</h1>
+  <p style="font-size:13px;color:#666;margin:0 0 24px;">Report date 2026-08-11 &middot; data through 2026-08-09 (last complete billing day) &middot; read-only analysis, nothing changed</p>
+
+  <div style="background:#f6f8fa;border-left:3px solid #2D4A3E;padding:14px 18px;margin:0 0 24px;">
+    <p style="margin:0 0 8px;"><strong>Bottom line.</strong> August will land at <strong>~$15,050</strong> and
+    <strong>breach the $15,000 budget</strong> around Aug&nbsp;30. Unlike the 2026-07-03 scare this is
+    <em>not</em> a Cost Explorer forecasting artifact &mdash; three independent methods agree.
+    Production in us-east-2 is healthy and flat; the growth is UAT sprawl in eu-central-1 plus the
+    intentional nagents-prod build-out in ap-south-2.</p>
+    <p style="margin:0;">Against that, <strong>~$1,150/mo of genuinely unused resources</strong> plus the
+    still-unpurchased <strong>$944/mo Savings Plan</strong> = <strong>~$2,100/mo (14%)</strong>, which would
+    bring the run-rate to <strong>~$12.9k</strong> &mdash; under budget and below June.</p>
+  </div>
+
+  <h2 style="font-size:17px;margin:28px 0 8px;color:#2D4A3E;">1. The forecast is real</h2>
+
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:0 0 12px;">
+    <tr style="background:#f6f8fa;">
+      <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #d0d7de;">Method</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">Full-month August</th>
+    </tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">Cost Explorer <code>get-cost-forecast</code></td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$15,013</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">Budget <code>monthly-15k-alert</code> forecast</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$15,211</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">Independent projection (ex-tax daily &times; 31 + tax)</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$15,052</td></tr>
+    <tr><td style="padding:8px 10px;"><strong>Aug 1&ndash;9 actual</strong> (9 complete days)</td><td style="padding:8px 10px;text-align:right;"><strong>$4,530.39</strong></td></tr>
+  </table>
+
+  <p>Daily run-rate is <strong>$503.38/day</strong>, or <strong>$478.26/day excluding the $226.02 tax lump</strong>
+  that posts on the 1st. Aug-10 reads $244 &mdash; that is Cost Explorer data lag, not a drop.
+  Because all three methods converge on the same number, the forecast reflects genuine run-rate rather
+  than CE over-extrapolating from a high day-1, which is what happened on 2026-07-03.</p>
+
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:16px 0 0;">
+    <tr style="background:#f6f8fa;">
+      <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #d0d7de;">Month</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">Actual</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">vs prior</th>
+    </tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">May 2026</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$12,825.83</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;color:#666;">&mdash;</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">June 2026</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$12,629.47</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;color:#2D6A2D;">&minus;1.5%</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">July 2026</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$14,263.42</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;color:#A33;">+12.9%</td></tr>
+    <tr><td style="padding:8px 10px;"><strong>August 2026 (forecast)</strong></td><td style="padding:8px 10px;text-align:right;"><strong>~$15,050</strong></td><td style="padding:8px 10px;text-align:right;color:#A33;"><strong>+5.5%</strong></td></tr>
+  </table>
+
+  <h2 style="font-size:17px;margin:28px 0 8px;color:#2D4A3E;">2. Where the +$1,337/mo came from</h2>
+
+  <p>Comparing like-for-like windows (Jul&nbsp;1&ndash;9 vs Aug&nbsp;1&ndash;9, ex-tax) avoids the
+  month-boundary trap that split earlier MONTHLY queries into mismatched day-counts.</p>
+
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:0 0 16px;">
+    <tr style="background:#f6f8fa;">
+      <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #d0d7de;">Region</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">Jul 1&ndash;9</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">Aug 1&ndash;9</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">&Delta; /mo</th>
+      <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #d0d7de;">Verdict</th>
+    </tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">eu-central-1</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$845.19</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$1,030.56</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;color:#A33;"><strong>+$626</strong></td><td style="padding:8px 10px;border-bottom:1px solid #eee;">UAT sprawl &mdash; the actionable one</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">ap-south-2</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$15.84</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$133.66</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">+$398</td><td style="padding:8px 10px;border-bottom:1px solid #eee;">nagents-prod, intentional</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">us-east-2</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$3,028.88</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$3,105.06</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">+$257</td><td style="padding:8px 10px;border-bottom:1px solid #eee;">organic, healthy</td></tr>
+    <tr><td style="padding:8px 10px;">global</td><td style="padding:8px 10px;text-align:right;">$9.52</td><td style="padding:8px 10px;text-align:right;">$26.03</td><td style="padding:8px 10px;text-align:right;color:#666;">one-off</td><td style="padding:8px 10px;">$16 domain renewal</td></tr>
+  </table>
+
+  <h3 style="font-size:15px;margin:20px 0 6px;color:#2D4A3E;">us-east-2 production is fine</h3>
+  <p>ECS in us-east-2 holds a flat ~$90/day through the whole month with no autoscaling excursion &mdash;
+  nothing like the July SQS traffic surge. The only structural growth is <code>mgate-prod-temp-db</code>
+  gaining ~10&nbsp;GB/day of Aurora storage (829&nbsp;GB today), which is real product growth and will keep
+  adding ~$1/mo each month.</p>
+
+  <h3 style="font-size:15px;margin:20px 0 6px;color:#2D4A3E;">ap-south-2 is the nagents-prod build-out</h3>
+  <p>Hyderabad went from $2.9/day to $14.85/day in a clean step on 2026-07-25/26 and has been flat since.
+  It holds <code>nagents-prod-alb</code>, ECS cluster <code>nagents-prod-ecs</code>,
+  <code>nagents-prod-postgres</code> (db.t4g.medium), <code>nagents-prod-nat-0</code>, a Redis node and a
+  <code>DEV-DB-SERVER</code> t3.medium. This matches the na-006/006 <code>trp1004-nagents-prod</code> apply
+  recorded 2026-08-09. <strong>Expected, permanent, ~$450/mo</strong> &mdash; not a leak. Note the billing
+  region code for Hyderabad is <code>APS5</code>, which is easy to misread as ap-southeast-5.</p>
+
+  <h3 style="font-size:15px;margin:20px 0 6px;color:#2D4A3E;">eu-central-1 is where to act</h3>
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:0 0 12px;">
+    <tr style="background:#f6f8fa;">
+      <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #d0d7de;">Service</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">Jul 1&ndash;9</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">Aug 1&ndash;9</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">&Delta; /mo</th>
+    </tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">ECS (utms 21&rarr;24 tasks, nagents-uat 2&rarr;6)</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$319.68</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$377.55</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">+$199</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">AWS Config</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$67.73</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$110.66</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">+$148</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">CloudWatch</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$21.25</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$57.34</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">+$124</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">CloudTrail</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$60.50</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$79.93</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">+$67</td></tr>
+    <tr><td style="padding:8px 10px;border-bottom:1px solid #eee;">Load Balancing</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$88.16</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">$106.69</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;">+$64</td></tr>
+    <tr><td style="padding:8px 10px;">OpenSearch <code>utms-logs</code> (new)</td><td style="padding:8px 10px;text-align:right;">&mdash;</td><td style="padding:8px 10px;text-align:right;">$9.92</td><td style="padding:8px 10px;text-align:right;">+$34</td></tr>
+  </table>
+
+  <div style="background:#fff8e6;border-left:3px solid #D4952B;padding:12px 16px;margin:16px 0;">
+    <p style="margin:0 0 6px;"><strong>Regression: Container Insights was re-enabled.</strong> It was disabled on
+    all three eu-central-1 clusters on 2026-07-04 for ~$100/mo. Today <code>utms-cluster</code> and
+    <code>nagents-uat-ecs</code> read <code>enabled</code> again; only <code>wgate-uat-cluster</code> held.
+    The proof is in the bill: <code>EUC1-CW:MetricMonitorUsage</code> went <strong>$11.52 &rarr; $40.53</strong>
+    per 9 days (~$40/mo &rarr; ~$137/mo).</p>
+    <p style="margin:0;">This was almost certainly a Terraform re-apply. <strong>Disabling it again without
+    fixing the IaC will just revert a third time</strong> &mdash; the setting has to be corrected in the
+    module that owns these clusters, not via the CLI.</p>
+  </div>
+
+  <p><strong>AWS Config</strong> is now $374/mo in eu-central-1 and climbing. The cause is a single recorder,
+  <code>wgate-uat-config-recorder</code> &mdash; a <em>UAT</em>-named recorder configured with
+  <code>allSupported: true</code>, <code>includeGlobalResourceTypes: true</code>,
+  <code>recordingFrequency: CONTINUOUS</code> and <code>recordingScope: PAID</code>. It therefore records
+  every configuration item across the whole region, including high-churn types
+  (<code>ECS::TaskDefinition</code>, <code>EC2::EIPAssociation</code>, <code>Backup::RecoveryPoint</code>).
+  Switching to DAILY frequency and/or excluding the churn types should recover $150&ndash;250/mo.</p>
+
+  <h2 style="font-size:17px;margin:28px 0 8px;color:#2D4A3E;">3. Unused resources &mdash; ~$1,150/mo</h2>
+
+  <p>Every figure below is derived from an actual Cost Explorer usage-type line or a measured CloudWatch
+  metric, not from list prices.</p>
+
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:0 0 16px;">
+    <tr style="background:#f6f8fa;">
+      <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #d0d7de;">Resource</th>
+      <th style="text-align:right;padding:8px 10px;border-bottom:2px solid #d0d7de;">$/mo</th>
+      <th style="text-align:left;padding:8px 10px;border-bottom:2px solid #d0d7de;">Evidence</th>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">Aurora <code>mgate-rds</code><br><span style="color:#666;font-size:13px;">us-east-2, stopped</span></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>~350</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">1,457&nbsp;GB on <strong>IO-Optimized</strong> storage (<code>aurora-iopt1</code>) = $305/mo. It is the only iopt1 cluster in the account, so the entire <code>Aurora:IO-OptimizedStorageUsage</code> line is this one cluster. It also <strong>auto-restarts every 7 days</strong> (started 08-03, ran to 08-06) burning 2&times;&nbsp;db.t4g.medium &asymp; $48/mo. IO-Optimized is the wrong tier for an idle DB.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">Aurora <code>database-1</code><br><span style="color:#666;font-size:13px;">stopped since 2021</span></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>~275</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">2,209&nbsp;GB standard Aurora storage &asymp; $206/mo, plus <code>ExtendedSupport:Yr1-Yr2:AuroraMySQL2</code> <strong>$51/mo</strong> because MySQL&nbsp;5.7 is past standard support, plus backups. Created 2021-06-15, stopped ever since.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">19 VPC interface endpoints<br><span style="color:#666;font-size:13px;">eu-central-1 UAT</span></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>333</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;"><code>EUC1-VpcEndpoint-Hours</code> $333/mo against <code>EUC1-VpcEndpoint-Bytes</code> of just <strong>$0.64/mo</strong> &mdash; they carry essentially no traffic. All three UAT VPCs already have NAT gateways. The <code>wgate-uat</code> VPC alone has 11 (~$160/mo) including xray, kms, sts, monitoring and ec2messages.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">9 archive-tier EBS snapshots<br><span style="color:#666;font-size:13px;">8,286&nbsp;GB</span></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>104</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">May-14 safety snapshots for ITPCore1/4/5/6/8 and CTCore2/3/4/5-OTP. The <strong>90-day archive minimum expires 2026-08-12</strong>, so from tomorrow they can be deleted with no early-deletion charge.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">Transit Gateway<br><code style="font-size:13px;">tgw-0819781f74713e0df</code></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>36</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">Exactly <strong>one</strong> attachment (vpc-4a606822). A transit gateway exists to connect two or more networks; with one attachment it transits nothing.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">Global Accelerator<br><code style="font-size:13px;">itpgatewaylbAccelerator</code></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>~25</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;"><strong>0 NewFlowCount over 14 days.</strong> Note it fronts <em>two</em> endpoints &mdash; the dead <code>itpgateway-lb</code> <em>and</em> live <code>maingateway-prod-temp-alb</code> &mdash; but zero flows means clients bypass it entirely and hit the ALBs directly.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;"><code>itpgateway-lb</code> ALB + <code>itpgateway-tg</code></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>~18</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">Zero targets registered and <strong>0 requests in 14 days</strong>. Created 2021-06-07. Open since the 2026-07-04 sweep.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">Idle public IPv4</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;"><strong>~17</strong></td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;"><code>PublicIPv4:IdleAddress</code> bills in all three regions. Two unassociated EIPs in ap-south-2: <code>eipalloc-0351d7a787b584238</code> (16.112.153.11, tagged <code>nagents-prod-livekit-nlb-1</code> &mdash; no livekit NLB exists in that region) and <code>eipalloc-0e3ff29df394db299</code> (16.113.69.83, <code>nagents-prod-openvpn</code>). The rest are IPs held by stopped instances.</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">3 stopped EC2 + their EBS</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;">~3</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;"><code>vpn-itpcore0</code> (t2.small, 8&nbsp;GB gp2, stopped 07-14), <code>smartpresence-efs-jumpbox</code> (t3.micro, 8&nbsp;GB gp3, 08-04), <code>wgate-sandbox</code> (t3a.large, 15&nbsp;GB gp3, stopped by <strong><code>Server.InternalError</code></strong> &mdash; an AWS-side failure, not a deliberate stop).</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">8 orphaned mGate UAT log groups</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;">~2</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;">73&nbsp;GB still at <strong>365-day</strong> retention although the resources were destroyed 2026-06-08: <code>/aws/rds/cluster/mgate-db/audit</code> (37.9&nbsp;GB), <code>aws-waf-logs-maingateway</code> (21.5&nbsp;GB), <code>/aws/vpc/mgate-vpc-flow-logs</code> (8.9&nbsp;GB), <code>/ecs/vendorstatus</code>, <code>/ecs/otpstatus</code>, <code>/ecs/callbackapplication</code>, <code>/ecs/maingateway</code>, <code>/ecs/pipes-4</code>.</td>
+    </tr>
+    <tr style="background:#f6f8fa;">
+      <td style="padding:8px 10px;"><strong>Total</strong></td>
+      <td style="padding:8px 10px;text-align:right;"><strong>~$1,150</strong></td>
+      <td style="padding:8px 10px;"></td>
+    </tr>
+  </table>
+
+  <p style="font-size:14px;"><strong>Zero-cost hygiene:</strong> orphan target groups
+  <code>itptms-tg-8883</code>, <code>tmsitp-tg-tcp-1883</code> (us-east-2) and
+  <code>callbackapplication-tg-8087</code> (eu-central-1); empty ECR repos
+  <code>mgate-prod-temp-cloudwatch</code>, <code>bpr1004.utms.api</code> and
+  <code>nagents/{bnprs-dashboard, chats-go-api, chats}</code> in ap-south-2.</p>
+
+  <h3 style="font-size:15px;margin:20px 0 6px;color:#2D4A3E;">Verified in use &mdash; leave alone</h3>
+  <p style="font-size:14px;">No unattached EBS volumes and no unassociated EIPs in us-east-2 or eu-central-1
+  &mdash; the July cleanup held there. <code>bpr1000-lic-redis</code> (34 peak connections),
+  <code>bpr1000-lic-postgres</code> (8), <code>BPR-uTMS-LB</code> (430k requests/14d),
+  <code>itptms-lb</code> (5.1M requests/14d) and every utms / wgate-uat / nagents-uat / nagents-prod target
+  group is healthy. ap-south-2's four interface endpoints ($76/mo, no measured data yet) belong to the new
+  nagents-prod environment &mdash; hold until it has ramped.</p>
+
+  <h2 style="font-size:17px;margin:28px 0 8px;color:#2D4A3E;">4. Savings Plan &mdash; still 0% coverage</h2>
+
+  <p>Coverage is <strong>0.0%</strong>, unchanged since first flagged on 2026-07-03. Cost Explorer's current
+  recommendation, on a 60-day lookback:</p>
+
+  <table style="border-collapse:collapse;width:100%;font-size:14px;margin:0 0 12px;">
+    <tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">Compute SP, 1&nbsp;year, no upfront</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;"><code>$5.166/hr</code> commitment</td></tr>
+    <tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">Current on-demand spend covered</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">$10,383.70</td></tr>
+    <tr><td style="padding:6px 10px;"><strong>Estimated monthly saving</strong></td><td style="padding:6px 10px;text-align:right;"><strong>$944.18 (17.94%)</strong></td></tr>
+  </table>
+
+  <p>This is the single largest lever in the account and it requires no resource change &mdash; only
+  approval. Longer terms or an upfront payment increase the discount further.</p>
+
+  <h2 style="font-size:17px;margin:28px 0 8px;color:#2D4A3E;">5. Recommended order</h2>
+
+  <ol style="padding-left:22px;">
+    <li style="margin-bottom:10px;"><strong>Zero risk, today or tomorrow.</strong> Delete the 9 archive
+    snapshots on or after 2026-08-12 ($104), the 3 orphan target groups, the 5 empty ECR repos, the 8
+    orphaned log groups, and the 2 unassociated ap-south-2 EIPs.</li>
+
+    <li style="margin-bottom:10px;"><strong>Take a manual snapshot first, then delete</strong> both stopped
+    Aurora clusters ($625/mo). This matters: the existing <code>rds:mgate-rds-2026-08-06-06-50</code> and
+    <code>rds:database-1-2026-08-06-09-59</code> are <em>automated</em> snapshots and are deleted along with
+    the cluster, so they are not a safety net.</li>
+
+    <li style="margin-bottom:10px;"><strong>Interface endpoints</strong> ($333/mo). Confirm each UAT VPC's
+    private subnets route to their NAT gateway, then remove the endpoints. NAT data at $0.045/GB would need
+    roughly 7&nbsp;TB/mo of AWS-API traffic to justify keeping them; measured traffic is ~14&nbsp;GB/mo.</li>
+
+    <li style="margin-bottom:10px;"><strong>Container Insights + Config recorder</strong> (~$250&ndash;390/mo).
+    Fix in the Terraform module, not the CLI, or it reverts again.</li>
+
+    <li style="margin-bottom:10px;"><strong><code>itpgateway-lb</code> chain.</strong> Remove it from the
+    Global Accelerator endpoint group first, then delete the ALB and target group. The DNS check open since
+    2026-07-04 still needs doing. The accelerator and transit gateway ($61/mo combined) want separate
+    confirmation.</li>
+
+    <li><strong>Savings Plan</strong> ($944/mo) &mdash; approval only.</li>
+  </ol>
+
+  <div style="background:#f6f8fa;border-left:3px solid #D4952B;padding:12px 16px;margin:20px 0 0;">
+    <p style="margin:0 0 6px;"><strong>Two decisions needed.</strong></p>
+    <p style="margin:0 0 6px;">1. <code>wgate-sandbox</code> was stopped by an AWS internal error rather than
+    by anyone &mdash; should it be restarted, or is it abandoned?</p>
+    <p style="margin:0;">2. Is anything expected to use
+    <code>a6f8eeaad28002f5b.awsglobalaccelerator.com</code>? Zero flows in 14 days says no, but it does front
+    live production, so confirm before removing.</p>
+  </div>
+
+  <p style="font-size:13px;color:#666;margin:24px 0 0;border-top:1px solid #eee;padding-top:12px;">
+  Method notes &mdash; all comparisons use single-month or matched day-count windows to avoid the CE
+  month-boundary split; CloudWatch sums use DAILY (86400s) periods rather than one long period; 9-day
+  figures are scaled to months by &times;3.378. Every recommendation above is read-only analysis; no
+  resource was created, modified or deleted in producing this report.</p>
+
+</div>
