@@ -144,9 +144,24 @@ memories:
       03-nucleus/CLAUDE.md. create-agent.sh itself guards against this with ${AGENT_ROLE//&/\\&}.
       Repaired by rewriting the two lines; the role is now "Windows Endpoint and Remote Access
       Manager" (no ampersand) to keep it sed-safe.
-      OPEN: create-agent.sh should be made portable (replace mapfile with a while-read loop, use
-      `sed -i ''` or gsed) or every future agent creation on this Mac needs hand-scaffolding.
-      Flagged to the user; not changed, since it was outside the handoff request.
+      FIXED LATER THE SAME DAY (2026-08-11) — create-agent.sh now runs on macOS, so future agents
+      do NOT need hand-scaffolding. Six changes: mapfile -> read loops (x2); declare -A -> indexed
+      array plus a numeric-input guard (a non-numeric menu choice used to evaluate as an
+      arithmetic index, an empty one was fatal under set -u); `${arr[@]+"${arr[@]}"}` so an empty
+      USED_CODES does not abort an empty group under set -u; and a `subst()` helper replacing
+      `sed -i`, which centrally escapes &, | and \ so the ampersand trap cannot recur.
+      A THIRD dialect trap surfaced while fixing it, worth remembering: the first attempt used
+      `awk -v entry="$multi_line"` and BSD awk REJECTS a literal newline in a -v value
+      ("awk: newline in string") while GNU awk accepts it. Under set -e that aborted the script
+      AFTER creating the agent folder but BEFORE writing the registry — exactly the partial state
+      to avoid. The registry insertion is therefore now plain bash, no sed and no awk.
+      Also fixed a latent BUG unrelated to portability: the old append branch used `cat >>` which
+      put the new entry AFTER the trailing "# ---- CODE ALLOCATION RULES ---- #" block, stranding
+      it below the comments (it still parsed, but read wrongly). It now inserts before that block,
+      matching the script's own stated intent and the hand-scaffolded 012 entry.
+      Verified in a sandbox under /bin/bash 3.2 with five cases: existing list, empty
+      "registry: []", the interactive menu, rejected menu input (abc / empty / 99), and YAML
+      re-parse. Produces 32 files / 30 folders — identical to the hand-scaffold.
     created_at: "2026-08-11"
     confidence: 1.0
     source: "session 2026-08-11 — creating this agent"

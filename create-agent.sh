@@ -26,6 +26,23 @@ RED='\033[0;31m'
 DIM='\033[2m'
 RESET='\033[0m'
 
+# ---- Portability ---- #
+# macOS ships bash 3.2 (no `mapfile`, no `declare -A`) and BSD sed (no GNU `sed -i EXPR`).
+# Everything below is written to run unchanged on both macOS and Linux.
+
+# subst FILE FIND REPLACE — in-place substitution, portable across GNU and BSD sed.
+# The replacement is escaped so '&', '|' and '\' are taken literally. This matters:
+# an unescaped '&' means "the whole match", so a role like "Windows & Remote" would
+# silently expand to "Windows <Primary Role> Remote" instead of replacing it.
+subst() {
+  local f="$1" find="$2" repl="$3" tmp
+  repl=${repl//\\/\\\\}
+  repl=${repl//&/\\&}
+  repl=${repl//|/\\|}
+  tmp="${f}.tmp.$$"
+  sed "s|${find}|${repl}|g" "$f" > "$tmp" && mv "$tmp" "$f"
+}
+
 # ---- Parse args ---- #
 ARG_GROUP=""
 ARG_NAME=""
@@ -53,8 +70,11 @@ echo -e "${BOLD}║         aim.pat — Create New nagent                  ║${
 echo -e "${BOLD}╚══════════════════════════════════════════════════════╝${RESET}"
 echo ""
 
-# Discover groups from nagents/ folder
-mapfile -t GROUP_DIRS < <(find "$NAGENTS_DIR" -mindepth 1 -maxdepth 1 -type d | sort)
+# Discover groups from nagents/ folder  (read loop, not mapfile — bash 3.2 has no mapfile)
+GROUP_DIRS=()
+while IFS= read -r _line; do
+  GROUP_DIRS+=("$_line")
+done < <(find "$NAGENTS_DIR" -mindepth 1 -maxdepth 1 -type d | sort)
 
 if [[ ${#GROUP_DIRS[@]} -eq 0 ]]; then
   echo -e "${RED}No groups found in nagents/. Create a group folder first.${RESET}"
@@ -65,7 +85,7 @@ if [[ -z "$ARG_GROUP" ]]; then
   echo -e "${CYAN}${BOLD}Select a nagent group:${RESET}"
   echo ""
 
-  declare -A GROUP_MAP
+  GROUP_MAP=()   # indexed array — bash 3.2 has no associative arrays
   IDX=1
   for gdir in "${GROUP_DIRS[@]}"; do
     gname=$(basename "$gdir")
@@ -87,7 +107,9 @@ if [[ -z "$ARG_GROUP" ]]; then
   echo ""
   read -rp "  Group number: " CHOICE
 
-  if [[ -z "${GROUP_MAP[$CHOICE]+_}" ]]; then
+  # Validate as a number first: an indexed array would evaluate a non-numeric index
+  # arithmetically (and an empty one is a hard error under `set -u`).
+  if ! [[ "$CHOICE" =~ ^[0-9]+$ ]] || [[ -z "${GROUP_MAP[$CHOICE]+_}" ]]; then
     echo -e "${RED}Invalid choice.${RESET}"
     exit 1
   fi
@@ -116,15 +138,19 @@ echo -e "  ${GREEN}Group:${RESET} $GROUP_NAME"
 #  STEP 2 — ASSIGN NEXT CODE
 # ============================================================
 
-# Collect already-used codes from registry
-mapfile -t USED_CODES < <(grep "^  - code:" "$GROUP_REGISTRY" 2>/dev/null | sed 's/.*"\([0-9]*\)".*/\1/' || true)
+# Collect already-used codes from registry  (read loop, not mapfile — bash 3.2)
+USED_CODES=()
+while IFS= read -r _line; do
+  USED_CODES+=("$_line")
+done < <(grep "^  - code:" "$GROUP_REGISTRY" 2>/dev/null | sed 's/.*"\([0-9]*\)".*/\1/' || true)
 
 # Find next available code 001–255 (3-digit zero-padded decimal)
 NEXT_CODE=""
 for i in $(seq 1 255); do
   DEC=$(printf '%03d' "$i")
   TAKEN=false
-  for used in "${USED_CODES[@]}"; do
+  # ${arr[@]+"${arr[@]}"} — expanding an EMPTY array under `set -u` is fatal in bash 3.2
+  for used in ${USED_CODES[@]+"${USED_CODES[@]}"}; do
     if [[ "$used" == "$DEC" ]]; then
       TAKEN=true
       break
@@ -246,17 +272,17 @@ cp "$TEMPLATE_DIR/agent.yaml" "$AGENT_DIR/"
 TODAY=$(date +"%Y-%m-%d")
 CREATOR=$(whoami)
 
-sed -i "s|<Agent Name>|$AGENT_NAME|g"           "$AGENT_DIR/agent.yaml"
-sed -i "s|<code>|$NEXT_CODE|g"                  "$AGENT_DIR/agent.yaml"
-sed -i "s|<group>|$GROUP_NAME|g"                "$AGENT_DIR/agent.yaml"
-sed -i "s|<Your Name>|$CREATOR|g"               "$AGENT_DIR/agent.yaml"
-sed -i "s|<date>|$TODAY|g"                      "$AGENT_DIR/agent.yaml"
-sed -i "s|<What this agent does>|${AGENT_ROLE//&/\\&}|g" "$AGENT_DIR/agent.yaml"
+subst "$AGENT_DIR/agent.yaml" '<Agent Name>'            "$AGENT_NAME"
+subst "$AGENT_DIR/agent.yaml" '<code>'                  "$NEXT_CODE"
+subst "$AGENT_DIR/agent.yaml" '<group>'                 "$GROUP_NAME"
+subst "$AGENT_DIR/agent.yaml" '<Your Name>'             "$CREATOR"
+subst "$AGENT_DIR/agent.yaml" '<date>'                  "$TODAY"
+subst "$AGENT_DIR/agent.yaml" '<What this agent does>'  "$AGENT_ROLE"
 
-sed -i "s|<Agent Name>|$AGENT_NAME|g"                        "$AGENT_DIR/03-nucleus/CLAUDE.md"
-sed -i "s|<code>|$NEXT_CODE|g"                               "$AGENT_DIR/03-nucleus/CLAUDE.md"
-sed -i "s|<group>|$GROUP_NAME|g"                             "$AGENT_DIR/03-nucleus/CLAUDE.md"
-sed -i "s|<Primary Role>|${AGENT_ROLE//&/\\&}|g"             "$AGENT_DIR/03-nucleus/CLAUDE.md"
+subst "$AGENT_DIR/03-nucleus/CLAUDE.md" '<Agent Name>'   "$AGENT_NAME"
+subst "$AGENT_DIR/03-nucleus/CLAUDE.md" '<code>'         "$NEXT_CODE"
+subst "$AGENT_DIR/03-nucleus/CLAUDE.md" '<group>'        "$GROUP_NAME"
+subst "$AGENT_DIR/03-nucleus/CLAUDE.md" '<Primary Role>' "$AGENT_ROLE"
 
 # ============================================================
 #  STEP 6 — REGISTER AGENT (append to registry.yaml)
@@ -264,23 +290,57 @@ sed -i "s|<Primary Role>|${AGENT_ROLE//&/\\&}|g"             "$AGENT_DIR/03-nucl
 
 echo -e "  Registering $NEXT_CODE in registry..."
 
-# Append to registry list — replace "registry: []" or append to existing list
-if grep -q "^registry: \[\]" "$GROUP_REGISTRY"; then
-  sed -i "s|^registry: \[\]|registry:\n  - code: \"$NEXT_CODE\"\n    name: \"$SLUG\"\n    label: \"$AGENT_NAME\"\n    role: \"$AGENT_ROLE\"\n    path: \"$AGENT_FOLDER\"\n    status: \"active\"\n    created_at: \"$TODAY\"\n    created_by: \"$CREATOR\"|" "$GROUP_REGISTRY"
-else
-  # Append before the pruning comment block at end of file
-  cat >> "$GROUP_REGISTRY" << ENTRY
+# Insert into the registry list.
+#
+# Deliberately plain bash — no sed, no awk. Both have dialect traps here:
+#   * BSD sed rejects "\n" in a replacement, so the original multi-line `sed -i` would
+#     have collapsed the whole entry onto one mangled line.
+#   * BSD awk rejects a literal newline inside a `-v` value ("awk: newline in string"),
+#     so passing the entry through `awk -v` fails on macOS while working on Linux.
+REG_TMP="$GROUP_REGISTRY.tmp.$$"
 
-  - code: "$NEXT_CODE"
-    name: "$SLUG"
-    label: "$AGENT_NAME"
-    role: "$AGENT_ROLE"
-    path: "$AGENT_FOLDER"
-    status: "active"
-    created_at: "$TODAY"
-    created_by: "$CREATOR"
-ENTRY
+reg_emit_entry() {
+  {
+    printf '  - code: "%s"\n'       "$NEXT_CODE"
+    printf '    name: "%s"\n'       "$SLUG"
+    printf '    label: "%s"\n'      "$AGENT_NAME"
+    printf '    role: "%s"\n'       "$AGENT_ROLE"
+    printf '    path: "%s"\n'       "$AGENT_FOLDER"
+    printf '    status: "active"\n'
+    printf '    created_at: "%s"\n' "$TODAY"
+    printf '    created_by: "%s"\n' "$CREATOR"
+  } >> "$REG_TMP"
+}
+
+: > "$REG_TMP"
+REG_INSERTED=false
+
+# `|| [[ -n "$line" ]]` so a final line without a trailing newline is not dropped
+while IFS= read -r line || [[ -n "$line" ]]; do
+  # Case 1: empty registry — turn "registry: []" into a real list holding this entry
+  if [[ "$REG_INSERTED" == false && "${line// /}" == 'registry:[]' ]]; then
+    printf 'registry:\n' >> "$REG_TMP"
+    reg_emit_entry
+    REG_INSERTED=true
+    continue
+  fi
+  # Case 2: existing list — insert BEFORE the trailing "# ---- ... ---- #" block so the
+  # entry stays inside the list instead of being stranded after the comments
+  if [[ "$REG_INSERTED" == false && "$line" == '# ---- '* ]]; then
+    reg_emit_entry
+    printf '\n' >> "$REG_TMP"
+    REG_INSERTED=true
+  fi
+  printf '%s\n' "$line" >> "$REG_TMP"
+done < "$GROUP_REGISTRY"
+
+# Case 3: no marker and no empty-list line — append at end of file
+if [[ "$REG_INSERTED" == false ]]; then
+  printf '\n' >> "$REG_TMP"
+  reg_emit_entry
 fi
+
+mv "$REG_TMP" "$GROUP_REGISTRY"
 
 # ============================================================
 #  DONE
