@@ -348,6 +348,90 @@ memories:
     source: "session-20260716"
     tags: [progress, roadmap, status]
 
+  - id: mem-006
+    type: incident_learning
+    content: >-
+      2026-08-11 SECURITY — THE LEGACY JAVACARD TOOLBOX WRITES KEY MATERIAL IN CLEARTEXT, in TWO
+      places. Found while porting it to Rust. Both files are now gitignored in
+      trp1003.phsm.kms.fe and were never tracked, so nothing is in git history.
+      (1) resources/JavaCardToolbox_TCL/config.txt is the toolbox's ENTIRE key model in cleartext:
+      60 values of >=32 hex chars, 150 of >=16. 19 keysets, 18 distinct key values, each flagged
+      Key_Diversification YES|NO — so it holds BOTH KMC master keys AND already-diversified live
+      card keys. Full inventory with NO values in docs/rust-migration/KEYSET_INVENTORY.md.
+      FOUR NEED HSM CUSTODY: 3DES_KEYSET_ELITT (Div:YES + full entropy = a real KMC MASTER key in
+      a text file, deriving keys for its whole card population), and 3DES_VISA_CERTIF /
+      3DES_IFX_SLC32 / 3DES_VISA_VSDC51 (live diversified card keys). THREE ARE EFFECTIVELY PUBLIC
+      because the value IS an ASCII string: 3DES_THALESBPSTEST, 3DES_SSD, and
+      3DES_BAI_PSE_THALESDISBPSTEST — that last one is the key already recorded as leaked in
+      [[feedback_commit_key_safety]]. The remaining twelve are vendor samples/published defaults
+      and are ENOUGH to golden-vector the whole SCP implementation, so the port is not blocked.
+      (2) WORSE, AND ONGOING: JavaCardToolbox_log.txt records, on EVERY authenticated run, the KMC
+      master key plus all three derived card keys and their diversifiers in cleartext. The copy on
+      MCES2 is dated 2026-08-11 11:43:54 — the same day — against ATR
+      3BFE130000108080318066B0840C016E0183009000, a GP 2.3 card reporting SCP02 option i=55. Its
+      KMC decodes to printable ASCII and matches the THALESDISBPSTEST label, i.e. the known-leaked
+      key is in ACTIVE USE. config.txt was one file to find and destroy; this log REGENERATES on
+      every run, on every workstation that runs the toolbox.
+      WHY IT MATTERS BEYOND HYGIENE: third instance of the same anti-pattern in one day — see also
+      the hardcoded 16-byte card credentials at bpr.cpp
+      apdu_qi_write_central_perso_gnd.cpp:794/:802 (na-005/002 mem-009). It is a pattern in the
+      perso tooling, not an isolated slip.
+      ACTION NEEDED FROM PEOPLE, NOT CODE: inventory every copy of config.txt and every
+      JavaCardToolbox_log.txt across perso workstations; decide rotation vs import for the four
+      Tier-1 keysets; treat cards protected by THALESDISBPSTEST as unprotected. Route via
+      na-003/007 bnprs-grc-kms (ceremony) and na-003/008 bnprs-grc (PCI position).
+      THE RUST PORT IS PART OF THE FIX: jc-toolbox never holds a key value, logs
+      header+length+SW only and never the data field, and the Debug impls on Response/Tlv print
+      lengths not values with tests asserting it.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11 — porting the JavaCard Toolbox"
+    tags: [security, cleartext-keys, config-txt, toolbox-log-regenerates, kmc-master-key,
+           thalesdisbpstest-in-active-use, ascii-string-keys, keyset-inventory, gitignored,
+           needs-key-ceremony, pattern-not-isolated]
+
+  - id: mem-007
+    type: project_context
+    content: >-
+      2026-08-11 JAVACARD TOOLBOX -> RUST: phases 0, 1 and 2 DONE and pushed to ai_dev
+      (trp1003.phsm.kms.fe, commits 2d89501, af0a726, 972fd09). Plan:
+      docs/rust-migration/JAVACARD_TOOLBOX_PLAN.md. GOAL is FULL toolbox functionality in Rust.
+      WHAT THE TOOLBOX IS: GemTCL.dll is a REPLACEABLE Windows-only PC/SC + crypto binding with no
+      card knowledge. The asset is Main.tcl's 24 procs (SCP01/02/03, GET STATUS, CAP load, DELETE,
+      STORE DATA, CPLC/TLV). The v1.1-v1.29 changelog is the acceptance checklist. It is the tool
+      that loads BIXAPP — LoadFile_analysis.txt analyses bixfile3.cap, package AID
+      A000000376424958415050 = "BIXAPP", applet ...5F4B33 = "BIXAPP_K3".
+      CRATES: jc-transport (PC/SC + replay, Transport trait) and jc-toolbox (aid, cap, tlv, cplc,
+      CLI). Both in default-members. Deps minimal for a PCI-adjacent tree: zip with ONLY deflate,
+      hex, pcsc; no clap. 50 tests, clippy clean.
+      DONE: CAP analysis (analyse-cap), BER-TLV, CPLC + platform fingerprinting, ISD GET DATA
+      probing, list-readers, card-info.
+      NEXT: Phase 3 GET STATUS, then Phase 4 SCP02 (then 03/01), Phase 5 write ops with dry-run,
+      Phase 6 applet version/platform ID, Phase 7 Tauri+Svelte.
+      TEST RIG — IMPORTANT CORRECTION: this Mac DOES have a reader. `ACS ACR39U ICC Reader` with a
+      card in it: ATR 3B6E000080318066B0840C016E0183009000, platform GFCX13 (G333), IC serial
+      00001E0A. An earlier system_profiler grep missed it and I wrongly recorded that real-card
+      validation needed Windows cross-compilation. It does not — there is no rustup here (only
+      aarch64-apple-darwin) and no Rust on MCES2, but none of that matters because the card is
+      local. MCES2 (na-003/012) also has OMNIKEY 5422 contact + 5422CL over SSH, though its
+      readers returned ACCESS_DENIED 0x5 to the SSH session (session-scoped access).
+      CARD-LOCK RISK before Phase 4: repeated failed SCP authentication can PERMANENTLY lock a
+      card. Derivation MUST be validated offline against golden vectors first. The vectors exist:
+      JavaCardToolbox_log.txt holds a full real SCP02 exchange — INITIALIZE UPDATE, div data, key
+      version, card challenge, card cryptogram, derived + session keys, host cryptogram, ICV. It is
+      key-bearing, so keep any fixture derived from it OUT of the repo (gitignored) with the test
+      skipping when absent, as the CAP golden test does.
+      GOTCHA WORTH KEEPING: CAP 2.2 changed the Directory to record 12 component sizes (adding
+      Debug); 2.1 records 11. Assuming 11 shifts every later field and presents as an absurd
+      applet count, not a parse error. Decide the count from the Directory's own declared length
+      (31 -> 11, 33 -> 12), never from the header version.
+    created_at: "2026-08-11"
+    confidence: 1.0
+    source: "session-2026-08-11"
+    tags: [javacard-toolbox-port, phases-0-1-2-done, jc-transport, jc-toolbox, bixapp,
+           acs-acr39u-local-reader, no-rustup, card-lock-risk, scp02-vectors-in-log,
+           cap22-directory-12-sizes, next-phase-3]
+
 pruning:
   max_entries: 500
   stale_after_days: 90
