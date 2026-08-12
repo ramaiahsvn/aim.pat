@@ -1,0 +1,22 @@
+task:
+  id: "task-012"
+  subject: "KMS-to-KMS synchronization - needs its own design first"
+  description: >-
+    Vendor A has a whole Synchronization menu for replicating between KMS instances. We have no
+    equivalent and no design for one. Replicating key catalogues between systems raises questions
+    this document cannot answer: what is authoritative on conflict, whether key VALUES ever move or
+    only catalogue metadata, and how an operator sees divergence.
+
+    Needs a design document before any UI, in the same shape as HSM_SESSION_BOUNDARY.md - options,
+    trade-offs, numbered questions.
+  status: pending
+  priority: low
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 10
+  tags: ["vendor-parity", "sync", "design-needed"]
+  notes: >-
+    Do not scaffold UI for this either. The interesting question is whether key values replicate;
+    if they do, it is a key-transport problem wearing a sync costume.

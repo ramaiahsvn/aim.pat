@@ -1,0 +1,25 @@
+task:
+  id: "task-006"
+  subject: "Richer key metadata: index, length, description, last-operation, security level"
+  description: >-
+    Vendor A's key detail pane carries markedly more than ours. Add: key index (their slot number,
+    distinct from version - without it their labels like ISC.TEST.CTX.ZMKE.01 cannot be
+    reproduced), a free-text description, the last-operation date (when the key was last USED, not
+    created), and an advisory security level.
+
+    Key LENGTH should be derived from the algorithm rather than stored - a stored length can
+    disagree with the algorithm, and that disagreement would be silent.
+  status: in_progress
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 5
+  tags: ["vendor-parity", "keys"]
+  notes: >-
+    Domain done and compiling: KeyEntry gained key_index, description, last_operation_date and
+    security_level (all #[serde(default)] so existing catalogs still load), plus a set_key_metadata
+    mutator. STILL TO DO: the Tauri command, the ipc.ts type and binding, the UI fields, derived
+    key length, and wiring last_operation_date so operations actually stamp it. Tests not written
+    yet.
