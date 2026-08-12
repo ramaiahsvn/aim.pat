@@ -1,0 +1,75 @@
+# The largest of the host-API gaps. Raised by na-005/011 bruid-kms after finding that sixteen of
+# the FE's backend methods answer CKR_FUNCTION_NOT_SUPPORTED. This is the one that matters most:
+# it is what stops a week of shipped, tested KMS features from working on the device.
+task:
+  id: "task-007"
+  subject: "Expose wrap/unwrap of a key under a transport key (ZMK/KEK)"
+  description: >-
+    bnprs.h can wrap a key under the LMK (bnprs_wrap_key_with_lmk / bnprs_unwrap_key_with_lmk) but
+    has no call to wrap one under an arbitrary named key. So the FE's real backend answers
+    CKR_FUNCTION_NOT_SUPPORTED for both directions, and everything built on top of it works against
+    the mock and nowhere else:
+
+      * bulk key export to a container, with per-key result reporting
+      * container import, including the per-key selection tree
+      * key translation (rewrap from one wrapping key to another)
+      * and, by extension, any KMS-to-KMS synchronization that moves key values - see
+        trp1003.phsm.kms.fe/docs/rust-migration/KMS_SYNCHRONIZATION.md, where this gap is why
+        option B is not viable
+
+    Two calls, following the biovec convention every other function in bnprs.h uses:
+
+      CK_RV bnprs_wrap_key_under_key(struct biovec *key_label,
+                                     struct biovec *wrapping_key_label,
+                                     struct biovec *wrapped, CK_ULONG *wrapped_len,
+                                     struct biovec *kcv);
+
+      CK_RV bnprs_unwrap_key_under_key(struct biovec *wrapped,
+                                       struct biovec *new_label,
+                                       struct biovec *wrapping_key_label,
+                                       struct biovec *kcv);
+
+    Design points worth settling before writing code:
+
+      1. WHICH MECHANISM. A ZMK wrap in payment practice is 3DES-ECB per 8-byte block for a DES key
+         under a double-length ZMK, which is NOT the same as PKCS#11 CKM_DES3_ECB over the whole
+         key blob. Decide deliberately and write it down, because the counterparty on the other end
+         of an exported container has to use the same one. If both AES and 3DES wrapping keys must
+         be supported, the mechanism has to follow the wrapping key's type, not the wrapped key's.
+
+      2. KCV OUT. Return the wrapped key's KCV, not the wrapping key's. The FE displays it so an
+         operator can confirm the right key came back, and it is the only field that distinguishes a
+         correct unwrap from a plausible-looking wrong one.
+
+      3. CHECK THE WRAPPING KEY'S ROLE. A wrap under something that is not a key-encrypting key
+         should be refused inside the device rather than permitted and audited. The FE already
+         refuses it host-side, but a host-side check is a courtesy, not a control.
+
+      4. NO CLEARTEXT PATH. The point of these two calls is that the key value never exists outside
+         the HSM. If the implementation is tempted to unwrap-to-buffer-then-rewrap, that is the
+         thing this is meant to avoid; do it with C_WrapKey/C_UnwrapKey against key handles.
+  status: pending
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 8
+  tags: ["fm", "host-api", "transport-keys", "abi"]
+  notes: >-
+    Highest priority of the FE-requested host-API tasks (ahead of task-005 token info and task-006
+    component export), because the FE work that depends on it is already written, tested and shipped -
+    it just cannot run on hardware. Nothing new is needed on the FE side beyond adding the two
+    functions to the bindgen allowlist in crates/kms-hsm/build.rs (it is an explicit allowlist, so a
+    new function is invisible until named there), implementing two backend methods, and flipping
+    TransportKeyTransfer to supported in crates/kms-hsm/src/capabilities.rs. The tests there check the
+    capability table against the stubs in real.rs in both directions, so they will fail until the
+    stubs are actually removed - which is the intended behaviour, not an obstacle.
+
+    Until this lands, Key Administration shows an amber "Not available on this HSM" banner on its
+    transfer and translation panels and disables the buttons, so an operator is not misled. That is a
+    mitigation, not a fix.
+
+    If C_WrapKey with a ZMK handle turns out not to be permitted by the token's policy, say so on the
+    task rather than working around it host-side - a host-side workaround here means cleartext key
+    material in host memory, which is the one outcome nobody wants.
