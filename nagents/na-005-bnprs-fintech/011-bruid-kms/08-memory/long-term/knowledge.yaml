@@ -393,44 +393,87 @@ memories:
   - id: mem-007
     type: project_context
     content: >-
-      2026-08-11 JAVACARD TOOLBOX -> RUST: phases 0, 1 and 2 DONE and pushed to ai_dev
-      (trp1003.phsm.kms.fe, commits 2d89501, af0a726, 972fd09). Plan:
-      docs/rust-migration/JAVACARD_TOOLBOX_PLAN.md. GOAL is FULL toolbox functionality in Rust.
-      WHAT THE TOOLBOX IS: GemTCL.dll is a REPLACEABLE Windows-only PC/SC + crypto binding with no
-      card knowledge. The asset is Main.tcl's 24 procs (SCP01/02/03, GET STATUS, CAP load, DELETE,
-      STORE DATA, CPLC/TLV). The v1.1-v1.29 changelog is the acceptance checklist. It is the tool
-      that loads BIXAPP — LoadFile_analysis.txt analyses bixfile3.cap, package AID
-      A000000376424958415050 = "BIXAPP", applet ...5F4B33 = "BIXAPP_K3".
-      CRATES: jc-transport (PC/SC + replay, Transport trait) and jc-toolbox (aid, cap, tlv, cplc,
-      CLI). Both in default-members. Deps minimal for a PCI-adjacent tree: zip with ONLY deflate,
-      hex, pcsc; no clap. 50 tests, clippy clean.
-      DONE: CAP analysis (analyse-cap), BER-TLV, CPLC + platform fingerprinting, ISD GET DATA
-      probing, list-readers, card-info.
-      NEXT: Phase 3 GET STATUS, then Phase 4 SCP02 (then 03/01), Phase 5 write ops with dry-run,
-      Phase 6 applet version/platform ID, Phase 7 Tauri+Svelte.
-      TEST RIG — IMPORTANT CORRECTION: this Mac DOES have a reader. `ACS ACR39U ICC Reader` with a
-      card in it: ATR 3B6E000080318066B0840C016E0183009000, platform GFCX13 (G333), IC serial
-      00001E0A. An earlier system_profiler grep missed it and I wrongly recorded that real-card
-      validation needed Windows cross-compilation. It does not — there is no rustup here (only
-      aarch64-apple-darwin) and no Rust on MCES2, but none of that matters because the card is
-      local. MCES2 (na-003/012) also has OMNIKEY 5422 contact + 5422CL over SSH, though its
-      readers returned ACCESS_DENIED 0x5 to the SSH session (session-scoped access).
-      CARD-LOCK RISK before Phase 4: repeated failed SCP authentication can PERMANENTLY lock a
-      card. Derivation MUST be validated offline against golden vectors first. The vectors exist:
-      JavaCardToolbox_log.txt holds a full real SCP02 exchange — INITIALIZE UPDATE, div data, key
-      version, card challenge, card cryptogram, derived + session keys, host cryptogram, ICV. It is
-      key-bearing, so keep any fixture derived from it OUT of the repo (gitignored) with the test
-      skipping when absent, as the CAP golden test does.
-      GOTCHA WORTH KEEPING: CAP 2.2 changed the Directory to record 12 component sizes (adding
-      Debug); 2.1 records 11. Assuming 11 shifts every later field and presents as an absurd
-      applet count, not a parse error. Decide the count from the Directory's own declared length
-      (31 -> 11, 33 -> 12), never from the header version.
+      2026-08-12 JAVACARD TOOLBOX -> RUST: ALL SEVEN PLANNED PHASES IMPLEMENTED. Feature-complete
+      against the Tcl v1.29 changelog. Pushed to ai_dev in trp1003.phsm.kms.fe:
+      2d89501 (plan+keyset inventory), af0a726 (CAP), 972fd09 (transport+identity),
+      b2ef26d (SCP02 derivation), 72d530b (secure channel + GET STATUS), ba76cad (write plans),
+      3d3fe0b (applet versions), 7a63b81 (Tauri/Svelte UI).
+      Plan and status: docs/rust-migration/JAVACARD_TOOLBOX_PLAN.md.
+      CRATES: jc-transport (Transport trait, PC/SC backend, ReplayTransport) and jc-toolbox
+      (aid, cap, tlv, cplc, scp02, card_content, card_write, applet_version + a CLI binary).
+      Both in default-members. 211 tests, clippy clean, svelte-check clean.
+      CLI: analyse-cap, list-readers, card-info, plan-load.
+      UI: crates/kms-app/src/javacard.rs (thin adapter, no card logic) + ui/src/views/JavaCard.svelte
+      behind the Operator/Admin gate.
+      EVERYTHING IS VERIFIED AGAINST REAL ARTEFACTS, not spec reading: CAP parser vs the Tcl's own
+      LoadFile_analysis golden output; TLV vs a captured SELECT CARD MANAGER response; CPLC vs the
+      live card in the ACS reader on this Mac; SCP02 derivation AND C-MAC chaining byte-exact vs a
+      captured authentication session; GET STATUS vs a real 11-entry registry.
+      TWO DELIBERATE DESIGN DECISIONS worth not undoing by accident:
+      (1) THERE IS NO COMMAND THAT TRANSMITS A DESTRUCTIVE APDU. Write operations exist only as
+      ApduPlans that can be printed and reviewed. Adding an execute path must be a conscious act.
+      (2) The IPC boundary is enforced BY TESTS, not comments: plan_dto_never_carries_a_command_body
+      serialises a real 21-step BIX plan and asserts no step payload (nor a 24-char prefix) appears
+      in the JSON; TagDto reports a byte LENGTH not a value, because several ISD tags return key
+      information templates.
+      WHAT REMAINS IS NOT CODE: (a) executing a plan against a card needs a keyset + KVN for a
+      specific EXPENDABLE card — a wrong KVN burns retry counters toward a permanent lock;
+      (b) the Phase 0 key ceremony ([[mem-006]]) is still outstanding.
     created_at: "2026-08-11"
+    last_accessed: "2026-08-12"
     confidence: 1.0
-    source: "session-2026-08-11"
-    tags: [javacard-toolbox-port, phases-0-1-2-done, jc-transport, jc-toolbox, bixapp,
-           acs-acr39u-local-reader, no-rustup, card-lock-risk, scp02-vectors-in-log,
-           cap22-directory-12-sizes, next-phase-3]
+    source: "sessions 2026-08-11 and 2026-08-12"
+    tags: [javacard-toolbox-port, feature-complete, all-seven-phases, jc-transport, jc-toolbox,
+           kms-app-javacard, verified-against-real-artefacts, no-execute-path-by-design,
+           ipc-boundary-tested, remaining-work-is-not-code]
+
+
+  - id: mem-008
+    type: technical_knowledge
+    content: >-
+      2026-08-12 CARD-PROTOCOL FACTS ESTABLISHED WHILE PORTING, each derived from real data rather
+      than a spec, and each expensive to rediscover. Code: jc-toolbox on ai_dev.
+      SCP02 (option i=55, GP 2.3 card). Card-key diversification is Visa-2 shaped, RECONSTRUCTED
+      by correlating the logged diversifiers against the card's diversification data:
+        left  = 00 00 00 00 || dd[6] dd[7] || F0 || role
+        right = 00 00 00 00 || dd[6] dd[7] || 0F || role      role: ENC=1 MAC=2 DEK=3
+        card key = 3DES_ECB(KMC, left) || 3DES_ECB(KMC, right)
+      Session keys = 3DES_CBC(static key, constant || seq || 12 zero bytes, IV=0) with GP constants
+      0182 S-ENC, 0101 C-MAC, 0181 S-DEK, 0102 R-MAC. INITIALIZE UPDATE response is 28 bytes:
+      [0:10] div data, [10] KVN, [11] SCP id, [12:14] sequence counter, [14:20] card challenge,
+      [20:28] card cryptogram. Card cryptogram = MAC(S-ENC, host_challenge||seq||card_challenge);
+      host cryptogram is the mirror, seq||card_challenge||host_challenge.
+      C-MAC: the MAC covers the command AS IT APPEARS ON THE WIRE — CLA with the secure-messaging
+      bit set and Lc ALREADY increased by 8. MACing the command as handed in yields a
+      plausible-looking MAC the card rejects with no clue why. Option i=55 also single-DES
+      encrypts the chaining value with the C-MAC key before each use.
+      C-MAC uses the RETAIL MAC (ISO 9797-1 alg 3), not the full-3DES MAC used for cryptograms.
+      Confusing the two authenticates nothing.
+      3DES-EDE2 WITH IDENTICAL KEY HALVES degrades to single DES: E(D(E(x))) = E(x). Both MAC
+      constructions then coincide. Not academic — config.txt holds entropy-1 keysets (every byte
+      the same), which therefore give 56-bit strength despite being 16 bytes.
+      CAP: version 2.2 records TWELVE component sizes in the Directory (adding Debug); 2.1 records
+      eleven. Assuming eleven shifts every later field and shows up as an absurd applet count, not
+      a parse error. Decide the count from the Directory's OWN declared length (31 -> 11,
+      33 -> 12), never from the header version. Load File Data Block EXCLUDES Descriptor and Debug.
+      GET STATUS: 84 F2 <P1> <P2> 0A 4F00 <C-MAC>; P1 80=ISD 40=apps+SDs 20=load files
+      10=load files+modules; P2 02 first / 03 next; SW 6310 means more data. Responses are E3
+      templates: 4F AID, 9F70 life cycle, C5 privileges, CE version, 84 module AIDs (several).
+      LIFE-CYCLE BYTES ARE SCOPE-DEPENDENT: 0x07 is SELECTABLE for an application and INITIALIZED
+      for the ISD.
+      Applet version identification matches EXACT then LONGEST PREFIX: 24435181 is "v2.4 contact
+      only" and 24437205 is "v2.4.1", sharing prefix 2443, so a naive prefix match reports a point
+      release as its parent.
+      TOOLING: cipher 0.5 renamed the traits (BlockCipherEncrypt / encrypt_block, not
+      BlockEncryptMut / encrypt_block_mut). CBC is written out by hand in scp02.rs rather than
+      pulling a block-mode crate — the retail MAC needs the same primitive anyway, and it let cbc
+      and ecb be dropped from the dependency list.
+    created_at: "2026-08-12"
+    confidence: 1.0
+    source: "session 2026-08-12 — verified against captured card traffic"
+    tags: [scp02, visa2-diversification, session-keys, c-mac-on-the-wire, retail-mac,
+           degenerate-3des-key, cap22-twelve-sizes, get-status-e3, life-cycle-scope-dependent,
+           applet-version-longest-prefix, cipher-0.5-api]
 
 pruning:
   max_entries: 500
