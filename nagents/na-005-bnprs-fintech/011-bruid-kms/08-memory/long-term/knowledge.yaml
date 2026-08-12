@@ -390,6 +390,28 @@ memories:
            thalesdisbpstest-in-active-use, ascii-string-keys, keyset-inventory, gitignored,
            needs-key-ceremony, pattern-not-isolated]
 
+  - id: mem-009
+    type: project_context
+    content: >-
+      2026-08-12 OWNERSHIP SPLIT. The pHSM BACKEND repo TRP1003/trp1003.phsm.kms - the FM
+      (bnprs/fm), the host shim (bnprs/host) and the public headers (bnprs/include) - now belongs
+      to na-009/016 trp1003-phsm, whose remit is building the FM and deploying it to the physical
+      HSM or the emulator. THIS agent keeps trp1003.phsm.kms.fe: the Rust crates, the Tauri app and
+      the Svelte UI. Do not edit the backend repo; raise ABI needs with trp1003-phsm.
+      THE TWO MEET AT THE C ABI in bnprs/include, and that seam is dangerous: crates/kms-hsm binds
+      it via bindgen over bnprs.h ONLY, with an explicit allowlist in build.rs (not a wildcard), and
+      real.rs is cfg-gated to Linux/Windows. A backend change can therefore be invisible here in
+      three separate ways - declared only in a .cpp so bindgen never sees it, missing from the
+      allowlist, or simply never compiled on a macOS dev host. All three applied to CAVV.
+      WORKED EXAMPLE: BprHsm_Cavv_Generate is declared only in BprHsmHost_Exports.cpp; the
+      header-declared entry point is cavv_generate (biovec-based). generate_cavv now binds the
+      latter, with the 32-digit validation, BCD packing and 3-digit parse split into
+      crates/kms-hsm/src/cavv.rs so they are testable on macOS - real.rs is not.
+    created_at: "2026-08-12"
+    last_accessed: "2026-08-12"
+    access_count: 1
+    confidence: 1.0
+
   - id: mem-007
     type: project_context
     content: >-
