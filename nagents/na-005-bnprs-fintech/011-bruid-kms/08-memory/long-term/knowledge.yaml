@@ -393,32 +393,57 @@ memories:
   - id: mem-007
     type: project_context
     content: >-
-      2026-08-12 JAVACARD TOOLBOX -> RUST: ALL SEVEN PLANNED PHASES IMPLEMENTED. Feature-complete
-      against the Tcl v1.29 changelog. Pushed to ai_dev in trp1003.phsm.kms.fe:
-      2d89501 (plan+keyset inventory), af0a726 (CAP), 972fd09 (transport+identity),
-      b2ef26d (SCP02 derivation), 72d530b (secure channel + GET STATUS), ba76cad (write plans),
-      3d3fe0b (applet versions), 7a63b81 (Tauri/Svelte UI).
+      2026-08-12 JAVACARD TOOLBOX -> RUST: COMPLETE against the Tcl's twelve ToolBox_cmd commands.
+      Pushed to ai_dev in trp1003.phsm.kms.fe. 292 tests, clippy clean, svelte-check clean.
       Plan and status: docs/rust-migration/JAVACARD_TOOLBOX_PLAN.md.
+      READ THIS FIRST — HOW THE EARLIER CLAIM WENT WRONG. An earlier version of this memory said
+      "ALL SEVEN PHASES IMPLEMENTED. Feature-complete against the Tcl v1.29 changelog." That was
+      false. The phase STRUCTURE was complete; items INSIDE phases 4 and 5 had never been built
+      (STORE DATA, GET MEMORY, delete-multiple, multi-package load, SCP03, SCP01). The cause was
+      that completeness was checked against my own plan document rather than against the source.
+      The fix, and the standing rule for this migration: claim coverage only against the twelve
+      ToolBox_cmd values Main.tcl dispatches, each mapped to a function that exists. Do not
+      re-derive completeness from the plan doc.
+      COMMAND -> ENTRY POINT (all verified present): CHANGEKEYSET keyset::plan_change_keyset;
+      DELETE card_write::delete; DELETE_ALL_INST card_write::plan_delete_all_instances;
+      DELETE_MULTIPLE plan_delete_many; GETAPPLETVER applet_version::probe_versions;
+      GETMEMORY card_write::get_memory; GETSTATUS card_content::parse_status_response;
+      GETTAGS cplc::read_card_info; INSTALL card_write::install_for_install;
+      LOAD card_write::load_blocks (+ LoadParameters EF/C6/C7/C8);
+      PLATFORMID cplc::Cplc::platform; SETSTATUS card_write::set_status.
       CRATES: jc-transport (Transport trait, PC/SC backend, ReplayTransport) and jc-toolbox
-      (aid, cap, tlv, cplc, scp02, card_content, card_write, applet_version + a CLI binary).
-      Both in default-members. 211 tests, clippy clean, svelte-check clean.
-      CLI: analyse-cap, list-readers, card-info, plan-load.
+      (aid, cap, tlv, cplc, scp01, scp02, scp03, keyset, card_content, card_write, applet_version
+      + a CLI binary). CLI: analyse-cap, list-readers, card-info, plan-load.
       UI: crates/kms-app/src/javacard.rs (thin adapter, no card logic) + ui/src/views/JavaCard.svelte
       behind the Operator/Admin gate.
-      EVERYTHING IS VERIFIED AGAINST REAL ARTEFACTS, not spec reading: CAP parser vs the Tcl's own
-      LoadFile_analysis golden output; TLV vs a captured SELECT CARD MANAGER response; CPLC vs the
-      live card in the ACS reader on this Mac; SCP02 derivation AND C-MAC chaining byte-exact vs a
-      captured authentication session; GET STATUS vs a real 11-entry registry.
-      TWO DELIBERATE DESIGN DECISIONS worth not undoing by accident:
+      SECURE CHANNELS: SCP01 (3DES, cross-mixed diversifier, full 3DES CBC-MAC, no session DEK),
+      SCP02 (retail MAC, i=55), SCP03 (AES-128/192/256, DoD + EMV-CPS diversification, AES-CMAC
+      pinned to the published NIST SP 800-38B vectors for all three key lengths rather than to the
+      Tcl — if both were wrong the same way a Tcl-only check would have agreed).
+      TWO REAL BUGS IN THE TCL, reproduced as tests rather than ported: (1) MAC_AES_NIST slices a
+      negative range on empty input; (2) CMAC_padding pads to 8 bytes yet Main.tcl:1208 feeds its
+      output to AES_ENC_CBC, so an SCP03 level-2 command whose data length is 8 mod 16 reaches the
+      cipher unaligned. Also: Main.tcl:1747 hands a 24-byte AES-192 keyset to AES_ENC_CBC which
+      zero-pads to 32 — build_aes_keyset_dgi REFUSES AES-192 rather than load a broken keyset.
+      TWO ITEMS ONCE LISTED AS GAPS ARE NOT GAPS: there is no SCP02-with-AES (KeyAlgo appears only
+      in the SCP03 DoD branch; the AES keysets in config.txt are SCP03 keysets), and the Tcl never
+      parses a CAP jar at all (AppletLoading receives pre-extracted hex), so cap.rs already goes
+      beyond the source.
+      THREE DESIGN DECISIONS worth not undoing by accident:
       (1) THERE IS NO COMMAND THAT TRANSMITS A DESTRUCTIVE APDU. Write operations exist only as
       ApduPlans that can be printed and reviewed. Adding an execute path must be a conscious act.
       (2) The IPC boundary is enforced BY TESTS, not comments: plan_dto_never_carries_a_command_body
-      serialises a real 21-step BIX plan and asserts no step payload (nor a 24-char prefix) appears
-      in the JSON; TagDto reports a byte LENGTH not a value, because several ISD tags return key
-      information templates.
+      serialises a real BIX plan and asserts no step payload appears in the JSON; TagDto reports a
+      byte LENGTH not a value, because several ISD tags return key information templates.
+      (3) keyset.rs is the ONLY module that handles key material. Keys arrive and leave in
+      Zeroizing, no key type is printable (enforced by a compile-time Probe, replacing an earlier
+      empty assert_not_debug() that would have passed even if every key type derived Debug), and
+      plan titles name the action and KVN but never the keyset. StoreDataKey_proc by contrast
+      appends every new key, diversified key and KCV in cleartext to JavaCardToolbox_log.txt.
       WHAT REMAINS IS NOT CODE: (a) executing a plan against a card needs a keyset + KVN for a
       specific EXPENDABLE card — a wrong KVN burns retry counters toward a permanent lock;
-      (b) the Phase 0 key ceremony ([[mem-006]]) is still outstanding.
+      (b) the Phase 0 key ceremony ([[mem-006]]) is still outstanding, including the run log that
+      regenerates cleartext keys on every authenticated run on every workstation.
     created_at: "2026-08-11"
     last_accessed: "2026-08-12"
     confidence: 1.0
