@@ -9,7 +9,7 @@ task:
 
     The per-key report is the part that matters. A bulk operation that reports only overall
     success hides partial failure, which for key export is the dangerous case.
-  status: pending
+  status: completed
   priority: medium
   created_at: "2026-08-12"
   assigned_to: null
@@ -18,5 +18,12 @@ task:
   estimated_steps: 5
   tags: ["vendor-parity", "export", "ui"]
   notes: >-
-    Backend largely exists: exportKeys(ids, transportId) and listKeyExports. This is mostly UI plus
-    a result DTO that carries per-key outcomes instead of a single path.
+    Done 2026-08-12. Turned out to be more than UI: export_keys silently skipped asymmetric and
+    value-deleted keys and reported the SELECTION count as the export count, and a single HSM
+    failure aborted the whole batch. Both fixed. It now returns a per-key report and survives one
+    key failing. UI adds per-column filters, a select-all scoped to filtered rows only, a live
+    count, and a report panel that goes red on any failure. Transport picker shows the KCV.
+
+    NOT DONE from the vendor screen: the encryption algorithm / secret format choice (DES-ECB,
+    PKCS-5). Our container format is fixed, so exposing a choice would imply options that do not
+    exist. Worth revisiting only if more than one container format is ever supported.
