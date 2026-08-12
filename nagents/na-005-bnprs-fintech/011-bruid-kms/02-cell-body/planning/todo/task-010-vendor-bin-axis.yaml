@@ -26,6 +26,24 @@ task:
     still appears so it can be told apart from a missing one. UI has a BIN column, filter, editor
     and an opt-in BIN view panel. Six tests.
 
-    REMAINING: key-set grouping under a BIN; the per-key import tree; Owner (task-015 overlaps).
-    Note the vendor UI displays cleartext key values in that import tree - copy the selection
-    model, never that.
+    STEP 3 DONE 2026-08-12 (92f1fe6): per-key container import tree. preview_container returns
+    ContainerPreviewEntry - label, nature, algorithm, KCV tail, and whether the target context
+    already holds the label - guarded on ViewKeys, since inspecting a container is not the same act
+    as importing from it. The type deliberately has NO field for key material, so no downstream DTO
+    can add one; the vendor screen prints the cleartext key value beside its KCV and we took only
+    the selection model. import_container now takes an optional selection and returns per-key
+    outcomes: a label absent from the container is an error (stale preview), an empty selection is
+    refused rather than read as "import everything", and one key failing to unwrap no longer aborts
+    the batch. UI: Inspect button, checkbox tree, All/None, "Import N of M", red report on partial
+    failure, unselected reported separately from failed. Three tests, one asserting the serialised
+    preview contains no wrapped blob.
+
+    Rendering it in the preview harness caught two layout bugs that reading the code would not:
+    app.css `input, select { width: 100% }` made the row checkbox a full-width flex item, and
+    `.xrow strong { width: 60px }` wrapped the report heading. Also added
+    scripts/check-no-key-material.py - the commit gate, previously re-derived by hand, now skipping
+    binaries because a DLL contains 0123456789ABCDEF by chance and a gate that cries wolf gets
+    bypassed.
+
+    REMAINING: key-set grouping under a BIN (Vendor B's Key Set level between ZMK and BIN); Owner
+    (task-015 overlaps).
