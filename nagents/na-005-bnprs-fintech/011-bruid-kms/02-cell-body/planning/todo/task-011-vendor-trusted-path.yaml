@@ -9,15 +9,29 @@ task:
     nothing implies an assurance that does not hold, which is worse for a security feature than an
     absent one. First establish whether our pHSM exposes trusted-path entry at all - ask
     na-005/013 bruid-kms-phsm.
-  status: blocked
+  status: closed_not_applicable
   priority: low
   created_at: "2026-08-12"
   assigned_to: null
-  blocked_by: ["user decision: is a Verifone PIN pad PN 934-000087-001 available on the pHSM?"]
+  blocked_by: []
   blocks: []
   estimated_steps: 3
   tags: ["vendor-parity", "security", "blocked"]
   notes: >-
+    CLOSED 2026-08-12 — NOT APPLICABLE. Owner's answer: no PIN pad, so no feature.
+
+    The platform can do it and the research is recorded below, so this is a decision rather than a
+    dead end: ProtectToolkit supports key-component entry on a directly-attached Verifone PIN pad
+    (CKM_PP_LOAD_SECRET_2), but the pad is a separate orderable part, PN 934-000087-001, and only
+    Thales-distributed pads work. There is no pad on the pHSM, so the assurance a "Use Trusted Path"
+    control would imply cannot hold, and the control must not exist.
+
+    REOPEN THIS, do not rewrite it, if a pad is ever bought. Everything needed is already here: the
+    mechanism, its parameters, the physical constraint (USB directly to the HSM card), the entry
+    format (per byte, 3-digit decimal, ~20s timeout), and the fact that the host API needs a new call
+    because bnprs.h has none. The KMS side is then small.
+
+    ORIGINAL RESEARCH FOLLOWS.
     QUESTION ANSWERED 2026-08-12, from the ProtectToolkit documentation in resources/. The earlier
     "HSM support unknown" is resolved: **the platform supports it.**
 
