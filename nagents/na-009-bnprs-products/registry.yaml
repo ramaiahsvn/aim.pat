@@ -141,14 +141,17 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  # Code 015 was trp1002-cperso until 2026-08-12 — a pure scaffold, never used. Re-used for
+  # trp1006-pramanik by owner decision; an exception to the permanent-code rule, as for 011 and 016.
   - code: "015"
-    name: "trp1002-cperso"
-    label: "trp1002-cperso"
-    role: "TRP cPerso Product Agent — Card Personalization (Instant and Central) (TRP1002)"
-    path: "015-trp1002-cperso"
+    name: "trp1006-pramanik"
+    label: "trp1006-pramanik"
+    role: "TRP Pramanik Product Agent (TRP1006)"
+    path: "015-trp1006-pramanik"
     status: "active"
-    created_at: "2026-05-28"
+    created_at: "2026-08-12"
     created_by: "bnprs"
+    note: "Code 015 re-used. It was trp1002-cperso (created 2026-05-28) until 2026-08-12 — a pure scaffold with one commit, template memory and no tasks, so nothing was lost. NOTE THE SIDE EFFECT: TRP1002 cPerso no longer has an entry in this product catalogue. Its work is unaffected and lives in na-005/008 bruid-dprep, na-005/009 bruid-cperso (owns trp1002.cperso.mces2), na-005/010 bruid-iperso and na-100/003 rnd-cperso; add a fresh code here if the catalogue should still list TRP1002. Nothing is recorded about TRP1006 Pramanik anywhere as of 2026-08-12 — see this agent's 03-nucleus/CLAUDE.md before starting work."
 
   # Code 016 was trp1003-phsm until 2026-08-12. Its pHSM work moved to na-005/013 bruid-kms-phsm and
   # the code was then re-used for bpr2002-talabqi — an owner-authorised exception to the

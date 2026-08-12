@@ -83,7 +83,7 @@
 | 012  | na-009 | bpr0000-bnprs-portal | BPR BNPRS Portal Product Agent — Web-Based Enterprise Portal (BPR0000) | active | 2026-05-28 |
 | 013  | na-009 | bpr1000-utms-crm | BPR uTms-CRM Product Agent — License Management, Clients, Subscriptions (BPR1000) | active | 2026-05-28 |
 | 014  | na-009 | trp1001-sbioids | TRP SbioidS Product Agent — SBI Biometric Identification System (TRP1001) | active | 2026-05-28 |
-| 015  | na-009 | trp1002-cperso | TRP cPerso Product Agent — Card Personalization Instant and Central (TRP1002) | active | 2026-05-28 |
+| 015  | na-009 | trp1006-pramanik | TRP1006 Pramanik product agent — scope not yet defined, nothing recorded about the product. Code re-used 2026-08-12: was trp1002-cperso, an unused scaffold; cPerso work lives in na-005/008,009,010 and na-100/003 | active | 2026-08-12 |
 | 016  | na-009 | bpr2002-talabqi | BPR2002 QiTalab — food-ordering platform (customer/courier mini-apps, Android POS, merchant portal, ops console, backend API; GitLab group 309). Code re-used 2026-08-12: was trp1003-phsm, whose pHSM work moved to na-005/013 bruid-kms-phsm | active | 2026-08-12 |
 | 017  | na-009 | trp1004-bnagent | TRP BNAgent Product Agent — AI Agent Platform aim.pat (TRP1004) | active | 2026-05-28 |
 | 018  | na-009 | trp1005-einvoice | TRP eInvoice Product Agent — Electronic Invoice Management (TRP1005) | active | 2026-05-28 |

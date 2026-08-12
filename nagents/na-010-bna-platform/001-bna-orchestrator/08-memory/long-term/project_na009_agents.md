@@ -27,11 +27,18 @@ Codes 001–011 align with BPR100X suffix (BPR1001→001 ... BPR1011→011).
 | 012  | bpr0000-bnprs-portal | BPR0000 | Web-Based Enterprise Portal (HR, Payroll, Sprints, Expenses, Codebase) |
 | 013  | bpr1000-utms-crm | BPR1000 | License Management, Clients, Subscriptions |
 | 014  | trp1001-sbioids | TRP1001 | SBI Biometric Identification System |
-| 015  | trp1002-cperso | TRP1002 | Card Personalization (Instant and Central) |
+| 015  | trp1006-pramanik | TRP1006 | Pramanik — scope not yet defined (code re-used 2026-08-12) |
 | 016  | bpr2002-talabqi | BPR2002 | QiTalab food-ordering platform (code re-used 2026-08-12) |
 | 017  | trp1004-bnagent | TRP1004 | AI Agent Platform (aim.pat) |
 | 018  | trp1005-einvoice | TRP1005 | Electronic Invoice Management |
 
+> **Code 015 was re-used on 2026-08-12.** It was `trp1002-cperso`, a pure scaffold that was never
+> used, and is now `trp1006-pramanik`. **Nothing is recorded about TRP1006 anywhere** — no GitLab
+> group, no repos, no checkout — so do not route work there until its scope is established. Side
+> effect worth knowing: **TRP1002 cPerso no longer appears in this catalogue.** Its work is unaffected
+> and belongs to na-005/008 bruid-dprep, na-005/009 bruid-cperso, na-005/010 bruid-iperso and
+> na-100/003 rnd-cperso — route cPerso work there, as before.
+>
 > **Code 016 was re-used on 2026-08-12.** It was `trp1003-phsm`; that agent's pHSM work — the
 > Functionality Module, its seven tasks, its DNA (FM build rules, branch policy, signing material, the
 > hard-won cautions, the CAVV precedent checklist) and its long-term memory — was transferred to

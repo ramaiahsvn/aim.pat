@@ -22,7 +22,7 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 | 012        | BPR0000      | BNPRS Portal     | Web-Based Enterprise Portal (HR, Payroll, Sprints, Expenses, Codebase) |
 | 013        | BPR1000      | uTms-CRM         | License Management, Clients, Subscriptions|
 | 014        | TRP1001      | SbioidS          | SBI Biometric Identification System      |
-| 015        | TRP1002      | cPerso           | Card Personalization (Instant and Central)|
+| 015        | TRP1006      | Pramanik         | (scope not yet defined)                  |
 | 016        | BPR2002      | QiTalab          | Food-Ordering Platform                   |
 | 017        | TRP1004      | BNAgent          | AI Agent Platform (aim.pat)              |
 | 018        | TRP1005      | eInvoice         | Electronic Invoice Management            |
@@ -56,7 +56,7 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `012-bpr0000-bnprs-portal/` — BPR0000 BNPRS Portal Web-Based Enterprise Portal product agent
 - `013-bpr1000-utms-crm/` — BPR1000 uTms-CRM License Management, Clients, Subscriptions product agent
 - `014-trp1001-sbioids/` — TRP1001 SbioidS SBI Biometric Identification System product agent
-- `015-trp1002-cperso/` — TRP1002 cPerso Card Personalization (Instant and Central) product agent
+- `015-trp1006-pramanik/` — TRP1006 Pramanik product agent (code re-used 2026-08-12; TRP1002 cPerso work lives in na-005 and na-100, and no longer has a catalogue entry here)
 - `016-bpr2002-talabqi/` — BPR2002 QiTalab Food-Ordering Platform product agent (code re-used 2026-08-12; the former TRP1003 pHSM agent moved to na-005/013 bruid-kms-phsm)
 - `017-trp1004-bnagent/` — TRP1004 BNAgent AI Agent Platform (aim.pat) product agent
 - `018-trp1005-einvoice/` — TRP1005 eInvoice Electronic Invoice Management product agent

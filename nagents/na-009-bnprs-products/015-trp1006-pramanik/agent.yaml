@@ -6,11 +6,11 @@
 # ============================================================
 
 agent:
-  name: "trp1002-cperso"
+  name: "trp1006-pramanik"
   code: "015"
   group: "na-009-bnprs-products"
   version: "1.0.0"
-  description: "TRP cPerso Product Agent — Card Personalization (Instant and Central) (TRP1002)"
+  description: "TRP1006 Pramanik product agent — scope not yet defined; nothing recorded about this product as of 2026-08-12."
   created_by: "bnprs"
   created_at: "2026-05-28"
 
