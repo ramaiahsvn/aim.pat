@@ -15,7 +15,7 @@ task:
     Every piece this needs already exists and is verified: initialize_update_apdu,
     verify_card_cryptogram, host_cryptogram, external_authenticate_apdu and SecureChannel on all
     three protocols.
-  status: pending
+  status: completed
   priority: high
   created_at: "2026-08-12"
   assigned_to: null
@@ -24,8 +24,30 @@ task:
   estimated_steps: 6
   tags: ["scp", "jc-toolbox", "option-a"]
   notes: >-
-    Test it end to end with ReplayTransport against the captured session in
-    tests/fixtures/scp02_vector.txt - it holds the INITIALIZE UPDATE exchange, the EXTERNAL
-    AUTHENTICATE command and five real GET STATUS commands with their C-MACs. The fixture is
-    key-bearing and gitignored, so the test must skip loudly when absent, as the existing golden
-    tests do.
+    DONE 2026-08-12 (c2ee318). crates/jc-toolbox/src/session.rs: session::open drives INITIALIZE
+    UPDATE, derivation, card-cryptogram verification and EXTERNAL AUTHENTICATE, returning one Channel
+    type for all three protocols. Keys come from an injected SessionKeyProvider that receives the
+    card's RAW response, so an HSM implementation parses it inside the device rather than trusting
+    host-parsed fields. Dispatch is on byte 11 of the card's answer, never on the caller's assumption.
+    Wrong-length keys are refused by name and size rather than coerced; omitted keys are named; SCP03
+    refuses the unprotected security level rather than silently upgrading it. Six unit tests plus
+    three end-to-end.
+
+    END TO END, as the task asked: golden_session.rs opens the captured session with a provider that
+    diversifies the fixture KMC, and asserts the EXTERNAL AUTHENTICATE matches the recorded command
+    byte for byte, the channel starts from the recorded ICV, and all five GET STATUS commands wrap to
+    the recorded wire form with the recorded C-MACs. Skips loudly when the fixture is absent. Every
+    failure path also asserts that nothing was transmitted - the card is verified before we
+    authenticate to it.
+
+    TRAP WORTH KNOWING: the wrong-KMC test first flipped kmc[0] ^= 0x01 and verified fine. DES ignores
+    the low bit of every key byte (parity), so two KMCs differing only there derive IDENTICAL card
+    keys. Not a bug - but a KMC comparison that treats parity as significant will report mismatches
+    the cryptography does not see. Relevant to the FM.
+
+    NOTE: Channel has no Debug (it holds session keys), so its tests destructure rather than calling
+    unwrap_err. That is the no-Debug-on-keys invariant working.
+
+    UNBLOCKS task-002. The remaining piece there is the HSM-backed provider, which calls
+    HsmBackend::derive_scp_session - available on the mock today, and on the device once
+    na-009/016 trp1003-phsm task-001 lands (capability ScpSession).
