@@ -13,9 +13,38 @@ task:
   priority: low
   created_at: "2026-08-12"
   assigned_to: null
-  blocked_by: []
+  blocked_by: ["user decision: is a Verifone PIN pad PN 934-000087-001 available on the pHSM?"]
   blocks: []
   estimated_steps: 3
   tags: ["vendor-parity", "security", "blocked"]
   notes: >-
-    Blocked on an HSM capability question, not on effort. Resolve the question before estimating.
+    QUESTION ANSWERED 2026-08-12, from the ProtectToolkit documentation in resources/. The earlier
+    "HSM support unknown" is resolved: **the platform supports it.**
+
+      * PTK-C Programming Guide, ch.4: mechanism CKM_PP_LOAD_SECRET_2 (CKM_PP_LOAD_SECRET is
+        deprecated) - "load a clear key component from a directly attached PIN pad device", with
+        CK_PP_LOAD_SECRET_PARAMS carrying bMaskInput, a conversion type and a timeout. It is a
+        key-generate mechanism, available in FIPS mode.
+      * PTK-C Administration Guide, "Key Entry via PIN Pad" (p.115): requires a compatible Verifone
+        PIN pad connected by USB DIRECTLY TO THE HSM CARD - not to another USB port on the host -
+        plus physical access to the HSM. Components are entered in 3-DIGIT DECIMAL, not hex, one
+        byte at a time, with a ~20 second timeout per byte.
+      * PCIe HSM Installation Guide: the PIN pad is a separate orderable part,
+        PN 934-000087-001, and only Thales-distributed pads work with ProtectServer.
+
+    So this is no longer a research question. It is now (a) a hardware decision and (b) FM work:
+
+      DECISION FOR THE USER: is there a Verifone PIN pad (PN 934-000087-001) on the pHSM, or will
+      one be bought? Without the pad the feature cannot exist at all, and the correct action is to
+      close this task as not-applicable rather than leave it open. With the pad, note the
+      operational constraint: entry is per-byte 3-digit decimal at the HSM itself, so an operator
+      needs a hex-to-decimal table and physical access - it is a ceremony, not a convenience.
+
+      IF YES: the host API needs a call exposing CKM_PP_LOAD_SECRET_2 (bnprs.h has nothing), which
+      makes it na-009/016 trp1003-phsm work, and it belongs with task-006's component work since
+      both are about components. The KMS side is then a ceremony-style flow and a capability entry,
+      both small.
+
+    STILL DO NOT SCAFFOLD THE UI. Everything above is about whether the assurance can hold; a
+    "Use Trusted Path" checkbox that does not reach a pad implies an assurance that does not exist,
+    which is the whole reason this task was written rather than built.
