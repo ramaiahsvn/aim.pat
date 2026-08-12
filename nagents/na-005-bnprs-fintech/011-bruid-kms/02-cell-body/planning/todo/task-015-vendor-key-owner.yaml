@@ -6,7 +6,7 @@ task:
     a free-text owner on each panel in KMS: DES. We record who CREATED a key in the audit trail but
     carry no owner on the key itself, so "whose key is this" needs an audit search rather than a
     glance.
-  status: pending
+  status: completed
   priority: low
   created_at: "2026-08-12"
   assigned_to: null
@@ -15,6 +15,13 @@ task:
   estimated_steps: 3
   tags: ["vendor-parity", "keys"]
   notes: >-
-    Small. Consider whether owner should be a free-text string as the vendors have it, or a
-    reference to a KMS user - the latter is more useful and no harder, but breaks when the person
-    leaves. A string is probably right, with the audit trail carrying the authoritative history.
+    DONE 2026-08-12 (0e2e374). Went with the free-text string, for the reason sketched when the task
+    was written: a reference to a KMS user reads better right up to the day that person leaves, at
+    which point either the reference dangles or deleting a user silently rewrites the ownership of
+    live key material. The audit trail keeps the authoritative history.
+
+    KeyEntry.owner, serde-default, 128 chars, control characters refused because they would corrupt
+    the audit line. An annotation rather than an operation, so it does not touch
+    last_operation_date. A revoked key can still be re-assigned - someone has to remain answerable
+    for a key that was revoked, arguably more than for one that was not. UI: Owner column with
+    click-to-edit and a filter. One test.

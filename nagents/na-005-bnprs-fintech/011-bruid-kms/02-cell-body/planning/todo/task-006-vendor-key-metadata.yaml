@@ -9,7 +9,7 @@ task:
 
     Key LENGTH should be derived from the algorithm rather than stored - a stored length can
     disagree with the algorithm, and that disagreement would be silent.
-  status: in_progress
+  status: completed
   priority: high
   created_at: "2026-08-12"
   assigned_to: null
@@ -23,7 +23,17 @@ task:
     disagree. Security level is advisory and documented as such - nothing refuses an operation
     because of it.
 
-    REMAINING, and the only reason this is not closed: last_operation_date is stored and displayed
-    but nothing stamps it. The mutators that touch a key - set_default, suspend/resume, export,
-    date changes - each need to set it. Small but spread across several call sites, so it is worth
-    doing deliberately rather than as an afterthought.
+    CLOSED 2026-08-12 (0e2e374). The earlier note was wrong on one point: last_operation_date was
+    not "stored and displayed" - it was stored and typed but never rendered anywhere, so it read as
+    permanently empty. Now both stamped and shown.
+
+    The boundary is written on the field itself and is deliberate: an operation is anything that
+    uses the key or changes what it will do (wrapped for export, promoted to or demoted from
+    default, suspended, resumed, revoked, value-deleted, dates changed). Annotations are not
+    operations - description, key index, assurance level, BIN, key set, usage flag, owner all leave
+    it alone, because stamping those turns "when was this key last acted on" into "when did someone
+    last edit its label text". Only keys the HSM actually wrapped are stamped; a refused key was
+    not used. Promoting a version also stamps the one that loses the default, and re-running a
+    promotion that changes nothing stamps nothing. Three tests.
+
+    Rendered as a read-only sub-line under the label rather than a 17th column.
