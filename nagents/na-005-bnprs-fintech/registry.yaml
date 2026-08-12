@@ -125,14 +125,14 @@ registry:
     created_by: "bnprs"
 
   - code: "013"
-    name: "rnd-fintech"
-    label: "rnd-fintech"
-    role: "Fintech Research and Development"
-    path: "013-rnd-fintech"
+    name: "bruid-kms-phsm"
+    label: "bruid-kms-phsm"
+    role: "BRUID KMS — pHSM side"
+    path: "013-bruid-kms-phsm"
     status: "active"
     created_at: "2026-05-27"
     created_by: "bnprs"
-    note: "Formerly code 011; moved to 013 on 2026-07-16 so 011 could be reassigned to bruid-kms (owner-authorised policy exception)."
+    note: "Formerly code 011 (moved to 013 on 2026-07-16 so 011 could go to bruid-kms — owner-authorised policy exception). Renamed from rnd-fintech to bruid-kms-phsm on 2026-08-12; the former agent was never used. SCOPE UNSETTLED: na-009/016 trp1003-phsm already owns FM work — see this agent's 03-nucleus/CLAUDE.md before starting."
 
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Transaction and payment agents

@@ -1,16 +1,14 @@
-# Agent DNA — rnd-fintech
+# bpr.rnd research map
 
-> This is the nucleus. Claude reads this file at the start of every session.
-> Every line here should actively shape how the agent behaves.
-
-## Identity
-
-- **Name**: rnd-fintech
-- **Code**: 013
-- **Group**: na-005-bnprs-fintech
-- **Role**: Fintech Research and Development
-- **Domain**: emv, pin-block, dukpt, key-management, smart-card-perso, globalplatform, apdu, cryptography, pci-dss, fintech-rnd
-- **Version**: 1.0.0
+> Long-term reference, not agent DNA. This was the DNA of `013-rnd-fintech`, which was renamed to
+> `013-bruid-kms-phsm` on 2026-08-12. The identity is gone; the map of what is in `bpr.rnd` is
+> useful and is kept here, because `011 bruid-kms`'s DNA cites it as its key-management research
+> reference and a rename should not silently orphan that pointer.
+>
+> Nothing below has been re-verified since 2026-05-27. Treat it as a guide to where to look in
+> `bpr.rnd`, not as a current statement of fact.
+>
+> **`bpr.rnd` contains UAT and test key material** — the na-010 roster flags it as sensitive.
 
 ## Source Repository
 

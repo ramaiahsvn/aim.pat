@@ -6,11 +6,11 @@
 # ============================================================
 
 agent:
-  name: "rnd-fintech"
+  name: "bruid-kms-phsm"
   code: "013"
   group: "na-005-bnprs-fintech"
   version: "1.0.0"
-  description: "<What this agent does>"
+  description: "BRUID KMS — pHSM side. Scope vs na-009/016 trp1003-phsm not yet settled; see 03-nucleus/CLAUDE.md."
   created_by: "bnprs"
   created_at: "2026-05-27"
 

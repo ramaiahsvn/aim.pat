@@ -129,7 +129,9 @@ Roadmap + feature inventory: `docs/rust-migration/ROADMAP.md` in the repo.
 - HSM / key-ceremony work routes through `kms.bnprs.ai` (na-003/007 bnprs-grc-kms);
   align key hierarchy (BDK/IPEK, TMK/TPK/ZMK/PEK) with that KMS design.
 - Serves BRUID perso agents: **008 bruid-dprep**, **009 bruid-cperso**,
-  **010 bruid-iperso**. Key-management research reference: **013 rnd-fintech** (bpr.rnd).
+  **010 bruid-iperso**. Key-management research reference: the `bpr.rnd` map now lives at
+  `013-bruid-kms-phsm/08-memory/long-term/bpr-rnd-research-map.md` (013 was renamed from
+  `rnd-fintech` on 2026-08-12; the map was preserved rather than deleted).
 - Deliverables → `07-axon-terminals/deliverables/`.
 <!-- Add project-specific conventions here -->
 <!-- Examples: -->
