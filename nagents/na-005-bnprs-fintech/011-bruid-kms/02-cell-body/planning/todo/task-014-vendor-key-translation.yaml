@@ -48,5 +48,5 @@ task:
 
     COMPONENT GENERATION: not built. export_lmk returns only a status code - no out-parameter for
     the component or its KCV - and the alternative is splitting host-side with cleartext in host
-    memory. Raised as na-009/016 trp1003-phsm task-006, which also covers why a generate-mode
+    memory. Raised as na-005/013 bruid-kms-phsm task-006, which also covers why a generate-mode
     master-key ceremony cannot work on hardware today.

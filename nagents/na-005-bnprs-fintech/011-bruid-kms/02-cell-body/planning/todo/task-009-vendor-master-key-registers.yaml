@@ -48,6 +48,6 @@ task:
     card, not the HSM. Six of the seven vendor fields would render as an em dash on every install
     forever, which reads as a device that failed to answer rather than a question we never ask.
     Serial, firmware and most of "device state" are in CK_TOKEN_INFO, which the FM host library owns
-    and should expose: raised as na-009/016 trp1003-phsm task-005. License name/hash, activation
+    and should expose: raised as na-005/013 bruid-kms-phsm task-005. License name/hash, activation
     count and last activation look like ctconf administrative state and may not be reachable by any
     PKCS#11 application at all.

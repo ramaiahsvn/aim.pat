@@ -1,9 +1,9 @@
-# The deliverable that makes the FM work safe. Blocks trp1003-phsm's task-002.
+# The deliverable that makes the FM work safe. Blocks bruid-kms-phsm's task-002.
 task:
   id: "task-003"
   subject: "Export SCP conformance vectors for the FM implementation"
   description: >-
-    na-009/016 trp1003-phsm is implementing the same derivation in FM C. Give it the vectors the
+    na-005/013 bruid-kms-phsm is implementing the same derivation in FM C. Give it the vectors the
     Rust already passes so the firmware can be checked against a known-good oracle before it goes
     near hardware:
 
@@ -52,4 +52,4 @@ task:
     The test now asserts the property (a constant byte-to-byte delta catches all-zeroes, all-FF,
     ascending runs and 00 11 22 33 alike) and names nothing.
 
-    UNBLOCKS na-009/016 trp1003-phsm task-002.
+    UNBLOCKS na-005/013 bruid-kms-phsm task-002.

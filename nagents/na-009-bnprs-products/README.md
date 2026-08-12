@@ -57,7 +57,7 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `013-bpr1000-utms-crm/` — BPR1000 uTms-CRM License Management, Clients, Subscriptions product agent
 - `014-trp1001-sbioids/` — TRP1001 SbioidS SBI Biometric Identification System product agent
 - `015-trp1002-cperso/` — TRP1002 cPerso Card Personalization (Instant and Central) product agent
-- `016-trp1003-phsm/` — TRP1003 pHSM Payment Hardware Security Module product agent
+- `016-trp1003-phsm/` — TRP1003 pHSM Payment Hardware Security Module product agent — RETIRED 2026-08-12, transferred to na-005/013 bruid-kms-phsm
 - `017-trp1004-bnagent/` — TRP1004 BNAgent AI Agent Platform (aim.pat) product agent
 - `018-trp1005-einvoice/` — TRP1005 eInvoice Electronic Invoice Management product agent
 - `019-bpr2001-aandhipe/` — BPR2001 AandhiPe Super-App product agent

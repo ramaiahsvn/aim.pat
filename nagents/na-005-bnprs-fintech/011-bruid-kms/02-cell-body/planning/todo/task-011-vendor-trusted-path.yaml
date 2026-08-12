@@ -8,7 +8,7 @@ task:
     DO NOT add this control until the capability exists. A checkbox that looks live and does
     nothing implies an assurance that does not hold, which is worse for a security feature than an
     absent one. First establish whether our pHSM exposes trusted-path entry at all - ask
-    na-009/016 trp1003-phsm.
+    na-005/013 bruid-kms-phsm.
   status: blocked
   priority: low
   created_at: "2026-08-12"
@@ -41,7 +41,7 @@ task:
       needs a hex-to-decimal table and physical access - it is a ceremony, not a convenience.
 
       IF YES: the host API needs a call exposing CKM_PP_LOAD_SECRET_2 (bnprs.h has nothing), which
-      makes it na-009/016 trp1003-phsm work, and it belongs with task-006's component work since
+      makes it na-005/013 bruid-kms-phsm work, and it belongs with task-006's component work since
       both are about components. The KMS side is then a ceremony-style flow and a capability entry,
       both small.
 

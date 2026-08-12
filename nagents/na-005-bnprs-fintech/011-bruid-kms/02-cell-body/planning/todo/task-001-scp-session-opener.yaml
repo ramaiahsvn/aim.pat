@@ -50,4 +50,4 @@ task:
 
     UNBLOCKS task-002. The remaining piece there is the HSM-backed provider, which calls
     HsmBackend::derive_scp_session - available on the mock today, and on the device once
-    na-009/016 trp1003-phsm task-001 lands (capability ScpSession).
+    na-005/013 bruid-kms-phsm task-001 lands (capability ScpSession).

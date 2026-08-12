@@ -395,9 +395,9 @@ memories:
     content: >-
       2026-08-12 OWNERSHIP SPLIT. The pHSM BACKEND repo TRP1003/trp1003.phsm.kms - the FM
       (bnprs/fm), the host shim (bnprs/host) and the public headers (bnprs/include) - now belongs
-      to na-009/016 trp1003-phsm, whose remit is building the FM and deploying it to the physical
+      to na-005/013 bruid-kms-phsm, whose remit is building the FM and deploying it to the physical
       HSM or the emulator. THIS agent keeps trp1003.phsm.kms.fe: the Rust crates, the Tauri app and
-      the Svelte UI. Do not edit the backend repo; raise ABI needs with trp1003-phsm.
+      the Svelte UI. Do not edit the backend repo; raise ABI needs with bruid-kms-phsm.
       THE TWO MEET AT THE C ABI in bnprs/include, and that seam is dangerous: crates/kms-hsm binds
       it via bindgen over bnprs.h ONLY, with an explicit allowlist in build.rs (not a wildcard), and
       real.rs is cfg-gated to Linux/Windows. A backend change can therefore be invisible here in

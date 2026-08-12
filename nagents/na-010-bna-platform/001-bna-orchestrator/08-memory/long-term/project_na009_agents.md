@@ -28,9 +28,15 @@ Codes 001–011 align with BPR100X suffix (BPR1001→001 ... BPR1011→011).
 | 013  | bpr1000-utms-crm | BPR1000 | License Management, Clients, Subscriptions |
 | 014  | trp1001-sbioids | TRP1001 | SBI Biometric Identification System |
 | 015  | trp1002-cperso | TRP1002 | Card Personalization (Instant and Central) |
-| 016  | trp1003-phsm | TRP1003 | Payment Hardware Security Module |
+| 016  | trp1003-phsm | TRP1003 | Payment Hardware Security Module — **RETIRED 2026-08-12**, transferred to na-005/013 bruid-kms-phsm |
 | 017  | trp1004-bnagent | TRP1004 | AI Agent Platform (aim.pat) |
 | 018  | trp1005-einvoice | TRP1005 | Electronic Invoice Management |
+
+> **016 trp1003-phsm is retired (2026-08-12).** Transferred to `na-005/013 bruid-kms-phsm` by owner
+> decision, so the pHSM firmware has one owner and one task list. Its DNA (FM build rules, branch
+> policy, signing material, the hard-won cautions, the CAVV precedent checklist), its seven tasks and
+> its long-term memory all moved there; the folder was removed. Code 016 is retained and must never be
+> reassigned. **Do not route pHSM or FM work here.**
 | 019  | bpr2001-aandhipe | BPR2001 | Super-App |
 | 020  | aim1001-aim-team | AIM1001 | AI Agent Platform Team |
 | 021  | aim1002-bioi | AIM1002 | Biometric Intelligence |

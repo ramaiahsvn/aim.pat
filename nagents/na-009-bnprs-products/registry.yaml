@@ -155,9 +155,11 @@ registry:
     label: "trp1003-phsm"
     role: "TRP pHSM Product Agent — Payment Hardware Security Module (TRP1003)"
     path: "016-trp1003-phsm"
-    status: "active"
+    status: "retired"
     created_at: "2026-05-28"
     created_by: "bnprs"
+    retired_at: "2026-08-12"
+    note: "Transferred to na-005/013 bruid-kms-phsm on 2026-08-12 by owner decision — one owner for the pHSM firmware and one task list. Its DNA, its seven tasks and its long-term memory moved there; the folder was removed. Code 016 is retained and must never be reassigned (CLAUDE.md: codes are permanent). Successor: nagents/na-005-bnprs-fintech/013-bruid-kms-phsm."
 
   - code: "017"
     name: "trp1004-bnagent"
