@@ -1,6 +1,6 @@
 task:
   id: "task-011"
-  subject: "Trusted Path for password and PIN entry - BLOCKED, do not scaffold"
+  subject: "Trusted Path for password and PIN entry - CLOSED, not applicable (no PIN pad)"
   description: >-
     Vendor A's Change Password dialog offers a Use Trusted Path checkbox: the PIN is entered on the
     HSM's own pinpad rather than the host keyboard, so a compromised host never sees it.
