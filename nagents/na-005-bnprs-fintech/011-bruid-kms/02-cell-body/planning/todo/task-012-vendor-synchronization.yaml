@@ -12,7 +12,7 @@ task:
     replicates keys between HSMs (Token Replication with Trust Management), so this is not a key
     transport problem after all. What it leaves undone is the automation, and that is what to build.
     Read section 4a of that document before starting.
-  status: pending
+  status: in_progress
   priority: medium
   created_at: "2026-08-12"
   assigned_to: null
@@ -55,6 +55,26 @@ task:
       that token will not be automatically transferred... whenever a token is modified, manual
       replication to all participating WLD tokens is mandatory." The platform gives you the transfer
       and none of the automation. Nothing watches for divergence.
+
+    STEP 1 DONE 2026-08-12 (6e4e46f): divergence detection. ReplicationMark stores when replication
+    was recorded, by whom, and every label#vN resident at that moment — labels, not a count or digest,
+    so the report can name what changed. ReplicationStatus reports `added` (here but not on the peers)
+    and `removed` (dropped here, still on the peers). Never-recorded is a THIRD state rather than
+    "diverged": without a baseline we cannot know the HSMs were ever in step, and a false alarm on a
+    single-HSM install is how a warning gets trained out of an operator. A revoked key still has its
+    HSM object so it is not drift; a value-deleted one is. Annotations (BIN, key set, owner,
+    description, index, level) never are — tested, because the tempting implementation is a change
+    counter that fires on any catalogue write. A new key VERSION does diverge, since the version is
+    part of the label the HSM sees.
+
+    New permission RecordReplication, Admin only. The KMS cannot verify ctkmu rt ran, so recording it
+    is an assertion; an Operator able to make it could silence the warning more cheaply than act on
+    it. Seeing drift needs only ViewKeys. UI panel in System & Ops, which also explains why the KMS
+    does not run ctkmu itself. Six tests.
+
+    REMAINING — step 2, the signed metadata bundle. Still waiting on: how many KMS INSTANCES will
+    there be? Several front ends sharing one network HSM through a WLD virtual slot have nothing to
+    synchronize at all, and the bundle would be work for nobody. Ask before building it.
 
     SO THE WORK IS, in order:
       1. DIVERGENCE DETECTION. Record when replication last happened; count catalogue changes since;
