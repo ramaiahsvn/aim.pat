@@ -10,15 +10,22 @@ task:
 
     Do NOT replace the issuer model with the BIN model. Add BIN as a dimension that hangs off an
     issuer's identifiers (task-007), so both views are available over the same keys.
-  status: pending
+  status: in_progress
   priority: medium
   created_at: "2026-08-12"
   assigned_to: null
-  blocked_by: ["task-007"]
+  blocked_by: []
   blocks: []
   estimated_steps: 12
   tags: ["vendor-parity", "bin", "domain", "import"]
   notes: >-
-    Multi-session. Sequence it: BIN entity and issuer link first, then key-set grouping, then the
-    per-key import tree, then Owner. Note the vendor UI displays cleartext key values in that
-    import tree - we must not copy that, only the selection model.
+    STEP 1 DONE 2026-08-12: BIN as a dimension over the existing hierarchy, not a replacement.
+    KeyEntry.bin is validated against the owning issuer's declared identifiers via the key's
+    context, so the BIN view and the context tree always describe the same keys. keys_by_bin
+    returns declared BINs in issuer order plus an unassigned bucket, and an empty declared BIN
+    still appears so it can be told apart from a missing one. UI has a BIN column, filter, editor
+    and an opt-in BIN view panel. Six tests.
+
+    REMAINING: key-set grouping under a BIN; the per-key import tree; Owner (task-015 overlaps).
+    Note the vendor UI displays cleartext key values in that import tree - copy the selection
+    model, never that.
