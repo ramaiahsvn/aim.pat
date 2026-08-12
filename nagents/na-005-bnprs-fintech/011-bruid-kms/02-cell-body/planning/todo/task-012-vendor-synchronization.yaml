@@ -9,14 +9,38 @@ task:
 
     Needs a design document before any UI, in the same shape as HSM_SESSION_BOUNDARY.md - options,
     trade-offs, numbered questions.
-  status: pending
+  status: blocked
   priority: low
   created_at: "2026-08-12"
   assigned_to: null
-  blocked_by: []
+  blocked_by: ["operator answers to KMS_SYNCHRONIZATION.md section 7, questions 1 and 2"]
   blocks: []
   estimated_steps: 10
   tags: ["vendor-parity", "sync", "design-needed"]
   notes: >-
-    Do not scaffold UI for this either. The interesting question is whether key values replicate;
-    if they do, it is a key-transport problem wearing a sync costume.
+    DESIGN DONE 2026-08-12 (4194336): trp1003.phsm.kms.fe/docs/rust-migration/KMS_SYNCHRONIZATION.md.
+    Implementation is BLOCKED on two questions only an operator can answer, both in section 7 of that
+    document: (1) do key values need to move at all, or is knowing-what-should-exist the real
+    requirement; (2) is there a deployment with two HSMs in one LMK domain, or planned.
+
+    The task's own hunch was right and is now the spine of the design: if values replicate it is a
+    key-transport problem wearing a sync costume - specifically it is export_keys + import_container
+    on a schedule, which we have already built, so it must not become a second implementation of that
+    path. And that route is doubly blocked: the pHSM cannot wrap under a transport key at all
+    (capability TransportKeyTransfer), so sync built on it would work only against the mock.
+
+    Three options, recommendation A now / C later / B only on demand:
+      A metadata only - fully buildable today, no cryptographic risk, delivers "do these two systems
+        agree", which is what an operator usually actually wants
+      B values under a shared inter-site transport key - blocked as above
+      C shared LMK domain - wrap_key_with_lmk and unwrap_key_with_lmk ARE implemented on the pHSM, so
+        this is the only value-moving design that works on current hardware. task-009's master-key
+        registers already express the precondition: a shared MKVV is visible evidence two sites are in
+        one domain.
+
+    NOTE for whoever picks this up: no screenshot captured the vendor's Synchronization dialog - only
+    the menu entry between Master Key and Security. The design is from our own model, and the document
+    says so rather than passing itself off as an extraction. If those screens can be captured, revisit
+    before implementing; they may have solved a different problem.
+
+    Still: do not scaffold the UI.
