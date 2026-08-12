@@ -1,0 +1,23 @@
+task:
+  id: "task-002"
+  subject: "Wire GET STATUS and GET MEMORY to the authenticated channel"
+  description: >-
+    Today both reach the card unauthenticated and can only ever collect 6982/6985. Once task-001
+    lands, route them through an opened SecureChannel so they return real data. CHANGEKEYSET stays
+    plan-only and is NOT part of this task.
+
+    Keep the property that currently holds: no command transmits a destructive APDU. Being able to
+    open a channel must not silently become permission to execute a plan - that stays a separate,
+    deliberate act with its own confirmation (question 4 of the boundary doc, still open).
+  status: pending
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: ["task-001"]
+  blocks: []
+  estimated_steps: 5
+  tags: ["scp", "kms-app", "ui"]
+  notes: >-
+    The UI already labels these "needs channel" and explains the 6982/6985 they currently return;
+    those labels and the explanation will need updating when this lands. Audit entries already
+    record both commands, including refusals.

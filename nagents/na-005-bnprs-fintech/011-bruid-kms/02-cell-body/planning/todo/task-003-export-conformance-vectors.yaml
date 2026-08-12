@@ -1,0 +1,29 @@
+# The deliverable that makes the FM work safe. Blocks trp1003-phsm's task-002.
+task:
+  id: "task-003"
+  subject: "Export SCP conformance vectors for the FM implementation"
+  description: >-
+    na-009/016 trp1003-phsm is implementing the same derivation in FM C. Give it the vectors the
+    Rust already passes so the firmware can be checked against a known-good oracle before it goes
+    near hardware:
+
+      - SCP02: KMC, diversification data, expected static card keys, sequence counter, expected
+        session keys - all from the captured real session
+      - SCP03: the NIST SP 800-38B CMAC vectors for AES-128/192/256, plus DoD and EMV-CPS
+        diversification inputs and expected outputs
+      - SCP01: the cross-mixed diversifier and expected session keys
+
+    KEY-BEARING. The SCP02 vector contains a real KMC and real card keys, so it must not be
+    committed anywhere - hand it over the same way config.txt is handled, not through git.
+    Consider generating synthetic-KMC equivalents for the parts that do not need the real one.
+  status: pending
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 4
+  tags: ["scp", "verification", "cross-agent", "key-bearing"]
+  notes: >-
+    This is the mitigation that made Option A defensible: the Rust is the conformance oracle for
+    the C. Without it, the FM is untested firmware on a device holding the LMK.

@@ -1,0 +1,31 @@
+# The four verified SCP modules still have no callers. This is what gives them one.
+task:
+  id: "task-001"
+  subject: "Build the SCP session opener in jc-toolbox"
+  description: >-
+    Add the layer that drives a Transport through a full session open: send INITIALIZE UPDATE,
+    parse the response, obtain session keys, verify the CARD cryptogram, send EXTERNAL
+    AUTHENTICATE, and hand back an open SecureChannel. One entry point covering SCP01/02/03,
+    dispatching on the protocol byte the card reports rather than on what the caller assumed.
+
+    Take the session keys from an injected provider rather than deriving them inline. Under Option
+    A they come from HsmBackend::derive_scp_session; in tests they come from the golden vector.
+    That keeps the HSM boundary swappable and the path testable today.
+
+    Every piece this needs already exists and is verified: initialize_update_apdu,
+    verify_card_cryptogram, host_cryptogram, external_authenticate_apdu and SecureChannel on all
+    three protocols.
+  status: pending
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: ["task-002"]
+  estimated_steps: 6
+  tags: ["scp", "jc-toolbox", "option-a"]
+  notes: >-
+    Test it end to end with ReplayTransport against the captured session in
+    tests/fixtures/scp02_vector.txt - it holds the INITIALIZE UPDATE exchange, the EXTERNAL
+    AUTHENTICATE command and five real GET STATUS commands with their C-MACs. The fixture is
+    key-bearing and gitignored, so the test must skip loudly when absent, as the existing golden
+    tests do.

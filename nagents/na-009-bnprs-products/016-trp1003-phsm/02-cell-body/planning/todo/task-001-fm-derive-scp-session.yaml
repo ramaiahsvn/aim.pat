@@ -1,0 +1,38 @@
+# Option A, HSM half. This is the task that unblocks the whole SCP path.
+task:
+  id: "task-001"
+  subject: "Implement FMCMD_DERIVE_SCP_SESSION in the FM"
+  description: >-
+    Add the FM command that Option A needs (decision recorded 2026-08-12 in
+    trp1003.phsm.kms.fe/docs/rust-migration/HSM_SESSION_BOUNDARY.md). It takes a keyset label,
+    the SCP protocol, the diversification scheme, the card's raw INITIALIZE UPDATE response and
+    the host challenge; inside the HSM it diversifies the KMC into the three static card keys and
+    derives the SCP session keys; it returns ONLY the session keys. The KMC and the static
+    per-card keys must never leave the device - that is the entire point of the option chosen.
+
+    Follow the CAVV precedent exactly rather than inventing a pattern (fm_cavv.c, merged as
+    eaba3f34): append an entry to enum fm_cmd in bnprs/include/fmhost.h (append only - the enum is
+    a uint16 with no version negotiation, so renumbering silently breaks a host built against the
+    old header), implement it in bnprs/fm/, register it in fm_main.c, declare it in fmfunc.h, add
+    a host-side dispatcher stub in bnprs/host/, export it, declare the internal entry point in
+    bnprs/include/bnprs.h, and add a host_test.c case.
+
+    Reuse FM_DES3_Encrypt and FM_AES_Encrypt - they already take an arbitrary key and mode, so
+    3DES-ECB for SCP01 session keys, 3DES-CBC for SCP02, retail MAC chains and AES-CMAC over
+    AES-ECB are all constructible without new primitives.
+
+    Base the work on bp_dev, NOT master - master's bnprs/fm is roughly a year stale.
+  status: pending
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: ["task-002", "task-003"]
+  estimated_steps: 8
+  tags: ["fm", "scp", "option-a", "hsm"]
+  notes: >-
+    The frontend side is already built and waiting: HsmBackend::derive_scp_session exists with
+    ScpProtocol / DivScheme / ScpSessionKeys, and real.rs currently returns "not supported" for it.
+    Match that shape so the two meet cleanly. Tell na-005/011 bruid-kms as soon as the ABI lands -
+    it binds bnprs.h via bindgen with an EXPLICIT allowlist in build.rs, so a new function is
+    invisible to Rust until it is both header-declared and allowlisted.

@@ -1,0 +1,21 @@
+task:
+  id: "task-003"
+  subject: "Sign the FM and deploy it to the physical HSM"
+  description: >-
+    Build for the device (`make`, obj-ppcfm), sign with MKFM, and deploy. Confirm FIRST which of
+    the fm / fm1 / fm2 key pairs on token <Slot0>:FM_Slot is the production signer and who holds
+    it - all three are present with X.509 certificates, and picking the wrong one is a wasted
+    deployment cycle.
+  status: pending
+  priority: medium
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: ["task-002"]
+  blocks: []
+  estimated_steps: 5
+  tags: ["fm", "signing", "deployment", "hsm"]
+  notes: >-
+    The SDK states plainly that bad FM code can make the HSM unusable, and this HSM holds the LMK.
+    Do not deploy anything that has not passed task-002. Have a recovery plan before starting.
+    Note also: FM SDK >=5.4 will not load into firmware 5.00.xx, and downgrading firmware deletes
+    FMs built with it.

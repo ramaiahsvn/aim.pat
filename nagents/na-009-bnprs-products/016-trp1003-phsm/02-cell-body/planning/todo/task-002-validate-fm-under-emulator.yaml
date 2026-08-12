@@ -1,0 +1,22 @@
+task:
+  id: "task-002"
+  subject: "Validate the new FM command under EMUL=1 against the Rust conformance vectors"
+  description: >-
+    Build with `make EMUL=1` and check the derivation against known-good vectors BEFORE any
+    hardware is touched. bruid-kms is exporting those vectors (its task-003): SCP02 derivation
+    verified byte-exact against a captured real card session, and SCP03 CMAC pinned to the
+    published NIST SP 800-38B vectors for all three AES key lengths.
+
+    This is the mitigation that makes Option A safe. The Rust implementation is the conformance
+    oracle; the FM must agree with it digit for digit before it goes near the device.
+  status: pending
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: ["task-001"]
+  blocks: ["task-003"]
+  estimated_steps: 4
+  tags: ["fm", "emulator", "verification"]
+  notes: >-
+    A wrong session key does not produce a wrong number - it produces a failed EXTERNAL
+    AUTHENTICATE, and cards lock permanently after a few of those. Emulator first, always.
