@@ -20,3 +20,18 @@ task:
   notes: >-
     A wrong session key does not produce a wrong number - it produces a failed EXTERNAL
     AUTHENTICATE, and cards lock permanently after a few of those. Emulator first, always.
+
+    VECTORS ARE READY 2026-08-12 (bruid-kms task-003, commit fb72645 in trp1003.phsm.kms.fe):
+    crates/jc-toolbox/vectors/scp-conformance-vectors.json - 12 AES-CMAC cases from NIST SP 800-38B
+    and 8 derivation cases covering SCP02, SCP01 and SCP03 over AES-128/192/256 by DoD and EMV-CPS,
+    each with an implementer note naming the traps. Every KMC in that file is synthetic, so it is
+    committed and can be copied freely into this repo's test tree.
+
+    The captured real-card session is NOT in git. Produce it with
+    `cargo run -p jc-toolbox --bin scp-vectors -- --real --out <path outside the repo>` on a host that
+    has crates/jc-toolbox/tests/fixtures/scp02_vector.txt, and move it the way config.txt is moved.
+    The exporter refuses to write it inside the repository.
+
+    Check the FM against the synthetic suite FIRST. If the algorithm is right, the real session adds
+    nothing but confirmation; if it is wrong, finding out with a synthetic key costs nothing, whereas
+    a wrong derivation against a real card is a locked card after a few tries.

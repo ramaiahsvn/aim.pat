@@ -16,7 +16,7 @@ task:
     KEY-BEARING. The SCP02 vector contains a real KMC and real card keys, so it must not be
     committed anywhere - hand it over the same way config.txt is handled, not through git.
     Consider generating synthetic-KMC equivalents for the parts that do not need the real one.
-  status: pending
+  status: completed
   priority: high
   created_at: "2026-08-12"
   assigned_to: null
@@ -25,5 +25,31 @@ task:
   estimated_steps: 4
   tags: ["scp", "verification", "cross-agent", "key-bearing"]
   notes: >-
-    This is the mitigation that made Option A defensible: the Rust is the conformance oracle for
-    the C. Without it, the FM is untested firmware on a device holding the LMK.
+    DONE 2026-08-12 (fb72645). This is the mitigation that made Option A defensible: the Rust is the
+    conformance oracle for the C. Without it, the FM is untested firmware on a device holding the LMK.
+
+    ARTEFACT: crates/jc-toolbox/vectors/scp-conformance-vectors.json, committed and safe to commit
+    because every KMC in it is synthetic. 12 AES-CMAC cases from NIST SP 800-38B plus 8 derivation
+    cases - SCP02, SCP01, and SCP03 across AES-128/192/256 by DoD and EMV-CPS. Each derivation carries
+    an implementer note naming the traps: SCP02's DEK constant 0181 (not 0182), EMV-CPS's DEK constant
+    05 (not 07), the DoD PRF's inverted field order, SCP01's cross-mixed challenge halves. The CMAC
+    cases are quoted from NIST, not computed by us, and the generator asserts we match them before
+    exporting - two implementations that misread the same Tcl line agree and are both wrong.
+
+    THE REAL SESSION stays out of git, as the task required: `cargo run -p jc-toolbox --bin
+    scp-vectors -- --real --out <path outside the repo>` produces it, and the exporter REFUSES an
+    in-repo destination rather than warning. It also refuses --real without --out so it cannot land
+    in a build log. Hand it over the way config.txt is handed over.
+
+    The task's suggestion to use synthetic KMCs where the real one is not needed turned out to cover
+    everything: nothing in the committed artefact needs the captured KMC, because what the FM must
+    match is the algorithm, not one card's keys.
+
+    NOTE, and it is a good illustration of why the commit gate gates: the gate REJECTED this file on
+    the first attempt. A test asserting "the synthetic keys are not well-known placeholder patterns"
+    had listed five such patterns as hex literals - and three of them are real ENC_Key/MAC_Key values
+    in config.txt, so writing them down in order to forbid them would have put key material in git.
+    The test now asserts the property (a constant byte-to-byte delta catches all-zeroes, all-FF,
+    ascending runs and 00 11 22 33 alike) and names nothing.
+
+    UNBLOCKS na-009/016 trp1003-phsm task-002.
