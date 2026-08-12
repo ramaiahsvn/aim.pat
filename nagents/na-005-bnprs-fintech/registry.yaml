@@ -116,10 +116,10 @@ registry:
     note: "Code 011 reassigned from rnd-fintech (moved to 013) on 2026-07-16 — owner-authorised policy exception to the permanent-code rule."
 
   - code: "012"
-    name: "bpr1003-mpos-libs-usage"
-    label: "bpr1003-mpos-libs-usage"
+    name: "mpos-libs-usage"
+    label: "mpos-libs-usage"
     role: "BPR1003 mPOS C++ Libraries"
-    path: "012-bpr1003-mpos-libs-usage"
+    path: "012-mpos-libs-usage"
     status: "active"
     created_at: "2026-05-28"
     created_by: "bnprs"

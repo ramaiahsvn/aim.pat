@@ -59,7 +59,7 @@
 | 010  | na-005 | bruid-iperso | BRUID Instant Issuance Solution (branch counter, remote kms.bnprs.ai auth) | active | 2026-05-27 |
 | 011  | na-005 | bruid-kms | BRUID Key Management System (HSM key hierarchy, TMK/TPK/ZMK/PEK, key ceremony/injection/rotation, KCV) — code reassigned from rnd-fintech on 2026-07-16 | active | 2026-07-16 |
 | 013  | na-005 | rnd-fintech | Fintech Research and Development (EMV, DUKPT, CPS, BRUID, biometric templates) — moved from 011 on 2026-07-16 | active | 2026-05-27 |
-| 012  | na-005 | bpr1003-mpos-libs-usage | BPR1003 mPOS C++ Libraries — PatPOS client-side libs (Android/Linux); migrating qiemv→BprPcSc path across 6 device modules | active | 2026-05-28 |
+| 012  | na-005 | mpos-libs-usage | BPR1003 mPOS C++ Libraries — PatPOS client-side libs (Android/Linux); migrating qiemv→BprPcSc path across 6 device modules | active | 2026-05-28 |
 | 001  | na-006 | bpr1002-mgate-prod | BPR M-Gate Production (API/Mobile Gateway) | active | 2026-05-27 |
 | 002  | na-006 | bpr1004-utms-prod | BPR UTMS Production (Unified Transaction Management System) | active | 2026-05-27 |
 | 003  | na-006 | bpr1000-license-prod | BPR License Server Production | active | 2026-05-27 |
