@@ -9,7 +9,7 @@ task:
     Keep the property that currently holds: no command transmits a destructive APDU. Being able to
     open a channel must not silently become permission to execute a plan - that stays a separate,
     deliberate act with its own confirmation (question 4 of the boundary doc, still open).
-  status: pending
+  status: completed
   priority: high
   created_at: "2026-08-12"
   assigned_to: null
@@ -18,6 +18,38 @@ task:
   estimated_steps: 5
   tags: ["scp", "kms-app", "ui"]
   notes: >-
+    DONE 2026-08-12 (f10c6bb). Both commands now take an optional keyset and run inside a channel
+    whose session keys are derived in the HSM.
+
+    crates/kms-app/src/scp_session.rs is the host half of Option A: HsmSessionProvider forwards to
+    HsmBackend::derive_scp_session, passing the RAW INITIALIZE UPDATE response so the HSM reads the
+    diversification data, key version and protocol itself rather than trusting the host. The host
+    challenge is 8 bytes of OS entropy per open (getrandom, a new direct dependency) and fails loudly
+    rather than falling back — the card mixes it into its cryptogram, so a predictable challenge
+    weakens the card's half of the mutual authentication.
+
+    Capability-gated BEFORE INITIALIZE UPDATE is sent, because discovering it mid-exchange would
+    already have moved the card's sequence counter. Security level is C-MAC only: neither command
+    carries confidential data, and with C-MAC alone a wrong session key fails the MAC and the card
+    says so, which is diagnosable rather than garbled. The diversification scheme comes from the
+    catalogue entry (ALGO + Key_Diversification), not the operator.
+
+    THE PROPERTY WAS KEPT: GET MEMORY still refuses a destructive step, and a test now asserts the
+    guard is present in the code path rather than merely intended. Being able to authenticate did not
+    become permission to write.
+
+    Both commands report a ChannelInfoDto (authenticated, the protocol the CARD reported, the keyset)
+    and the audit line records it — "GET STATUS returned 9000" means something different inside a
+    channel than outside one. The UI labels and the 6982/6985 explanation were updated as this note
+    predicted they would need to be: the action description now says what will happen before Run.
+
+    ON HARDWARE this needs na-005/013 bruid-kms-phsm task-001 (FMCMD_DERIVE_SCP_SESSION). Until then
+    the ScpSession capability reports unsupported and the JavaCard view says so beside the keyset
+    picker, so the commands run unauthenticated rather than failing confusingly. Works end to end
+    against the mock today.
+
+    ORIGINAL NOTE FOLLOWS.
+
     READY TO START. task-001 completed 2026-08-12: jc_toolbox::session::open drives INITIALIZE UPDATE,
     derivation, card verification and EXTERNAL AUTHENTICATE, and returns one Channel for all three
     protocols. Use it with an HSM-backed SessionKeyProvider that calls
