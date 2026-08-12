@@ -1,0 +1,25 @@
+task:
+  id: "task-014"
+  subject: "Key translation and explicit LMK/ZMK wrapping choice"
+  description: >-
+    Vendor B's KMS: DES has a Key Translation tab - rewrap a key from one wrapping key to another
+    in place. We can export a key under a transport key, but not translate it, so moving a key
+    between wrapping keys today means export and re-import.
+
+    The same screen also makes the wrapping key an explicit choice at the point of the operation
+    (LMK or ZMK radio) rather than implicit in which command was called.
+
+    Also from that screen and cheap: component GENERATION for distribution (GenComp with a
+    component count). We can load components by parts but cannot produce them.
+  status: pending
+  priority: medium
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 7
+  tags: ["vendor-parity", "keys", "hsm"]
+  notes: >-
+    Check what the pHSM host API actually supports before designing this - bnprs_wrap_key_with_lmk
+    and bnprs_unwrap_key_with_lmk exist, but translation between arbitrary wrapping keys may need
+    an FM change, which would make it na-009/016 trp1003-phsm work as well.

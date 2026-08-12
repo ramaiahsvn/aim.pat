@@ -1,0 +1,20 @@
+task:
+  id: "task-015"
+  subject: "Key Owner attribution"
+  description: >-
+    Both Vendor B screens show an Owner against key material - an email on the ZMK in BINManager,
+    a free-text owner on each panel in KMS: DES. We record who CREATED a key in the audit trail but
+    carry no owner on the key itself, so "whose key is this" needs an audit search rather than a
+    glance.
+  status: pending
+  priority: low
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 3
+  tags: ["vendor-parity", "keys"]
+  notes: >-
+    Small. Consider whether owner should be a free-text string as the vendors have it, or a
+    reference to a KMS user - the latter is more useful and no harder, but breaks when the person
+    leaves. A string is probably right, with the audit trail carrying the authoritative history.

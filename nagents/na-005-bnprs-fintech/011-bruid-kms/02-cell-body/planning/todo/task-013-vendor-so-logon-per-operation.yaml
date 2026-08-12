@@ -1,0 +1,26 @@
+task:
+  id: "task-013"
+  subject: "Security Officer re-authentication at the point of a sensitive operation"
+  description: >-
+    Vendor B (KMS: DES) prompts for a Security Officer logon at the moment of a sensitive act -
+    injecting a ZMK, updating the LMK - rather than relying on the session login alone.
+
+    This is worth taking. Our current model authenticates once and then trusts the session until
+    the idle timeout; a walked-away workstation can inject a ZMK. Re-authentication binds the
+    authority to the act instead of to the session, and it composes with the existing role model
+    rather than replacing it.
+
+    Scope it to genuinely destructive key operations, not everything - a prompt on every action
+    trains people to type their password reflexively, which is worse than no prompt.
+  status: pending
+  priority: high
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 6
+  tags: ["vendor-parity", "security", "auth"]
+  notes: >-
+    Do not build this as a UI-only confirmation. It must actually re-verify the credential against
+    the HSM, or it is theatre. Decide the operation list deliberately: LMK/ZMK injection, keyset
+    change, key value deletion and revoke are candidates; listing and export probably are not.

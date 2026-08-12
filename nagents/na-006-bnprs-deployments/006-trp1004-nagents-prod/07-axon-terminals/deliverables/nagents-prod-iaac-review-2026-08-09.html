@@ -1,0 +1,190 @@
+<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:#222;max-width:620px;margin:0 auto;padding:24px;">
+
+  <p>Hi team,</p>
+
+  <p>
+    Thanks for the Keycloak work and for the note on Route&nbsp;53. I reviewed the prod stack on
+    <code>bp_rel</code> today. Two separate things came out of it: <strong>the Keycloak code itself is
+    sound</strong>, but the review turned up an unrelated <strong>merge regression that had broken every
+    ECS stack in the repo</strong>. I have already fixed the regression — details below so you can check
+    my work.
+  </p>
+
+  <h3 style="font-size:16px;margin:24px 0 8px;color:#2D4A3E;">1. Merge regression — fixed, please review</h3>
+
+  <p>
+    Merge <code>6de1cde</code> (&ldquo;Merge origin/bp_rel into bp_dev_conflict_fix&rdquo;) silently
+    truncated <code>nagents-platform/modules/ecs/service/main.tf</code> from <strong>197 lines to
+    58</strong>. These resources were deleted from the module:
+  </p>
+
+  <p style="font-size:14px;background:#f6f8fa;border-left:3px solid #d0d7de;padding:10px 14px;margin:12px 0;">
+    <code>aws_ecs_service.this</code>, <code>aws_security_group.task</code>,
+    <code>aws_security_group_rule.from_alb</code>, <code>aws_cloudwatch_log_group.task</code>,
+    <code>aws_appautoscaling_target.ecs</code>, <code>aws_appautoscaling_policy.ecs_cpu</code>,
+    <code>data.aws_region.current</code>, <code>locals</code>
+  </p>
+
+  <p>
+    Only <code>aws_ecs_task_definition.this</code> survived. The same merge also declared
+    <code>variable&nbsp;"command"</code> twice. Because <code>outputs.tf</code> still referenced the
+    deleted resources, <code>terraform validate</code> failed with 6 errors on <strong>all 9 stacks</strong>
+    that use the module &mdash; including the live <code>erp-hr-service/prod</code> and
+    <code>projects-backend/prod</code>. No conflict markers were left behind, which is why it passed review.
+  </p>
+
+  <p>
+    Nothing could plan, so nothing was destroyed. But there was a real trap: &ldquo;fixing&rdquo; this by
+    deleting the dangling references in <code>outputs.tf</code> instead of restoring <code>main.tf</code>
+    would have made the next apply plan a <strong>destroy of the live ECS services, log groups, security
+    groups and autoscaling</strong>. Please don't take that route if you hit it again.
+  </p>
+
+  <p>
+    <strong>Fix:</strong> restored the whole module directory from <code>origin/nagents_prod</code>.
+    Pardhiv's branch was always clean (197 lines, one <code>command</code> variable), and it is
+    byte-identical per file to <code>331eccb</code> &mdash; the last intact commit, and the version the
+    live prod services were deployed from. So the restore introduces <strong>no drift by
+    construction</strong>. Commit <code>de4b4aa</code>, now on both <code>bp_rel</code> and
+    <code>bp_dev</code> (<code>bp_dev</code> was an ancestor, so a fast-forward resynced them). All 9
+    stacks validate again.
+  </p>
+
+  <p>
+    Two asks: someone with the service <code>terraform.tfvars</code> should run a confirming
+    <code>plan</code> on <code>erp-hr-service/prod</code> and <code>projects-backend/prod</code> &mdash; I
+    could not, as those files hold secrets I don't have. And going forward, please
+    <code>terraform validate</code> <em>every</em> consumer of a shared module after a conflict
+    resolution, not just the stack being worked on. That is the only reason this surfaced.
+  </p>
+
+  <h3 style="font-size:16px;margin:24px 0 8px;color:#2D4A3E;">2. Route&nbsp;53 &mdash; agreed</h3>
+
+  <p>
+    Keeping the record commented out until the FQDN is confirmed is the right call, and the guard comment
+    about never uncommenting with an empty <code>name</code> is a good catch. One constraint for when you
+    choose it: the ALB cert is <code>*.prod.itpgateway.com</code>, which covers exactly
+    <strong>one</strong> label. So <code>accounts.prod.itpgateway.com</code> works; anything deeper such as
+    <code>kc.accounts.prod.itpgateway.com</code> needs a new certificate.
+    <code>KC_HOSTNAME</code>, <code>host_header_values</code> and the A record must all be that same name.
+  </p>
+
+  <h3 style="font-size:16px;margin:24px 0 8px;color:#2D4A3E;">3. Keycloak &mdash; changes before apply</h3>
+
+  <p>
+    The stack validates cleanly and every platform remote-state output it consumes exists. Listener
+    priority 500 is free on both&nbsp;:80 and&nbsp;:443, the <code>to_rds</code> SG rule won't clobber the
+    platform's rules, and dropping the tracked <code>terraform.tfvars</code> was the right move. Five
+    things I'd change first:
+  </p>
+
+  <table style="font-size:14px;border-collapse:collapse;width:100%;margin:12px 0;">
+    <tr style="background:#f6f8fa;">
+      <th align="left" style="padding:8px;border:1px solid #d0d7de;width:30px;">#</th>
+      <th align="left" style="padding:8px;border:1px solid #d0d7de;">Issue</th>
+    </tr>
+    <tr>
+      <td style="padding:8px;border:1px solid #d0d7de;vertical-align:top;">1</td>
+      <td style="padding:8px;border:1px solid #d0d7de;">
+        <strong>Apply will fail as-is.</strong> <code>host_header_values</code> defaults to <code>[]</code>,
+        so the <code>dynamic "condition"</code> emits nothing &mdash; and an ALB listener rule must have at
+        least one condition. Set it together with <code>keycloak_hostname</code>.
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px;border:1px solid #d0d7de;vertical-align:top;">2</td>
+      <td style="padding:8px;border:1px solid #d0d7de;">
+        <strong>Don't run Keycloak as the RDS master user.</strong> <code>db_username</code> defaults to
+        <code>nagents_admin</code>, the Postgres superuser, and its password is copied into a second secret.
+        Rotating the master password will silently break Keycloak &mdash; which is exactly what already
+        happened on utms (<code>utms/prod/keycloak</code> holds an invalid bootstrap password today).
+        Please create a dedicated <code>keycloak</code> role owning only the <code>keycloak</code> schema.
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px;border:1px solid #d0d7de;vertical-align:top;">3</td>
+      <td style="padding:8px;border:1px solid #d0d7de;">
+        <strong>Deprecated bootstrap vars.</strong> <code>KEYCLOAK_ADMIN</code> /
+        <code>KEYCLOAK_ADMIN_PASSWORD</code> were renamed to <code>KC_BOOTSTRAP_ADMIN_USERNAME</code> /
+        <code>KC_BOOTSTRAP_ADMIN_PASSWORD</code> in Keycloak&nbsp;26. They still work on 26.4.7 but warn,
+        and only take effect on first boot against an empty database.
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px;border:1px solid #d0d7de;vertical-align:top;">4</td>
+      <td style="padding:8px;border:1px solid #d0d7de;">
+        <strong>First boot will likely crash-loop.</strong> <code>command = ["start"]</code> without
+        <code>--optimized</code> re-runs Quarkus augmentation on every task start, and the
+        <code>ecs/service</code> module has no <code>health_check_grace_period_seconds</code>. The target
+        group kills a task after 3&nbsp;&times;&nbsp;30s = 90s. Add a grace period (~300s) to the module, or
+        ship a prebuilt image with <code>--optimized</code>. This looks like what drove
+        <code>5b39824</code>.
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px;border:1px solid #d0d7de;vertical-align:top;">5</td>
+      <td style="padding:8px;border:1px solid #d0d7de;">
+        <strong><code>KC_FEATURES = "scripts"</code></strong> is a preview feature enabling server-side
+        JavaScript in protocol mappers &mdash; meaningful attack surface on an IdP. If it's utms parity
+        rather than a real requirement, please drop it.
+      </td>
+    </tr>
+  </table>
+
+  <p style="font-size:14px;">
+    Minor: add <code>lifecycle { ignore_changes = [secret_string] }</code> to
+    <code>aws_secretsmanager_secret_version</code> so a console-rotated admin password isn't reverted, and
+    consider <code>recovery_window_in_days = 0</code> so a destroy/recreate doesn't collide on the secret
+    name.
+  </p>
+
+  <p style="font-size:14px;">
+    One observation rather than a Keycloak defect: the&nbsp;:80 rule <em>forwards</em> instead of
+    redirecting, so Keycloak would serve login and the admin console over plaintext HTTP. The existing
+    <code>erp-api</code> and <code>projects-api</code> rules do the same, so it's a platform-wide
+    convention &mdash; but it matters considerably more for an IdP than for an API. Worth fixing across the
+    board.
+  </p>
+
+  <h3 style="font-size:16px;margin:24px 0 8px;color:#2D4A3E;">4. On the &ldquo;new Keycloak URL&rdquo;</h3>
+
+  <p>
+    To set expectations: <strong>prod Keycloak is not deployed</strong>, so there is no URL yet. I checked
+    every surface in <code>ap-south-2</code> &mdash; no Terraform state under
+    <code>services/keycloak/prod/</code>, no ECS service, no target group, no listener rule, no task
+    definition, no secret, and none of
+    <code>accounts</code>/<code>keycloak</code>/<code>auth.prod.itpgateway.com</code> resolve.
+  </p>
+
+  <p>
+    Prod authenticates today against the <strong>shared</strong> IdP:
+    <br>
+    <code style="font-size:14px;">https://accounts-uat.itpgateway.com/realms/BNPRS-enterprise</code>
+  </p>
+
+  <p>
+    That is live and working &mdash; I ran a real PKCE authorization request and both
+    <code>hr-spa</code> and <code>projects-frontend</code> get the login form, so the old prod
+    redirect-URI blocker is resolved. Note the misleading <code>-uat</code> in a hostname that serves
+    prod; that's very likely where the &ldquo;newly deployed Keycloak&rdquo; expectation came from.
+  </p>
+
+  <p>
+    <strong>Separately, one security item for the shared-Keycloak owners:</strong> a control request with a
+    deliberately unregistered <code>redirect_uri</code> also returned the login form for
+    <code>hr-spa</code>. That means the client has a wildcard valid-redirect-URI on the shared realm — an
+    open redirector, where an attacker can send a victim through a genuine
+    <code>accounts-uat.itpgateway.com</code> login and have the authorization code delivered to a host they
+    control. It should be tightened to explicit URIs.
+  </p>
+
+  <p style="margin-top:24px;">
+    Happy to walk through any of this.
+  </p>
+
+  <p style="margin-top:24px;">
+    Regards,<br>
+    <strong>Ramaiah</strong>
+  </p>
+
+</div>
