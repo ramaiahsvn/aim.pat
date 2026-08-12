@@ -1,0 +1,49 @@
+# Raised by na-005/011 bruid-kms while doing its task-009. Rationale and the field-by-field
+# check live in trp1003.phsm.kms.fe/docs/rust-migration/HSM_MODULE_INVENTORY.md.
+task:
+  id: "task-005"
+  subject: "Expose token/slot info through the host library"
+  description: >-
+    The KMS UI wants a security-module inventory panel - serial number, firmware version, device
+    state - matching what the Gemalto KMS shows beside its master-key registers. Those facts are
+    already in CK_SLOT_INFO and CK_TOKEN_INFO, but the FE cannot read them: every call goes through
+    the FM host library, which owns the PKCS#11 session, and bnprs.h declares 26 functions of which
+    none reports anything about the device. The closest, usb_get_info, describes the USB key card
+    that carries master-key components, not the HSM.
+
+    Add a host-side call that returns the token and slot info the library already has in hand.
+    Suggested shape, following the existing biovec convention:
+
+      CK_RV bnprs_get_token_info(struct token_info *info);
+
+    carrying at least: serialNumber, model, manufacturerID, firmwareVersion, hardwareVersion, and
+    the CK_TOKEN_INFO flags (which is where most of a "device state" lives - CKF_LOGIN_REQUIRED,
+    CKF_USER_PIN_LOCKED, CKF_TOKEN_INITIALIZED and so on). Strings are fixed-width and space-padded
+    in PKCS#11; trim them at the boundary rather than making every caller do it.
+
+    The alternative - the FE linking PKCS#11 itself - was rejected: it would mean a second session
+    and duplicate session management for facts the host library can hand over for free.
+
+    NOT in scope, and needs checking before anyone promises it: license name, license hash,
+    activation count and last activation date. Those look like ProtectToolkit administrative state
+    reported by ctconf rather than anything a PKCS#11 application can see. Check the ProtectToolkit
+    documentation in trp1003.phsm.kms.fe/resources/ first; if ctconf is the only source, say so and
+    close that part out rather than inventing an FM command for it.
+  status: pending
+  priority: low
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 4
+  tags: ["fm", "host-api", "vendor-parity"]
+  notes: >-
+    Low priority on purpose: nothing is broken without it, and the KMS shipped its master-key
+    registers without the inventory panel rather than rendering a panel of em dashes. Follow the
+    same integration checklist as task-001 (append to enum fm_cmd only, register in fm_main.c,
+    declare in fmfunc.h and bnprs.h, host dispatcher, host_test.c case) - though if the information
+    is available host-side without entering the FM at all, that is simpler and preferable.
+
+    When it lands, the FE side is: add the call to the bindgen allowlist in crates/kms-hsm/build.rs
+    (the allowlist is explicit, so a new function is invisible until named there), a backend method,
+    and then the inventory panel becomes worth building.

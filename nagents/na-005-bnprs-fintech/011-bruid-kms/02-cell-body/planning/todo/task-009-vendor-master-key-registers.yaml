@@ -10,7 +10,7 @@ task:
     The three-register model is the substantive idea: it makes a key rotation visible as a state
     transition rather than an event that already happened. Our ceremony flow is arguably better for
     performing a rotation; this is better for seeing where one stands.
-  status: pending
+  status: completed
   priority: medium
   created_at: "2026-08-12"
   assigned_to: null
@@ -19,6 +19,35 @@ task:
   estimated_steps: 8
   tags: ["vendor-parity", "master-key", "domain"]
   notes: >-
-    Needs domain work, not just plumbing. MKVV is a master-key verification value we do not compute
-    today. Check what the pHSM can report before designing the inventory panel - some of those
-    fields may simply not be available through our host API.
+    DONE 2026-08-12 (2be189d), except the inventory panel, which is deliberately NOT built - see
+    below.
+
+    REGISTERS: MasterKeyRegisters { new, current, old } persisted in the catalog, serde-default so
+    existing catalogs load. Each carries label, LMK type, usage flag, MKVV, origin (generated vs
+    imported), part count, and loaded/promoted/retired timestamps. Vendor A's names kept on purpose
+    so an operator reading both systems does not have to translate. A ceremony reaching all-parts-in
+    fills New; activation promotes New to Current and pushes Current to Old; what leaves Old is gone
+    and is named in the audit line, which is proved against a REAL audit trail, not the mock - a
+    claim about the log is worthless if the log was never opened. Loading refuses to overwrite an
+    occupied New register (that would destroy material custodians hold components for), and
+    ceremony_begin makes the same check up front before any HSM work. Discarding can only touch New;
+    one "clear a register" verb would eventually be pointed at the key in force. Five tests.
+
+    MKVV: no new crypto was needed. It is the check value the HSM already returns when the key is
+    assembled, kept as the same six-character tail as every other key. Calling it MKVV rather than
+    KCV is the vendor's vocabulary.
+
+    ceremony_begin now takes the LMK type and usage flag - the register model needs both, and
+    declaring "this is a PRODUCTION LMK" before custodians assemble anything is the safer order. If
+    the assembled key cannot be filed, the part still succeeds and the warning is surfaced; the key
+    exists in the HSM either way.
+
+    INVENTORY PANEL: not built, on purpose, and the check the task asked for is written up in
+    trp1003.phsm.kms.fe/docs/rust-migration/HSM_MODULE_INVENTORY.md. bnprs.h declares 26 functions
+    and none reports anything about the device - the closest, usb_get_info, describes the USB key
+    card, not the HSM. Six of the seven vendor fields would render as an em dash on every install
+    forever, which reads as a device that failed to answer rather than a question we never ask.
+    Serial, firmware and most of "device state" are in CK_TOKEN_INFO, which the FM host library owns
+    and should expose: raised as na-009/016 trp1003-phsm task-005. License name/hash, activation
+    count and last activation look like ctconf administrative state and may not be reachable by any
+    PKCS#11 application at all.
