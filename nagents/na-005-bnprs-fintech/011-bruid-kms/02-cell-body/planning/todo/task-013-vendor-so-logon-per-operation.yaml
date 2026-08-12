@@ -12,7 +12,7 @@ task:
 
     Scope it to genuinely destructive key operations, not everything - a prompt on every action
     trains people to type their password reflexively, which is worse than no prompt.
-  status: pending
+  status: completed
   priority: high
   created_at: "2026-08-12"
   assigned_to: null
@@ -21,6 +21,15 @@ task:
   estimated_steps: 6
   tags: ["vendor-parity", "security", "auth"]
   notes: >-
-    Do not build this as a UI-only confirmation. It must actually re-verify the credential against
-    the HSM, or it is theatre. Decide the operation list deliberately: LMK/ZMK injection, keyset
-    change, key value deletion and revoke are candidates; listing and export probably are not.
+    Done 2026-08-12 (commit 6b25685). AuthService::reauthenticate verifies against the HSM by the
+    same path as login, counts failures toward the same lockout so it cannot be an unthrottled
+    password oracle, and does not restart the session - so it neither extends the idle timeout nor
+    revives an idled-out session. The 120s grant does not refresh on use and is cleared on login
+    and logout. Gated four commands: delete_key_value, revoke_key, delete_catalog_key,
+    restore_backup. The UI prompt is convenience; the core enforces it.
+
+    CARRIED FORWARD: MockHsm::login never compares the password - it only checks the username is
+    known - so against the mock this control always passes and is NOT a real check. It is only
+    meaningfully enforced against the pHSM. Five tests cover the properties that can be tested; the
+    wrong-password-and-lockout property cannot be, and the test module says so instead of passing
+    vacuously. Consider making the mock verify passwords so this is testable end to end.
