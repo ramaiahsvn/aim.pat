@@ -1,6 +1,6 @@
 task:
   id: "task-004"
-  subject: "Verify generate_cavv on a Linux real-hsm build"
+  subject: "Verify generate_cavv through the real FFI (done against the FM emulator)"
   description: >-
     generate_cavv is implemented against the backend ABI that landed in eaba3f34, but the FFI call
     itself is unverified: real.rs is cfg-gated to Linux/Windows, so on the macOS dev host it is
@@ -10,7 +10,7 @@ task:
 
     The format logic either side of the call (32-digit validation, BCD packing, 3-digit parse) is
     already tested on every host in crates/kms-hsm/src/cavv.rs.
-  status: pending
+  status: completed
   priority: medium
   created_at: "2026-08-12"
   assigned_to: null
@@ -19,7 +19,28 @@ task:
   estimated_steps: 3
   tags: ["ffi", "cavv", "verification"]
   notes: >-
-    Watch for the trap this exposed: BprHsm_Cavv_Generate is declared only in
-    BprHsmHost_Exports.cpp with no public header, so bindgen never sees it. The binding is to the
-    header-declared cavv_generate instead. A backend function can be invisible to Rust in three
-    separate ways - .cpp-only, missing from the allowlist, or never compiled on this host.
+    DONE 2026-08-12 (a54d116), against the FM EMULATOR in a container — no hardware, and no Windows
+    host needed. The subject said "Linux" and that was too narrow: the gate is
+    any(target_os = linux, windows), and what is actually required is a machine where real-hsm
+    compiles and an FM can answer.
+
+    All three checks pass. bindgen emits `pub fn cavv_generate(cvk_label, cvv_data, cavv) -> CK_RV`.
+    real.rs COMPILED FOR THE FIRST TIME EVER — roughly 430 lines of hand-written unsafe that no
+    compiler had checked against bnprs.h, because it is cfg-gated off macOS and CI builds the Windows
+    exe with default (mock) features — and the test binary linked against ctutil/cryptoki/ethsm/crypto
+    with no signature mismatches. And it RAN: 098, the same value host_test gets from the C path for
+    the same input, so the Rust and C routes cross-check each other.
+
+    crates/kms-hsm/tests/real_cavv.rs is ignored by default and skips loudly without its environment.
+    It deliberately does NOT pin a CAVV value — the answer depends on the CVK and ctkmu generates a
+    random key, so a pinned number would pass on one HSM and fail on every other. It pins that the
+    call COMPUTES: same input twice agrees, a different input differs, three-digit shape.
+
+    TWO FINDINGS worth carrying: two C_Initialize calls in one process SEGFAULT (so --test-threads=1;
+    the app is safe because HsmController initialises once), and CPROVDIR is read at RUNTIME by the
+    emulation cryptoki, not only at build time — unset, init() returns HSM error 0x000B which reads
+    like a device fault.
+
+    STILL OPEN, separately: the Windows link path. The repo carries no .lib import libraries, so
+    --features real-hsm on Windows needs the ProtectToolkit client's lib directory on the search path.
+    Small build.rs change; worth doing before anyone tries it on the real HSM host.
