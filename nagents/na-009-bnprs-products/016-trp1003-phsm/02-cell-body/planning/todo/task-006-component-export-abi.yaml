@@ -1,0 +1,55 @@
+# Raised by na-005/011 bruid-kms while doing its task-014. The KMS cannot produce key components
+# for custodian distribution, and the reason is an ABI gap, not a missing FM algorithm.
+task:
+  id: "task-006"
+  subject: "Give export_lmk out-parameters, and add component export for working keys"
+  description: >-
+    export_lmk is declared as `CK_RV export_lmk(struct biovec *label, uint32_t idx)` - it returns a
+    status code and nothing else. There is no out-parameter for the component bytes or its check
+    value, so the FE's real backend calls it and then has to answer
+    CKR_FUNCTION_NOT_SUPPORTED anyway. The consequence is larger than it looks:
+
+      * a generate-mode master-key ceremony cannot work against real hardware at all; it fails at
+        the first custodian part
+      * the KMS cannot produce components for distribution for ANY key (the Digital Innovation
+        GenComp equivalent), because the only alternative would be splitting the key host-side,
+        which needs the cleartext in host memory and is exactly what must never happen
+
+    Two pieces of work:
+
+    1. Extend export_lmk with out-parameters: the component blob and its KCV, both as `struct
+       biovec *` following the convention every other call in bnprs.h uses. This is an ABI change to
+       an existing function, so check for callers in trp1003.phsm.kms before changing the signature -
+       if any exist, add a new function rather than breaking them.
+
+    2. Add the same for an arbitrary working key, so a ZMK or ZPK can be split into N components
+       for custodian distribution. Component 1..N-1 random, component N the XOR that reconstitutes
+       the key, all generated and split INSIDE the FM. The KMS supplies the label and the component
+       count and receives the components one at a time.
+
+    Also missing, for the same reason and worth doing together if it is cheap: component IMPORT
+    assembly (bnprs.h has zmk_component_load but no equivalent for assembling a master key) and
+    master-key activation.
+  status: pending
+  priority: medium
+  created_at: "2026-08-12"
+  assigned_to: null
+  blocked_by: []
+  blocks: []
+  estimated_steps: 6
+  tags: ["fm", "host-api", "abi", "master-key"]
+  notes: >-
+    Higher priority than task-005: this one makes an existing, shipped KMS screen work. The
+    master-key ceremony UI is complete and tested against the mock, and the Master-Key Ceremony view
+    now shows an amber "Not available on this HSM" banner with this exact reason, so an operator is
+    at least not misled - but the feature is unusable on the device until this lands.
+
+    The full list of what the FE's real backend cannot do is in
+    trp1003.phsm.kms.fe/crates/kms-hsm/src/capabilities.rs, which is checked against the stubs in
+    real.rs in both directions by reading that file as source text. When a capability becomes
+    available, update the phsm() table there and the tests will tell you if the stub was not removed.
+
+    Related but separate: wrap/unwrap under a transport key is also absent (capability
+    TransportKeyTransfer), which is what stops bulk export, container import and key translation
+    from working on hardware. That is a bigger piece of work and deserves its own task if it is
+    wanted.

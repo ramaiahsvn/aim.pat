@@ -11,7 +11,7 @@ task:
 
     Also from that screen and cheap: component GENERATION for distribution (GenComp with a
     component count). We can load components by parts but cannot produce them.
-  status: pending
+  status: completed
   priority: medium
   created_at: "2026-08-12"
   assigned_to: null
@@ -20,6 +20,33 @@ task:
   estimated_steps: 7
   tags: ["vendor-parity", "keys", "hsm"]
   notes: >-
-    Check what the pHSM host API actually supports before designing this - bnprs_wrap_key_with_lmk
-    and bnprs_unwrap_key_with_lmk exist, but translation between arbitrary wrapping keys may need
-    an FM change, which would make it na-009/016 trp1003-phsm work as well.
+    DONE 2026-08-12 (c84b13c, and 0775525 for the capability work the check turned up).
+
+    TRANSLATION: composed rather than primitive - unwrap the input under the named key into a
+    temporary HSM object, wrap that object under the chosen output key, delete the temporary object.
+    Every step is a call we already make, so no new primitive and no cleartext outside the device. No
+    catalog entry is created: a translated key is in transit, not inventory. The temporary object
+    holds real key material so it is deleted whether the wrap succeeded or not, and if the delete
+    fails the result carries a residue_warning naming what was left behind rather than pretending the
+    HSM is clean. WrappingKey::{Lmk, Transport(id)} is Vendor B's LMK-or-ZMK radio made explicit at
+    the point of the operation. Four tests including a full round trip.
+
+    THE BIG FINDING, which outranks the feature: checking the premise showed real.rs answers
+    CKR_FUNCTION_NOT_SUPPORTED for SIXTEEN methods, including wrap/unwrap under a transport key. So
+    bulk export, container import, the import tree and this translation all work against the mock and
+    nowhere else - and the mock implements everything, so rehearsing a procedure proved nothing about
+    the device. crates/kms-hsm/src/capabilities.rs now makes capability data the backend reports,
+    checked against real.rs in BOTH directions by reading that file as source text (real.rs is
+    cfg-gated off macOS and never compiles here, so a hand-maintained table would drift). The
+    transfer, translation and ceremony panels show an amber "Not available on this HSM" note with the
+    reason and disable their controls. Preview harness ?phsm=1 shows the device's capability set.
+
+    MOCK WEAKNESS FIXED: the wrap mask was label[i % label.len()], so for a 3-byte payload only the
+    label's first three bytes mattered - wrapping under TK_A#v1 and TK_B#v1 gave IDENTICAL bytes.
+    Any bug that wrapped under the wrong key would still have round-tripped cleanly, which weakened
+    every transport test, not just this one. Mask now folds the whole label.
+
+    COMPONENT GENERATION: not built. export_lmk returns only a status code - no out-parameter for
+    the component or its KCV - and the alternative is splitting host-side with cleartext in host
+    memory. Raised as na-009/016 trp1003-phsm task-006, which also covers why a generate-mode
+    master-key ceremony cannot work on hardware today.
