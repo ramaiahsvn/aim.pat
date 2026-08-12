@@ -23,7 +23,7 @@ Agent codes 001–011 align with product code suffix (BPR100X → 00X).
 | 013        | BPR1000      | uTms-CRM         | License Management, Clients, Subscriptions|
 | 014        | TRP1001      | SbioidS          | SBI Biometric Identification System      |
 | 015        | TRP1002      | cPerso           | Card Personalization (Instant and Central)|
-| 016        | TRP1003      | pHSM             | Payment Hardware Security Module         |
+| 016        | BPR2002      | QiTalab          | Food-Ordering Platform                   |
 | 017        | TRP1004      | BNAgent          | AI Agent Platform (aim.pat)              |
 | 018        | TRP1005      | eInvoice         | Electronic Invoice Management            |
 | 019        | BPR2001      | AandhiPe         | Super-App                                |
@@ -57,7 +57,7 @@ Agent names follow the pattern `<product-code>-<product-slug>`, e.g.:
 - `013-bpr1000-utms-crm/` — BPR1000 uTms-CRM License Management, Clients, Subscriptions product agent
 - `014-trp1001-sbioids/` — TRP1001 SbioidS SBI Biometric Identification System product agent
 - `015-trp1002-cperso/` — TRP1002 cPerso Card Personalization (Instant and Central) product agent
-- `016-trp1003-phsm/` — TRP1003 pHSM Payment Hardware Security Module product agent — RETIRED 2026-08-12, transferred to na-005/013 bruid-kms-phsm
+- `016-bpr2002-talabqi/` — BPR2002 QiTalab Food-Ordering Platform product agent (code re-used 2026-08-12; the former TRP1003 pHSM agent moved to na-005/013 bruid-kms-phsm)
 - `017-trp1004-bnagent/` — TRP1004 BNAgent AI Agent Platform (aim.pat) product agent
 - `018-trp1005-einvoice/` — TRP1005 eInvoice Electronic Invoice Management product agent
 - `019-bpr2001-aandhipe/` — BPR2001 AandhiPe Super-App product agent

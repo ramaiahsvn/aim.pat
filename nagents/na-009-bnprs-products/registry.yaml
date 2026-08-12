@@ -150,16 +150,18 @@ registry:
     created_at: "2026-05-28"
     created_by: "bnprs"
 
+  # Code 016 was trp1003-phsm until 2026-08-12. Its pHSM work moved to na-005/013 bruid-kms-phsm and
+  # the code was then re-used for bpr2002-talabqi — an owner-authorised exception to the
+  # permanent-code rule, as granted for 011 on 2026-07-16.
   - code: "016"
-    name: "trp1003-phsm"
-    label: "trp1003-phsm"
-    role: "TRP pHSM Product Agent — Payment Hardware Security Module (TRP1003)"
-    path: "016-trp1003-phsm"
-    status: "retired"
-    created_at: "2026-05-28"
+    name: "bpr2002-talabqi"
+    label: "bpr2002-talabqi"
+    role: "BPR2002 QiTalab Product Agent — food-ordering platform"
+    path: "016-bpr2002-talabqi"
+    status: "active"
+    created_at: "2026-08-12"
     created_by: "bnprs"
-    retired_at: "2026-08-12"
-    note: "Transferred to na-005/013 bruid-kms-phsm on 2026-08-12 by owner decision — one owner for the pHSM firmware and one task list. Its DNA, its seven tasks and its long-term memory moved there; the folder was removed. Code 016 is retained and must never be reassigned (CLAUDE.md: codes are permanent). Successor: nagents/na-005-bnprs-fintech/013-bruid-kms-phsm."
+    note: "Code 016 re-used. It was trp1003-phsm (created 2026-05-28) until 2026-08-12, when the pHSM Functionality Module work, its seven tasks, its DNA and its memory were transferred to na-005/013 bruid-kms-phsm; the code was then reassigned to this agent by owner decision — a deliberate exception to the permanent-code rule (precedent: 011, 2026-07-16). Do not route pHSM or FM work here. NAMING: GitLab calls the product QiTalab (group BPR2002 - QiTalab, projects bpr2002.qitalab.*); this agent is named talabqi per owner instruction — confirm which is intended."
 
   - code: "017"
     name: "trp1004-bnagent"

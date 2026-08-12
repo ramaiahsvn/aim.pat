@@ -21,8 +21,10 @@
 ## Scope — settled 2026-08-12
 
 `na-009/016 trp1003-phsm` was **transferred into this agent** by owner decision: this agent replaces
-it for all pHSM work, so there is one owner for the firmware and one task list. 016 is retired in the
-na-009 registry with its code preserved.
+it for all pHSM work, so there is one owner for the firmware and one task list.
+
+Code 016 in na-009 was subsequently re-used for `bpr2002-talabqi` (QiTalab), so **016 no longer refers
+to pHSM work at all** — anything citing "trp1003-phsm task-N" means this agent's task-N.
 
 ## Primary Responsibility — the pHSM backend, its FM, and deployment
 

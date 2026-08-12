@@ -1,0 +1,27 @@
+# Dendritic Spine: Slack Connector
+# Each connector is one input receptor for the agent
+
+id: connector-slack
+name: Slack Workspace
+type: mcp-connector
+protocol: mcp
+version: "1.0"
+
+connection:
+  server: "@anthropic/slack-mcp"
+  auth:
+    type: oauth2
+    scopes:
+      - channels:read
+      - chat:write
+      - users:read
+
+capabilities:
+  - read_messages
+  - send_messages
+  - list_channels
+  - search_messages
+
+# Signal strength: how much weight the soma gives this input
+priority: high
+rate_limit: 60/min

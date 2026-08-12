@@ -132,7 +132,7 @@ registry:
     status: "active"
     created_at: "2026-05-27"
     created_by: "bnprs"
-    note: "Formerly code 011 (moved to 013 on 2026-07-16 so 011 could go to bruid-kms — owner-authorised policy exception). Renamed from rnd-fintech to bruid-kms-phsm on 2026-08-12; the former agent was never used. Absorbed na-009/016 trp1003-phsm the same day by owner decision — owns trp1003.phsm.kms, builds the FM and deploys it to the HSM or emulator, and holds the seven tasks that came with it. 016 is retired in the na-009 registry with its code retained."
+    note: "Formerly code 011 (moved to 013 on 2026-07-16 so 011 could go to bruid-kms — owner-authorised policy exception). Renamed from rnd-fintech to bruid-kms-phsm on 2026-08-12; the former agent was never used. Absorbed na-009/016 trp1003-phsm the same day by owner decision — owns trp1003.phsm.kms, builds the FM and deploys it to the HSM or emulator, and holds the seven tasks that came with it. Code 016 in na-009 was then re-used for bpr2002-talabqi, so 016 no longer refers to pHSM work at all."
 
 # ---- CODE ALLOCATION RULES ---- #
 # DE01–DE3F  (001–063)  Transaction and payment agents

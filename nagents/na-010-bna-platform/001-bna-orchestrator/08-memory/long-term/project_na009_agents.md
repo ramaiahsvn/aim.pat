@@ -28,15 +28,22 @@ Codes 001–011 align with BPR100X suffix (BPR1001→001 ... BPR1011→011).
 | 013  | bpr1000-utms-crm | BPR1000 | License Management, Clients, Subscriptions |
 | 014  | trp1001-sbioids | TRP1001 | SBI Biometric Identification System |
 | 015  | trp1002-cperso | TRP1002 | Card Personalization (Instant and Central) |
-| 016  | trp1003-phsm | TRP1003 | Payment Hardware Security Module — **RETIRED 2026-08-12**, transferred to na-005/013 bruid-kms-phsm |
+| 016  | bpr2002-talabqi | BPR2002 | QiTalab food-ordering platform (code re-used 2026-08-12) |
 | 017  | trp1004-bnagent | TRP1004 | AI Agent Platform (aim.pat) |
 | 018  | trp1005-einvoice | TRP1005 | Electronic Invoice Management |
 
-> **016 trp1003-phsm is retired (2026-08-12).** Transferred to `na-005/013 bruid-kms-phsm` by owner
-> decision, so the pHSM firmware has one owner and one task list. Its DNA (FM build rules, branch
-> policy, signing material, the hard-won cautions, the CAVV precedent checklist), its seven tasks and
-> its long-term memory all moved there; the folder was removed. Code 016 is retained and must never be
-> reassigned. **Do not route pHSM or FM work here.**
+> **Code 016 was re-used on 2026-08-12.** It was `trp1003-phsm`; that agent's pHSM work — the
+> Functionality Module, its seven tasks, its DNA (FM build rules, branch policy, signing material, the
+> hard-won cautions, the CAVV precedent checklist) and its long-term memory — was transferred to
+> `na-005/013 bruid-kms-phsm`, and 016 was then reassigned to `bpr2002-talabqi`. This is an
+> owner-authorised exception to the permanent-code rule; the precedent is 011 on 2026-07-16.
+> **Do not route pHSM or FM work to 016 — it goes to na-005/013.**
+>
+> `016 bpr2002-talabqi` — QiTalab, a food-ordering platform. GitLab group `BPR2002 - QiTalab`
+> (id 309, private, created 2026-07-28) with six projects: customer mini-app (251), courier mini-app
+> (252), restaurant POS Android (253), merchant portal (254), ops console (255), backend API (256).
+> No local checkout recorded and **scope not yet defined** — ask before routing work. Naming: GitLab
+> says *QiTalab*, the agent is named *talabqi* per owner instruction.
 | 019  | bpr2001-aandhipe | BPR2001 | Super-App |
 | 020  | aim1001-aim-team | AIM1001 | AI Agent Platform Team |
 | 021  | aim1002-bioi | AIM1002 | Biometric Intelligence |

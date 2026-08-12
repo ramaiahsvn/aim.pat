@@ -1,0 +1,24 @@
+# Dendritic Spine: Google Sheets Connector
+
+id: connector-gsheets
+name: Google Sheets
+type: mcp-connector
+protocol: mcp
+version: "1.0"
+
+connection:
+  server: "@anthropic/google-sheets-mcp"
+  auth:
+    type: oauth2
+    scopes:
+      - spreadsheets.readonly
+      - spreadsheets
+
+capabilities:
+  - read_spreadsheet
+  - write_cells
+  - create_sheet
+  - format_range
+
+priority: medium
+rate_limit: 100/min

@@ -1,0 +1,21 @@
+# Notification Templates — Neurotransmitter Shapes
+
+templates:
+  task_complete:
+    channel: chat
+    message: "Task completed: {task_subject}. {summary}"
+    attach: "{deliverable_path}"
+
+  needs_input:
+    channel: chat
+    message: "I need your input on: {question}"
+    options: "{choices}"
+
+  error_report:
+    channel: chat
+    message: "I encountered an issue: {error}. {suggested_fix}"
+    severity: "{level}"
+
+  progress_update:
+    channel: chat
+    message: "Progress: {completed}/{total} steps done. Currently: {current_step}"

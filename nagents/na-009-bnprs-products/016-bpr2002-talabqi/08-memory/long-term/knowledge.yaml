@@ -1,0 +1,34 @@
+# Long-Term Memory — Persistent Knowledge (LTP)
+# Survives across sessions. The agent's accumulated wisdom.
+
+# Format: each entry is a strengthened "synapse"
+memories:
+  - id: mem-001
+    type: project_context
+    content: "<Persistent fact about the project>"
+    created_at: "<timestamp>"
+    last_accessed: "<timestamp>"
+    access_count: 1
+    confidence: 0.9
+    source: "session-<id>"
+    tags: []
+
+  # Example entries:
+  # - id: mem-002
+  #   type: project_context
+  #   content: "BNPRS brand colors: dark green #2D4A3E, gold #D4952B"
+  #   confidence: 0.99
+  #   tags: [branding, bnprs]
+
+  # - id: mem-003
+  #   type: technical_knowledge
+  #   content: "LibreOffice PDF conversion fails in sandbox environments"
+  #   confidence: 0.95
+  #   tags: [workaround, pdf, libreoffice]
+
+# Pruning rules
+pruning:
+  max_entries: 500
+  stale_after_days: 90
+  min_confidence: 0.3
+  strategy: "least_recently_used"

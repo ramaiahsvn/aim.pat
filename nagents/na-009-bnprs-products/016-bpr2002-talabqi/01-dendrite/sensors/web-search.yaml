@@ -1,0 +1,24 @@
+# Sensor: Web Search
+# Autonomous data gathering channel
+
+id: sensor-web-search
+name: Web Search
+type: sensor
+engine: tavily  # tavily | serper | brave | google
+
+config:
+  max_results: 10
+  search_depth: advanced
+  include_domains: []
+  exclude_domains: []
+
+triggers:
+  - on: user_query_contains_current_events
+  - on: knowledge_cutoff_exceeded
+  - on: explicit_search_request
+
+output_format:
+  title: string
+  url: string
+  snippet: string
+  relevance_score: float
