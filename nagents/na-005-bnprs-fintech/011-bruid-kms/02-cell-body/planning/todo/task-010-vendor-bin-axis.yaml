@@ -10,7 +10,7 @@ task:
 
     Do NOT replace the issuer model with the BIN model. Add BIN as a dimension that hangs off an
     issuer's identifiers (task-007), so both views are available over the same keys.
-  status: in_progress
+  status: completed
   priority: medium
   created_at: "2026-08-12"
   assigned_to: null
@@ -45,5 +45,18 @@ task:
     binaries because a DLL contains 0123456789ABCDEF by chance and a gate that cries wolf gets
     bypassed.
 
-    REMAINING: key-set grouping under a BIN (Vendor B's Key Set level between ZMK and BIN); Owner
-    (task-015 overlaps).
+    STEP 4 DONE 2026-08-12 (f535621): key sets. KeyEntry.key_set, serde-default. set_key_set
+    upper-cases and trims so visa_debit and VISA_Debit cannot become two sets that look identical
+    in a list; unlike a BIN there is nothing to validate a set name against (it is the operator's
+    vocabulary, not an issuer declaration) so the charset is restricted instead. Revoked and
+    value-deleted keys cannot be re-filed, matching set_key_bin. keys_by_bin now returns
+    BinView { bin, sets } and nests both dimensions; the no-set group is always returned so it
+    reads as a bucket rather than as missing keys, and the UI omits it when empty. A set name used
+    under two BINs is not merged across them - asserted. UI: Key set column, filter, and an editor
+    offering the names already in use. Three tests, 83 in kms-domain.
+
+    Also fixed a pre-existing column mismatch in the keys table: the header read Use|Lvl|BIN while
+    the body emitted Use|BIN|Lvl, so every key's BIN rendered under "Lvl" and its level under
+    "BIN". Found by rendering, not by reading.
+
+    CLOSED. Owner attribution is task-015 and is tracked there, not here.
