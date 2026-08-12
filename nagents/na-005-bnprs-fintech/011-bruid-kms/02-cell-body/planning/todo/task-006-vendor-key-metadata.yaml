@@ -18,8 +18,12 @@ task:
   estimated_steps: 5
   tags: ["vendor-parity", "keys"]
   notes: >-
-    Domain done and compiling: KeyEntry gained key_index, description, last_operation_date and
-    security_level (all #[serde(default)] so existing catalogs still load), plus a set_key_metadata
-    mutator. STILL TO DO: the Tauri command, the ipc.ts type and binding, the UI fields, derived
-    key length, and wiring last_operation_date so operations actually stamp it. Tests not written
-    yet.
+    Mostly done 2026-08-12 (commit f3b1f06): domain, command, ipc, UI and three tests. Key length
+    is derived from the algorithm in the UI rather than stored, so the two cannot silently
+    disagree. Security level is advisory and documented as such - nothing refuses an operation
+    because of it.
+
+    REMAINING, and the only reason this is not closed: last_operation_date is stored and displayed
+    but nothing stamps it. The mutators that touch a key - set_default, suspend/resume, export,
+    date changes - each need to set it. Small but spread across several call sites, so it is worth
+    doing deliberately rather than as an afterthought.

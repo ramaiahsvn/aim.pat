@@ -6,7 +6,7 @@ task:
     expected to hold - a manufacturer legitimately owns transport and KEK material an issuer never
     should. Identifiers (BIN/IIN list) is the join to Vendor B's BIN-centric model and the hook
     task-010 hangs from.
-  status: in_progress
+  status: completed
   priority: high
   created_at: "2026-08-12"
   assigned_to: null
@@ -15,8 +15,8 @@ task:
   estimated_steps: 4
   tags: ["vendor-parity", "issuers"]
   notes: >-
-    Domain done and compiling: Issuer gained description, is_manufacturer and identifiers, plus a
-    set_issuer_details mutator kept separate from update_issuer so annotating cannot accidentally
-    rename an issuer or change its status. Identifiers are validated as 6-11 digit BIN/IINs so the
-    field stays usable as a join key rather than becoming free text. STILL TO DO: command, ipc,
-    UI, tests.
+    Done 2026-08-12 (commit f3b1f06). Domain, command, ipc and UI complete, with three tests -
+    including one pinning that set_issuer_details cannot rename an issuer or change its status,
+    since it is deliberately separate from update_issuer. Identifiers validate as 6-11 digit
+    BIN/IINs, deduplicate, and drop blanks, so the field stays usable as the join key task-010
+    needs.
