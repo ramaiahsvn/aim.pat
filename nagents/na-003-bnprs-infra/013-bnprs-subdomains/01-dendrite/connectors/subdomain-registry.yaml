@@ -25,8 +25,9 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  120 hostnames, 11 products. NONE resolve yet — every one is `planned`.
-#  Product ORDER is deliberate (mGate, bNet, AandhiPe, bRuID, BNA, uTMS last —
+#  111 hostnames, 10 products. NONE resolve yet — every one is `planned`.
+#  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
+#  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, uTMS last —
 #  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
 #  Verified 2026-08-13 against acct 891963159778 (profile bnprs, holds the
 #  bnprs.in zone), acct 819144294008 (profile itp, holds the ALBs and certs)
@@ -35,8 +36,9 @@
 #  TWO THINGS GATE EVERY NON-PROD RECORD, do not skip them:
 #    1. *.uat.bnprs.in and *.sandbox.bnprs.in DO NOT EXIST. A wildcard covers
 #       ONE label, so *.bnprs.in covers the production column and nothing else.
-#    2. Four ALB host rules still carry the SUPERSEDED FLAT names and match
-#       nothing in this file. Rewrite them before creating records.
+#    2. THREE ALB host rules carry SUPERSEDED FLAT names (rewrite before any
+#       record), and TWO more are ORPHANS with no name at all here
+#       (bnet-api-uat, tms-api-uat) — investigate, do not assume dead.
 # ============================================================
 
 meta:
@@ -79,8 +81,8 @@ meta:
 # <product>[-<subproject>]-<component> prefix from the source table is kept intact.
 # Production stays the BARE name directly under the apex.
 #
-#     bnet-api.uat.bnprs.in          bnet-api.sandbox.bnprs.in       bnet-api.bnprs.in
-#     bna-sprints-portal.uat…        bnet-retail-api.uat…            mgate-api.bnprs.in
+#     mgate-api.uat.bnprs.in         mgate-api.sandbox.bnprs.in      mgate-api.bnprs.in
+#     bna-sprints-portal.uat…        utms-retail-api.uat…            utms-crm-portal.bnprs.in
 #
 # WHY, in one line: a wildcard certificate covers ONE label, so an env label is a real
 # cryptographic and delegation boundary — *.uat.bnprs.in cannot sign a production
@@ -94,7 +96,7 @@ scheme:
   components: ["api", "portal"]
   charset: "lowercase a-z 0-9 and hyphen only"
   max_label: 63
-  longest_label: "bnet-smartpresence-api (22) — comfortable; the env is a separate label now"
+  longest_label: "utms-smartpresence-api (22) — comfortable; the env is a separate label now"
 
   superseded_flat_form: "<product>-<component>-<env>.bnprs.in — the source table's proposal, NOT adopted"
 
@@ -105,7 +107,7 @@ scheme:
     uat:     "*.uat.bnprs.in — MUST BE REQUESTED. Does not exist yet."
     sandbox: "*.sandbox.bnprs.in — MUST BE REQUESTED. Does not exist yet."
     warning: >-
-      *.bnprs.in DOES NOT cover bnet-api.uat.bnprs.in — that is two labels deep. Until the
+      *.bnprs.in DOES NOT cover utms-api.uat.bnprs.in — that is two labels deep. Until the
       two new certs exist and are attached to the listener, every non-prod hierarchical name
       fails TLS. This is the cost of the hierarchical decision and it must land BEFORE any
       uat/sandbox DNS record, or we recreate bNet's original symptom.
@@ -131,10 +133,10 @@ scheme:
     - "bna-sprints-portal.uat.bnprs.in"
     - "bna-erp-portal.bnprs.in"
     - "bna-chat-api.sandbox.bnprs.in"
-    - "bnet-retail-api.uat.bnprs.in"
+    - "utms-retail-api.uat.bnprs.in"
   subproject_rules:
     - "ONE RULE FOR THE WHOLE STANDARD. Identical in shape to
-       bnet-smartpresence-api.uat.bnprs.in, so there is no host-vs-path discriminator to
+       utms-smartpresence-api.uat.bnprs.in, so there is no host-vs-path discriminator to
        argue about and nothing has to be inferred: every addressable thing is
        <product>[-<subproject>]-<component>.<env>."
     - "Each sub-project needs its OWN DNS record and its OWN ALB host rule. Sub-projects
@@ -187,58 +189,6 @@ products:
         uat:     { host: "mgate-portal.uat.bnprs.in",     status: planned }
         prod:    { host: "mgate-portal.bnprs.in",         status: planned,
                    conflicts_with: "mgate.bnprs.in + portal-api.mgate.bnprs.in (both LIVE)" }
-
-  # ======================= 2. bNet =======================================
-  - key: "bnet"
-    label: "bNet"
-    owner_agent: "na-009/008 bpr1008-bnet"
-    # NO PORTAL COMPONENT — user instruction 2026-08-13. bNet's portal is served by the
-    # uTMS console as utms-bnet-portal.<env>.bnprs.in, so bnet-portal-* names are NOT
-    # reserved and must not be created. DO NOT "restore" them as an omission.
-    # Note the consequence: bNet's API is bnet-api.* (its own product) while its UI is
-    # utms-bnet-portal.* (under the umbrella) — two different first labels, therefore two
-    # different origins, so the uTMS portal must carry bnet-api.* in its CORS allow-list
-    # and OIDC config. Same shape as the shared bRuID ACS portal.
-    portal_served_by: "utms-bnet-portal.<env>.bnprs.in — user instruction 2026-08-13"
-    components:
-      api:
-        sandbox: { host: "bnet-api.sandbox.bnprs.in", status: planned }
-        uat:     { host: "bnet-api.uat.bnprs.in",     status: planned, stale_alb_rule: "bnet-api-uat.bnprs.in (FLAT — rewrite)",
-                   target: "utms-shared-alb (eu-central-1)" }
-        prod:    { host: "bnet-api.bnprs.in",         status: planned }
-    # bNet SUB-PROJECTS. Both are api-only — a sub-project does NOT have to carry both
-    # components. Restructured 2026-08-13: smartpresence was first recorded as a bnet
-    # COMPONENT, but under the sub-project naming rule it is indistinguishable from one
-    # (bnet-smartpresence-api), so it lives here instead. The hostnames did not change;
-    # the data model did, so the registry has one shape for everything.
-    subprojects:
-
-      # Adopted into the table on user instruction 2026-08-13, resolving decisions.d3.
-      - key: "smartpresence"
-        components:
-          api:
-            sandbox: { host: "bnet-smartpresence-api.sandbox.bnprs.in", status: planned }
-            uat:
-              host: "bnet-smartpresence-api.uat.bnprs.in"
-              status: planned
-              stale_alb_rule: "bnet-smartpresence-api-uat.bnprs.in (FLAT — rewrite)"
-              target: "utms-shared-alb -> utms-smartpresence-api-tg:8080 (ITP acct, eu-central-1)"
-              ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1"
-              note: >-
-                Consumed by bNet v2 (sync, 1:N verify) and built by GitLab project 34
-                bpr1004.utms.api.bnet.smartpresence. Its absence from DNS is the live
-                bNet v2 outage — see faults.
-              supersedes: "smartpresence-api-uat.itpgateway.com (DANGLING — see faults)"
-            prod:    { host: "bnet-smartpresence-api.bnprs.in",         status: planned }
-
-      # Added on user instruction 2026-08-13: API ONLY, no portal.
-      - key: "retail"
-        note: "api-only by instruction — do NOT reserve bnet-retail-portal-* names."
-        components:
-          api:
-            sandbox: { host: "bnet-retail-api.sandbox.bnprs.in", status: planned }
-            uat:     { host: "bnet-retail-api.uat.bnprs.in",     status: planned }
-            prod:    { host: "bnet-retail-api.bnprs.in",         status: planned }
 
   # ======================= 3. AandhiPe ===================================
   - key: "aandhipe-mobile"
@@ -484,31 +434,50 @@ products:
             uat:     { host: "utms-licensing-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "utms-licensing-portal.bnprs.in",         status: planned }
 
-      - key: "bnet"
+      # bNET IS NOT A PRODUCT IN THIS STANDARD (user instruction 2026-08-13). There is no
+      # bnet-* name and no utms-bnet-* name. bNet is delivered THROUGH uTMS: its two API
+      # surfaces are the sub-projects below, and its UI is the uTMS console itself
+      # (utms-portal.<env>), not a portal of its own.
+      # DO NOT re-add bnet-api, bnet-portal or utms-bnet-* as omissions — all three were
+      # removed deliberately, in that order, across three instructions.
+
+      # Was bnet-smartpresence. API ONLY — machine clients, no portal.
+      - key: "smartpresence"
         owner_agent: "na-009/008 bpr1008-bnet"
-        note: >-
-          THIS PORTAL REPLACES bnet-portal-*, which is why the bNet product above has no
-          portal component (user instruction). Consequence worth stating: bNet's API stays
-          at bnet-api.* while its UI is here at utms-bnet-portal.* — different first labels,
-          therefore DIFFERENT ORIGINS. This portal must carry bnet-api.<env>.bnprs.in in its
-          CORS allow-list and OIDC config, and it is not covered by any same-origin
-          assumption. Same shape as the shared bRuID ACS portal.
+        api_only: true
+        renamed_from: "bnet-smartpresence-api.* — moved under uTMS 2026-08-13"
         components:
           api:
-            sandbox: { host: "utms-bnet-api.sandbox.bnprs.in", status: planned }
+            sandbox: { host: "utms-smartpresence-api.sandbox.bnprs.in", status: planned }
             uat:
-              host: "utms-bnet-api.uat.bnprs.in"
+              host: "utms-smartpresence-api.uat.bnprs.in"
               status: planned
+              stale_alb_rule: "bnet-smartpresence-api-uat.bnprs.in (FLAT *and* now wrong-product — rewrite)"
+              target: "utms-shared-alb -> utms-smartpresence-api-tg:8080 (ITP acct, eu-central-1)"
+              ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1"
               note: >-
-                Distinct from bnet-api.* — this is the uTMS-side API for bNet, the shape
-                GitLab project 34 (bpr1004.utms.api.bnet.smartpresence) already follows.
-                Confirm which of the two owns which endpoints before provisioning, or two
-                APIs will claim the same surface.
-            prod:    { host: "utms-bnet-api.bnprs.in",         status: planned }
-          portal:
-            sandbox: { host: "utms-bnet-portal.sandbox.bnprs.in", status: planned }
-            uat:     { host: "utms-bnet-portal.uat.bnprs.in",     status: planned }
-            prod:    { host: "utms-bnet-portal.bnprs.in",         status: planned }
+                THE LIVE bNet v2 OUTAGE HANGS OFF THIS NAME. The app cannot reach its API
+                because the old smartpresence-api-uat.itpgateway.com alias points at a
+                DELETED ALB (see faults). Note the ECS service and target group are already
+                called utms-smartpresence-* — the infrastructure was named as a uTMS thing
+                all along, which is exactly what this move makes the DNS agree with.
+                Built by GitLab project 34, bpr1004.utms.api.bnet.smartpresence — a name
+                that reads <group>.<umbrella>.<kind>.<product>.<feature> and therefore also
+                says uTMS, not bNet, is the umbrella.
+              supersedes: "smartpresence-api-uat.itpgateway.com (DANGLING — see faults)"
+            prod:    { host: "utms-smartpresence-api.bnprs.in",         status: planned }
+
+      # Was bnet-retail. API ONLY by the original instruction; unchanged by the move.
+      - key: "retail"
+        owner_agent: "na-009/008 bpr1008-bnet"
+        api_only: true
+        renamed_from: "bnet-retail-api.* — moved under uTMS 2026-08-13"
+        note: "api-only by instruction — do NOT reserve utms-retail-portal-* names."
+        components:
+          api:
+            sandbox: { host: "utms-retail-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-retail-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-retail-api.bnprs.in",         status: planned }
 
       - key: "iiskiosk"
         owner_agent: "? — see decisions.d10"
@@ -686,6 +655,26 @@ faults:
       One target unhealthy on Target.Timeout and one mid-registration means the service
       behind it is either mid-deploy or broken. Worth a look independently of naming.
     raised: "2026-08-13"
+
+  - class: "orphaned-alb-rule"
+    host: "bnet-api-uat.bnprs.in"
+    status: OPEN
+    raised: "2026-08-13"
+    detail: >-
+      A live host-header rule on utms-shared-alb that, as of the 2026-08-13 restructure, has
+      NO successor anywhere in this registry. bNet was removed as a product: there is no
+      bnet-api, no bnet-portal, and no utms-bnet-*. Its two API surfaces became
+      utms-smartpresence-api and utms-retail-api, neither of which is a rename of this rule.
+    the_question: >-
+      What does bnet-api-uat.bnprs.in actually front? If it is the bNet v2 client-facing API
+      (sync, user login, courses, studentimages — the endpoints bNet v2 calls), then that
+      surface still exists and now has NO NAME in the standard. If it is a duplicate of the
+      smartpresence API, it should simply be deleted.
+    do_not: >-
+      Do NOT delete this rule on the assumption it is dead. It is the second orphan found
+      today; the first, tms-api-uat, turned out to have live targets and Terraform ownership.
+      Check its target group and target health first, exactly as tms was checked.
+    same_class_as: "tms-api-uat.bnprs.in — see do-not-remove above"
 
   - class: "rules-carry-superseded-flat-names"
     hosts: ["utms-api-uat.bnprs.in", "bnet-api-uat.bnprs.in",
