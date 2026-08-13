@@ -27,7 +27,7 @@
 #
 #  129 hostnames, 6 products (2 of them groups) + 15 sub-projects. NONE resolve yet — every one is `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
-#  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, QiTalab, uTMS last —
+#  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, TalabQi, uTMS last —
 #  AandhiPe and bRuID are GROUPS: they own no api/portal themselves, only sub-projects.
 #  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
 #  Verified 2026-08-13 against acct 891963159778 (profile bnprs, holds the
@@ -312,20 +312,20 @@ products:
           # ACS portal, so bruid-rengine-portal-* names are NOT reserved and must not be
           # created. DO NOT "restore" these three as an omission — the absence is deliberate.
 
-      - key: "pass"
-        label: "Pass"
+      - key: "bpassengine"
+        label: "bPassEngine"
         owner_agent: "na-009/005 bpr1005-bpass"
         components:
           api:
-            sandbox: { host: "bruid-pass-api.sandbox.bnprs.in", status: planned,
-                       conflicts_with: "bengine.sandbox.bruid.bnprs.in (LIVE) — IF bengine == Pass" }
-            uat:     { host: "bruid-pass-api.uat.bnprs.in",     status: planned,
-                       conflicts_with: "uat-bpassengine.bruid.bnprs.in (LIVE -> wgate-uat-bengine)" }
-            prod:    { host: "bruid-pass-api.bnprs.in",         status: planned }
+            sandbox: { host: "bruid-bpassengine-api.sandbox.bnprs.in", status: planned,
+                       supersedes: "bengine.sandbox.bruid.bnprs.in (LIVE) — the rename confirms this is the same service" }
+            uat:     { host: "bruid-bpassengine-api.uat.bnprs.in",     status: planned,
+                       supersedes: "uat-bpassengine.bruid.bnprs.in (LIVE -> wgate-uat-bengine) — name now matches exactly" }
+            prod:    { host: "bruid-bpassengine-api.bnprs.in",         status: planned }
           portal:
-            sandbox: { host: "bruid-pass-portal.sandbox.bnprs.in", status: planned }
-            uat:     { host: "bruid-pass-portal.uat.bnprs.in",     status: planned }
-            prod:    { host: "bruid-pass-portal.bnprs.in",         status: planned }
+            sandbox: { host: "bruid-bpassengine-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "bruid-bpassengine-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "bruid-bpassengine-portal.bnprs.in",         status: planned }
   # ======================= 4. BNA =======================================
   # RENAMED FROM nAgent -> bna on user instruction, 2026-08-13. This also disposes
   # of decisions.d2 entirely: "bna" is unambiguously lowercase, so the capital-A and
@@ -395,28 +395,27 @@ products:
             uat:     { host: "bna-chat-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "bna-chat-portal.bnprs.in",         status: planned }
 
-  # ======================= 5. QiTalab ===================================
+  # ======================= 5. TalabQi ===================================
   # Added on user instruction 2026-08-13 as a TOP-LEVEL PRODUCT — explicitly NOT a uTMS
   # sub-project. Placed here rather than appended because uTMS must stay last (it is the
   # umbrella); everything new goes above it.
-  - key: "qitalab"
-    label: "QiTalab"
-    owner_agent: "na-009 bpr2002-talabqi ?"
+  - key: "talabqi"
+    label: "TalabQi"
+    owner_agent: "na-009 bpr2002-talabqi"
+    renamed_from: "qitalab — renamed to talabqi 2026-08-13"
     name_check: >-
-      The na-009 product catalogue calls this bpr2002-TALABQI — the two tokens INVERTED
-      relative to QiTalab. Almost certainly the same product, but I have not assumed it:
-      if they are the same, one of the two names is wrong and should be reconciled rather
-      than left to diverge; if they are different products, this owner_agent is wrong.
-      Confirm before wiring anything to it.
+      RESOLVED by the rename. This was added as "qitalab" while the na-009 catalogue called
+      it bpr2002-TALABQI, tokens inverted; the rename settles it in the catalogue's favour,
+      so DNS and product catalogue now agree and owner_agent is no longer provisional.
     components:
       api:
-        sandbox: { host: "qitalab-api.sandbox.bnprs.in", status: planned }
-        uat:     { host: "qitalab-api.uat.bnprs.in",     status: planned }
-        prod:    { host: "qitalab-api.bnprs.in",         status: planned }
+        sandbox: { host: "talabqi-api.sandbox.bnprs.in", status: planned }
+        uat:     { host: "talabqi-api.uat.bnprs.in",     status: planned }
+        prod:    { host: "talabqi-api.bnprs.in",         status: planned }
       portal:
-        sandbox: { host: "qitalab-portal.sandbox.bnprs.in", status: planned }
-        uat:     { host: "qitalab-portal.uat.bnprs.in",     status: planned }
-        prod:    { host: "qitalab-portal.bnprs.in",         status: planned }
+        sandbox: { host: "talabqi-portal.sandbox.bnprs.in", status: planned }
+        uat:     { host: "talabqi-portal.uat.bnprs.in",     status: planned }
+        prod:    { host: "talabqi-portal.bnprs.in",         status: planned }
 
   # ======================= 6. uTMS (LAST — the umbrella) ================
   # uTMS is deliberately last: memory records it as an UMBRELLA product, and the repo
@@ -634,10 +633,19 @@ unmapped_endpoints:
   - service: "bengine / bPassEngine"
     live: ["bengine.sandbox.bruid.bnprs.in", "uat-bpassengine.bruid.bnprs.in"]
     infra: "ALB wgate-uat-bengine (eu-central-1)"
-    why_it_matters: >-
-      Named THREE ways already (bengine, bpassengine, wgate-uat-bengine). Probably
-      bRuID Pass's engine, but that is an assumption — confirm before mapping.
-    status: no-name-assigned
+    status: mapped
+    mapped_to: "bruid/bpassengine (was bruid/pass, renamed 2026-08-13)"
+    resolution: >-
+      The rename ANSWERS what was previously an assumption. This was flagged as "named
+      three ways — probably the bRuID Pass engine, but confirm before mapping"; renaming the
+      sub-project from pass to bpassengine confirms it, and the UAT name now matches the
+      live host exactly (uat-bpassengine.bruid.bnprs.in -> bruid-bpassengine-api.uat).
+      Those conflicts_with markers became supersedes markers as a result — the live hosts
+      are predecessors to migrate off, not clashes to avoid.
+    residual: >-
+      The INFRA name is still wgate-uat-bengine (bengine, not bpassengine), so DNS and ALB
+      names differ by that token. Same situation as bna vs nagents-* — acceptable, but do
+      not "fix" either side to match the other without asking.
 
   - service: "tms / btms"
     live: ["tms-api.itpgateway.com", "tms.itpgateway.com (itptms-lb, us-east-2)",
