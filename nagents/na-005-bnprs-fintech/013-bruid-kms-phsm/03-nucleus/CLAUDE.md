@@ -136,6 +136,10 @@ Established by `011 bruid-kms` and worth not rediscovering:
 - **Token Replication with Trust Management** already replicates keys between HSMs (`ctkmu rt`), and
   WLD/HA puts several HSMs behind one virtual slot — but replication is manual and point-in-time.
   See `docs/rust-migration/KMS_SYNCHRONIZATION.md` §4a in the `.fe` repo.
+- **`bnprs/host/HsmHost.c` does not compile for Windows** — a `size_t*` passed where PKCS#11 wants
+  `CK_ULONG_PTR` (32 bits on LLP64, 64 on Linux, so it is invisible here) and a call to a C++
+  function with no declaration in scope. task-008. The Windows build has never been run, which is
+  exactly why it went unnoticed; it is reproducible on a Mac in minutes with `cargo xwin`.
 - Conformance vectors for the SCP derivations are committed at
   `crates/jc-toolbox/vectors/scp-conformance-vectors.json`; the captured real-card session is not in
   git and is produced by `bin/scp-vectors --real`.

@@ -1,0 +1,87 @@
+# Found 2026-08-13 by cross-compiling the host shim for x86_64-pc-windows-msvc from a Mac.
+# The Windows build of bnprs/host has never been attempted, and it does not work.
+task:
+  id: "task-008"
+  subject: "HsmHost.c does not compile for Windows — a 32/64-bit length bug and a missing declaration"
+  description: >-
+    bnprs/host/HsmHost.c has three defects that CANNOT appear on Linux and break the Windows build.
+    They were found by cross-compiling the host shim for x86_64-pc-windows-msvc with clang-cl; 138
+    other objects compiled cleanly, so this file is the whole of the problem.
+
+    (1) AND (2) — THE ONE THAT MATTERS. HsmHost.c:44 and HsmHost.c:118 pass `size_t *` where
+    PKCS#11 wants `CK_ULONG_PTR`:
+
+        line  37:  unsigned char *decryptedText, size_t *decryptedTextLen
+        line  44:  rv = C_Decrypt(session, ..., decryptedText, decryptedTextLen);
+        line 111:  unsigned char *encryptedText, size_t *encryptedTextLen
+        line 118:  rv = C_Encrypt(session, ..., encryptedText, encryptedTextLen);
+
+    cryptoki.h:65 has `typedef unsigned long int CK_ULONG`. On Linux and macOS (LP64) `unsigned long`
+    is 64 bits, identical to size_t, so this compiles and works and always has. On WINDOWS (LLP64)
+    `unsigned long` is 32 BITS while size_t is 64. The HSM would write four bytes into an eight-byte
+    variable and the caller would read a length with stale garbage in its top half — wrong data
+    lengths, silently, only on Windows.
+
+    (3) HsmHost.c:212, :215, :218 call `BprHsm_Kms_User_Login(...)` with NO DECLARATION in scope. The
+    function is defined in bnprs/host/BprHsmHost_Exports.cpp — a C++ translation unit — and is
+    declared in no header that HsmHost.c includes. Implicit function declaration is an error in C99
+    and later (clang enforces it; MSVC has historically warned). Worse, calling a C++ definition from
+    C with no visible `extern "C"` is a name-mangling hazard at link time, and an implicit
+    declaration means arguments are passed under default promotions rather than the real prototype.
+
+    HOW TO FIX (1) and (2), and how NOT to. Do NOT cast the pointer — `(CK_ULONG_PTR)&len` compiles
+    and reintroduces exactly the same silent truncation, because the callee still writes 32 bits into
+    a 64-bit slot. Use a local of the correct type and convert at the boundary:
+
+        CK_ULONG ck_len = (CK_ULONG)*decryptedTextLen;      /* check for overflow first */
+        rv = C_Decrypt(session, ..., decryptedText, &ck_len);
+        *decryptedTextLen = (size_t)ck_len;
+
+    and reject up front if the incoming length exceeds ULONG_MAX on the target, so a too-large buffer
+    is an error rather than a truncation. Same shape for C_Encrypt.
+
+    FOR (3): declare `BprHsm_Kms_User_Login` in bnprs/include/bnprs.h inside the existing
+    `extern "C"` guard, so the C caller and the C++ definition agree. Check whether other functions
+    in BprHsmHost_Exports.cpp are called from C the same way — the compiler only flagged this one
+    because it is the only one HsmHost.c reaches.
+  status: pending
+  priority: high
+  created_at: "2026-08-13"
+  assigned_to: null
+  blocked_by: []
+  blocks: ["na-005/011 bruid-kms task-004 (the Windows half)"]
+  estimated_steps: 4
+  tags: ["host-api", "windows", "portability", "llp64", "bug"]
+  notes: >-
+    WHY THIS WENT UNNOTICED: the Windows build has never been run. The FE's real.rs is cfg-gated to
+    Linux/Windows and CI builds the Windows .exe with default (mock) features, so nothing has ever
+    compiled bnprs/host for an LLP64 target. "It builds on Linux" was never evidence about Windows,
+    and this is the specific reason why.
+
+    HOW TO REPRODUCE WITHOUT WINDOWS — this is the useful part, and it takes minutes:
+
+      rustup target add x86_64-pc-windows-msvc
+      cargo install cargo-xwin           # fetches Microsoft's redistributable CRT + SDK
+      export BNPRS_PHSM_DIR=<this repo>
+      export BNPRS_PTK_LIB_DIR=<dir with cryptoki.lib ctutil.lib ethsm.lib>
+      export BNPRS_OPENSSL_LIB_DIR=<dir with libcrypto.lib>
+      cd trp1003.phsm.kms.fe
+      cargo xwin build -p kms-hsm --no-default-features --features real-hsm \
+        --target x86_64-pc-windows-msvc --tests
+
+    The import libraries are NOT in this repo — it ships DLLs with no .lib files. Extract them from
+    the PTK client installer (SDKs/Win64/x64/PTKinstaller.exe, an Inno Setup package; `innoextract`
+    reads it without installing anything) at "app/C SDK/lib". libcrypto.lib is not in the Thales
+    bundle at all: build it from 3rdparty/openssl-3.3.2 with `perl Configure VC-WIN64A no-asm
+    no-shared` under a VS x64 developer prompt. Both were done on 2026-08-13 and the files are staged
+    on MCES2 at C:\BPR\pHSM.
+
+    DO NOT "fix" this with -Wno-incompatible-pointer-types. That was tried as a probe to reach the
+    linker and abandoned deliberately: silencing a 32-bit write into a 64-bit variable produces a
+    green build that means nothing.
+
+    Related: na-005/011 bruid-kms fixed the FE side of the Windows link path in commit e969811 —
+    both vendor directories searched, libcrypto named correctly for MSVC, BNPRS_PTK_LIB_DIR /
+    BNPRS_OPENSSL_LIB_DIR honoured, and a preflight that names missing libraries instead of leaving
+    the linker to. Ten tests cover that logic on every host. The FE side is done; this file is what
+    stops the Windows build now.
