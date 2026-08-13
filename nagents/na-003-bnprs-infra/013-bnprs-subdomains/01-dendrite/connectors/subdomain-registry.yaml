@@ -217,24 +217,29 @@ products:
             uat:     { host: "aandhipe-mobile-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "aandhipe-mobile-portal.bnprs.in",         status: planned }
 
-      - key: "mposmw"
+      - key: "mpos-mw"
         label: "mPosMw (middleware)"
         owner_agent: "na-009/003 bpr1003-mpos ?"   # or bpr2001-aandhipe — see decisions.d6
-        renamed_from: "aandhipe-mpos — renamed to mPosMw (middleware) 2026-08-13"
+        renamed_from: >-
+          aandhipe-mpos -> aandhipe-mposmw -> aandhipe-mpos-mw (2026-08-13). The final hyphen
+          split is cosmetic in the key but NOT in the hostname: aandhipe-mpos-mw-api now
+          shares the aandhipe-mpos-* prefix with nothing, but it does read like a
+          sub-project of a non-existent "aandhipe-mpos". There is no such entry — mpos-mw
+          is the whole key. Never match these by prefix.
         distinct_from: >-
           utms/mpos. The Mw suffix is the disambiguation: this is the MIDDLEWARE layer, the
           uTMS one is the product surface. They were flagged as a possible duplicate under
           d10; the rename answers that they are two different things. Do NOT merge them.
         components:
           api:
-            sandbox: { host: "aandhipe-mposmw-api.sandbox.bnprs.in", status: planned }
-            uat:     { host: "aandhipe-mposmw-api.uat.bnprs.in",     status: planned, stale_alb_rule: "aandhipe-mpos-api-uat.bnprs.in (FLAT — rewrite)",
+            sandbox: { host: "aandhipe-mpos-mw-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "aandhipe-mpos-mw-api.uat.bnprs.in",     status: planned, stale_alb_rule: "aandhipe-mpos-api-uat.bnprs.in (FLAT — rewrite to aandhipe-mpos-mw-api.uat; note the old rule name is now a PREFIX of the new one, so a careless find/replace will corrupt it)",
                        target: "utms-shared-alb (eu-central-1)" }
-            prod:    { host: "aandhipe-mposmw-api.bnprs.in",         status: planned }
+            prod:    { host: "aandhipe-mpos-mw-api.bnprs.in",         status: planned }
           portal:
-            sandbox: { host: "aandhipe-mposmw-portal.sandbox.bnprs.in", status: planned }
-            uat:     { host: "aandhipe-mposmw-portal.uat.bnprs.in",     status: planned }
-            prod:    { host: "aandhipe-mposmw-portal.bnprs.in",         status: planned }
+            sandbox: { host: "aandhipe-mpos-mw-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "aandhipe-mpos-mw-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "aandhipe-mpos-mw-portal.bnprs.in",         status: planned }
 
   # ======================= 3. bRuID =====================================
   # GROUPED 2026-08-13, same as AandhiPe — four sibling products became one group with four
