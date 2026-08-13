@@ -388,6 +388,126 @@ memories:
            ir101-penalty-is-intrinsic, self-pair-trick-for-unlabelled-sets,
            accuracy-from-that-run-is-meaningless]
 
+  - id: mem-010
+    type: project_context
+    content: >-
+      PolyU IS PolyU-HSFD (HYPERSPECTRAL FACE) AND IT IS THE ONLY POSE DATA WE HAVE.
+      ~/BPR/FaceData/PolyU/ holds hsface.zip (364 MB) plus an already-extracted hsface/ containing
+      THREE RAR ARCHIVES — SampleImages_F, _L, _R. The zip contains nothing but those same RARs.
+      Extract with unar; UNRAR IS NOT INSTALLED on pat-m4p.
+      F 151 images / 47 subjects, L 124/47, R 125/47 — 400 images, 48 subjects union, 46 in all
+      three poses. 180x220 JPEG, tight crops. L and R are NEAR-PROFILE (~45-90 deg, one eye and
+      often one ear occluded), NOT mild yaw — this is real pose, the axis every other database in
+      the series lacks.
+      IDENTITY IS IN THE FILENAME: F_22_3.jpg = frontal, subject 22, session 3. That is why this
+      supports verification where BioID does not. Reorganise to subjectNN/<pose>_<session>.jpg
+      because make_pairs.py keys identity on the DIRECTORY, not the filename.
+      TWO LIMITS ON EVERY NUMBER FROM IT: this is the SAMPLE distribution, not full PolyU-HSFD; and
+      the JPEGs are PREVIEWS — each has a companion HyperFaceCube_*.mat holding the actual 33-band
+      cube (400-720 nm) which is the POINT of the database and is entirely unexplored. The engine
+      consumes ordinary images, so the hyperspectral data has never been touched.
+      PROTOCOL NOTE THAT MATTERS: when building a cross-pose protocol the IMPOSTORS MUST HAVE THE
+      SAME POSE COMPOSITION as the genuine set (cross-pose genuine vs cross-pose impostor).
+      Otherwise impostors are drawn from easier comparisons than genuines and every cross-pose
+      number is flattered.
+    created_at: "2026-08-14"
+    last_accessed: "2026-08-14"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [polyu-is-hsface, near-profile-not-mild-yaw, identity-in-filename, use-unar-not-unrar,
+           sample-not-full-database, hyperspectral-cubes-unexplored,
+           impostors-must-match-pose-composition]
+
+  - id: mem-011
+    type: technical_knowledge
+    content: >-
+      2026-08-14 POLYU CROSS-POSE — THE FIRST NON-SATURATED RESULT IN THE SERIES, and pose is the
+      most expensive condition measured anywhere.
+      FRONTAL SATURATES like everything else: T12 99.87, T13 99.62, T14 99.62, T15 99.24, ALL at
+      TAR@1e-2 = TAR@1e-3 = 100%, 0 FTE. No ranking from it.
+      CROSS-POSE (F<->L and F<->R), COMMON SUBSET 1940 pairs after excluding a 7-image FTE union:
+        T14  94.39 +/- 4.81  TAR@1e-2 88.10  TAR@1e-3 83.44   overlap 16.6%
+        T12  92.72 +/- 3.58           82.51           76.09   overlap 23.9%
+        T15  91.03 +/- 5.09           78.16           74.74   overlap 25.3%
+        T13  86.59 +/- 5.73           70.50           53.62   overlap 46.4%
+      "overlap" = share of genuine pairs at or below the impostor ceiling. It ranks the variants in
+      EXACTLY the TAR@1e-3 order, confirming the Yale margin/overlap reading tracks the headline
+      metric when one exists.
+      ALL 7 EXTRACTION FAILURES WERE L OR R IMAGES and all belonged to the YuNet variants; T13's
+      own detector lost none. Detector difference, not recogniser. T13's TAR@1e-3 was 61.65 on its
+      own 2008-pair set and 53.62 on the common 1940 — the exclusion removed images only it could
+      handle, so its own-set figure flattered it by 8 points. QUOTE 53.62.
+      POSE COSTS T14 16.6 POINTS OF TAR@1e-3 (100 frontal -> 83.44 cross-pose) on the SAME subjects,
+      session, camera and crop. CroppedYale's illumination extremes cost it 6.4. Pose is worse.
+      EVERY variant has genuine cross-pose pairs scoring EXACTLY 0.0000 — total failure to associate
+      two images of one person.
+      T12 HOLDS UP BETTER UNDER POSE THAN UNDER ILLUMINATION — second here, 7.4 points behind T14,
+      against 35.6 points behind and last on CroppedYale. T12'S WEAKNESS IS SPECIFICALLY
+      ILLUMINATION, NOT DIFFICULTY IN GENERAL, which sharpens the 2026-08-01 integration hypothesis:
+      an alignment fault should hurt everywhere and this does not. PRACTICAL CONSEQUENCE for the
+      only shippable variant: capture policy should prioritise CONSISTENT ILLUMINATION over
+      frontality — the reverse of what the pose numbers alone suggest.
+      RANKING IS NOW CONSISTENT ACROSS EVERY DATABASE THAT CAN DISCRIMINATE: T14 first, T13 last,
+      T12/T15 between, on CroppedYale (illumination) and PolyU (pose). The saturated sets (LFW, ORL,
+      dbase, Yale, PolyU-frontal) contribute NOTHING to this and should stop being cited as if they
+      did.
+      CAVEAT: 48 subjects over 10 folds is ~5 per fold; +/-3.4-6.2 bars are large. The T14/T12
+      accuracy gap (1.7) is INSIDE them — the TAR@FAR gaps are the defensible ones because TAR is
+      pooled rather than per-fold.
+    created_at: "2026-08-14"
+    last_accessed: "2026-08-14"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [first-non-saturated-result, pose-is-the-most-expensive-condition, t14-first-t13-last,
+           overlap-tracks-tar, fte-was-all-profile-images, quote-the-common-subset-figure,
+           t12-weakness-is-illumination-not-difficulty, prioritise-lighting-over-frontality,
+           stop-citing-saturated-databases]
+
+  - id: mem-012
+    type: technical_knowledge
+    content: >-
+      2026-08-14 FUSION RULES RETESTED ON A SECOND DATABASE — one rule REFINED, two reconfirmed,
+      one shown to be doctrine rather than law. This supersedes nothing in mem-005; it bounds it.
+      PolyU cross-pose, same 1940-pair common subset:
+        T12+T14 max   95.36 +/- 3.38  TAR@1e-2 89.96  TAR@1e-3 85.92   <-- BEST HERE
+        T13+T14 max   95.31 +/- 4.11           90.68           77.85
+        T12+T14 mean  94.44 +/- 3.69           89.96           84.47
+        (T14 alone    94.39 +/- 4.81           88.10           83.44)
+        T13+T14 mean  94.36 +/- 3.48           85.20           76.60
+        all four mean 94.05 +/- 4.27           86.44           81.06
+        T14+T15 mean  93.21 +/- 4.87           85.20           80.75
+        T12+T13 mean  93.20 +/- 3.48           83.33           76.81
+      RULE (3) REFINED — IT IS ABOUT THE SIZE OF THE GAP. T12+T14 was the WORST pair on CroppedYale
+      (-5.5 TAR@1e-3 vs T14 alone) and is the BEST pair here (+1.0 mean, +2.5 max). The difference
+      is how far behind the weak component was: CroppedYale T12 58.04 vs T14 93.63 = 35.6 points,
+      POISONS the average; PolyU T12 76.09 vs T14 83.44 = 7.4 points, still CONTRIBUTES. Fusion
+      cannot rescue a FAR weaker component; a somewhat weaker one that fails differently helps.
+      The threshold between 7 and 35 points is UNMEASURED.
+      RULE (1) HELD AS A NEGATIVE PREDICTION, which is worth more than the original positive one.
+      There is NO crossover on this database — T14 leads at accuracy, 1e-2 and 1e-3, ranking
+      identical at every operating point — so rule (1) says fusion should not pay. It did not:
+      T13+T14 mean, the best configuration measured anywhere on CroppedYale, came out WORSE than
+      T14 alone on all three metrics here.
+      RULE (2) RECONFIRMED, third database running: T14+T15 (both IR-101) worse than T14 alone.
+      RULE (4) RECONFIRMED: all four fused worse than the best pair.
+      "MEAN FOR STRICT FAR, MAX FOR SCREENING" IS DOCTRINE, NOT LAW. Here T12+T14 max beat T12+T14
+      mean at FAR=1e-3 too (85.92 vs 84.47), while T13+T14 behaved the CroppedYale way. It depends
+      on whether the components' impostor tails overlap. DO NOT PICK A FUSION RULE FROM DOCTRINE —
+      MEASURE BOTH, IT IS ONE EXTRA RUN.
+      GENERAL LESSON: the best fusion PAIR is database-dependent. A pair chosen on one database is
+      a hypothesis on the next, not a result.
+    created_at: "2026-08-14"
+    last_accessed: "2026-08-14"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [fusion-rules-retested, rule3-is-about-gap-size, 7-points-helps-35-points-hurts,
+           rule1-held-as-negative-prediction, croppedyale-champion-failed-here,
+           similar-models-still-do-not-fuse, max-vs-mean-is-not-a-law, best-pair-is-database-dependent,
+           threshold-between-7-and-35-is-unmeasured]
+
 # Pruning rules
 pruning:
   max_entries: 500
