@@ -96,8 +96,8 @@ scheme:
   components: ["api", "portal"]
   charset: "lowercase a-z 0-9 and hyphen only"
   max_label: 63
-  longest_label: "utms-bnet-smartpresence-portal (30) — still well inside the 63-char limit,
-                  but this is the longest and worth watching if another token is ever added"
+  longest_label: "utms-mpos-miniapps-portal (25) — the spresence abbreviation dropped the
+                  previous longest (utms-bnet-smartpresence-portal, 30) below this one"
 
   superseded_flat_form: "<product>-<component>-<env>.bnprs.in — the source table's proposal, NOT adopted"
 
@@ -137,7 +137,7 @@ scheme:
     - "utms-bnet-retail-api.uat.bnprs.in"
   subproject_rules:
     - "ONE RULE FOR THE WHOLE STANDARD. Identical in shape to
-       utms-bnet-smartpresence-api.uat.bnprs.in, so there is no host-vs-path discriminator to
+       utms-bnet-spresence-api.uat.bnprs.in, so there is no host-vs-path discriminator to
        argue about and nothing has to be inferred: every addressable thing is
        <product>[-<subproject>]-<component>.<env>."
     - "Each sub-project needs its OWN DNS record and its OWN ALB host rule. Sub-projects
@@ -437,18 +437,19 @@ products:
       # The bnet- prefix is part of the SUB-PROJECT KEY, not a product. bNet is still not a
       # product in this standard; this is how its surfaces stay identifiable as bNet's while
       # living under the uTMS umbrella. Full form: utms + bnet-smartpresence + api.
-      - key: "bnet-smartpresence"
+      - key: "bnet-spresence"
         owner_agent: "na-009/008 bpr1008-bnet"
         renamed_from: >-
           bnet-smartpresence-api.* -> utms-smartpresence-api.* -> utms-bnet-smartpresence-*
-          (three moves on 2026-08-13; the bnet token left and came back, deliberately)
+          -> utms-bnet-spresence-* (four moves on 2026-08-13; the bnet token left and came
+          back, then smartpresence was abbreviated to spresence)
         components:
           api:
-            sandbox: { host: "utms-bnet-smartpresence-api.sandbox.bnprs.in", status: planned }
+            sandbox: { host: "utms-bnet-spresence-api.sandbox.bnprs.in", status: planned }
             uat:
-              host: "utms-bnet-smartpresence-api.uat.bnprs.in"
+              host: "utms-bnet-spresence-api.uat.bnprs.in"
               status: planned
-              stale_alb_rule: "bnet-smartpresence-api-uat.bnprs.in (FLAT *and* wrong stem — rewrite)"
+              stale_alb_rule: "bnet-smartpresence-api-uat.bnprs.in (FLAT *and* wrong stem — rewrite to utms-bnet-spresence-api.uat)"
               target: "utms-shared-alb -> utms-smartpresence-api-tg:8080 (ITP acct, eu-central-1)"
               ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1"
               note: >-
@@ -462,11 +463,11 @@ products:
                 <group>.<umbrella>.<kind>.<product>.<feature> and so carries BOTH tokens,
                 utms as umbrella and bnet as product. The DNS name now mirrors that exactly.
               supersedes: "smartpresence-api-uat.itpgateway.com (DANGLING — see faults)"
-            prod:    { host: "utms-bnet-smartpresence-api.bnprs.in",         status: planned }
+            prod:    { host: "utms-bnet-spresence-api.bnprs.in",         status: planned }
           portal:
-            sandbox: { host: "utms-bnet-smartpresence-portal.sandbox.bnprs.in", status: planned }
-            uat:     { host: "utms-bnet-smartpresence-portal.uat.bnprs.in",     status: planned }
-            prod:    { host: "utms-bnet-smartpresence-portal.bnprs.in",         status: planned }
+            sandbox: { host: "utms-bnet-spresence-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-bnet-spresence-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-bnet-spresence-portal.bnprs.in",         status: planned }
 
       # Same shape as bnet-smartpresence above: bnet- is part of the sub-project key.
       # NOTE the api-only rule that applied to retail earlier is WITHDRAWN — it now has a
