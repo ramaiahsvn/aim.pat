@@ -289,10 +289,11 @@ products:
             uat:     { host: "bruid-wgate-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "bruid-wgate-portal.bnprs.in",         status: planned }
 
-      - key: "rengine"
-        label: "rEngine"
+      - key: "risk-engine"
+        label: "rEngine (risk-engine)"
         api_only: true
         portal_served_by: "bruid-acs-portal.<env>.bnprs.in — user instruction 2026-08-13"
+        renamed_from: "rengine — renamed to risk-engine 2026-08-13, matching the ALB name"
         feeds_d5: >-
           EVIDENCE, not a decision. rEngine sharing the ACS portal means the two are one UI
           with two APIs, which lines up with the infra naming (wgate-uat-acs and
@@ -301,31 +302,33 @@ products:
           d5 is actually answered — and note the AandhiPe/bRuID grouping did NOT answer it.
         components:
           api:
-            # THREE NAMES FOR ONE SERVICE: this registry says rengine, the ALB says
-            # risk-engine, live DNS says risk. Pick one — see decisions.d5.
-            sandbox: { host: "bruid-rengine-api.sandbox.bnprs.in", status: planned,
-                       conflicts_with: "risk.sandbox.bruid.bnprs.in (LIVE)" }
-            uat:     { host: "bruid-rengine-api.uat.bnprs.in",     status: planned,
+            # NAMES NARROWED 2026-08-13: this registry now says risk-engine, which MATCHES
+            # the ALB (wgate-uat-risk-engine) exactly. Only the legacy sandbox host still
+            # differs — risk.sandbox.bruid.bnprs.in, the short form. So it went from three
+            # names to two, and the remaining odd one out is the thing being migrated off.
+            sandbox: { host: "bruid-risk-engine-api.sandbox.bnprs.in", status: planned,
+                       supersedes: "risk.sandbox.bruid.bnprs.in (LIVE, short form) — migrate off it" }
+            uat:     { host: "bruid-risk-engine-api.uat.bnprs.in",     status: planned,
                        note: "ALB wgate-uat-risk-engine is INTERNAL (internal-wgate-uat-risk-engine)" }
-            prod:    { host: "bruid-rengine-api.bnprs.in",         status: planned }
+            prod:    { host: "bruid-risk-engine-api.bnprs.in",         status: planned }
           # NO PORTAL COMPONENT — user instruction 2026-08-13. rEngine's UI is served by the
           # ACS portal, so bruid-rengine-portal-* names are NOT reserved and must not be
           # created. DO NOT "restore" these three as an omission — the absence is deliberate.
 
-      - key: "bpassengine"
+      - key: "bpass-engine"
         label: "bPassEngine"
         owner_agent: "na-009/005 bpr1005-bpass"
         components:
           api:
-            sandbox: { host: "bruid-bpassengine-api.sandbox.bnprs.in", status: planned,
+            sandbox: { host: "bruid-bpass-engine-api.sandbox.bnprs.in", status: planned,
                        supersedes: "bengine.sandbox.bruid.bnprs.in (LIVE) — the rename confirms this is the same service" }
-            uat:     { host: "bruid-bpassengine-api.uat.bnprs.in",     status: planned,
-                       supersedes: "uat-bpassengine.bruid.bnprs.in (LIVE -> wgate-uat-bengine) — name now matches exactly" }
-            prod:    { host: "bruid-bpassengine-api.bnprs.in",         status: planned }
+            uat:     { host: "bruid-bpass-engine-api.uat.bnprs.in",     status: planned,
+                       supersedes: "uat-bpassengine.bruid.bnprs.in (LIVE -> wgate-uat-bengine). NOTE the hyphen: bpass-engine here vs bpassengine live vs bengine on the ALB — three spellings again" }
+            prod:    { host: "bruid-bpass-engine-api.bnprs.in",         status: planned }
           portal:
-            sandbox: { host: "bruid-bpassengine-portal.sandbox.bnprs.in", status: planned }
-            uat:     { host: "bruid-bpassengine-portal.uat.bnprs.in",     status: planned }
-            prod:    { host: "bruid-bpassengine-portal.bnprs.in",         status: planned }
+            sandbox: { host: "bruid-bpass-engine-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "bruid-bpass-engine-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "bruid-bpass-engine-portal.bnprs.in",         status: planned }
   # ======================= 4. BNA =======================================
   # RENAMED FROM nAgent -> bna on user instruction, 2026-08-13. This also disposes
   # of decisions.d2 entirely: "bna" is unambiguously lowercase, so the capital-A and
@@ -643,9 +646,12 @@ unmapped_endpoints:
       Those conflicts_with markers became supersedes markers as a result — the live hosts
       are predecessors to migrate off, not clashes to avoid.
     residual: >-
-      The INFRA name is still wgate-uat-bengine (bengine, not bpassengine), so DNS and ALB
-      names differ by that token. Same situation as bna vs nagents-* — acceptable, but do
-      not "fix" either side to match the other without asking.
+      THREE SPELLINGS, and the 2026-08-13 hyphen rename widened rather than closed the gap:
+      this registry says bpass-engine, the live host says bpassengine (no hyphen), the ALB
+      says bengine. Briefly, before the hyphen, the registry and the live host matched
+      character for character; they no longer do. Acceptable — infra names are internal and
+      the live host is being migrated off anyway — but the earlier claim of an exact match
+      no longer holds, and nobody should "fix" any of the three to match another on a whim.
 
   - service: "tms / btms"
     live: ["tms-api.itpgateway.com", "tms.itpgateway.com (itptms-lb, us-east-2)",
