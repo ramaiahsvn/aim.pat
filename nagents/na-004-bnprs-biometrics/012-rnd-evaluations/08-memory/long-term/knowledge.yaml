@@ -254,6 +254,140 @@ memories:
     source: "session-2026-08-01 (user asked; both axes had been missed)"
     tags: [fusion, timing, crossover-predicts-fusion-gain, similar-models-do-not-fuse, fusion-cannot-rescue-a-weak-variant, more-is-not-better, mean-for-strict-far-max-for-screening, t12-is-4x-cheaper, matching-is-free, enrolment-is-the-bottleneck, exclude-first-call, do-not-time-cache-hits]
 
+  - id: mem-006
+    type: technical_knowledge
+    content: >-
+      BioID CANNOT SUPPORT A VERIFICATION PROTOCOL — IT SHIPS NO IDENTITY LABELS. Its own
+      description.txt says the 1521 images show "one out of 23 different test persons" and are
+      "labeled BioID_xxxx.pgm where xxxx is THE INDEX OF THE CURRENT IMAGE". The filename is a
+      SEQUENCE NUMBER, not a subject. No manifest, no per-subject directory, no identity column
+      anywhere in the distribution (1521 .pgm + 1521 .eye + one description.txt). The 23 identities
+      exist but are NOT recoverable from disk, so genuine pairs cannot be formed and accuracy,
+      TAR@FAR and EER are all UNDEFINED on this database.
+      IT IS A FACE DETECTION BENCHMARK. That is what its manually-marked .eye ground truth is for.
+      The 2026-08-01 report recommended it as "BioID (marked-up, varied lighting)" — the mark-up is
+      EYE COORDINATES, NOT IDENTITY. That recommendation was wrong and this entry supersedes it.
+      THE TRAP, and it is a silent one: DO NOT run make_pairs.py on the BioID folder. Its rule is
+      "a subject is any directory that directly contains images", so a flat BioID folder becomes ONE
+      SUBJECT WITH 1521 IMAGES and every one of the ~1.16 M within-folder pairs is emitted as
+      GENUINE — pairs of 23 different people all labelled same-person. The run completes and prints
+      a plausible table of pure noise. Same class of bug as the dbase females/1 vs males/1
+      collision, opposite direction.
+      TO MAKE IT USABLE somebody must supply identity annotations; third-party labellings exist but
+      are not in this distribution.
+    created_at: "2026-08-14"
+    last_accessed: "2026-08-14"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [bioid-has-no-identity-labels, verification-impossible, detection-benchmark-not-recognition,
+           eye-coords-are-not-identity, make_pairs-would-emit-1.16M-false-genuine-pairs,
+           supersedes-the-2026-08-01-recommendation]
+
+  - id: mem-007
+    type: project_context
+    content: >-
+      "YALE" IS TWO DIFFERENT DATABASES AND ONE WAS ALREADY EVALUATED. ~/BPR/FaceData/Yale/ holds
+      BOTH: CroppedYale/ (38 subjects x ~64 illumination directions, 2452 pgm) which IS the set
+      evaluated in the 2026-08-01 report S4c/S4d, and yalefaces.zip which is the ORIGINAL Yale Face
+      Database (15 subjects x 11 conditions = 165 images, 320x243 GIF) and had NOT been evaluated.
+      The 2026-08-01 report listed "Yale" as a recommended NEXT database while already reporting
+      CroppedYale results — those are different sets and the recommendation meant the original.
+      THE ORIGINAL ADDS EXPRESSION; CroppedYale is pure illumination geometry. Conditions:
+      centerlight, glasses, happy, leftlight, noglasses, normal, rightlight, sad, sleepy,
+      surprised, wink.
+      TWO DATA DEFECTS IN THE ZIP, both must be fixed before any run:
+      (1) subject01.glasses.gif is a BYTE-IDENTICAL duplicate of subject01.glasses (md5 bbf4e6ad...).
+      Left in, it forms a genuine pair of THE SAME FILE, which every matcher scores 1.0 — free
+      accuracy on an image that is not a second sample. EXCLUDE IT.
+      (2) subject01.centerlight DOES NOT EXIST; subject01.gif does, is unique, and is the only
+      subject01 file with no condition suffix — it is subject01's centerlight under a mangled name.
+      RENAME IT, or subject01 silently has 10 images while everyone else has 11.
+      After both fixes: exactly 15 x 11 = 165. Convert GIF->PNG (sips) into subject-per-directory
+      layout, because identity is in the FILENAME here and make_pairs.py keys on the DIRECTORY PATH.
+    created_at: "2026-08-14"
+    last_accessed: "2026-08-14"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [yale-is-two-databases, croppedyale-already-done, original-yale-adds-expression,
+           duplicate-glasses-gif-must-be-excluded, subject01-gif-is-centerlight,
+           identity-in-filename-vs-directory]
+
+  - id: mem-008
+    type: technical_knowledge
+    content: >-
+      2026-08-14 YALE (original, 15 subjects, 1650 pairs) — SATURATED, AND THE SCORE DISTRIBUTIONS
+      RANK WHAT THE ACCURACY TABLE COULD NOT.
+      Accuracy: T15 99.86 +/- 0.42, T13 99.86 +/- 0.42, T12 99.81 +/- 0.56, T14 99.77 +/- 0.69.
+      ALL FOUR at TAR@1e-2 = TAR@1e-3 = 100%, ALL FOUR at 0 FTE. Spread 0.09 points against error
+      bars of 0.42-0.69 — NO RANKING CLAIM IS PERMITTED FROM THIS TABLE (directive 5). ORL's finding
+      again and worse: ORL had 40 subjects, this has 15. Also note 15 subjects do not divide into 10
+      folds, so fold sizes ran 252/235/218/216/192/120/123/105/96/93.
+      THE NEW READING RULE — WHEN ACCURACY SATURATES, LOOK AT THE DISTRIBUTIONS BEFORE DECLARING A
+      TIE. Accuracy saturates here because genuine and impostor DO NOT OVERLAP AT ALL: for every
+      variant the lowest genuine score exceeds the highest impostor score, so zero errors are
+      achievable at some threshold. MARGIN = genuine-min minus impostor-max:
+        T15 0.6215-0.2561 = 0.3654 | T14 0.5448-0.1887 = 0.3561
+        T13 0.4863-0.2836 = 0.2027 | T12 0.5395-0.3471 = 0.1924
+      T14/T15 hold ~1.85x the margin of T12/T13 — a clean 2-vs-2 split that the accuracy column
+      (0.09 spread) and the TAR columns (all 100%) both erase. Same direction as CroppedYale, where
+      T14 led T12 by 36 points of TAR@1e-3. DIRECTIONAL, NOT DECISIVE: margin is a min-vs-max over
+      825+825 pairs from 15 identities, resting on the two most extreme scores, with no error bar.
+      Costs nothing to compute — needs only --scores, no extra runs.
+      ACCURACY IS BELOW 100% DESPITE PERFECT SEPARABILITY. With non-overlapping distributions the
+      only way to misclassify is to place the threshold outside the gap, so the residual 0.14-0.23%
+      measures the 10-fold THRESHOLD FITTING on single-identity folds, not the models.
+      CONDITION DIFFICULTY IS A PROPERTY OF THE IMAGERY, NOT THE MODEL — near-identical ordering for
+      all four: rightlight / leftlight / glasses hardest, normal / noglasses easiest. EXPRESSION
+      (happy, sad, sleepy, wink) COSTS MARKEDLY LESS THAN ILLUMINATION. OCCLUSION BY GLASSES IS AS
+      EXPENSIVE AS DIRECTIONAL LIGHTING and is the single hardest condition for T14/T15 — relevant
+      to enrolment policy, since glasses-on enrolment against glasses-off probe is among the most
+      expensive pairings. Condition spread (easiest minus hardest) ranks stability: T15 0.073,
+      T14 0.086, T12 0.109, T13 0.115. Hardest PAIRS are lighting-crossed and NOT ONE fell below
+      the impostor ceiling for any variant.
+      T12 DOES NOT COLLAPSE HERE — 99.81% and TAR@1e-3 100%, against 89.92% and 58.04% on
+      CroppedYale. Yale's leftlight/rightlight is mild next to CroppedYale's +/-130 azimuth. A T12
+      deployment in controlled lighting looks fine; the same build on surveillance illumination does
+      not. DO NOT GENERALISE A YALE-CLASS RESULT TO CCTV.
+    created_at: "2026-08-14"
+    last_accessed: "2026-08-14"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [yale-is-saturated, cannot-rank, margin-ranks-when-accuracy-cannot, look-at-distributions,
+           t14-t15-hold-1.85x-margin, perfect-separability, residual-error-is-threshold-fitting,
+           illumination-beats-expression, glasses-as-costly-as-lighting, t15-most-stable,
+           t12-needs-extremes-to-fail]
+
+  - id: mem-009
+    type: technical_knowledge
+    content: >-
+      2026-08-14 BioID DETECTION — 100% FOR ALL FOUR VARIANTS, 0 extraction failures over 1521
+      images at 384x286 with deliberately varied illumination, background and face size. T12 7.03 ms,
+      T13 9.97, T14 35.12, T15 36.81. YuNet at score 0.6 for T12/T14/T15; T13 uses InspireFace's own
+      detector. This is the most VARIED set the front-end has faced (LFW is bigger at 13233 but far
+      more uniform) and it produced no failures at all.
+      TIMING REPRODUCED ON A DIFFERENT DATABASE, which is the real value here: vs the 2026-08-01
+      dbase figures T12 7.03/8.57, T13 9.97/9.83, T14 35.12/35.04, T15 36.81/35.25. THE ~4x T14/T15
+      PENALTY IS A PROPERTY OF IR-101, NOT OF dbase.
+      HOW TO MEASURE DETECTION WITHOUT IDENTITY LABELS — the technique, reusable on any unlabelled
+      set: build an #explicit protocol pairing EACH IMAGE WITH ITSELF as genuine (forces every image
+      through extraction so the FTE list is complete) plus consecutive images as impostors (keeps
+      the fold arithmetic non-degenerate), then READ ONLY THE --fte-list.
+      THE ACCURACY FROM SUCH A RUN IS MEANINGLESS AND MUST NEVER BE QUOTED — self-pairs score 1.0 by
+      construction. The run prints a full, confident, entirely invalid accuracy table. Anyone
+      reading the raw output without this warning would report ~100% verification accuracy on a
+      database that cannot support verification at all.
+    created_at: "2026-08-14"
+    last_accessed: "2026-08-14"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [bioid-detection-100-percent, zero-fte, timing-reproduces-across-databases,
+           ir101-penalty-is-intrinsic, self-pair-trick-for-unlabelled-sets,
+           accuracy-from-that-run-is-meaningless]
+
 # Pruning rules
 pruning:
   max_entries: 500
