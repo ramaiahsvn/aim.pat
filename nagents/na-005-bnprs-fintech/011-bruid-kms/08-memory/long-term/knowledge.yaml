@@ -59,7 +59,8 @@ memories:
     type: technical_knowledge
     content: >
       Build host pat-m4p: rustc/cargo 1.95 via Homebrew (no rustup — fine for
-      desktop builds), Node 26 + pnpm for the Tauri/Svelte frontend. Qt app
+      desktop builds, NOT sufficient to cross-compile: see mem-011), Node 26 +
+      pnpm for the Tauri/Svelte frontend. Qt app
       builds with CMake 3.21+/Qt6. C++ src/ tree stays as reference until
       Rust reaches parity (Phase 2 exit criterion), then removed in one
       commit. Out of scope unless requested: Gemalto licensing (ch.2),
@@ -521,6 +522,113 @@ memories:
     tags: [scp02, visa2-diversification, session-keys, c-mac-on-the-wire, retail-mac,
            degenerate-3des-key, cap22-twelve-sizes, get-status-e3, life-cycle-scope-dependent,
            applet-version-longest-prefix, cipher-0.5-api]
+
+  - id: mem-010
+    type: technical_knowledge
+    content: >-
+      2026-08-12 THE BACKEND CANNOT DO SIXTEEN OF THE THINGS THE UI OFFERS, AND THAT IS NOW
+      MODELLED RATHER THAN DISCOVERED AT RUNTIME. crates/kms-hsm/src/real.rs binds bnprs.h; sixteen
+      catalogue/key operations have NO corresponding function in that header, so on the real pHSM
+      they cannot work at all. This is missing HOST API SURFACE, not missing hardware - the FM
+      emulator does not help, and neither does a bigger HSM. The gap is closed by task-007 (adding
+      the functions), not by configuration.
+      crates/kms-hsm/src/capabilities.rs is the single source of truth: Capability, and
+      HsmCapabilities::phsm() vs ::everything() (mock). The UI reads it through lib/capabilities.ts
+      and degrades HONESTLY - an amber "Not available on this HSM" rather than a control that fails
+      when pressed. THE IMPORTANT PART IS THE TEST: capabilities.rs reads real.rs with include_str!
+      and checks the mapping IN BOTH DIRECTIONS, so the list cannot silently drift as real.rs grows
+      a method or loses one. A capability list without that bidirectional check rots within weeks
+      and is worse than none, because it is believed.
+      Related honesty rule already in the UI: the status bar says "simulated - not a device" for the
+      mock, and any backend talking to the software emulator must report itself the same way. A
+      backend that cannot be distinguished from the device WILL eventually be mistaken for it.
+    created_at: "2026-08-12"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session 2026-08-12"
+    tags: [capabilities, real-rs, sixteen-unsupported, bidirectional-test, ui-degradation,
+           task-007, honest-backend-labelling]
+
+  - id: mem-011
+    type: technical_knowledge
+    content: >-
+      2026-08-13 THE WINDOWS BUILD: WHAT IS FIXED, AND THE CEILING ON THIS MAC.
+      FIXED (commit e969811, FE side, done): the kms-hsm build script's Windows link logic was
+      wrong in three ways and nobody could see it, because that branch only runs on Windows with
+      the PTK client installed. It searched ONE vendor directory (cryptoki.dll lives under
+      runtime/lib, not beside ethsm.dll in pcihsm, so cryptoki could never resolve); it asked MSVC
+      for crypto.lib when OpenSSL ships libcrypto.lib; and it ignored operator-supplied paths. The
+      logic now lives in crates/kms-hsm/build_support.rs as pure functions, include!d by both
+      build.rs and tests/link_paths.rs, so TEN TESTS COVER THE WINDOWS BRANCH ON EVERY HOST -
+      including a Mac, with no vendor tree and no real-hsm feature. Honours BNPRS_PTK_LIB_DIR and
+      BNPRS_OPENSSL_LIB_DIR, splits on the platform separator (a colon split would eat the Windows
+      drive letter), and preflights with a message naming the missing libraries.
+      TWO TRAPS IN THAT PATTERN, both of which bit: build_support.rs must NOT carry //! inner docs
+      and must NOT import what its includer imports - both are compile errors, and both are
+      INVISIBLE without --features real-hsm, because `cargo check -p kms-hsm` does not compile the
+      build script's real module. macOS reported success the whole time. And a #[path] file module
+      does not see the outer scope's `use`, so the test wraps the include! in an inline module that
+      supplies the imports.
+      Also fixed: the preflight originally warned "no import library found for: crypto" on EVERY
+      correct Linux build, where OpenSSL comes from the system linker path. Scoped to vendor
+      libraries off Windows. A gate that cries wolf gets bypassed, so a false-positive in a check
+      is a defect in the check.
+      THE CEILING - verified 2026-08-13, and it contradicts the obvious reading of task-008's repro
+      recipe: A FULL WINDOWS BUILD CANNOT BE COMPLETED ON pat-m4p AS IT STANDS. Homebrew rust 1.95
+      carries std for aarch64-apple-darwin ONLY, and there is no rustup on this machine, so
+      `rustup target add x86_64-pc-windows-msvc` in that recipe cannot be run here. What DID work is
+      the C half: `cargo xwin build --target x86_64-pc-windows-msvc` runs build.rs on the HOST, so
+      cc-rs/clang-cl compiles the vendor C for Windows and surfaces real defects (that is how the
+      three HsmHost.c bugs were found) WITHOUT ever needing Windows rust-std - it failed at the C
+      compile, long before Rust codegen. So: cross-compiling to FIND C portability bugs, yes, today.
+      Producing kms-app.exe here, no - that needs rustup (or the patwin-runner CI job, na-003/012
+      mem-010, which is where Windows binaries actually come from).
+      The vendor import libraries are not in the backend repo - it ships DLLs with no .lib. They
+      come from the PTK client installer (SDKs/Win64/x64/PTKinstaller.exe, an Inno Setup package
+      that innoextract reads WITHOUT installing anything) at "app/C SDK/lib". libcrypto.lib is not
+      in the Thales bundle at all and must be built from 3rdparty/openssl-3.3.2. Both were staged
+      on MCES2 at C:\BPR\pHSM on 2026-08-13.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session 2026-08-13 - verified on pat-m4p and MCES2"
+    tags: [windows, build-rs, build-support, link-paths, cargo-xwin, no-rustup, cross-compile-limit,
+           innoextract, real-hsm-feature-gate, false-positive-gate]
+
+  - id: mem-012
+    type: project_context
+    content: >-
+      2026-08-13 PROGRESS - SUPERSEDES THE STATUS IN mem-005 (which is self-dated 2026-07-16 and
+      should be read as history). Two things closed that had been open since the start:
+      (1) real.rs WAS COMPILED, LINKED AND RUN FOR THE FIRST TIME (task-004, done). About 430 lines
+      of unsafe FFI had never been seen by any compiler - it is cfg-gated off macOS, so every green
+      build on this Mac had skipped it entirely. tests/real_cavv.rs now calls generate_cavv through
+      the FFI against the FM emulator and gets 098 for the same input the C host_test gives 098 for.
+      The test asserts the call COMPUTES (same input agrees, different input differs) rather than
+      pinning a CAVV constant, so it stays valid if a key changes. It is #[ignore]d and gated on
+      real-hsm + linux/windows. Emulator recipe is owned by na-005/013, mem-005 there.
+      (2) THE VENDOR-PARITY BACKLOG (tasks 005-015) IS COMPLETE except task-012 step 2, the signed
+      metadata bundle, which is BLOCKED ON ONE ANSWER FROM THE OWNER: how many KMS instances will
+      there be. Delivered across those tasks: usage flags, key metadata, issuer fields, bulk
+      export/import with a selective preview tree, master key registers (load/promote/discard with
+      KeyOrigin), the BIN axis and key-set grouping, trusted path, SO logon per operation, key
+      translation under a wrapping key, and key ownership. Also reshaped by a finding rather than a
+      plan: ProtectToolkit ALREADY replicates keys between HSMs (ctkmu rt / Trust Management / WLD),
+      so task-012 became divergence DETECTION rather than a replication mechanism - see
+      docs/rust-migration/KMS_SYNCHRONIZATION.md. Do not rebuild what the platform does.
+      A caught-in-the-act note worth keeping: the mock's wrap mask ignored most of the label, which
+      had quietly weakened EVERY transport test that used it; fixed with FNV-1a folding. And the
+      no-key-material commit gate flagged its own guard-list literals - the gate must FAIL CLOSED
+      and gate the commit, per the standing rule.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session 2026-08-13"
+    tags: [progress, supersedes-mem-005, task-004-done, real-rs-first-compile, vendor-parity,
+           task-012-blocked, ptk-replicates-already, mock-wrap-mask, fail-closed-gate]
 
 pruning:
   max_entries: 500

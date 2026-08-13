@@ -51,9 +51,14 @@ memories:
     type: project_context
     content: >-
       FM BUILD/DEPLOY REALITIES. FMs cross-compile on LINUX ONLY; the Makefile includes
-      $(FMDIR)/cfgbuild.mak and needs FMDIR/CPROVDIR/FMSDK plus the SafeNet PTK FM SDK. It CANNOT be
-      built on pat-m4p (macOS): no SDK, no PowerPC cross-compiler. Targets: `make` -> obj-ppcfm for
-      the HSM, `make EMUL=1` -> obj-linux-x86_64e for the emulator, plus DEBUG=1.
+      $(FMDIR)/cfgbuild.mak and needs FMDIR/CPROVDIR/FMSDK. The PTK FM SDK is vendored in this repo
+      under safenet/protecttoolkit7/, so the SDK is not the obstacle - the OS is. Targets: `make` ->
+      obj-ppcfm for the HSM, `make EMUL=1` -> obj-linux-x86_64e for the emulator, plus DEBUG=1.
+      NEITHER target builds natively on pat-m4p (macOS): Thales ships linux-x86_64 and Windows only,
+      there is no Darwin build of ProtectToolkit anywhere in the tree, and obj-ppcfm additionally
+      needs the PowerPC cross-compiler. BUT the EMUL=1 target DOES build and run on pat-m4p inside a
+      linux/amd64 container - proven 2026-08-12, see mem-005. Do not read this entry as "the FM
+      cannot be worked on without hardware"; that was corrected.
       Signing material already exists: fm/fm1/fm2 RSA key pairs with X.509 certs on token
       <Slot0>:FM_Slot alongside iCodeLMK; MKFM builds the signed image (CTFM/CTCERT/CTCONF support
       it); root-key export uses multi-custodian mode, observed 3-of-4 via `ctkmu x ... -M`.
@@ -68,6 +73,93 @@ memories:
     confidence: 1.0
     source: "session-<id>"
     tags: []
+
+  - id: mem-005
+    type: technical_knowledge
+    content: >-
+      2026-08-12 THE FM RUNS WITHOUT AN HSM, AND IT RUNS ON THIS MAC. This is the single most
+      useful fact this agent owns: FM work is no longer gated on hardware. The FM SDK Programming
+      Guide says so under "FMs in Emulation Mode" - emulation uses the HSM Software Emulation
+      library, and the signing and installation steps do not apply. No mkfm, no signing key, no
+      device. Proven end to end: BprHsmFm built with EMUL=1, the host shim linked against it, and
+      cavv_generate returned CAVV 098 from the FM's own fm_cavv.c. Full recipe, kept current:
+      docs/rust-migration/FM_EMULATOR.md in the FE repo (scripts/fm-emulator/ holds the Dockerfile
+      and setup.sh).
+      WHY A CONTAINER: emulation dlopens the FM as a shared library INTO THE CALLING PROCESS, so
+      host and FM must be the same OS/arch. Thales ships linux-x86_64 and Windows only. Hence
+      --platform linux/amd64 on Apple Silicon - slow to build, fine to run, nothing here is
+      compute-heavy.
+      FOUR TRAPS, each of which cost real time:
+      (1) safenet/protecttoolkit7/cpsdk/lib/linux-x86_64/libcryptoki.so IS A BROKEN SYMLINK - it
+      points at /workspaces/trp1003.phsm.kms/... , an absolute path inside somebody's dev container,
+      so it resolves nowhere else and every vendor utility dies with "Failed to open cryptoki
+      emulation". In this layout CRYPTOKI IS THE SOFTWARE HSM: re-point it at libctsw.so,
+      relatively. Worth fixing in THIS repo rather than in every consumer - it is our bug to fix.
+      (2) CPROVLIBDIR misses the arch subdir: cfgbuild.mak has CPROVLIBDIR?=$(CPROVDIR)/lib but the
+      libraries live in lib/linux-x86_64, so the link fails on -lctutil. It is a ?= , so exporting
+      the corrected value is enough - no repo change needed.
+      (3) The admin utilities and the emulated host need DIFFERENT library paths. ctconf/ctkmu
+      administer the software HSM and must load the plain cryptoki; if the FM emulation wrapper is
+      on their path they load that instead, it initialises cryptoki underneath them, and their own
+      C_Initialize returns 0x191 "already initialized". Keep ADMIN_LD and EMUL_DIR separate.
+      (4) `ctconf -n0` prompts SEVEN times (Admin SO pin x2, Administrator pin x2, token label, then
+      slot-0 SO pin x2). Feed fewer lines and an empty string lands in a PIN field, giving
+      "0xa2, PIN length range" - which reads like a policy problem rather than a scripting one.
+      TWO MORE THAT ARE RUNTIME, NOT BUILD TIME: CPROVDIR is read AT RUNTIME (the emulation cryptoki
+      dlopens $CPROVDIR/lib/libctsw.so; unset, it looks in /lib and the caller sees HSM error 0x000B
+      from init(), which looks like a device fault rather than a missing variable). And TWO
+      C_Initialize CALLS IN ONE PROCESS SEGFAULT - not an error return, SIGSEGV - so anything that
+      initialises the backend needs --test-threads=1.
+      WHAT EMULATION DOES NOT GIVE YOU: any security (the software HSM keeps keys in ordinary
+      process memory - an LMK here is protected by nothing, so this is development and conformance
+      only), any new host API surface (the sixteen unsupported backend methods are missing
+      FUNCTIONS in bnprs.h, not missing hardware), and any substitute for hardware validation - a
+      bad FM can brick a real HSM, and emulation cannot catch the platform differences the guide
+      warns about (big-endian PowerPC, scarce SMFS handles, C_Initialize patching).
+    created_at: "2026-08-12"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session 2026-08-12 - built and run on pat-m4p"
+    tags: [fm-emulation, no-hardware, docker-linux-amd64, libctsw, cryptoki-symlink,
+           cprovdir-runtime, c-initialize-segfault, cavv-098]
+
+  - id: mem-006
+    type: incident_learning
+    content: >-
+      2026-08-13 bnprs/host/HsmHost.c HAS NEVER BEEN COMPILED FOR WINDOWS, AND IT DOES NOT COMPILE.
+      Found by cross-compiling the host shim for x86_64-pc-windows-msvc with clang-cl from a Mac;
+      138 other objects compiled cleanly, so this one file is the whole problem. Raised as task-008.
+      THE ONE THAT MATTERS is a silent data bug, not a build break: HsmHost.c:44 and :118 pass
+      `size_t *` where PKCS#11 wants CK_ULONG_PTR. cryptoki.h has `typedef unsigned long int
+      CK_ULONG`. On Linux and macOS (LP64) unsigned long is 64 bits, identical to size_t, so it has
+      always compiled and always worked. On WINDOWS (LLP64) unsigned long is 32 BITS while size_t is
+      64 - the HSM writes four bytes into an eight-byte variable and the caller reads a length with
+      stale garbage in the top half. Wrong data lengths, silently, on Windows only.
+      DO NOT FIX IT BY CASTING. `(CK_ULONG_PTR)&len` compiles and reintroduces exactly the same
+      truncation, because the callee still writes 32 bits into a 64-bit slot. Use a CK_ULONG local,
+      convert at the boundary, and reject up front if the incoming length exceeds ULONG_MAX on the
+      target so an oversized buffer is an error rather than a truncation.
+      Third defect: HsmHost.c:212/:215/:218 call BprHsm_Kms_User_Login with no declaration in scope
+      - it is defined in the C++ TU BprHsmHost_Exports.cpp and declared in no header HsmHost.c
+      includes. Implicit declaration is an error in C99+, and calling a C++ definition from C with
+      no visible extern "C" is a name-mangling hazard. Declare it in bnprs/include/bnprs.h inside
+      the existing extern "C" guard, and check whether other exports are reached from C the same way
+      - the compiler only flagged this one because it is the only one HsmHost.c calls.
+      THE GENERAL LESSON, which is why this is filed as an incident: "it builds on Linux" was never
+      evidence about Windows, and nothing in CI was ever going to say so - real.rs is cfg-gated to
+      Linux/Windows and the Windows CI job builds with default (mock) features, so no pipeline has
+      ever compiled bnprs/host for an LLP64 target. A cfg-gate plus a mock default equals a whole
+      platform nobody is compiling. Also: -Wno-incompatible-pointer-types was tried as a probe to
+      reach the linker and deliberately abandoned - silencing a 32-bit write into a 64-bit variable
+      produces a green build that means nothing.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session 2026-08-13 - cargo xwin cross-compile from pat-m4p"
+    tags: [hsmhost-c, windows, llp64, ck-ulong, silent-truncation, implicit-declaration,
+           extern-c, task-008, cfg-gate-blind-spot]
 
   # Example entries:
   # - id: mem-002
