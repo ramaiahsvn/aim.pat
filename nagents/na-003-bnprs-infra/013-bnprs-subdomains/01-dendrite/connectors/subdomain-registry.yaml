@@ -25,7 +25,7 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  105 hostnames, 9 products. NONE resolve yet — every one is `planned`.
+#  111 hostnames, 9 products. NONE resolve yet — every one is `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
 #  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, uTMS last —
 #  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
@@ -82,7 +82,7 @@ meta:
 # Production stays the BARE name directly under the apex.
 #
 #     mgate-api.uat.bnprs.in         mgate-api.sandbox.bnprs.in      mgate-api.bnprs.in
-#     bna-sprints-portal.uat…        utms-retail-api.uat…            utms-crm-portal.bnprs.in
+#     bna-sprints-portal.uat…        utms-bnet-retail-api.uat…       utms-crm-portal.bnprs.in
 #
 # WHY, in one line: a wildcard certificate covers ONE label, so an env label is a real
 # cryptographic and delegation boundary — *.uat.bnprs.in cannot sign a production
@@ -96,7 +96,8 @@ scheme:
   components: ["api", "portal"]
   charset: "lowercase a-z 0-9 and hyphen only"
   max_label: 63
-  longest_label: "utms-smartpresence-api (22) — comfortable; the env is a separate label now"
+  longest_label: "utms-bnet-smartpresence-portal (30) — still well inside the 63-char limit,
+                  but this is the longest and worth watching if another token is ever added"
 
   superseded_flat_form: "<product>-<component>-<env>.bnprs.in — the source table's proposal, NOT adopted"
 
@@ -133,10 +134,10 @@ scheme:
     - "bna-sprints-portal.uat.bnprs.in"
     - "bna-erp-portal.bnprs.in"
     - "bna-chat-api.sandbox.bnprs.in"
-    - "utms-retail-api.uat.bnprs.in"
+    - "utms-bnet-retail-api.uat.bnprs.in"
   subproject_rules:
     - "ONE RULE FOR THE WHOLE STANDARD. Identical in shape to
-       utms-smartpresence-api.uat.bnprs.in, so there is no host-vs-path discriminator to
+       utms-bnet-smartpresence-api.uat.bnprs.in, so there is no host-vs-path discriminator to
        argue about and nothing has to be inferred: every addressable thing is
        <product>[-<subproject>]-<component>.<env>."
     - "Each sub-project needs its OWN DNS record and its OWN ALB host rule. Sub-projects
@@ -424,50 +425,66 @@ products:
             uat:     { host: "utms-licensing-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "utms-licensing-portal.bnprs.in",         status: planned }
 
-      # bNET IS NOT A PRODUCT IN THIS STANDARD (user instruction 2026-08-13). There is no
-      # bnet-* name and no utms-bnet-* name. bNet is delivered THROUGH uTMS: its two API
-      # surfaces are the sub-projects below, and its UI is the uTMS console itself
-      # (utms-portal.<env>), not a portal of its own.
-      # DO NOT re-add bnet-api, bnet-portal or utms-bnet-* as omissions — all three were
-      # removed deliberately, in that order, across three instructions.
+      # bNET IS NOT A PRODUCT IN THIS STANDARD, but it IS a name token again.
+      # History, because this moved three times in one day and the end state looks like a
+      # partial revert: bnet-api/bnet-portal (product) -> removed; utms-bnet-api/portal
+      # (single sub-project) -> removed; now bNet survives ONLY as the prefix of two
+      # sub-project keys, bnet-smartpresence and bnet-retail, each with api AND portal.
+      # So there is still NO bnet-api, NO bnet-portal and NO plain utms-bnet-* name —
+      # do not re-add any of those. What exists is utms-bnet-<surface>-<component>.
 
       # Was bnet-smartpresence. API ONLY — machine clients, no portal.
-      - key: "smartpresence"
+      # The bnet- prefix is part of the SUB-PROJECT KEY, not a product. bNet is still not a
+      # product in this standard; this is how its surfaces stay identifiable as bNet's while
+      # living under the uTMS umbrella. Full form: utms + bnet-smartpresence + api.
+      - key: "bnet-smartpresence"
         owner_agent: "na-009/008 bpr1008-bnet"
-        api_only: true
-        renamed_from: "bnet-smartpresence-api.* — moved under uTMS 2026-08-13"
+        renamed_from: >-
+          bnet-smartpresence-api.* -> utms-smartpresence-api.* -> utms-bnet-smartpresence-*
+          (three moves on 2026-08-13; the bnet token left and came back, deliberately)
         components:
           api:
-            sandbox: { host: "utms-smartpresence-api.sandbox.bnprs.in", status: planned }
+            sandbox: { host: "utms-bnet-smartpresence-api.sandbox.bnprs.in", status: planned }
             uat:
-              host: "utms-smartpresence-api.uat.bnprs.in"
+              host: "utms-bnet-smartpresence-api.uat.bnprs.in"
               status: planned
-              stale_alb_rule: "bnet-smartpresence-api-uat.bnprs.in (FLAT *and* now wrong-product — rewrite)"
+              stale_alb_rule: "bnet-smartpresence-api-uat.bnprs.in (FLAT *and* wrong stem — rewrite)"
               target: "utms-shared-alb -> utms-smartpresence-api-tg:8080 (ITP acct, eu-central-1)"
               ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1"
               note: >-
                 THE LIVE bNet v2 OUTAGE HANGS OFF THIS NAME. The app cannot reach its API
                 because the old smartpresence-api-uat.itpgateway.com alias points at a
-                DELETED ALB (see faults). Note the ECS service and target group are already
-                called utms-smartpresence-* — the infrastructure was named as a uTMS thing
-                all along, which is exactly what this move makes the DNS agree with.
-                Built by GitLab project 34, bpr1004.utms.api.bnet.smartpresence — a name
-                that reads <group>.<umbrella>.<kind>.<product>.<feature> and therefore also
-                says uTMS, not bNet, is the umbrella.
+                DELETED ALB (see faults). Note the ECS service and target group are called
+                utms-smartpresence-* — no bnet token — so the DNS name and the AWS resource
+                names now differ by that token. That is fine (infra names are internal) but
+                do not "correct" either to match the other.
+                Built by GitLab project 34, bpr1004.utms.api.bnet.smartpresence — which reads
+                <group>.<umbrella>.<kind>.<product>.<feature> and so carries BOTH tokens,
+                utms as umbrella and bnet as product. The DNS name now mirrors that exactly.
               supersedes: "smartpresence-api-uat.itpgateway.com (DANGLING — see faults)"
-            prod:    { host: "utms-smartpresence-api.bnprs.in",         status: planned }
+            prod:    { host: "utms-bnet-smartpresence-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-bnet-smartpresence-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-bnet-smartpresence-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-bnet-smartpresence-portal.bnprs.in",         status: planned }
 
-      # Was bnet-retail. API ONLY by the original instruction; unchanged by the move.
-      - key: "retail"
+      # Same shape as bnet-smartpresence above: bnet- is part of the sub-project key.
+      # NOTE the api-only rule that applied to retail earlier is WITHDRAWN — it now has a
+      # portal (user instruction 2026-08-13). Do not re-apply the old "api-only" note.
+      - key: "bnet-retail"
         owner_agent: "na-009/008 bpr1008-bnet"
-        api_only: true
-        renamed_from: "bnet-retail-api.* — moved under uTMS 2026-08-13"
-        note: "api-only by instruction — do NOT reserve utms-retail-portal-* names."
+        renamed_from: >-
+          bnet-retail-api.* -> utms-retail-api.* -> utms-bnet-retail-* (three moves on
+          2026-08-13; api-only at first, now api + portal)
         components:
           api:
-            sandbox: { host: "utms-retail-api.sandbox.bnprs.in", status: planned }
-            uat:     { host: "utms-retail-api.uat.bnprs.in",     status: planned }
-            prod:    { host: "utms-retail-api.bnprs.in",         status: planned }
+            sandbox: { host: "utms-bnet-retail-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-bnet-retail-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-bnet-retail-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-bnet-retail-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-bnet-retail-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-bnet-retail-portal.bnprs.in",         status: planned }
 
       - key: "iiskiosk"
         owner_agent: "? — see decisions.d10"
