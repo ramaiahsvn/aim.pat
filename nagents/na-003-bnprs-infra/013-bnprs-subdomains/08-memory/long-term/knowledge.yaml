@@ -194,39 +194,45 @@ memories:
   - id: mem-008
     type: project_context
     content: >-
-      SUB-PROJECTS ARE PATHS, NOT SUBDOMAINS — ratified by the user 2026-08-13 and it applies to
-      EVERY product, not just BNA: <product>-<component>[-<env>].bnprs.in/<subproject>. So
-      bna-portal-uat.bnprs.in/sprints, /erp, /chat. NO DNS record, NO ALB host rule and NO cert
-      SAN per sub-project — an ALB PATH rule per target group is the entire mechanism.
-      SAME SESSION, TWO MORE DECISIONS: nAgent is RENAMED bna (this makes mem-007's mixed-case
-      problem moot and closes d2 — "bna" has no capital and no plural, and it aligns with
-      na-010-bna-platform); and bnet-smartpresence-api-<env>.bnprs.in IS in the table as its own
-      host across all 3 envs, closing d3 against the path option.
-      THE DISCRIMINATOR THOSE TWO IMPLY (inferred, not stated — re-confirm on a new shape):
-      OWN HOST for a separately deployed service with its own target group, release cadence and
-      non-portal callers (SmartPresence: own ECS service, own TG :8080, own GitLab project 34,
-      called by bNet v2 machine clients). PATH for a surface reached by humans through the same
-      portal and the same login (sprints/erp/chat).
-      BIGGEST WIN: six live subdomains (erp, erp-api, projects, projects-api, chat-api on
-      nagents-uat-alb) collapse into paths on two hosts.
-      TWO TRAPS. (1) THE APP MUST BE BASE-PATH AWARE — a portal served at /sprints whose base
-      href, router basename and asset paths still root at / requests assets from / and 404s as a
-      BLANK PAGE with nothing useful logged; some third-party apps cannot be rebased at all, so
-      check before promising a path. (2) PATHS DO NOT ISOLATE — one host is one browser origin,
-      so all sub-projects share cookies, localStorage and sessionStorage, and cookie Path= is
-      advisory, NOT an origin boundary; an XSS in one reaches all. Acceptable here only because
-      BNA is one product behind one login. The compensating benefit is one CORS allow-list and
-      one OIDC redirect_uri set per env instead of three.
-      UNCONFIRMED: "projects" (live) is being treated as "sprints" (instruction). If they are not
-      the same thing, one of them has no name in the standard.
+      SUB-PROJECTS GET NAMES, NOT PATHS, and the sub-project slot sits BETWEEN product and
+      component: <product>-<subproject>-<component>-<env>.bnprs.in, production
+      <product>-<subproject>-<component>.bnprs.in. So bna-sprints-portal-uat.bnprs.in,
+      bna-erp-api-uat.bnprs.in, bna-chat-api-sandbox.bnprs.in.
+      HISTORY, because it matters for reading older notes: earlier the SAME DAY (2026-08-13) the
+      user first specified PATHS (bna-portal-uat.bnprs.in/sprints) and then reversed it to name
+      notation. Nothing was provisioned in between, so the reversal cost nothing. Any note or
+      commit saying "sub-projects are paths" predates the reversal and is WRONG NOW.
+      THE REVERSAL MADE THE STANDARD SELF-CONSISTENT — this is the real point. There is now ONE
+      rule for every addressable thing, <product>[-<subproject>]-<component>[-<env>], identical
+      in shape to bnet-smartpresence-api-uat.bnprs.in. The host-vs-path discriminator was DELETED
+      from the registry; it existed only to decide which things got hostnames, and it had to be
+      flagged as inferred-not-stated. Nothing is inferred now.
+      WHAT NAMES BUY: (1) no base-path rework — each sub-project serves from the ROOT of its own
+      host, so base href, router basename and asset paths stay '/', which removes the
+      blank-page-no-error failure mode AND means an app that cannot be rebased is no longer a
+      blocker; (2) REAL isolation — a distinct hostname is a distinct browser ORIGIN, so cookies,
+      localStorage and sessionStorage do not cross, unlike cookie Path= which is only advisory.
+      WHAT THEY COST, and this is where the work actually lands: every sub-project origin must be
+      registered SEPARATELY — its own OIDC redirect_uri, CORS allow-list entry, ALB host rule and
+      DNS record. BNA alone is 3 subprojects x 2 components x 3 envs = 18 hostnames where paths
+      needed 2. The bill is paid in AUTH CONFIG, not DNS. No new cert though: sub-projects are
+      single labels under the apex, so *.bnprs.in already covers them.
+      SAME SESSION, TWO MORE DECISIONS THAT STILL STAND: nAgent RENAMED to bna (closes d2 — no
+      capital, no plural, aligns with na-010-bna-platform; note infra stays nagents-*, so DNS and
+      infra names diverge deliberately), and bnet-smartpresence-api-<env>.bnprs.in adopted into
+      the table across all 3 envs (closes d3).
+      UNCONFIRMED: "projects" (live: projects.uat / projects-api.uat.itpgateway.com) is being
+      treated as "sprints" (the instruction). If they are not the same thing, one has no name.
     created_at: "2026-08-13"
     last_accessed: "2026-08-13"
     access_count: 1
     confidence: 1.0
     source: "session-2026-08-13"
-    tags: [subprojects-are-paths, applies-to-all-products, nagent-renamed-bna, d2-and-d3-resolved,
-           smartpresence-gets-its-own-host, host-vs-path-discriminator, app-must-be-base-path-aware,
-           paths-do-not-isolate, one-origin-one-cookie-jar, projects-vs-sprints-unconfirmed]
+    tags: [subprojects-are-names-not-paths, reversed-same-day, one-rule-for-everything,
+           host-vs-path-discriminator-deleted, subproject-slot-between-product-and-component,
+           no-base-path-rework, hostnames-give-real-origin-isolation,
+           cost-is-auth-config-not-dns, 18-hostnames-for-bna, nagent-renamed-bna,
+           d2-and-d3-resolved, projects-vs-sprints-unconfirmed]
 
 # Pruning rules
 pruning:

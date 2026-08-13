@@ -64,26 +64,34 @@ tasks:
     tags: [decision-d4, decision-d5, decision-d6, d2-closed]
 
   - id: "task-011"
-    subject: "Migrate ERP / Sprints / Chat from subdomains to BNA sub-project paths"
+    subject: "Re-shape the ERP / Sprints / Chat hostnames onto the BNA sub-project pattern"
     description: >-
-      Five live subdomains on nagents-uat-alb (erp, erp-api, projects, projects-api,
-      chat-api .uat.itpgateway.com) collapse into paths on two hosts:
-      bna-portal-<env>.bnprs.in/{sprints,erp,chat} and bna-api-<env>.bnprs.in/{...}.
-      PREREQUISITE PER APP, and it is not a DNS task: each app must be rebased to serve
-      from its sub-path — base href, router basename, asset paths — or it 404s its own
-      assets and renders a blank page with nothing useful logged. Some third-party apps
-      cannot be rebased; establish that per app BEFORE retiring its subdomain.
-      ALSO CONFIRM: "projects" (live) is being treated as "sprints" (the instruction). If
+      A 1:1 subdomain migration, not a collapse (sub-projects use NAME notation as of the
+      2026-08-13 reversal). Five live hosts on nagents-uat-alb move to the four-segment
+      pattern: erp.uat -> bna-erp-portal-uat, erp-api.uat -> bna-erp-api-uat,
+      projects.uat -> bna-sprints-portal-uat, projects-api.uat -> bna-sprints-api-uat,
+      chat-api.uat -> bna-chat-api-uat (all .bnprs.in, replacing .uat.itpgateway.com).
+      NO app rework is needed — each sub-project keeps serving from its own host root, so
+      base href, router basename and asset paths are untouched. Each cutover is therefore
+      INDEPENDENT of the others and can be done one at a time.
+      THE REAL WORK IS AUTH CONFIG, NOT DNS: each new hostname is a new browser origin, so
+      each needs its own OIDC redirect_uri and CORS allow-list entry registered before
+      cutover, plus its own ALB host rule. Covered by the existing *.bnprs.in wildcard —
+      no new certificate.
+      CONFIRM FIRST: "projects" (live) is being treated as "sprints" (the instruction). If
       they are not the same thing, one of them has no name in the standard.
-      Sequence per sub-project: rebase app -> add ALB path rule -> verify at the path ->
-      cut over -> only then retire the subdomain (record + target in one change).
+      Sequence per host: register origin in Keycloak + CORS -> ALB host rule -> DNS record
+      -> verify end to end -> cut over -> retire the old subdomain (record + target in one
+      change), marking it retired in the registry.
+      bna-chat-portal-* is reserved by the pattern but has NO live equivalent — do not
+      create that record until something exists to point it at.
     status: pending
     priority: medium
     created_at: "2026-08-13"
     blocked_by: ["task-001", "task-002"]
-    estimated_steps: 10
-    tags: [subproject-paths, bna, app-must-be-base-path-aware, projects-vs-sprints-unconfirmed,
-           six-subdomains-become-two]
+    estimated_steps: 12
+    tags: [subproject-hostnames, bna, one-to-one-migration, no-app-rework,
+           auth-config-is-the-work, new-origin-per-host, projects-vs-sprints-unconfirmed]
 
   # ---- PHASE 1 — restore service ----
 

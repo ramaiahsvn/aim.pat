@@ -2,9 +2,14 @@
 
 **From:** user · **Date:** 2026-08-13 · **Amends:** `2026-08-13-subdomain-table-source.md`
 
+> ⚠️ **Section 1 of this file is SUPERSEDED** by
+> `2026-08-13-amendment-2-subprojects-are-names.md`, later the same day: sub-projects use
+> **name notation, not paths**. Sections 2 (bna rename) and 3 (SmartPresence) still stand.
+> Kept unedited because it is a record of what was asked, not of what was decided.
+
 Three instructions, given after reviewing the table. Reproduced as received.
 
-## 1. Sub-projects are paths, not subdomains
+## 1. Sub-projects are paths, not subdomains  ← SUPERSEDED, see amendment 2
 
 > "in nAgent, we have sub-projects: Sprints, ERP, and Chat. but its portal paths should be
 > like like nAgent-portal.bnprs.in/sprints; nAgent-portal.bnprs.in/erp;

@@ -66,44 +66,41 @@ scheme:
   charset: "lowercase a-z 0-9 and hyphen only"
   max_label: 63                                        # longest name is 39 — no risk
 
-  # SUB-PROJECTS ARE PATHS, NOT SUBDOMAINS (user instruction, 2026-08-13).
-  # Applies to sub-projects of EVERY product, not only BNA.
-  subproject_form: "<product>-<component>[-<env>].bnprs.in/<subproject>"
+  # SUB-PROJECTS GET NAMES, NOT PATHS (user instruction, 2026-08-13 — this REVERSES the
+  # earlier path decision taken the same day; see inputs/…-amendment-2-…).
+  # Applies to sub-projects of EVERY product, not only BNA. The sub-project slot sits
+  # between product and component, so specificity still reads left to right.
+  subproject_form: "<product>-<subproject>-<component>-<env>.bnprs.in"
+  subproject_production_form: "<product>-<subproject>-<component>.bnprs.in"
   subproject_examples:
-    - "bna-portal.bnprs.in/sprints"
-    - "bna-portal-uat.bnprs.in/erp"
-    - "bna-api-uat.bnprs.in/chat"
+    - "bna-sprints-portal-uat.bnprs.in"
+    - "bna-erp-portal.bnprs.in"
+    - "bna-chat-api-sandbox.bnprs.in"
   subproject_rules:
-    - "NO DNS record, NO ALB host rule and NO certificate SAN per sub-project — an ALB
-       PATH rule per target group is the whole mechanism."
-    - "The app MUST be base-path aware. A portal served at /sprints needs its base href,
-       router basename and asset paths rooted at /sprints, or it requests assets from /
-       and 404s with an empty page and no useful error. This is the single most common
-       way path-based routing fails, and some third-party apps cannot be rebased at all
-       — check before promising a sub-project a path."
-    - "Paths DO NOT isolate. All sub-projects on one host share one browser origin, so
-       they share cookies, localStorage and sessionStorage; Path= on a cookie is advisory
-       and not an origin boundary. An XSS in one sub-project reaches the others. Only put
-       sub-projects on paths when they are inside the same trust boundary — which they
-       are for BNA, since it is one product with one login."
-    - "The corollary benefit: one origin means one CORS allow-list and one OIDC
-       redirect_uri set per environment instead of three."
-
-  # WHEN DOES A THING GET ITS OWN HOST INSTEAD OF A PATH?
-  # Settled 2026-08-13 by two user decisions: BNA's sprints/erp/chat are PATHS, while
-  # bNet's SmartPresence API gets its OWN HOST. The discriminator those two imply:
-  host_vs_path:
-    own_host: >-
-      A separately DEPLOYED service — its own ECS service / target group / release
-      cadence, and callers that are not the portal. SmartPresence qualifies: its own ECS
-      service, its own target group on :8080, its own GitLab project (34), and machine
-      clients (bNet v2 sync and 1:N verify) that never touch a portal.
-    path: >-
-      A surface of an existing deployable, reached by humans through the same portal and
-      the same login. Sprints, ERP and Chat qualify.
-    note: >-
-      This rule was inferred from two decisions, not stated by the user. It holds for the
-      cases in this file; re-confirm before applying it to a genuinely new shape.
+    - "ONE RULE FOR THE WHOLE STANDARD. This is the same shape as
+       bnet-smartpresence-api-uat.bnprs.in, so there is no longer any host-vs-path
+       discriminator to argue about and nothing has to be inferred: every addressable
+       thing is <product>[-<subproject>]-<component>[-<env>]."
+    - "Each sub-project needs its OWN DNS record, its OWN ALB host rule and coverage by
+       the wildcard certificate. Sub-projects are single labels under the apex, so
+       *.bnprs.in already covers them — no new certificate is required under the flat
+       scheme."
+    - "NO base-path rework. Each sub-project is served at the ROOT of its own host, so
+       base href, router basename and asset paths all stay '/'. This is the main practical
+       advantage over paths, and it removes the blank-page failure mode entirely — an app
+       that cannot be rebased is no longer a blocker."
+    - "REAL isolation. A distinct hostname is a distinct browser origin, so cookies,
+       localStorage and sessionStorage do not cross between sub-projects, and an XSS in
+       one does not reach the others."
+    - "THE COST, and it is the one to plan for: every sub-project origin must be
+       registered separately — its own OIDC redirect_uri, its own CORS allow-list entry,
+       its own ALB rule. Three sub-projects across two components and three environments
+       is 18 hostnames for BNA alone, where paths would have needed 2. Auth
+       configuration, not DNS, is where this bill is paid."
+    - "Watch label length as sub-projects nest: <product>-<subproject>-<component>-<env>
+       is four segments. Longest currently is bnet-smartpresence-api-sandbox at 30
+       characters, well inside the 63-character limit, but a long product plus a long
+       sub-project could approach it."
 
 # ---- PRODUCTS ----------------------------------------------------------
 # owner_agent is the na-009 product agent where known. Marked ? where the
@@ -280,26 +277,56 @@ products:
         sandbox: { host: "bna-portal-sandbox.bnprs.in", status: planned }
         uat:     { host: "bna-portal-uat.bnprs.in",     status: planned }
         prod:    { host: "bna-portal.bnprs.in",         status: planned }
-    # SUB-PROJECTS ARE PATHS, NOT HOSTNAMES. No DNS record, no ALB host rule and no
-    # certificate SAN is created for any of these — only an ALB PATH rule per target.
+    # SUB-PROJECTS ARE HOSTNAMES (reversed from paths, 2026-08-13). Each one below is a
+    # real DNS record + ALB host rule, in the same shape as every other entry in this file.
     subprojects:
+
       - key: "sprints"
-        portal: "bna-portal[-<env>].bnprs.in/sprints"
-        api:    "bna-api[-<env>].bnprs.in/sprints"
-        replaces: ["projects.uat.itpgateway.com", "projects-api.uat.itpgateway.com"]
         assumption: >-
           The live pair is named "projects", not "sprints". Treating them as the same
           thing — CONFIRM before migrating, because if projects != sprints then one of
           them has no name in this standard.
+        components:
+          api:
+            sandbox: { host: "bna-sprints-api-sandbox.bnprs.in", status: planned }
+            uat:     { host: "bna-sprints-api-uat.bnprs.in",     status: planned,
+                       supersedes: "projects-api.uat.itpgateway.com (LIVE, nagents-uat-alb)" }
+            prod:    { host: "bna-sprints-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "bna-sprints-portal-sandbox.bnprs.in", status: planned }
+            uat:     { host: "bna-sprints-portal-uat.bnprs.in",     status: planned,
+                       supersedes: "projects.uat.itpgateway.com (LIVE, nagents-uat-alb)" }
+            prod:    { host: "bna-sprints-portal.bnprs.in",         status: planned }
+
       - key: "erp"
-        portal: "bna-portal[-<env>].bnprs.in/erp"
-        api:    "bna-api[-<env>].bnprs.in/erp"
-        replaces: ["erp.uat.itpgateway.com", "erp-api.uat.itpgateway.com"]
+        components:
+          api:
+            sandbox: { host: "bna-erp-api-sandbox.bnprs.in", status: planned }
+            uat:     { host: "bna-erp-api-uat.bnprs.in",     status: planned,
+                       supersedes: "erp-api.uat.itpgateway.com (LIVE, nagents-uat-alb)" }
+            prod:    { host: "bna-erp-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "bna-erp-portal-sandbox.bnprs.in", status: planned }
+            uat:     { host: "bna-erp-portal-uat.bnprs.in",     status: planned,
+                       supersedes: "erp.uat.itpgateway.com (LIVE, nagents-uat-alb)" }
+            prod:    { host: "bna-erp-portal.bnprs.in",         status: planned }
+
       - key: "chat"
-        portal: "bna-portal[-<env>].bnprs.in/chat"
-        api:    "bna-api[-<env>].bnprs.in/chat"
-        replaces: ["chat-api.uat.itpgateway.com"]
-        note: "Only an -api host exists live; no chat portal subdomain was ever published."
+        note: >-
+          Only chat-api.uat.itpgateway.com exists live — no chat portal subdomain was ever
+          published. The portal names below are reserved by the pattern, not by a
+          deployment; per scheme.subproject_rules, create the RECORD only when there is a
+          target to point it at.
+        components:
+          api:
+            sandbox: { host: "bna-chat-api-sandbox.bnprs.in", status: planned }
+            uat:     { host: "bna-chat-api-uat.bnprs.in",     status: planned,
+                       supersedes: "chat-api.uat.itpgateway.com (LIVE, nagents-uat-alb)" }
+            prod:    { host: "bna-chat-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "bna-chat-portal-sandbox.bnprs.in", status: planned }
+            uat:     { host: "bna-chat-portal-uat.bnprs.in",     status: planned }
+            prod:    { host: "bna-chat-portal.bnprs.in",         status: planned }
 
   - key: "mgate"
     label: "mGate"
@@ -360,20 +387,20 @@ unmapped_endpoints:
     live: ["mini-apps.itpgateway.com (BPR-uTMS-LB)"]
     status: no-name-assigned
 
-  - service: "ERP / projects / chat — NOW MAPPED to BNA sub-project paths"
+  - service: "ERP / projects / chat — NOW MAPPED to BNA sub-project hostnames"
     live: ["erp.uat.itpgateway.com", "erp-api.uat.itpgateway.com",
            "projects.uat.itpgateway.com", "projects-api.uat.itpgateway.com",
            "chat-api.uat.itpgateway.com"]
     status: mapped
     mapped_to: "products.bna.subprojects (sprints / erp / chat) — see scheme.subproject_form"
     note: >-
-      These six SUBDOMAINS collapse into paths on two hosts, which is the largest single
-      simplification in the standard: 5 records and 5 host rules become 2 records plus
-      path rules. All currently live on nagents-uat-alb under
-      <component>.<env>.itpgateway.com — the hierarchical scheme.
-      MIGRATION CAVEAT: each app must be rebased to serve from its sub-path before its
-      subdomain is retired (see scheme.subproject_rules). "projects" -> "sprints" is an
-      assumed identity, NOT confirmed.
+      A 1:1 subdomain-for-subdomain migration, not a collapse: each live host gets one
+      bnprs.in equivalent under <product>-<subproject>-<component>-<env>. They currently
+      live on nagents-uat-alb as <component>.<env>.itpgateway.com — the hierarchical
+      scheme — so the migration RE-SHAPES each name rather than merging them.
+      Because each app keeps its own host root, no base-path rework is needed and each
+      cutover is independent of the others.
+      "projects" -> "sprints" is an assumed identity, NOT confirmed.
 
   - service: "kc-temp (temporary Keycloak)"
     live: ["kc-temp.uat.itpgateway.com"]

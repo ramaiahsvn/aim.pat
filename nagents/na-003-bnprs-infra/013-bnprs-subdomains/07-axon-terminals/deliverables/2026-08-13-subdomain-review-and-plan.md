@@ -86,42 +86,52 @@ The infrastructure remains named `nagents-*` (`nagents-uat-alb`, `nagents-uat-li
 DNS and infra names now diverge for this product, which is fine — infra names are
 internal — but don't "fix" either to match the other without asking.
 
-### 3.2b Sub-projects take paths, not subdomains
+### 3.2b Sub-projects get names, not paths — and that makes the standard self-consistent
 
-Also settled 2026-08-13, and it applies to **every** product:
+Settled 2026-08-13, and it applies to **every** product's sub-projects. Paths were
+specified first and reversed the same day; nothing had been provisioned in between, so
+the reversal cost nothing.
 
 ```
-<product>-<component>[-<env>].bnprs.in/<subproject>
+<product>-<subproject>-<component>-<env>.bnprs.in
+<product>-<subproject>-<component>.bnprs.in          (production)
 
-bna-portal-uat.bnprs.in/sprints      bna-portal-uat.bnprs.in/erp
-bna-portal-uat.bnprs.in/chat         bna-api-uat.bnprs.in/chat
+bna-sprints-portal-uat.bnprs.in       bna-sprints-api-uat.bnprs.in
+bna-erp-portal-uat.bnprs.in           bna-erp-api-uat.bnprs.in
+bna-chat-portal-uat.bnprs.in          bna-chat-api-uat.bnprs.in
 ```
 
-No DNS record, no ALB host rule and no certificate SAN per sub-project — an ALB **path**
-rule per target group is the whole mechanism. This is the largest simplification in the
-standard: the six live subdomains `erp`, `erp-api`, `projects`, `projects-api`,
-`chat-api` on `nagents-uat-alb` collapse into paths on two hosts.
+The sub-project slot sits **between product and component**, so specificity still reads
+left to right — and the result is the same shape as the SmartPresence entry already in
+the table, `bnet-smartpresence-api-uat.bnprs.in`.
 
-Two things it costs, both worth knowing before the first migration:
+**This is the important consequence: there is now one rule for the whole standard.**
+Every addressable thing is `<product>[-<subproject>]-<component>[-<env>]`. The
+`host_vs_path` discriminator has been deleted from the registry — it existed only to
+decide which things got hostnames and which got paths, and I had to flag it as *inferred
+rather than stated*. Nothing is inferred now.
 
-1. **The app must be base-path aware.** A portal served at `/sprints` whose base href,
-   router basename and asset paths still root at `/` will request assets from `/` and
-   404 — presenting as a blank page with nothing useful in the log. Some third-party
-   apps cannot be rebased at all, so check before promising a sub-project a path.
-2. **Paths do not isolate.** One host is one browser origin, so every sub-project shares
-   cookies, `localStorage` and `sessionStorage`; a cookie's `Path=` is advisory and not
-   an origin boundary. An XSS in one sub-project reaches the others. That is acceptable
-   here precisely because BNA is one product behind one login — it would not be for two
-   unrelated tenants.
+Two further gains over paths:
 
-The compensating benefit is real: one origin means one CORS allow-list and one OIDC
-`redirect_uri` set per environment instead of three.
+1. **No base-path rework, and no app is disqualified.** Each sub-project is served at the
+   root of its own host, so base href, router basename and asset paths all stay `/`. The
+   blank-page-with-nothing-in-the-log failure mode disappears, and "this third-party app
+   cannot be rebased" stops being a blocker.
+2. **Real isolation.** A distinct hostname is a distinct browser origin, so cookies,
+   `localStorage` and `sessionStorage` do not cross between sub-projects, and an XSS in
+   one does not reach the others. Under paths there was no such boundary — a cookie's
+   `Path=` is advisory, not an origin.
 
-**When does something get its own host instead?** Inferred from the two decisions taken
-today (recorded as inferred, not stated): a separately **deployed** service — its own
-target group, release cadence, and callers that are not the portal — gets a host.
-SmartPresence qualifies on every count. A surface reached by humans through the same
-portal and login gets a path.
+**The cost, and it is worth planning for:** every sub-project origin must be registered
+separately — its own OIDC `redirect_uri`, its own CORS allow-list entry, its own ALB host
+rule, its own DNS record. For BNA that is 3 sub-projects × 2 components × 3 environments
+= **18 hostnames**, where paths needed 2. The bill is paid in auth configuration, not
+DNS. No new certificate is required: sub-projects are single labels under the apex, so
+the existing `*.bnprs.in` wildcard already covers them.
+
+Migration also gets simpler: the five live `nagents-uat-alb` hosts become a **1:1**
+re-shaping rather than a collapse, so each cutover is independent and can be done one at
+a time.
 
 ### 3.3 Production is the name you get by accident
 
