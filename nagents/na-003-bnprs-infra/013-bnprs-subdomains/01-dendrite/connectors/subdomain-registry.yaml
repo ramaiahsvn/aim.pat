@@ -25,7 +25,7 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  111 hostnames, 10 products. NONE resolve yet — every one is `planned`.
+#  105 hostnames, 9 products. NONE resolve yet — every one is `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
 #  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, uTMS last —
 #  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
@@ -204,34 +204,24 @@ products:
         uat:     { host: "aandhipe-mobile-portal.uat.bnprs.in",     status: planned }
         prod:    { host: "aandhipe-mobile-portal.bnprs.in",         status: planned }
 
-  - key: "aandhipe-mpos"
-    label: "AandhiPe mPos"
+  - key: "aandhipe-mposmw"
+    label: "AandhiPe mPosMw (middleware)"
     owner_agent: "na-009/003 bpr1003-mpos ?"   # or bpr2001-aandhipe — see decisions.d6
-    overlaps_with: "utms/mpos — see decisions.d10. Possibly the same product named twice."
+    renamed_from: "aandhipe-mpos — renamed to mPosMw (middleware) 2026-08-13"
+    distinct_from: >-
+      utms/mpos. The Mw suffix is the disambiguation: this is the MIDDLEWARE layer, the
+      uTMS one is the product surface. They were flagged as a possible duplicate under d10;
+      the rename answers that they are two different things. Do NOT merge them.
     components:
       api:
-        sandbox: { host: "aandhipe-mpos-api.sandbox.bnprs.in", status: planned }
-        uat:     { host: "aandhipe-mpos-api.uat.bnprs.in",     status: planned, stale_alb_rule: "aandhipe-mpos-api-uat.bnprs.in (FLAT — rewrite)",
+        sandbox: { host: "aandhipe-mposmw-api.sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-mposmw-api.uat.bnprs.in",     status: planned, stale_alb_rule: "aandhipe-mpos-api-uat.bnprs.in (FLAT — rewrite)",
                    target: "utms-shared-alb (eu-central-1)" }
-        prod:    { host: "aandhipe-mpos-api.bnprs.in",         status: planned }
+        prod:    { host: "aandhipe-mposmw-api.bnprs.in",         status: planned }
       portal:
-        sandbox: { host: "aandhipe-mpos-portal.sandbox.bnprs.in", status: planned }
-        uat:     { host: "aandhipe-mpos-portal.uat.bnprs.in",     status: planned }
-        prod:    { host: "aandhipe-mpos-portal.bnprs.in",         status: planned }
-
-  - key: "aandhipe-kiosk"
-    label: "AandhiPe Kiosk"
-    owner_agent: "na-009/006 bpr1006-patkiosk ?"
-    overlaps_with: "utms/patkiosk and utms/iiskiosk — see decisions.d10. THREE kiosk names now."
-    components:
-      api:
-        sandbox: { host: "aandhipe-kiosk-api.sandbox.bnprs.in", status: planned }
-        uat:     { host: "aandhipe-kiosk-api.uat.bnprs.in",     status: planned }
-        prod:    { host: "aandhipe-kiosk-api.bnprs.in",         status: planned }
-      portal:
-        sandbox: { host: "aandhipe-kiosk-portal.sandbox.bnprs.in", status: planned }
-        uat:     { host: "aandhipe-kiosk-portal.uat.bnprs.in",     status: planned }
-        prod:    { host: "aandhipe-kiosk-portal.bnprs.in",         status: planned }
+        sandbox: { host: "aandhipe-mposmw-portal.sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-mposmw-portal.uat.bnprs.in",     status: planned }
+        prod:    { host: "aandhipe-mposmw-portal.bnprs.in",         status: planned }
 
   # ======================= 4. bRuID =====================================
   # STRUCTURAL CONFLICT. The table makes ACS / wGate / rEngine / Pass SIBLING
@@ -484,7 +474,8 @@ products:
         note: >-
           Likely the home of utms-kiosk-iis-api-alb, which exists in eu-central-1 with NO
           host-header rule (so it is currently unaddressable). "IIS" suggests a Windows/IIS
-          stack, which would make it genuinely distinct from PatKiosk rather than a rename.
+          stack, which is why it SURVIVED the d10 kiosk cull that removed aandhipe-kiosk —
+          it is a different stack, not a second name for PatKiosk.
         components:
           api:
             sandbox: { host: "utms-iiskiosk-api.sandbox.bnprs.in", status: planned }
@@ -498,7 +489,7 @@ products:
 
       - key: "patkiosk"
         owner_agent: "na-009/006 bpr1006-patkiosk"
-        overlaps_with: "aandhipe-kiosk — see decisions.d10"
+        absorbed: "aandhipe-kiosk was a duplicate of this and was REMOVED 2026-08-13 (d10)"
         components:
           api:
             sandbox: { host: "utms-patkiosk-api.sandbox.bnprs.in", status: planned }
@@ -853,9 +844,28 @@ decisions:
 
   d10:
     question: "Are aandhipe-kiosk / utms-patkiosk / utms-iiskiosk three things or fewer? Same for aandhipe-mpos vs utms-mpos."
-    status: OPEN
+    status: RESOLVED
     raised: "2026-08-13"
-    blocking: "18 of the 120 names — do not create any of them until answered"
+    kiosk_resolved_at: "2026-08-13"
+    kiosk_resolution: >-
+      aandhipe-kiosk WAS a duplicate of utms-patkiosk and has been REMOVED (user
+      instruction) — six names deleted. Kiosks are now utms-patkiosk and utms-iiskiosk
+      only, and those two stand as genuinely distinct: "IIS" points at a Windows/IIS stack
+      and utms-kiosk-iis-api-alb exists in eu-central-1 as its own load balancer.
+      Side effect: na-009/006 bpr1006-patkiosk now maps cleanly to utms/patkiosk, which it
+      always fitted better by name than aandhipe-kiosk did.
+    mpos_resolved_at: "2026-08-13"
+    mpos_resolution: >-
+      RESOLVED BY DISAMBIGUATION, NOT BY DELETION — the opposite outcome to the kiosk half.
+      aandhipe-mpos was RENAMED to aandhipe-mposmw ("Mw" = middleware), which answers the
+      duplicate question: the AandhiPe one is the MIDDLEWARE layer, utms-mpos is the product
+      surface. Both sets of six names stand and must NOT be merged.
+      Reading recorded in case it needs correcting: the rename came directly after the
+      overlap was raised, so it is taken as deliberate disambiguation rather than a cosmetic
+      change. Its live ALB rule still carries the OLD flat name aandhipe-mpos-api-uat, which
+      must be rewritten to aandhipe-mposmw-api.uat — note that is now a rename AND a
+      reshape, not just a reshape like the other three.
+    blocking: "nothing — both halves settled"
     evidence: >-
       Adding the six uTMS sub-projects created two apparent duplications, and I have NOT
       collapsed them because that is a product decision, not a naming one.
