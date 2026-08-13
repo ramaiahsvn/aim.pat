@@ -25,9 +25,9 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  117 hostnames, 9 products. NONE resolve yet — every one is `planned`.
+#  123 hostnames, 10 products. NONE resolve yet — every one is `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
-#  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, uTMS last —
+#  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, QiTalab, uTMS last —
 #  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
 #  Verified 2026-08-13 against acct 891963159778 (profile bnprs, holds the
 #  bnprs.in zone), acct 819144294008 (profile itp, holds the ALBs and certs)
@@ -373,7 +373,30 @@ products:
             uat:     { host: "bna-chat-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "bna-chat-portal.bnprs.in",         status: planned }
 
-  # ======================= 6. uTMS (LAST — the umbrella) ================
+  # ======================= 6. QiTalab ===================================
+  # Added on user instruction 2026-08-13 as a TOP-LEVEL PRODUCT — explicitly NOT a uTMS
+  # sub-project. Placed here rather than appended because uTMS must stay last (it is the
+  # umbrella); everything new goes above it.
+  - key: "qitalab"
+    label: "QiTalab"
+    owner_agent: "na-009 bpr2002-talabqi ?"
+    name_check: >-
+      The na-009 product catalogue calls this bpr2002-TALABQI — the two tokens INVERTED
+      relative to QiTalab. Almost certainly the same product, but I have not assumed it:
+      if they are the same, one of the two names is wrong and should be reconciled rather
+      than left to diverge; if they are different products, this owner_agent is wrong.
+      Confirm before wiring anything to it.
+    components:
+      api:
+        sandbox: { host: "qitalab-api.sandbox.bnprs.in", status: planned }
+        uat:     { host: "qitalab-api.uat.bnprs.in",     status: planned }
+        prod:    { host: "qitalab-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "qitalab-portal.sandbox.bnprs.in", status: planned }
+        uat:     { host: "qitalab-portal.uat.bnprs.in",     status: planned }
+        prod:    { host: "qitalab-portal.bnprs.in",         status: planned }
+
+  # ======================= 7. uTMS (LAST — the umbrella) ================
   # uTMS is deliberately last: memory records it as an UMBRELLA product, and the repo
   # naming bpr1004.utms.api.bnet.smartpresence reads
   # <group>.<umbrella>.<kind>.<product>.<feature> — the BPR1004 prefix is the umbrella a
