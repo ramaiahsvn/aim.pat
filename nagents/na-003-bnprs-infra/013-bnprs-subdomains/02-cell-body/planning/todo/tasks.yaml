@@ -36,31 +36,54 @@ tasks:
     tags: [decision-d1, scheme, certificate-boundary]
 
   - id: "task-003"
-    subject: "Decide SmartPresence's hostname, and whether auth migrates"
+    subject: "Decide whether auth migrates to bnprs.in (d8)"
     description: >-
-      d3: bnet-smartpresence-api-uat.bnprs.in already has an ALB rule but no table row —
-      own host, or a path under bnet-api? d8: Keycloak (accounts-uat/accounts/utms-auth
-      .itpgateway.com) has no name in the table at all; leaving it behind keeps both apexes
-      alive permanently and spans every OIDC issuer and CORS allow-list across two domains.
+      Keycloak (accounts-uat / accounts / utms-auth .itpgateway.com) has no name in the
+      table at all; leaving it behind keeps both apexes alive permanently and spans every
+      OIDC issuer and CORS allow-list across two domains. Also decide kc-temp's fate —
+      the name says temporary, so confirm whether it is retired rather than migrated.
+      d3 (SmartPresence) is CLOSED — own host, adopted into the table 2026-08-13.
     status: pending
     priority: high
     created_at: "2026-08-13"
     blocks: ["task-007"]
     estimated_steps: 2
-    tags: [decision-d3, decision-d8, auth, smartpresence]
+    tags: [decision-d8, auth, kc-temp, d3-closed]
 
   - id: "task-004"
-    subject: "Settle the remaining naming decisions (d2, d4, d5, d6)"
+    subject: "Settle the remaining naming decisions (d4, d5, d6)"
     description: >-
-      d2 nAgent case + singular/plural (6 names); d4 explicit -prod token or bare name
-      (config policy); d5 is bRuID a family or is wGate the product, and
-      rengine/risk-engine/risk (12 names); d6 which agent owns each AandhiPe surface
-      (18 names). d5 needs na-009/007 bpr1007-wgate.
+      d4 explicit -prod token or bare name (config policy); d5 is bRuID a family or is
+      wGate the product, and rengine/risk-engine/risk (12 names); d6 which agent owns each
+      AandhiPe surface (18 names). d5 needs na-009/007 bpr1007-wgate.
+      d2 is CLOSED — the nAgent -> bna rename made the case and plural questions moot.
     status: pending
     priority: medium
     created_at: "2026-08-13"
-    estimated_steps: 4
-    tags: [decision-d2, decision-d4, decision-d5, decision-d6]
+    estimated_steps: 3
+    tags: [decision-d4, decision-d5, decision-d6, d2-closed]
+
+  - id: "task-011"
+    subject: "Migrate ERP / Sprints / Chat from subdomains to BNA sub-project paths"
+    description: >-
+      Five live subdomains on nagents-uat-alb (erp, erp-api, projects, projects-api,
+      chat-api .uat.itpgateway.com) collapse into paths on two hosts:
+      bna-portal-<env>.bnprs.in/{sprints,erp,chat} and bna-api-<env>.bnprs.in/{...}.
+      PREREQUISITE PER APP, and it is not a DNS task: each app must be rebased to serve
+      from its sub-path — base href, router basename, asset paths — or it 404s its own
+      assets and renders a blank page with nothing useful logged. Some third-party apps
+      cannot be rebased; establish that per app BEFORE retiring its subdomain.
+      ALSO CONFIRM: "projects" (live) is being treated as "sprints" (the instruction). If
+      they are not the same thing, one of them has no name in the standard.
+      Sequence per sub-project: rebase app -> add ALB path rule -> verify at the path ->
+      cut over -> only then retire the subdomain (record + target in one change).
+    status: pending
+    priority: medium
+    created_at: "2026-08-13"
+    blocked_by: ["task-001", "task-002"]
+    estimated_steps: 10
+    tags: [subproject-paths, bna, app-must-be-base-path-aware, projects-vs-sprints-unconfirmed,
+           six-subdomains-become-two]
 
   # ---- PHASE 1 — restore service ----
 

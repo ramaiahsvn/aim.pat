@@ -20,11 +20,12 @@ eu-central-1, with no DNS behind any of them:
 | `utms-api-uat.bnprs.in` | yes |
 | `bnet-api-uat.bnprs.in` | yes |
 | `aandhipe-mpos-api-uat.bnprs.in` | yes |
-| `bnet-smartpresence-api-uat.bnprs.in` | **no** |
+| `bnet-smartpresence-api-uat.bnprs.in` | **added 2026-08-13** |
 | `tms-api-uat.bnprs.in` | **no** |
 
-So the migration has started, ahead of both the DNS and the standard, and it has
-already invented two names the standard does not allow.
+So the migration has started, ahead of both the DNS and the standard, and it had already
+invented two names the standard did not allow. One of those (SmartPresence) has since
+been adopted into the table; `tms-api-uat` is still unexplained.
 
 ## 2. What the table gets right
 
@@ -69,19 +70,58 @@ wildcard certs, and a non-production key can never sign a production hostname.
 
 **Cost of switching: 5 ALB rules and 0 DNS records.** It will never be cheaper.
 
-### 3.2 `nAgent-*` has a capital letter
+### 3.2 `nAgent-*` had a capital letter — RESOLVED by renaming to `bna`
 
-`nAgent-api-uat.bnprs.in` — the only mixed-case entry in the table, while `mGate` was
-correctly lowercased to `mgate`.
+`nAgent-api-uat.bnprs.in` was the only mixed-case entry in the table, while `mGate` was
+correctly lowercased to `mgate`. DNS lookups and ALB host-header matching are both
+case-insensitive, so it would have appeared to work; the damage lands where the literal
+string is compared case-*sensitively* — OIDC `redirect_uri` (exact match), CORS origin
+checks in most frameworks, certificate SANs, hand-written config.
 
-DNS lookups are case-insensitive and so is ALB host-header matching, so this will
-appear to work. The damage is elsewhere: the literal string propagates into OIDC
-`redirect_uri` values (matched as an exact string), CORS origin comparisons
-(case-sensitive in most frameworks), certificate SANs, and hand-written config — where
-`nAgent` and `nagent` are two different values. Use lowercase.
+**Resolved 2026-08-13:** the product is renamed **`nAgent` → `bna`**, which has no
+capital and no plural form, so both this and the singular/plural question disappear. It
+also aligns the DNS name with `na-010-bna-platform`.
 
-Also settle **singular vs plural**: the table says `nAgent`, the infrastructure says
-`nagents` (`nagents-uat-alb`, `nagents-uat-livekit-nlb`).
+The infrastructure remains named `nagents-*` (`nagents-uat-alb`, `nagents-uat-livekit-nlb`).
+DNS and infra names now diverge for this product, which is fine — infra names are
+internal — but don't "fix" either to match the other without asking.
+
+### 3.2b Sub-projects take paths, not subdomains
+
+Also settled 2026-08-13, and it applies to **every** product:
+
+```
+<product>-<component>[-<env>].bnprs.in/<subproject>
+
+bna-portal-uat.bnprs.in/sprints      bna-portal-uat.bnprs.in/erp
+bna-portal-uat.bnprs.in/chat         bna-api-uat.bnprs.in/chat
+```
+
+No DNS record, no ALB host rule and no certificate SAN per sub-project — an ALB **path**
+rule per target group is the whole mechanism. This is the largest simplification in the
+standard: the six live subdomains `erp`, `erp-api`, `projects`, `projects-api`,
+`chat-api` on `nagents-uat-alb` collapse into paths on two hosts.
+
+Two things it costs, both worth knowing before the first migration:
+
+1. **The app must be base-path aware.** A portal served at `/sprints` whose base href,
+   router basename and asset paths still root at `/` will request assets from `/` and
+   404 — presenting as a blank page with nothing useful in the log. Some third-party
+   apps cannot be rebased at all, so check before promising a sub-project a path.
+2. **Paths do not isolate.** One host is one browser origin, so every sub-project shares
+   cookies, `localStorage` and `sessionStorage`; a cookie's `Path=` is advisory and not
+   an origin boundary. An XSS in one sub-project reaches the others. That is acceptable
+   here precisely because BNA is one product behind one login — it would not be for two
+   unrelated tenants.
+
+The compensating benefit is real: one origin means one CORS allow-list and one OIDC
+`redirect_uri` set per environment instead of three.
+
+**When does something get its own host instead?** Inferred from the two decisions taken
+today (recorded as inferred, not stated): a separately **deployed** service — its own
+target group, release cadence, and callers that are not the portal — gets a host.
+SmartPresence qualifies on every count. A surface reached by humans through the same
+portal and login gets a path.
 
 ### 3.3 Production is the name you get by accident
 
@@ -105,9 +145,9 @@ migration, which is precisely the split-brain that broke bNet.
    `utms-auth.itpgateway.com`. Shared by every product. If products move and auth does
    not, both domains stay alive permanently and every issuer, `redirect_uri` and CORS
    allow-list spans two apexes. **Highest-priority gap.**
-2. **SmartPresence API** — already has an ALB rule
-   (`bnet-smartpresence-api-uat.bnprs.in`); the table only allows `bnet-api-uat`. This
-   is the gap currently breaking bNet v2 (§4).
+2. **SmartPresence API** — ~~no name~~ **resolved 2026-08-13**: adopted into the table as
+   `bnet-smartpresence-api-<env>.bnprs.in` across all three environments. Still the gap
+   breaking bNet v2 until DNS exists (§4).
 3. **bengine / bPassEngine** — live at `bengine.sandbox.bruid.bnprs.in` and
    `uat-bpassengine.bruid.bnprs.in`, ALB `wgate-uat-bengine`. Three names already.
    Probably bRuID Pass's engine — confirm, don't assume.
@@ -178,10 +218,12 @@ address is broken.
 |---|---|---|
 | **A — immediate unblock** | Repoint `smartpresence-api-uat.itpgateway.com` at `utms-shared-alb` | Fastest, and needs no certificate work: `*.itpgateway.com` is already the **default** cert on that listener. Keeps a domain you intend to retire alive a while longer. |
 | **B — the target state** | Add DNS for `bnet-smartpresence-api-uat.bnprs.in` → `utms-shared-alb`, then point the app at it | Correct end state, and the ALB rule already exists. Needs the apex zone owner (`decisions.d7`) **and** confirmation that the listener presents a `*.bnprs.in` cert for that SNI name — the default cert on :443 is `*.itpgateway.com`, and a second cert is attached whose identity I did not get to verify. |
-| **C — fold it in** | Serve SmartPresence under `bnet-api-uat.bnprs.in` on a path prefix | Most consistent with the table as written, but needs server-side routing changes and touches the Spring Boot app's `@RequestMapping`s. |
+| ~~C — fold it in~~ | ~~Serve SmartPresence under `bnet-api-uat.bnprs.in` on a path prefix~~ | **Ruled out 2026-08-13.** The user adopted the dedicated hostname, and `scheme.host_vs_path` agrees: SmartPresence is separately deployed with machine callers, so it earns a host. |
 
 **Recommendation: A now, B as the target.** A restores service today without
-prejudging `decisions.d1`; B lands once the scheme is ratified.
+prejudging `decisions.d1`; B lands once the scheme is ratified. With `decisions.d3` now
+closed in favour of the dedicated host, B's only remaining blockers are the apex zone
+owner (`task-001`) and the certificate check (`task-006`).
 
 ⚠️ Before B, verify the second SNI certificate on the `utms-shared-alb` :443 and :8443
 listeners (`210edefa-cbda-4971-80cd-4a9a4e0280ce`). If it is not `*.bnprs.in`, every
@@ -197,16 +239,16 @@ error as the original mismatch, and the five existing rules are all waiting on i
 Nothing below can proceed safely without these. All are tracked in the registry's
 `decisions:` block.
 
-| id | decision | blocks |
-|---|---|---|
-| d7 | Who owns the `bnprs.in` apex zone, and which account writes its records? | **every record** |
-| d1 | Flat or hierarchical environment labels? | the whole scheme |
-| d3 | SmartPresence: own host, or path under `bnet-api`? | the bNet fix |
-| d8 | Does auth migrate to `bnprs.in`? | auth + every client |
-| d5 | Is bRuID a family or is wGate the product? `rengine`/`risk-engine`/`risk`? | 12 names |
-| d2 | `nAgent` case, singular vs plural | 6 names |
-| d4 | Explicit `-prod` token or bare name? | config policy |
-| d6 | Which agent owns each AandhiPe surface? | 18 names |
+| id | decision | blocks | status |
+|---|---|---|---|
+| d7 | Who owns the `bnprs.in` apex zone, and which account writes its records? | **every record** | OPEN |
+| d1 | Flat or hierarchical environment labels? | the whole scheme | OPEN |
+| d8 | Does auth migrate to `bnprs.in`? | auth + every client | OPEN |
+| d5 | Is bRuID a family or is wGate the product? `rengine`/`risk-engine`/`risk`? | 12 names | OPEN |
+| d4 | Explicit `-prod` token or bare name? | config policy | OPEN |
+| d6 | Which agent owns each AandhiPe surface? | 18 names | OPEN |
+| d2 | ~~`nAgent` case, singular vs plural~~ | — | **RESOLVED** — renamed to `bna` |
+| d3 | ~~SmartPresence: own host or path?~~ | — | **RESOLVED** — own host, in the table |
 
 ### Phase 1 — restore bNet UAT
 

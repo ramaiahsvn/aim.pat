@@ -63,8 +63,47 @@ scheme:
   ratified: false
   envs: ["sandbox", "uat", "prod"]
   components: ["api", "portal"]
-  charset: "lowercase a-z 0-9 and hyphen only"          # see decisions.d2
-  max_label: 63                                        # longest proposed name is 30 — no risk
+  charset: "lowercase a-z 0-9 and hyphen only"
+  max_label: 63                                        # longest name is 39 — no risk
+
+  # SUB-PROJECTS ARE PATHS, NOT SUBDOMAINS (user instruction, 2026-08-13).
+  # Applies to sub-projects of EVERY product, not only BNA.
+  subproject_form: "<product>-<component>[-<env>].bnprs.in/<subproject>"
+  subproject_examples:
+    - "bna-portal.bnprs.in/sprints"
+    - "bna-portal-uat.bnprs.in/erp"
+    - "bna-api-uat.bnprs.in/chat"
+  subproject_rules:
+    - "NO DNS record, NO ALB host rule and NO certificate SAN per sub-project — an ALB
+       PATH rule per target group is the whole mechanism."
+    - "The app MUST be base-path aware. A portal served at /sprints needs its base href,
+       router basename and asset paths rooted at /sprints, or it requests assets from /
+       and 404s with an empty page and no useful error. This is the single most common
+       way path-based routing fails, and some third-party apps cannot be rebased at all
+       — check before promising a sub-project a path."
+    - "Paths DO NOT isolate. All sub-projects on one host share one browser origin, so
+       they share cookies, localStorage and sessionStorage; Path= on a cookie is advisory
+       and not an origin boundary. An XSS in one sub-project reaches the others. Only put
+       sub-projects on paths when they are inside the same trust boundary — which they
+       are for BNA, since it is one product with one login."
+    - "The corollary benefit: one origin means one CORS allow-list and one OIDC
+       redirect_uri set per environment instead of three."
+
+  # WHEN DOES A THING GET ITS OWN HOST INSTEAD OF A PATH?
+  # Settled 2026-08-13 by two user decisions: BNA's sprints/erp/chat are PATHS, while
+  # bNet's SmartPresence API gets its OWN HOST. The discriminator those two imply:
+  host_vs_path:
+    own_host: >-
+      A separately DEPLOYED service — its own ECS service / target group / release
+      cadence, and callers that are not the portal. SmartPresence qualifies: its own ECS
+      service, its own target group on :8080, its own GitLab project (34), and machine
+      clients (bNet v2 sync and 1:N verify) that never touch a portal.
+    path: >-
+      A surface of an existing deployable, reached by humans through the same portal and
+      the same login. Sprints, ERP and Chat qualify.
+    note: >-
+      This rule was inferred from two decisions, not stated by the user. It holds for the
+      cases in this file; re-confirm before applying it to a genuinely new shape.
 
 # ---- PRODUCTS ----------------------------------------------------------
 # owner_agent is the na-009 product agent where known. Marked ? where the
@@ -100,14 +139,23 @@ products:
         sandbox: { host: "bnet-portal-sandbox.bnprs.in", status: planned }
         uat:     { host: "bnet-portal-uat.bnprs.in",     status: planned }
         prod:    { host: "bnet-portal.bnprs.in",         status: planned }
-    # NOT IN THE SOURCE TABLE but a rule already exists for it, and its absence
-    # is what is breaking bNet v2 right now. See decisions.d3.
-    unlisted_components:
-      smartpresence_api:
-        uat: { host: "bnet-smartpresence-api-uat.bnprs.in", status: alb-rule-only,
-               target: "utms-shared-alb -> utms-smartpresence-api-tg:8080",
-               ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1",
-               note: "Consumed by bNet v2 (sync, 1:N verify) and bpr1004.utms.api.bnet.smartpresence" }
+      # ADDED TO THE TABLE on user instruction 2026-08-13, resolving decisions.d3:
+      # SmartPresence gets its OWN HOST, not a path under bnet-api. It qualifies
+      # because it is a separately deployed service with its own ECS service and
+      # target group — see scheme.host_vs_path.
+      smartpresence-api:
+        sandbox: { host: "bnet-smartpresence-api-sandbox.bnprs.in", status: planned }
+        uat:
+          host: "bnet-smartpresence-api-uat.bnprs.in"
+          status: alb-rule-only
+          target: "utms-shared-alb -> utms-smartpresence-api-tg:8080"
+          ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1"
+          note: >-
+            Consumed by bNet v2 (sync, 1:N verify) and built by GitLab project 34
+            bpr1004.utms.api.bnet.smartpresence. Its absence from DNS is the live
+            bNet v2 outage — see faults.
+          supersedes: "smartpresence-api-uat.itpgateway.com (DANGLING — see faults)"
+        prod:    { host: "bnet-smartpresence-api.bnprs.in",         status: planned }
 
   - key: "aandhipe-mobile"
     label: "AandhiPe Mobile"
@@ -215,24 +263,43 @@ products:
         uat:     { host: "bruid-pass-portal-uat.bnprs.in",     status: planned }
         prod:    { host: "bruid-pass-portal.bnprs.in",         status: planned }
 
-  - key: "nagent"
-    label: "nAgent"
-    owner_agent: "na-010 bna-platform / na-009 trp1004-bnagent ?"
-    # THE TABLE WRITES THESE WITH A CAPITAL A (nAgent-api-uat.bnprs.in).
-    # Corrected to lowercase here. DNS resolution is case-insensitive, but the
-    # literal string is compared case-SENSITIVELY in OIDC redirect_uri matching
-    # and most CORS origin checks. Also the live infra says "nagents" (plural):
-    # nagents-uat-alb, nagents-uat-livekit-nlb. See decisions.d2.
+  # RENAMED FROM nAgent -> bna on user instruction, 2026-08-13. This also disposes
+  # of decisions.d2 entirely: "bna" is unambiguously lowercase, so the capital-A and
+  # the singular/plural questions both evaporate. Aligns with na-010-bna-platform.
+  - key: "bna"
+    label: "BNA (was nAgent)"
+    owner_agent: "na-010 bna-platform"
+    subprojects_use_paths: true          # see scheme.subproject_form
     components:
       api:
-        sandbox: { host: "nagent-api-sandbox.bnprs.in", status: planned }
-        uat:     { host: "nagent-api-uat.bnprs.in",     status: planned,
-                   note: "nagents-uat-alb currently serves *.uat.itpgateway.com names" }
-        prod:    { host: "nagent-api.bnprs.in",         status: planned }
+        sandbox: { host: "bna-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bna-api-uat.bnprs.in",     status: planned,
+                   note: "nagents-uat-alb currently serves the *.uat.itpgateway.com equivalents" }
+        prod:    { host: "bna-api.bnprs.in",         status: planned }
       portal:
-        sandbox: { host: "nagent-portal-sandbox.bnprs.in", status: planned }
-        uat:     { host: "nagent-portal-uat.bnprs.in",     status: planned }
-        prod:    { host: "nagent-portal.bnprs.in",         status: planned }
+        sandbox: { host: "bna-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bna-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "bna-portal.bnprs.in",         status: planned }
+    # SUB-PROJECTS ARE PATHS, NOT HOSTNAMES. No DNS record, no ALB host rule and no
+    # certificate SAN is created for any of these — only an ALB PATH rule per target.
+    subprojects:
+      - key: "sprints"
+        portal: "bna-portal[-<env>].bnprs.in/sprints"
+        api:    "bna-api[-<env>].bnprs.in/sprints"
+        replaces: ["projects.uat.itpgateway.com", "projects-api.uat.itpgateway.com"]
+        assumption: >-
+          The live pair is named "projects", not "sprints". Treating them as the same
+          thing — CONFIRM before migrating, because if projects != sprints then one of
+          them has no name in this standard.
+      - key: "erp"
+        portal: "bna-portal[-<env>].bnprs.in/erp"
+        api:    "bna-api[-<env>].bnprs.in/erp"
+        replaces: ["erp.uat.itpgateway.com", "erp-api.uat.itpgateway.com"]
+      - key: "chat"
+        portal: "bna-portal[-<env>].bnprs.in/chat"
+        api:    "bna-api[-<env>].bnprs.in/chat"
+        replaces: ["chat-api.uat.itpgateway.com"]
+        note: "Only an -api host exists live; no chat portal subdomain was ever published."
 
   - key: "mgate"
     label: "mGate"
@@ -293,13 +360,26 @@ unmapped_endpoints:
     live: ["mini-apps.itpgateway.com (BPR-uTMS-LB)"]
     status: no-name-assigned
 
-  - service: "ERP / projects / chat (internal tooling)"
+  - service: "ERP / projects / chat — NOW MAPPED to BNA sub-project paths"
     live: ["erp.uat.itpgateway.com", "erp-api.uat.itpgateway.com",
            "projects.uat.itpgateway.com", "projects-api.uat.itpgateway.com",
-           "chat-api.uat.itpgateway.com", "kc-temp.uat.itpgateway.com"]
+           "chat-api.uat.itpgateway.com"]
+    status: mapped
+    mapped_to: "products.bna.subprojects (sprints / erp / chat) — see scheme.subproject_form"
     note: >-
-      All on nagents-uat-alb using <component>.<env>.itpgateway.com — the
-      HIERARCHICAL scheme. Live internal precedent that contradicts the flat table.
+      These six SUBDOMAINS collapse into paths on two hosts, which is the largest single
+      simplification in the standard: 5 records and 5 host rules become 2 records plus
+      path rules. All currently live on nagents-uat-alb under
+      <component>.<env>.itpgateway.com — the hierarchical scheme.
+      MIGRATION CAVEAT: each app must be rebased to serve from its sub-path before its
+      subdomain is retired (see scheme.subproject_rules). "projects" -> "sprints" is an
+      assumed identity, NOT confirmed.
+
+  - service: "kc-temp (temporary Keycloak)"
+    live: ["kc-temp.uat.itpgateway.com"]
+    note: >-
+      On nagents-uat-alb. Name says temporary; nothing in the standard covers it. Confirm
+      whether it can be retired outright rather than migrated — see the auth entry above.
     status: no-name-assigned
 
 # ---- ACTIVE FAULTS -----------------------------------------------------
@@ -351,17 +431,27 @@ decisions:
 
   d2:
     question: "nAgent capital A, and nagent vs nagents (plural)?"
-    status: OPEN
-    recommendation: "lowercase; pick singular or plural once and match the ALBs (nagents-uat-alb)"
+    status: RESOLVED
+    resolved_at: "2026-08-13"
+    resolution: >-
+      MOOT — the product is renamed nAgent -> bna (user instruction). "bna" is
+      unambiguously lowercase and has no plural form, so both halves of the question
+      disappear. Aligns the DNS name with na-010-bna-platform.
+      NOTE the infrastructure is still named nagents-* (nagents-uat-alb,
+      nagents-uat-livekit-nlb). DNS and infra names now diverge for this product;
+      that is acceptable (infra names are internal) but do not "fix" one to match
+      the other without asking.
 
   d3:
     question: "Does SmartPresence get its own host, or a path under bnet-api?"
-    status: OPEN
-    blocking: "the bNet v2 outage fix"
-    evidence: >-
-      bnet-smartpresence-api-uat.bnprs.in already has an ALB rule but is absent
-      from the table, which only allows bnet-api-uat. Folding it under bnet-api
-      needs server-side path routing; keeping it separate needs a table row.
+    status: RESOLVED
+    resolved_at: "2026-08-13"
+    resolution: >-
+      OWN HOST. bnet-smartpresence-api-<env>.bnprs.in is now a full member of the
+      table across all three environments (products.bnet.components.smartpresence-api).
+      Consistent with scheme.host_vs_path: it is a separately deployed service with its
+      own ECS service, target group and GitLab project, and its callers are machines,
+      not the portal. The UAT name already has its ALB rule, so this needs DNS only.
 
   d4:
     question: "Should production carry an explicit -prod token?"

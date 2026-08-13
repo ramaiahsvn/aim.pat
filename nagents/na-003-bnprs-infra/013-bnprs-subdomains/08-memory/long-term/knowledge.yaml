@@ -191,6 +191,43 @@ memories:
            mixed-case-breaks-oidc-and-cors, dns-is-case-insensitive-configs-are-not,
            nagent-vs-nagents]
 
+  - id: mem-008
+    type: project_context
+    content: >-
+      SUB-PROJECTS ARE PATHS, NOT SUBDOMAINS — ratified by the user 2026-08-13 and it applies to
+      EVERY product, not just BNA: <product>-<component>[-<env>].bnprs.in/<subproject>. So
+      bna-portal-uat.bnprs.in/sprints, /erp, /chat. NO DNS record, NO ALB host rule and NO cert
+      SAN per sub-project — an ALB PATH rule per target group is the entire mechanism.
+      SAME SESSION, TWO MORE DECISIONS: nAgent is RENAMED bna (this makes mem-007's mixed-case
+      problem moot and closes d2 — "bna" has no capital and no plural, and it aligns with
+      na-010-bna-platform); and bnet-smartpresence-api-<env>.bnprs.in IS in the table as its own
+      host across all 3 envs, closing d3 against the path option.
+      THE DISCRIMINATOR THOSE TWO IMPLY (inferred, not stated — re-confirm on a new shape):
+      OWN HOST for a separately deployed service with its own target group, release cadence and
+      non-portal callers (SmartPresence: own ECS service, own TG :8080, own GitLab project 34,
+      called by bNet v2 machine clients). PATH for a surface reached by humans through the same
+      portal and the same login (sprints/erp/chat).
+      BIGGEST WIN: six live subdomains (erp, erp-api, projects, projects-api, chat-api on
+      nagents-uat-alb) collapse into paths on two hosts.
+      TWO TRAPS. (1) THE APP MUST BE BASE-PATH AWARE — a portal served at /sprints whose base
+      href, router basename and asset paths still root at / requests assets from / and 404s as a
+      BLANK PAGE with nothing useful logged; some third-party apps cannot be rebased at all, so
+      check before promising a path. (2) PATHS DO NOT ISOLATE — one host is one browser origin,
+      so all sub-projects share cookies, localStorage and sessionStorage, and cookie Path= is
+      advisory, NOT an origin boundary; an XSS in one reaches all. Acceptable here only because
+      BNA is one product behind one login. The compensating benefit is one CORS allow-list and
+      one OIDC redirect_uri set per env instead of three.
+      UNCONFIRMED: "projects" (live) is being treated as "sprints" (instruction). If they are not
+      the same thing, one of them has no name in the standard.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [subprojects-are-paths, applies-to-all-products, nagent-renamed-bna, d2-and-d3-resolved,
+           smartpresence-gets-its-own-host, host-vs-path-discriminator, app-must-be-base-path-aware,
+           paths-do-not-isolate, one-origin-one-cookie-jar, projects-vs-sprints-unconfirmed]
+
 # Pruning rules
 pruning:
   max_entries: 500
