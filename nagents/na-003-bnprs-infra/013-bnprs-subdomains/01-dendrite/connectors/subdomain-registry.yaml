@@ -25,7 +25,9 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  87 hostnames, 11 products. NONE resolve yet — every one is `planned`.
+#  120 hostnames, 11 products. NONE resolve yet — every one is `planned`.
+#  Product ORDER is deliberate (mGate, bNet, AandhiPe, bRuID, BNA, uTMS last —
+#  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
 #  Verified 2026-08-13 against acct 891963159778 (profile bnprs, holds the
 #  bnprs.in zone), acct 819144294008 (profile itp, holds the ALBs and certs)
 #  and public DNS.
@@ -160,41 +162,55 @@ scheme:
 # mapping is genuinely ambiguous — do not guess these into fact.
 products:
 
-  - key: "utms"
-    label: "uTMS"
-    owner_agent: "na-009/004 bpr1004-utms"
+  # ORDER IS DELIBERATE (user instruction 2026-08-13): mGate, bNet, AandhiPe, bRuID, BNA,
+  # and uTMS LAST because it is the umbrella that consolidates the others' consoles.
+  # Do not re-sort this list alphabetically.
+
+  # ======================= 1. mGate ======================================
+  - key: "mgate"
+    label: "mGate"
+    owner_agent: "na-009/002 bpr1002-mgate"
+    live_collision: >-
+      mGate is ALREADY published hierarchically in this zone, but with the PRODUCT as the
+      label rather than the env: mgate.bnprs.in (CloudFront d29je0tgxoccax),
+      api.mgate.bnprs.in and portal-api.mgate.bnprs.in (both -> ap-south-2 ALBs in the
+      bnprs account). Creating the names below adds a SECOND scheme for one product in one
+      zone. Keep-or-migrate call tracked as task-014.
     components:
       api:
-        sandbox: { host: "utms-api.sandbox.bnprs.in", status: planned }
-        uat:     { host: "utms-api.uat.bnprs.in",     status: planned, stale_alb_rule: "utms-api-uat.bnprs.in (FLAT — rewrite)",
-                   target: "utms-shared-alb (eu-central-1)" }
-        prod:    { host: "utms-api.bnprs.in",         status: planned,
-                   supersedes: "utms-api.itpgateway.com (LIVE, us-east-2 BPR-uTMS-LB)" }
+        sandbox: { host: "mgate-api.sandbox.bnprs.in", status: planned }
+        uat:     { host: "mgate-api.uat.bnprs.in",     status: planned }
+        prod:    { host: "mgate-api.bnprs.in",         status: planned,
+                   conflicts_with: "api.mgate.bnprs.in (LIVE -> maingateway-prod-alb, ap-south-2)" }
       portal:
-        sandbox: { host: "utms-portal.sandbox.bnprs.in", status: planned }
-        uat:     { host: "utms-portal.uat.bnprs.in",     status: planned }
-        prod:    { host: "utms-portal.bnprs.in",         status: planned,
-                   supersedes: "utms.itpgateway.com (LIVE)" }
+        sandbox: { host: "mgate-portal.sandbox.bnprs.in", status: planned }
+        uat:     { host: "mgate-portal.uat.bnprs.in",     status: planned }
+        prod:    { host: "mgate-portal.bnprs.in",         status: planned,
+                   conflicts_with: "mgate.bnprs.in + portal-api.mgate.bnprs.in (both LIVE)" }
 
+  # ======================= 2. bNet =======================================
   - key: "bnet"
     label: "bNet"
     owner_agent: "na-009/008 bpr1008-bnet"
+    # NO PORTAL COMPONENT — user instruction 2026-08-13. bNet's portal is served by the
+    # uTMS console as utms-bnet-portal.<env>.bnprs.in, so bnet-portal-* names are NOT
+    # reserved and must not be created. DO NOT "restore" them as an omission.
+    # Note the consequence: bNet's API is bnet-api.* (its own product) while its UI is
+    # utms-bnet-portal.* (under the umbrella) — two different first labels, therefore two
+    # different origins, so the uTMS portal must carry bnet-api.* in its CORS allow-list
+    # and OIDC config. Same shape as the shared bRuID ACS portal.
+    portal_served_by: "utms-bnet-portal.<env>.bnprs.in — user instruction 2026-08-13"
     components:
       api:
         sandbox: { host: "bnet-api.sandbox.bnprs.in", status: planned }
         uat:     { host: "bnet-api.uat.bnprs.in",     status: planned, stale_alb_rule: "bnet-api-uat.bnprs.in (FLAT — rewrite)",
                    target: "utms-shared-alb (eu-central-1)" }
         prod:    { host: "bnet-api.bnprs.in",         status: planned }
-      portal:
-        sandbox: { host: "bnet-portal.sandbox.bnprs.in", status: planned }
-        uat:     { host: "bnet-portal.uat.bnprs.in",     status: planned }
-        prod:    { host: "bnet-portal.bnprs.in",         status: planned }
     # bNet SUB-PROJECTS. Both are api-only — a sub-project does NOT have to carry both
-    # components (BNA's chat has no live portal either). Restructured 2026-08-13:
-    # smartpresence was first recorded as a bnet COMPONENT, but under the sub-project
-    # naming rule it is indistinguishable from one (bnet-smartpresence-api-uat), so it
-    # lives here instead. The hostnames did not change; the data model did, so the
-    # registry has one shape for everything.
+    # components. Restructured 2026-08-13: smartpresence was first recorded as a bnet
+    # COMPONENT, but under the sub-project naming rule it is indistinguishable from one
+    # (bnet-smartpresence-api), so it lives here instead. The hostnames did not change;
+    # the data model did, so the registry has one shape for everything.
     subprojects:
 
       # Adopted into the table on user instruction 2026-08-13, resolving decisions.d3.
@@ -224,6 +240,7 @@ products:
             uat:     { host: "bnet-retail-api.uat.bnprs.in",     status: planned }
             prod:    { host: "bnet-retail-api.bnprs.in",         status: planned }
 
+  # ======================= 3. AandhiPe ===================================
   - key: "aandhipe-mobile"
     label: "AandhiPe Mobile"
     owner_agent: "na-009/0?? bpr2001-aandhipe ?"
@@ -240,6 +257,7 @@ products:
   - key: "aandhipe-mpos"
     label: "AandhiPe mPos"
     owner_agent: "na-009/003 bpr1003-mpos ?"   # or bpr2001-aandhipe — see decisions.d6
+    overlaps_with: "utms/mpos — see decisions.d10. Possibly the same product named twice."
     components:
       api:
         sandbox: { host: "aandhipe-mpos-api.sandbox.bnprs.in", status: planned }
@@ -254,22 +272,22 @@ products:
   - key: "aandhipe-kiosk"
     label: "AandhiPe Kiosk"
     owner_agent: "na-009/006 bpr1006-patkiosk ?"
+    overlaps_with: "utms/patkiosk and utms/iiskiosk — see decisions.d10. THREE kiosk names now."
     components:
       api:
         sandbox: { host: "aandhipe-kiosk-api.sandbox.bnprs.in", status: planned }
-        uat:     { host: "aandhipe-kiosk-api.uat.bnprs.in",     status: planned,
-                   note: "utms-kiosk-iis-api-alb exists in eu-central-1 with no host rule — likely this" }
+        uat:     { host: "aandhipe-kiosk-api.uat.bnprs.in",     status: planned }
         prod:    { host: "aandhipe-kiosk-api.bnprs.in",         status: planned }
       portal:
         sandbox: { host: "aandhipe-kiosk-portal.sandbox.bnprs.in", status: planned }
         uat:     { host: "aandhipe-kiosk-portal.uat.bnprs.in",     status: planned }
         prod:    { host: "aandhipe-kiosk-portal.bnprs.in",         status: planned }
 
-  # ---- the bRuID family --------------------------------------------------
+  # ======================= 4. bRuID =====================================
   # STRUCTURAL CONFLICT. The table makes ACS / wGate / rEngine / Pass SIBLING
   # products under bRuID. The live infrastructure makes them COMPONENTS OF
   # wGate: every ALB is named wgate-uat-<thing>. And the live DNS puts them
-  # under a delegated bruid.bnprs.in subzone, hierarchically. See decisions.d1/d5.
+  # under a delegated bruid.bnprs.in subzone, hierarchically. See decisions.d5.
   - key: "bruid-acs"
     label: "bRuID ACS"
     owner_agent: "na-009/007 bpr1007-wgate ?"
@@ -345,13 +363,13 @@ products:
         uat:     { host: "bruid-pass-portal.uat.bnprs.in",     status: planned }
         prod:    { host: "bruid-pass-portal.bnprs.in",         status: planned }
 
+  # ======================= 5. BNA =======================================
   # RENAMED FROM nAgent -> bna on user instruction, 2026-08-13. This also disposes
   # of decisions.d2 entirely: "bna" is unambiguously lowercase, so the capital-A and
   # the singular/plural questions both evaporate. Aligns with na-010-bna-platform.
   - key: "bna"
     label: "BNA (was nAgent)"
     owner_agent: "na-010 bna-platform"
-    subprojects_use_paths: true          # see scheme.subproject_form
     components:
       api:
         sandbox: { host: "bna-api.sandbox.bnprs.in", status: planned }
@@ -369,8 +387,9 @@ products:
       - key: "sprints"
         assumption: >-
           The live pair is named "projects", not "sprints". Treating them as the same
-          thing — CONFIRM before migrating, because if projects != sprints then one of
-          them has no name in this standard.
+          thing — CONFIRM before migrating (task-013). Note projects.bnprs.in was a Zoho
+          Projects CNAME and has been RETIRED, so the name is free but the identity
+          question stands: Sprints may be Zoho Sprints rather than something we host.
         components:
           api:
             sandbox: { host: "bna-sprints-api.sandbox.bnprs.in", status: planned }
@@ -413,18 +432,126 @@ products:
             uat:     { host: "bna-chat-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "bna-chat-portal.bnprs.in",         status: planned }
 
-  - key: "mgate"
-    label: "mGate"
-    owner_agent: "na-009/002 bpr1002-mgate"
+  # ======================= 6. uTMS (LAST — the umbrella) ================
+  # uTMS is deliberately last: memory records it as an UMBRELLA product, and the repo
+  # naming bpr1004.utms.api.bnet.smartpresence reads
+  # <group>.<umbrella>.<kind>.<product>.<feature> — the BPR1004 prefix is the umbrella a
+  # thing builds on, not its owner. The six sub-projects below are the surfaces uTMS
+  # consolidates. Each carries BOTH api and portal (user decision 2026-08-13), which the
+  # live repo above independently supports: it IS a uTMS api for bNet.
+  - key: "utms"
+    label: "uTMS"
+    owner_agent: "na-009/004 bpr1004-utms"
+    is_umbrella: true
     components:
       api:
-        sandbox: { host: "mgate-api.sandbox.bnprs.in", status: planned }
-        uat:     { host: "mgate-api.uat.bnprs.in",     status: planned }
-        prod:    { host: "mgate-api.bnprs.in",         status: planned }
+        sandbox: { host: "utms-api.sandbox.bnprs.in", status: planned }
+        uat:     { host: "utms-api.uat.bnprs.in",     status: planned, stale_alb_rule: "utms-api-uat.bnprs.in (FLAT — rewrite)",
+                   target: "utms-shared-alb (eu-central-1)" }
+        prod:    { host: "utms-api.bnprs.in",         status: planned,
+                   supersedes: "utms-api.itpgateway.com (LIVE, us-east-2 BPR-uTMS-LB)" }
       portal:
-        sandbox: { host: "mgate-portal.sandbox.bnprs.in", status: planned }
-        uat:     { host: "mgate-portal.uat.bnprs.in",     status: planned }
-        prod:    { host: "mgate-portal.bnprs.in",         status: planned }
+        sandbox: { host: "utms-portal.sandbox.bnprs.in", status: planned }
+        uat:     { host: "utms-portal.uat.bnprs.in",     status: planned }
+        prod:    { host: "utms-portal.bnprs.in",         status: planned,
+                   supersedes: "utms.itpgateway.com (LIVE)" }
+    # SIX SUB-PROJECTS added on user instruction 2026-08-13, each with api AND portal.
+    subprojects:
+
+      - key: "crm"
+        owner_agent: "na-009 bpr1000-utms-crm"
+        components:
+          api:
+            sandbox: { host: "utms-crm-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-crm-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-crm-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-crm-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-crm-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-crm-portal.bnprs.in",         status: planned }
+
+      - key: "licensing"
+        owner_agent: "? — na-003/011 bnprs-lib-license owns LIBRARY licensing (hwid/appid,
+                     BprLicBase), which may or may not be the same thing as product
+                     licensing here. Confirm before wiring anything."
+        components:
+          api:
+            sandbox: { host: "utms-licensing-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-licensing-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-licensing-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-licensing-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-licensing-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-licensing-portal.bnprs.in",         status: planned }
+
+      - key: "bnet"
+        owner_agent: "na-009/008 bpr1008-bnet"
+        note: >-
+          THIS PORTAL REPLACES bnet-portal-*, which is why the bNet product above has no
+          portal component (user instruction). Consequence worth stating: bNet's API stays
+          at bnet-api.* while its UI is here at utms-bnet-portal.* — different first labels,
+          therefore DIFFERENT ORIGINS. This portal must carry bnet-api.<env>.bnprs.in in its
+          CORS allow-list and OIDC config, and it is not covered by any same-origin
+          assumption. Same shape as the shared bRuID ACS portal.
+        components:
+          api:
+            sandbox: { host: "utms-bnet-api.sandbox.bnprs.in", status: planned }
+            uat:
+              host: "utms-bnet-api.uat.bnprs.in"
+              status: planned
+              note: >-
+                Distinct from bnet-api.* — this is the uTMS-side API for bNet, the shape
+                GitLab project 34 (bpr1004.utms.api.bnet.smartpresence) already follows.
+                Confirm which of the two owns which endpoints before provisioning, or two
+                APIs will claim the same surface.
+            prod:    { host: "utms-bnet-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-bnet-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-bnet-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-bnet-portal.bnprs.in",         status: planned }
+
+      - key: "iiskiosk"
+        owner_agent: "? — see decisions.d10"
+        note: >-
+          Likely the home of utms-kiosk-iis-api-alb, which exists in eu-central-1 with NO
+          host-header rule (so it is currently unaddressable). "IIS" suggests a Windows/IIS
+          stack, which would make it genuinely distinct from PatKiosk rather than a rename.
+        components:
+          api:
+            sandbox: { host: "utms-iiskiosk-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-iiskiosk-api.uat.bnprs.in",     status: planned,
+                       note: "candidate target: utms-kiosk-iis-api-alb (eu-central-1, no rule yet)" }
+            prod:    { host: "utms-iiskiosk-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-iiskiosk-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-iiskiosk-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-iiskiosk-portal.bnprs.in",         status: planned }
+
+      - key: "patkiosk"
+        owner_agent: "na-009/006 bpr1006-patkiosk"
+        overlaps_with: "aandhipe-kiosk — see decisions.d10"
+        components:
+          api:
+            sandbox: { host: "utms-patkiosk-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-patkiosk-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-patkiosk-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-patkiosk-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-patkiosk-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-patkiosk-portal.bnprs.in",         status: planned }
+
+      - key: "mpos"
+        owner_agent: "na-009/003 bpr1003-mpos ?"
+        overlaps_with: "aandhipe-mpos — see decisions.d10"
+        components:
+          api:
+            sandbox: { host: "utms-mpos-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-mpos-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-mpos-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-mpos-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-mpos-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-mpos-portal.bnprs.in",         status: planned }
 
 # ---- REAL ENDPOINTS WITH NO NAME IN THE TABLE --------------------------
 # These all EXIST. Leaving them out of the standard does not make them go
@@ -734,6 +861,34 @@ decisions:
       public DNS for bnprs.in. User directive: create these records in bnprs-aws, NOT
       bnprs-aws-itp. This unblocks every record in the file — DNS is no longer gated on
       finding an owner, only on d1 (the shape) and d9 (cross-account targets).
+
+  d10:
+    question: "Are aandhipe-kiosk / utms-patkiosk / utms-iiskiosk three things or fewer? Same for aandhipe-mpos vs utms-mpos."
+    status: OPEN
+    raised: "2026-08-13"
+    blocking: "18 of the 120 names — do not create any of them until answered"
+    evidence: >-
+      Adding the six uTMS sub-projects created two apparent duplications, and I have NOT
+      collapsed them because that is a product decision, not a naming one.
+      KIOSK — there are now THREE kiosk names: aandhipe-kiosk (which I had tentatively
+      mapped to na-009/006 bpr1006-patkiosk), utms-patkiosk (which maps to that agent much
+      more naturally by name), and utms-iiskiosk. The "IIS" in the third suggests a
+      Windows/IIS stack, which would make it genuinely distinct rather than a rename — and
+      utms-kiosk-iis-api-alb does exist in eu-central-1 with no host rule, so something
+      real is behind it. But aandhipe-kiosk and utms-patkiosk may well be ONE product
+      named twice, in which case one set of six names should go.
+      mPOS — aandhipe-mpos and utms-mpos are the same tension. aandhipe-mpos already has a
+      live ALB host rule (the flat aandhipe-mpos-api-uat), which is weak evidence that it,
+      not utms-mpos, is the real one.
+    why_it_matters: >-
+      Creating both halves of a duplicated pair is worse than creating neither: two
+      hostnames for one service means two origins, two OIDC redirect_uri sets, two CORS
+      entries and an ongoing question about which is canonical — exactly the drift this
+      standard exists to prevent.
+    note: >-
+      Both pairs are marked overlaps_with in the products section so the question cannot be
+      lost. This is adjacent to d6 (which agent owns each AandhiPe surface) and may resolve
+      with it.
 
   d9:
     question: "How do bnprs-account DNS records point at ITP-account load balancers?"
