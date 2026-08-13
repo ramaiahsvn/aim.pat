@@ -36,10 +36,21 @@ meta:
   # whoever holds the parent zone; find that account before promising a change.
   zones:
     - name: "bnprs.in"
-      account: "UNKNOWN — not in 819144294008"
+      account: "891963159778 (bnprs) — CONFIRMED 2026-08-13, profile bnprs"
+      zone_id: "Z04234212M3SJ07Y70SGQ"
+      private: false
+      record_count: 24
       nameservers: ["ns-569.awsdns-07.net", "ns-219.awsdns-27.com",
                     "ns-1122.awsdns-12.org", "ns-1865.awsdns-41.co.uk"]
-      note: "Route53 (AWS DNS) but a different account. BLOCKER for every record below."
+      authoritative: >-
+        VERIFIED — the zone's DelegationSet matches the NS set returned by public DNS for
+        bnprs.in exactly (all four), so this is the live zone and not a duplicate.
+      note: >-
+        RECORDS GO HERE, in the bnprs account — NOT in bnprs-aws-itp (819144294008).
+        User directive 2026-08-13, and the zone location confirms it. This RESOLVES d7.
+        CONSEQUENCE: the DNS zone is in the bnprs account while several target load
+        balancers (utms-shared-alb and friends) live in the ITP account in eu-central-1 —
+        a cross-account arrangement. See d9.
     - name: "bruid.bnprs.in"
       account: "819144294008 (itp)"
       zone_id: "Z0491996155ALJADE0VR8"
@@ -136,23 +147,39 @@ products:
         sandbox: { host: "bnet-portal-sandbox.bnprs.in", status: planned }
         uat:     { host: "bnet-portal-uat.bnprs.in",     status: planned }
         prod:    { host: "bnet-portal.bnprs.in",         status: planned }
-      # ADDED TO THE TABLE on user instruction 2026-08-13, resolving decisions.d3:
-      # SmartPresence gets its OWN HOST, not a path under bnet-api. It qualifies
-      # because it is a separately deployed service with its own ECS service and
-      # target group — see scheme.host_vs_path.
-      smartpresence-api:
-        sandbox: { host: "bnet-smartpresence-api-sandbox.bnprs.in", status: planned }
-        uat:
-          host: "bnet-smartpresence-api-uat.bnprs.in"
-          status: alb-rule-only
-          target: "utms-shared-alb -> utms-smartpresence-api-tg:8080"
-          ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1"
-          note: >-
-            Consumed by bNet v2 (sync, 1:N verify) and built by GitLab project 34
-            bpr1004.utms.api.bnet.smartpresence. Its absence from DNS is the live
-            bNet v2 outage — see faults.
-          supersedes: "smartpresence-api-uat.itpgateway.com (DANGLING — see faults)"
-        prod:    { host: "bnet-smartpresence-api.bnprs.in",         status: planned }
+    # bNet SUB-PROJECTS. Both are api-only — a sub-project does NOT have to carry both
+    # components (BNA's chat has no live portal either). Restructured 2026-08-13:
+    # smartpresence was first recorded as a bnet COMPONENT, but under the sub-project
+    # naming rule it is indistinguishable from one (bnet-smartpresence-api-uat), so it
+    # lives here instead. The hostnames did not change; the data model did, so the
+    # registry has one shape for everything.
+    subprojects:
+
+      # Adopted into the table on user instruction 2026-08-13, resolving decisions.d3.
+      - key: "smartpresence"
+        components:
+          api:
+            sandbox: { host: "bnet-smartpresence-api-sandbox.bnprs.in", status: planned }
+            uat:
+              host: "bnet-smartpresence-api-uat.bnprs.in"
+              status: alb-rule-only
+              target: "utms-shared-alb -> utms-smartpresence-api-tg:8080 (ITP acct, eu-central-1)"
+              ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1"
+              note: >-
+                Consumed by bNet v2 (sync, 1:N verify) and built by GitLab project 34
+                bpr1004.utms.api.bnet.smartpresence. Its absence from DNS is the live
+                bNet v2 outage — see faults.
+              supersedes: "smartpresence-api-uat.itpgateway.com (DANGLING — see faults)"
+            prod:    { host: "bnet-smartpresence-api.bnprs.in",         status: planned }
+
+      # Added on user instruction 2026-08-13: API ONLY, no portal.
+      - key: "retail"
+        note: "api-only by instruction — do NOT reserve bnet-retail-portal-* names."
+        components:
+          api:
+            sandbox: { host: "bnet-retail-api-sandbox.bnprs.in", status: planned }
+            uat:     { host: "bnet-retail-api-uat.bnprs.in",     status: planned }
+            prod:    { host: "bnet-retail-api.bnprs.in",         status: planned }
 
   - key: "aandhipe-mobile"
     label: "AandhiPe Mobile"
@@ -424,6 +451,55 @@ faults:
     fix_options: "see 07-axon-terminals/deliverables/2026-08-13-subdomain-review-and-plan.md §4"
     raised: "2026-08-13"
 
+  - class: "name-already-taken"
+    host: "projects.bnprs.in"
+    status: live
+    detail: >-
+      Already a CNAME to projects.cs.zohohost.com — ZOHO PROJECTS. Sibling:
+      people.bnprs.in -> people.cs.zohohost.com (Zoho People).
+    why_it_matters: >-
+      This lands directly on the unconfirmed sprints assumption. The BNA sub-project is
+      called "Sprints" and the live ITP host it supposedly replaces is
+      projects.uat.itpgateway.com — but "projects" in THIS zone is Zoho Projects, and Zoho
+      also sells Zoho Sprints. So "Sprints" may be a Zoho product reached at a Zoho
+      hostname, NOT something we host behind bna-sprints-portal-*. Settle before creating
+      any bna-sprints-* record: is Sprints ours or Zoho's?
+    raised: "2026-08-13"
+
+  - class: "scheme-collision"
+    hosts: ["mgate.bnprs.in", "api.mgate.bnprs.in", "portal-api.mgate.bnprs.in"]
+    status: live
+    detail: >-
+      mGate is already published HIERARCHICALLY in this zone —
+      <component>.<product>.bnprs.in — pointing at ap-south-2 ALBs in the bnprs account
+      (maingateway-prod-alb, portalbackend-prod-alb) and a CloudFront distribution.
+    why_it_matters: >-
+      The flat table would add mgate-api-uat / mgate-portal ALONGSIDE these, so one product
+      would carry two schemes in one zone. Needs a keep-or-migrate call. Feeds d1.
+    raised: "2026-08-13"
+
+  - class: "do-not-remove"
+    host: "tms-api-uat.bnprs.in"
+    status: alb-rule-only
+    detail: >-
+      Investigated 2026-08-13 for removal as an orphan. IT IS NOT AN ORPHAN — keep it.
+      Rule: priority 60 on the :443 listener ONLY (not :8443), forwarding to target group
+      tms-tg8681feb0a05dea7651de8f2587 (HTTP :8088, target-type ip, vpc-037564fbae28ab349).
+      (1) LIVE TARGETS: 10.30.11.137 Elb.RegistrationInProgress — registering at the moment
+      of inspection — and 10.30.10.105 unhealthy/Target.Timeout. Something is actively
+      deploying against it. (2) TAG ManagedBy=terraform — a manual delete is state DRIFT and
+      would be recreated on the next apply. (3) TAG Environment=prod, Name=utms-tms-api-tg,
+      Project=utms — tagged PROD despite a -uat hostname.
+    still_open: >-
+      What it is remains unanswered: is tms a distinct product, or the predecessor of uTMS?
+      Live on itpgateway.com are tms-api, tms, tms-emqx, tms-webrtc (itptms-lb, us-east-2)
+      and btms-api (BPR-uTMS-LB), and na-009 has no standalone tms product agent. Do not
+      touch the rule; give it a name or a documented owner instead.
+    unresolved_smell: >-
+      One target unhealthy on Target.Timeout and one mid-registration means the service
+      behind it is either mid-deploy or broken. Worth a look independently of naming.
+    raised: "2026-08-13"
+
   - class: "rule-without-DNS"
     hosts: ["utms-api-uat.bnprs.in", "bnet-api-uat.bnprs.in",
             "bnet-smartpresence-api-uat.bnprs.in", "tms-api-uat.bnprs.in",
@@ -455,6 +531,20 @@ decisions:
       the env into its own label: bnet-api.uat.bnprs.in, prod bnet-api.bnprs.in.
       Delegate uat.bnprs.in and sandbox.bnprs.in as separate zones with their own
       wildcard certs, so a non-prod key can never sign a prod hostname.
+    new_evidence_2026_08_13: >-
+      A THIRD live hierarchical precedent, and this one is INSIDE THE VERY ZONE we are
+      about to populate: mGate already runs mgate.bnprs.in, api.mgate.bnprs.in and
+      portal-api.mgate.bnprs.in — i.e. <component>.<product>.bnprs.in. The flat table
+      would add mgate-api-uat.bnprs.in and mgate-portal.bnprs.in ALONGSIDE those, giving
+      one product two naming schemes in one zone. Also live at product level and flat-ish:
+      people.bnprs.in and projects.bnprs.in (both Zoho). Whatever is decided, mGate needs
+      an explicit keep-or-migrate call, exactly like bRuID (d5).
+    corrected_cost: >-
+      Earlier this entry said switching costs "5 ALB rules, 0 DNS records". Incomplete.
+      *.bnprs.in (ISSUED, ITP acct, confirmed attached to the shared ALB listener as the
+      second SNI cert, expires 2027-02-26) covers SINGLE-LABEL names only, so hierarchical
+      additionally needs two new ACM certs (*.uat.bnprs.in, *.sandbox.bnprs.in), their DNS
+      validation, and a listener attach. Still cheap, but not free.
 
   d2:
     question: "nAgent capital A, and nagent vs nagents (plural)?"
@@ -510,9 +600,35 @@ decisions:
 
   d7:
     question: "Who owns the bnprs.in apex zone, and which account issues its records?"
+    status: RESOLVED
+    resolved_at: "2026-08-13"
+    resolution: >-
+      THE BNPRS ACCOUNT, 891963159778, zone Z04234212M3SJ07Y70SGQ (public, 24 records).
+      Verified authoritative: the zone's DelegationSet matches all four NS returned by
+      public DNS for bnprs.in. User directive: create these records in bnprs-aws, NOT
+      bnprs-aws-itp. This unblocks every record in the file — DNS is no longer gated on
+      finding an owner, only on d1 (the shape) and d9 (cross-account targets).
+
+  d9:
+    question: "How do bnprs-account DNS records point at ITP-account load balancers?"
     status: OPEN
-    blocking: "every single record in this file"
-    evidence: "The apex is on AWS DNS but NOT in 819144294008; only bruid.bnprs.in is delegated there."
+    raised: "2026-08-13"
+    evidence: >-
+      The zone is in 891963159778 (bnprs) but the targets for utms / bnet / mpos are
+      utms-shared-alb in 819144294008 (ITP), eu-central-1. Meanwhile the records already
+      live in this zone point at ap-south-2 ALBs in the bnprs account
+      (api.mgate.bnprs.in -> maingateway-prod-alb, portal-api.mgate.bnprs.in ->
+      portalbackend-prod-alb). So this zone has only ever aliased SAME-account targets.
+    options: >-
+      (a) CNAME to the ALB's amazonaws.com name — simplest, works cross-account, but adds
+      a resolution hop and cannot be used at a zone apex (not a problem here, every name
+      is a subdomain). (b) Route53 ALIAS to a cross-account ELB — supported, but only via
+      CLI/API (not the console) and you must supply the ELB's canonical hosted-zone ID.
+      (c) Move the services into the bnprs account so DNS and targets are co-located.
+    also_note: >-
+      The *.bnprs.in ACM certificate that makes this work is in the ITP account, attached
+      to the ITP ALB — which is correct for (a) and (b), since TLS terminates at the ALB.
+      Option (c) would need a NEW *.bnprs.in cert issued in the bnprs account.
 
   d8:
     question: "Does auth (Keycloak) migrate to bnprs.in?"

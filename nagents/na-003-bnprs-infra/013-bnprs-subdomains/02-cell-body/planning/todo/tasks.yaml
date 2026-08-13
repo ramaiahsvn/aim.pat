@@ -9,17 +9,69 @@ tasks:
   - id: "task-001"
     subject: "Identify the AWS account that holds the bnprs.in apex zone"
     description: >-
-      The apex is on AWS DNS (ns-569.awsdns-07.net, ns-219.awsdns-27.com,
-      ns-1122.awsdns-12.org, ns-1865.awsdns-41.co.uk) but is NOT in 819144294008 — only
-      bruid.bnprs.in is delegated there. Until the owning account is known, not one
-      record in the plan can be written. Ask na-003/002 bnprs-aws-itp and
-      na-003/005 bnprs-websites.
+      RESOLVED 2026-08-13: the bnprs account, 891963159778 (profile bnprs), zone
+      Z04234212M3SJ07Y70SGQ — public, 24 records. Verified authoritative: the zone's
+      DelegationSet matches all four NS that public DNS returns for bnprs.in, so it is the
+      live zone and not a duplicate. User directive confirms records are created in
+      bnprs-aws, NOT bnprs-aws-itp. Closes decisions.d7 and unblocks every record.
+    status: completed
+    completed_at: "2026-08-13"
+    priority: critical
+    created_at: "2026-08-13"
+    estimated_steps: 3
+    tags: [decision-d7, RESOLVED, zone-in-bnprs-account, Z04234212M3SJ07Y70SGQ, authoritative-verified]
+
+  - id: "task-012"
+    subject: "Decide how bnprs-account records reach ITP-account load balancers (d9)"
+    description: >-
+      New blocker that only surfaced once the zone was located. The zone is in
+      891963159778 (bnprs) but the targets for utms / bnet / mpos are utms-shared-alb in
+      819144294008 (ITP), eu-central-1. Every record currently in this zone aliases a
+      SAME-account ap-south-2 ALB, so cross-account is untrodden ground here.
+      Options: (a) CNAME to the ALB's amazonaws.com name — simplest, cross-account safe,
+      fine for subdomains; (b) Route53 ALIAS to a cross-account ELB — supported but
+      CLI/API only, needs the ELB's canonical hosted-zone ID; (c) move the services into
+      the bnprs account so DNS and targets co-locate.
+      NOTE the *.bnprs.in cert lives in the ITP account attached to the ITP ALB, which is
+      correct for (a) and (b) since TLS terminates there. Option (c) needs a NEW
+      *.bnprs.in cert issued in the bnprs account.
     status: pending
     priority: critical
     created_at: "2026-08-13"
-    blocks: ["task-006", "task-007", "task-008"]
+    blocks: ["task-007"]
     estimated_steps: 3
-    tags: [decision-d7, hard-blocker, zone-ownership]
+    tags: [decision-d9, cross-account, alias-vs-cname, cert-stays-with-the-alb]
+
+  - id: "task-013"
+    subject: "Settle whether 'Sprints' is ours or Zoho's before creating bna-sprints-*"
+    description: >-
+      projects.bnprs.in is ALREADY LIVE as a CNAME to projects.cs.zohohost.com — Zoho
+      Projects — and people.bnprs.in likewise points at Zoho People. The BNA sub-project is
+      called "Sprints", the live ITP host it supposedly replaces is
+      projects.uat.itpgateway.com, and Zoho also sells Zoho Sprints. So "Sprints" may be a
+      Zoho-hosted product reached at a Zoho hostname rather than something we serve behind
+      bna-sprints-portal-*. Do not create any bna-sprints-* record until this is answered.
+    status: pending
+    priority: high
+    created_at: "2026-08-13"
+    blocks: ["task-011"]
+    estimated_steps: 2
+    tags: [projects-vs-sprints, zoho, name-already-taken, blocks-bna-sprints]
+
+  - id: "task-014"
+    subject: "mGate: keep the live hierarchical names, or migrate to the flat scheme?"
+    description: >-
+      mgate.bnprs.in, api.mgate.bnprs.in and portal-api.mgate.bnprs.in are LIVE in this
+      zone using <component>.<product>.bnprs.in, pointing at ap-south-2 ALBs in the bnprs
+      account plus a CloudFront distribution. Adding the table's mgate-api-uat /
+      mgate-portal would give one product two schemes in one zone. Same shape of question
+      as bRuID (d5). Feeds d1 — and note this is the third live hierarchical precedent,
+      the first one inside the target zone itself.
+    status: pending
+    priority: medium
+    created_at: "2026-08-13"
+    estimated_steps: 2
+    tags: [mgate, scheme-collision, feeds-d1, keep-or-migrate]
 
   - id: "task-002"
     subject: "Ratify flat vs hierarchical environment labels"
@@ -115,18 +167,22 @@ tasks:
   - id: "task-006"
     subject: "Verify the second SNI cert on utms-shared-alb, attach *.bnprs.in if missing"
     description: >-
-      The :443 and :8443 listeners carry a default *.itpgateway.com cert plus a second cert
-      210edefa-cbda-4971-80cd-4a9a4e0280ce whose identity is unverified. If it is not
-      *.bnprs.in, every .bnprs.in host on that ALB fails TLS the moment DNS is added — the
-      same class of error as bNet's original mismatch. Must be settled BEFORE phase 3.
-      If task-002 goes hierarchical, also request *.uat.bnprs.in and *.sandbox.bnprs.in.
-    status: pending
+      RESOLVED 2026-08-13, favourably: cert 210edefa-cbda-4971-80cd-4a9a4e0280ce IS
+      *.bnprs.in — ISSUED, expires 2027-02-26, InUseBy 1 — attached as the non-default SNI
+      cert on BOTH the :443 and :8443 listeners (default remains *.itpgateway.com). So TLS
+      is already prepared: the four waiting .bnprs.in rules will serve a valid certificate
+      the moment DNS exists, and DNS is now the only thing missing. No attach needed.
+      CARRIED FORWARD: *.bnprs.in covers SINGLE-LABEL names only, so if task-002 chooses
+      hierarchical, *.uat.bnprs.in and *.sandbox.bnprs.in must still be requested — that is
+      now tracked as part of task-002's cost, not here. Also see task-012: this cert lives
+      in the ITP account, which is correct while the ALB does too.
+    status: completed
+    completed_at: "2026-08-13"
     priority: high
     created_at: "2026-08-13"
-    blocked_by: ["task-001", "task-002"]
-    blocks: ["task-007"]
     estimated_steps: 3
-    tags: [acm, sni, listener-certificates, gates-phase-3]
+    tags: [acm, sni, RESOLVED, wildcard-bnprs-in-confirmed, tls-ready, dns-is-the-only-gap,
+           single-label-only, expires-2027-02-26]
 
   # ---- PHASE 3+ — provisioning ----
 
