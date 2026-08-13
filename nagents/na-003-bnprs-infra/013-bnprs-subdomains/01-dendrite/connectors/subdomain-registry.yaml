@@ -25,7 +25,7 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  111 hostnames, 9 products. NONE resolve yet — every one is `planned`.
+#  117 hostnames, 9 products. NONE resolve yet — every one is `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
 #  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, uTMS last —
 #  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
@@ -519,7 +519,7 @@ products:
 
       - key: "mpos"
         owner_agent: "na-009/003 bpr1003-mpos ?"
-        overlaps_with: "aandhipe-mpos — see decisions.d10"
+        distinct_from: "aandhipe-mposmw (the middleware) — settled by the mPosMw rename, d10"
         components:
           api:
             sandbox: { host: "utms-mpos-api.sandbox.bnprs.in", status: planned }
@@ -529,6 +529,28 @@ products:
             sandbox: { host: "utms-mpos-portal.sandbox.bnprs.in", status: planned }
             uat:     { host: "utms-mpos-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "utms-mpos-portal.bnprs.in",         status: planned }
+
+      # Added on user instruction 2026-08-13. NOTE this is a sub-project whose KEY already
+      # contains a hyphen and echoes a sibling ("mpos-miniapps" next to "mpos") — the same
+      # shape as bnet-smartpresence / bnet-retail. It parses fine because the component is
+      # always the LAST token, but it does mean utms-mpos-* is now a prefix shared by two
+      # different sub-projects, so never match these names by prefix.
+      - key: "mpos-miniapps"
+        owner_agent: "na-009/003 bpr1003-mpos ?"
+        gives_a_home_to: >-
+          mini-apps.itpgateway.com, which is LIVE on BPR-uTMS-LB (us-east-2) and had been
+          sitting in unmapped_endpoints with no name in the standard. Confirm it is the same
+          thing before treating this as its successor — "mini-apps" and "mpos-miniapps" are
+          suggestive but not proof, and the live host carries no mpos token.
+        components:
+          api:
+            sandbox: { host: "utms-mpos-miniapps-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-mpos-miniapps-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-mpos-miniapps-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-mpos-miniapps-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-mpos-miniapps-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-mpos-miniapps-portal.bnprs.in",         status: planned }
 
 # ---- REAL ENDPOINTS WITH NO NAME IN THE TABLE --------------------------
 # These all EXIST. Leaving them out of the standard does not make them go
@@ -573,8 +595,13 @@ unmapped_endpoints:
     status: no-name-assigned
 
   - service: "mini-apps"
-    live: ["mini-apps.itpgateway.com (BPR-uTMS-LB)"]
-    status: no-name-assigned
+    live: ["mini-apps.itpgateway.com (BPR-uTMS-LB, us-east-2)"]
+    status: probably-mapped
+    mapped_to: "utms/mpos-miniapps (added 2026-08-13)"
+    caveat: >-
+      NOT confirmed. "mini-apps" and "mpos-miniapps" are suggestive, but the live host
+      carries no mpos token and nothing else ties them together yet. Verify before treating
+      utms-mpos-miniapps-* as its successor, or a live service quietly keeps its old name.
 
   - service: "ERP / projects / chat — NOW MAPPED to BNA sub-project hostnames"
     live: ["erp.uat.itpgateway.com", "erp-api.uat.itpgateway.com",
