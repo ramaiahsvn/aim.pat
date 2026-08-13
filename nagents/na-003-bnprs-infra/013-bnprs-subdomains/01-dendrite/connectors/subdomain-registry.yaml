@@ -25,7 +25,7 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  123 hostnames, 10 products. NONE resolve yet — every one is `planned`.
+#  129 hostnames, 10 products. NONE resolve yet — every one is `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
 #  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, QiTalab, uTMS last —
 #  uTMS is the umbrella that consolidates the others' consoles). Do not re-sort.
@@ -575,6 +575,22 @@ products:
             sandbox: { host: "utms-mpos-miniapps-portal.sandbox.bnprs.in", status: planned }
             uat:     { host: "utms-mpos-miniapps-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "utms-mpos-miniapps-portal.bnprs.in",         status: planned }
+
+      # Added on user instruction 2026-08-13.
+      - key: "ibecs"
+        owner_agent: "na-009/001 bpr1001-ibecs"
+        note: >-
+          Clean owner match, unlike qitalab/talabqi — the na-009 catalogue name and this
+          sub-project key agree exactly, so no reconciliation is needed here.
+        components:
+          api:
+            sandbox: { host: "utms-ibecs-api.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-ibecs-api.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-ibecs-api.bnprs.in",         status: planned }
+          portal:
+            sandbox: { host: "utms-ibecs-portal.sandbox.bnprs.in", status: planned }
+            uat:     { host: "utms-ibecs-portal.uat.bnprs.in",     status: planned }
+            prod:    { host: "utms-ibecs-portal.bnprs.in",         status: planned }
 
 # ---- REAL ENDPOINTS WITH NO NAME IN THE TABLE --------------------------
 # These all EXIST. Leaving them out of the standard does not make them go
