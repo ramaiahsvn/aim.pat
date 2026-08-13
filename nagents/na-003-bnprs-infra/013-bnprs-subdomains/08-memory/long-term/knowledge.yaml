@@ -267,6 +267,55 @@ memories:
            other-tenants-cert, servicename-null-means-unmapped, dns-done-saas-not,
            never-delete-zmverify-or-mail-records, same-lesson-as-dangling-alias]
 
+  - id: mem-010
+    type: project
+    content: >-
+      SCHEME RATIFIED HIERARCHICAL 2026-08-13 — this supersedes the flat form in mem-001/003
+      and in the source table. FINAL FORM:
+      <product>[-<subproject>]-<component>.<env>.bnprs.in, production the BARE
+      <product>[-<subproject>]-<component>.bnprs.in. So bnet-api.uat.bnprs.in,
+      bna-sprints-portal.uat.bnprs.in, bnet-retail-api.uat.bnprs.in, prod bnet-api.bnprs.in.
+      Only the 58 NON-PROD names changed in the rewrite (-uat. -> .uat., -sandbox. ->
+      .sandbox.); production was always bare, so the whole prod column was already correct.
+      ZONE: bnprs.in lives in the BNPRS account 891963159778, zone Z04234212M3SJ07Y70SGQ —
+      NOT the ITP account (user directive; d7). The ALBs and certs are in ITP
+      819144294008/eu-central-1, so DNS and targets are CROSS-ACCOUNT (d9 open: CNAME vs
+      cross-account ALIAS vs relocating the services).
+      THE TWO COSTS THIS DECISION CREATED, both now blocking work and neither optional:
+      (1) *.bnprs.in MATCHES ONE LABEL ONLY, so it covers the production column and NOTHING
+      else — *.uat.bnprs.in and *.sandbox.bnprs.in must be issued (in ITP, where TLS
+      terminates, with validation records in the bnprs zone) and attached to the shared ALB
+      listener BEFORE the first non-prod record, or the name resolves and fails TLS, which is
+      bNet's original symptom reproduced exactly. (2) FOUR live ALB host-header rules still
+      carry the SUPERSEDED FLAT names (utms-api-uat, bnet-api-uat, bnet-smartpresence-api-uat,
+      aandhipe-mpos-api-uat .bnprs.in) and match nothing we now intend to publish — rewrite
+      them while NO DNS points at them, when the change is free; afterwards it is a live
+      cutover. The fifth, tms-api-uat, is TERRAFORM-MANAGED — change it in Terraform.
+      WHAT HIERARCHICAL BUYS beyond the cert boundary: per-env NS delegation becomes possible
+      (uat.bnprs.in / sandbox.bnprs.in as their own zones, per-env IAM/WAF/account), which the
+      flat scheme foreclosed. Precedent: bruid.bnprs.in is already delegated to ITP.
+      COUNT: 87 hostnames, 11 products, all `planned`, none resolving.
+      API-ONLY, DELIBERATELY — do not "restore" the missing portal names as omissions:
+      bnet/smartpresence, bnet/retail, and bruid-rengine (whose UI is served by the ACS
+      portal, bruid-acs-portal.<env>, marked also_serves). A product need not own every
+      component. NOTE the shared ACS portal re-merges two trust surfaces on purpose: one
+      origin, one OIDC redirect_uri set and one CORS list, but it must permit BOTH
+      bruid-acs-api.* and bruid-rengine-api.*, and a session there has authority over both —
+      scope roles per service, not per origin. That rEngine shares the ACS portal is also
+      EVIDENCE for d5 (ACS/rEngine look like one product with two APIs, matching the
+      wgate-uat-acs / wgate-uat-risk-engine infra naming) — recorded, NOT acted on.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [scheme-ratified-hierarchical, supersedes-flat, env-is-its-own-label,
+           wildcard-covers-one-label, two-certs-required-before-non-prod,
+           four-stale-flat-alb-rules, free-to-fix-while-no-dns, tms-rule-is-terraform,
+           zone-in-bnprs-account-targets-in-itp, cross-account-open, per-env-delegation-unlocked,
+           87-hostnames, api-only-is-deliberate, rengine-portal-via-acs, shared-portal-two-apis,
+           feeds-d5]
+
 # Pruning rules
 pruning:
   max_entries: 500

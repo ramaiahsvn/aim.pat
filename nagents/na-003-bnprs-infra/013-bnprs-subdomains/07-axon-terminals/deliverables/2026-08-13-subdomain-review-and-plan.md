@@ -1,7 +1,9 @@
 # bnprs.in subdomain standard — review and provisioning plan
 
 **Agent:** na-003/013 bnprs-subdomains · **Date:** 2026-08-13
-**Input:** `01-dendrite/inputs/2026-08-13-subdomain-table-source.md` (66 hostnames)
+**Input:** `01-dendrite/inputs/2026-08-13-subdomain-table-source.md` (66 hostnames as proposed)
+**Registry now holds 87** across 11 products, hierarchical, all `planned` — amendments in
+`01-dendrite/inputs/2026-08-13-amendment-*.md`
 **Registry:** `01-dendrite/connectors/subdomain-registry.yaml` ← edit this, not this document
 
 ---
@@ -31,16 +33,26 @@ been adopted into the table; `tms-api-uat` is still unexplained.
 
 The scheme is predictable, greppable, sorts by product, and the
 product-component-environment triple is unambiguous once you know it. Every name is
-lowercase-safe, hyphen-separated, and the longest
-(`aandhipe-mobile-portal-sandbox.bnprs.in`, 39 chars) is comfortably inside the 63-char
-label limit. A developer can derive any hostname without looking it up, which is the
+lowercase-safe, hyphen-separated, and well inside the 63-char label limit — under the
+hierarchical form finally adopted the longest first label is `bnet-smartpresence-api`
+(22 chars), since the environment became a separate label. A developer can derive any hostname without looking it up, which is the
 main thing a naming standard is for.
 
 My objections are about the **environment boundary** and the **gaps** — not the shape.
 
 ## 3. Findings
 
-### 3.1 Flat naming puts all three environments in one certificate — the big one
+### 3.1 Flat naming puts all three environments in one certificate — ACCEPTED, now RESOLVED
+
+> **Decided 2026-08-13: HIERARCHICAL.** The form is
+> `<product>[-<subproject>]-<component>.<env>.bnprs.in`, production the bare
+> `<product>[-<subproject>]-<component>.bnprs.in`. All 87 host values in the registry were
+> rewritten the same day — only the 58 non-prod names changed, since production was always
+> bare. The argument below is kept because it is the reasoning behind the decision, but read
+> it as settled, not open. Two costs came with it, tracked as `task-015` (the two new certs)
+> and `task-016` (rewriting the stale flat ALB rules); both must land before the first
+> non-prod record.
+
 
 The proposed shape makes every hostname a single label under `bnprs.in`. So one
 wildcard, `*.bnprs.in`, covers `…-sandbox`, `…-uat` **and** production simultaneously.
@@ -68,7 +80,11 @@ bnet-api.uat.bnprs.in          bnet-api.sandbox.bnprs.in          bnet-api.bnprs
 Then delegate `uat.bnprs.in` and `sandbox.bnprs.in` as their own zones with their own
 wildcard certs, and a non-production key can never sign a production hostname.
 
-**Cost of switching: 5 ALB rules and 0 DNS records.** It will never be cheaper.
+**Cost of switching, as finally counted:** four ALB host-header rules to rewrite (a fifth,
+`tms-api-uat`, is Terraform-managed), 0 DNS records — and **two new ACM certificates**,
+`*.uat.bnprs.in` and `*.sandbox.bnprs.in`, because `*.bnprs.in` matches one label and so
+covers only the production column. An earlier draft of this document said "5 ALB rules and
+0 DNS records"; that omitted the certificates, which are the real prerequisite.
 
 ### 3.2 `nAgent-*` had a capital letter — RESOLVED by renaming to `bna`
 
@@ -93,20 +109,21 @@ specified first and reversed the same day; nothing had been provisioned in betwe
 the reversal cost nothing.
 
 ```
-<product>-<subproject>-<component>-<env>.bnprs.in
+<product>-<subproject>-<component>.<env>.bnprs.in
 <product>-<subproject>-<component>.bnprs.in          (production)
 
-bna-sprints-portal-uat.bnprs.in       bna-sprints-api-uat.bnprs.in
-bna-erp-portal-uat.bnprs.in           bna-erp-api-uat.bnprs.in
-bna-chat-portal-uat.bnprs.in          bna-chat-api-uat.bnprs.in
+bna-sprints-portal.uat.bnprs.in       bna-sprints-api.uat.bnprs.in
+bna-erp-portal.uat.bnprs.in           bna-erp-api.uat.bnprs.in
+bna-chat-portal.uat.bnprs.in          bna-chat-api.uat.bnprs.in
+bnet-retail-api.uat.bnprs.in          (api-only sub-project)
 ```
 
 The sub-project slot sits **between product and component**, so specificity still reads
 left to right — and the result is the same shape as the SmartPresence entry already in
-the table, `bnet-smartpresence-api-uat.bnprs.in`.
+the table, `bnet-smartpresence-api.uat.bnprs.in`.
 
 **This is the important consequence: there is now one rule for the whole standard.**
-Every addressable thing is `<product>[-<subproject>]-<component>[-<env>]`. The
+Every addressable thing is `<product>[-<subproject>]-<component>.<env>`. The
 `host_vs_path` discriminator has been deleted from the registry — it existed only to
 decide which things got hostnames and which got paths, and I had to flag it as *inferred
 rather than stated*. Nothing is inferred now.
@@ -126,12 +143,36 @@ Two further gains over paths:
 separately — its own OIDC `redirect_uri`, its own CORS allow-list entry, its own ALB host
 rule, its own DNS record. For BNA that is 3 sub-projects × 2 components × 3 environments
 = **18 hostnames**, where paths needed 2. The bill is paid in auth configuration, not
-DNS. No new certificate is required: sub-projects are single labels under the apex, so
-the existing `*.bnprs.in` wildcard already covers them.
+DNS. Sub-projects add **no certificate cost of their own** — the sub-project stays inside
+the first label, so a sub-project name is covered by the same per-environment wildcard as
+its parent product. (Those per-environment wildcards do have to exist: see §3.1 and
+`task-015`.)
 
 Migration also gets simpler: the five live `nagents-uat-alb` hosts become a **1:1**
 re-shaping rather than a collapse, so each cutover is independent and can be done one at
 a time.
+
+### 3.2c Not every product owns every component
+
+Three entries are **api-only, deliberately** — recorded as such so a later pass does not
+"restore" the missing portal names as an oversight:
+
+| Entry | Portal |
+|---|---|
+| `bnet` → smartpresence | none — machine clients only |
+| `bnet` → retail | none, by instruction |
+| `bruid-rengine` | **served by `bruid-acs-portal.<env>`** |
+
+The rEngine case is a shared portal, and it deliberately re-merges two trust surfaces that
+separate hostnames would have kept apart. One origin means one OIDC `redirect_uri` set and
+one CORS allow-list — but that allow-list must permit **both** `bruid-acs-api.*` and
+`bruid-rengine-api.*`, and a session issued at that portal carries authority over both
+services. Scope roles per service, not per origin.
+
+It is also **evidence for `d5`**: rEngine sharing the ACS portal means they are one UI with
+two APIs, which matches the infra naming where `wgate-uat-acs` and `wgate-uat-risk-engine`
+are both `wgate-*`. Recorded, not acted on — re-parenting rEngine would rename all three of
+its API names, which is a decision, not an inference.
 
 ### 3.3 Production is the name you get by accident
 
@@ -227,7 +268,7 @@ address is broken.
 | option | change | trade-off |
 |---|---|---|
 | **A — immediate unblock** | Repoint `smartpresence-api-uat.itpgateway.com` at `utms-shared-alb` | Fastest, and needs no certificate work: `*.itpgateway.com` is already the **default** cert on that listener. Keeps a domain you intend to retire alive a while longer. |
-| **B — the target state** | Add DNS for `bnet-smartpresence-api-uat.bnprs.in` → `utms-shared-alb`, then point the app at it | Correct end state, and the ALB rule already exists. Needs the apex zone owner (`decisions.d7`) **and** confirmation that the listener presents a `*.bnprs.in` cert for that SNI name — the default cert on :443 is `*.itpgateway.com`, and a second cert is attached whose identity I did not get to verify. |
+| **B — the target state** | Add DNS for `bnet-smartpresence-api.uat.bnprs.in` → `utms-shared-alb`, then point the app at it (the ALB rule still carries the flat name — rewrite it first, `task-016`) | Correct end state, and the ALB rule already exists. Needs the apex zone owner (`decisions.d7`) **and** confirmation that the listener presents a `*.bnprs.in` cert for that SNI name — the default cert on :443 is `*.itpgateway.com`, and a second cert is attached whose identity I did not get to verify. |
 | ~~C — fold it in~~ | ~~Serve SmartPresence under `bnet-api-uat.bnprs.in` on a path prefix~~ | **Ruled out 2026-08-13.** The user adopted the dedicated hostname, and `scheme.host_vs_path` agrees: SmartPresence is separately deployed with machine callers, so it earns a host. |
 
 **Recommendation: A now, B as the target.** A restores service today without
@@ -251,14 +292,19 @@ Nothing below can proceed safely without these. All are tracked in the registry'
 
 | id | decision | blocks | status |
 |---|---|---|---|
-| d7 | Who owns the `bnprs.in` apex zone, and which account writes its records? | **every record** | OPEN |
-| d1 | Flat or hierarchical environment labels? | the whole scheme | OPEN |
+| d9 | How do bnprs-account records reach ITP-account load balancers? | first record | **OPEN** |
 | d8 | Does auth migrate to `bnprs.in`? | auth + every client | OPEN |
-| d5 | Is bRuID a family or is wGate the product? `rengine`/`risk-engine`/`risk`? | 12 names | OPEN |
+| d5 | Is bRuID a family or is wGate the product? `rengine`/`risk-engine`/`risk`? | 9 names | OPEN |
 | d4 | Explicit `-prod` token or bare name? | config policy | OPEN |
 | d6 | Which agent owns each AandhiPe surface? | 18 names | OPEN |
+| d1 | ~~Flat or hierarchical?~~ | — | **RESOLVED** — hierarchical, 87 names rewritten |
 | d2 | ~~`nAgent` case, singular vs plural~~ | — | **RESOLVED** — renamed to `bna` |
 | d3 | ~~SmartPresence: own host or path?~~ | — | **RESOLVED** — own host, in the table |
+| d7 | ~~Who owns the `bnprs.in` apex zone?~~ | — | **RESOLVED** — bnprs acct 891963159778, `Z04234212M3SJ07Y70SGQ` |
+
+**Superseded by the hierarchical decision:** the old ordering had `d7` and `d1` as the top
+blockers. Both are closed. The critical path is now `d9` (record form) → `task-015` (certs)
+→ `task-016` (rule rewrites) → `task-007` (first records).
 
 ### Phase 1 — restore bNet UAT
 
@@ -266,16 +312,30 @@ Option A from §4. One Route53 change, reversible, no certificate work.
 
 ### Phase 2 — certificate and listener preparation
 
-1. Verify cert `210edefa-…` on `utms-shared-alb` :443 and :8443.
-2. If `*.bnprs.in` is absent, attach it as an SNI certificate **before** any DNS.
-3. If d1 goes hierarchical, request `*.uat.bnprs.in` and `*.sandbox.bnprs.in` and plan
-   the delegations.
+1. ~~Verify cert `210edefa-…`~~ **done** — it is `*.bnprs.in`, ISSUED, expires 2027-02-26,
+   attached as the non-default SNI cert on both `:443` and `:8443`.
+2. **Request `*.uat.bnprs.in` and `*.sandbox.bnprs.in`** (`task-015`) — now mandatory, not
+   conditional. `*.bnprs.in` matches one label, so it covers the production column and
+   nothing else. Issue them in the ITP account where TLS terminates; the DNS validation
+   records go in the bnprs-account zone, so this spans both accounts.
+3. Attach both to the listener **before** any non-prod DNS record exists.
+4. Decide the per-env zone delegations (`task-017`) — the payoff hierarchical unlocks.
+
+### Phase 2b — rewrite the stale ALB rules (`task-016`)
+
+Four live host-header conditions (`utms-api-uat`, `bnet-api-uat`,
+`bnet-smartpresence-api-uat`, `aandhipe-mpos-api-uat` `.bnprs.in`) were created before the
+scheme was ratified and now match nothing in the registry. Rewrite them to the hierarchical
+names **while no DNS points at them** — the change is free today and becomes a live cutover
+the moment a record exists. `tms-api-uat` is Terraform-managed; change it there, and only
+once `tms` has an agreed name at all.
 
 ### Phase 3 — UAT records for what already exists
 
-Only the five names with live ALB rules, once d1 and d7 are settled. Each one:
-create record → `dig` → HTTPS probe → target health → flip registry status to `live`
-with today's date. No batch changes; one name at a time.
+The four names above, once `d9` fixes the record form (CNAME vs cross-account ALIAS) and
+phases 2 and 2b are complete. Each one: create record → `dig` → `dig @authoritative-ns` →
+HTTPS probe **confirming the served cert subject matches the name asked for** → target
+health → flip registry status to `live` with the date. No batch changes; one name at a time.
 
 ### Phase 4 — sandbox and production
 

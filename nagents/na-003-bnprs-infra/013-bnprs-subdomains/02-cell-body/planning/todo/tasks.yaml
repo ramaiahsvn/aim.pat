@@ -77,16 +77,74 @@ tasks:
   - id: "task-002"
     subject: "Ratify flat vs hierarchical environment labels"
     description: >-
-      Flat <product>-<component>-<env>.bnprs.in shares one *.bnprs.in key across sandbox,
-      UAT and production and precludes per-env delegation. Recommendation is
-      <product>-<component>.<env>.bnprs.in with delegated uat./sandbox. zones. Cost of
-      switching today is 5 ALB rules and 0 DNS records — this is the cheapest it will ever be.
+      RESOLVED 2026-08-13: HIERARCHICAL. Form is
+      <product>[-<subproject>]-<component>.<env>.bnprs.in with production as the bare name.
+      All 87 host values in the registry were rewritten the same day; only the 58 non-prod
+      names changed (-uat. -> .uat., -sandbox. -> .sandbox.) since production was always
+      bare. Rationale: a wildcard covers ONE label, so the env label is a genuine
+      cryptographic and delegation boundary that the flat scheme could not provide.
+      SPAWNED WORK — the cost of the decision, now tracked separately:
+      task-015 (two new certs) and task-016 (rewrite the stale flat ALB rules).
+    status: completed
+    completed_at: "2026-08-13"
+    priority: critical
+    created_at: "2026-08-13"
+    estimated_steps: 2
+    tags: [decision-d1, RESOLVED, hierarchical, env-is-its-own-label, certificate-boundary]
+
+  - id: "task-015"
+    subject: "Request *.uat.bnprs.in and *.sandbox.bnprs.in, attach to the shared ALB"
+    description: >-
+      HARD PREREQUISITE for every non-prod record — the direct cost of task-002.
+      *.bnprs.in matches ONE label, so it covers bnet-api.bnprs.in but NOT
+      bnet-api.uat.bnprs.in. Until both new certs exist and are attached as SNI certs on the
+      utms-shared-alb :443 and :8443 listeners, every hierarchical non-prod name resolves and
+      then fails TLS — which is bNet's original symptom reproduced exactly.
+      Issue them in the ITP account 819144294008 / eu-central-1, where the ALB terminates
+      TLS, NOT in the bnprs account which only holds DNS. DNS validation records go in
+      Z04234212M3SJ07Y70SGQ (bnprs account), so this needs both accounts in one operation.
+      Production needs nothing new: bare names stay single-label under the existing cert.
     status: pending
     priority: critical
     created_at: "2026-08-13"
-    blocks: ["task-006", "task-007", "task-008"]
-    estimated_steps: 2
-    tags: [decision-d1, scheme, certificate-boundary]
+    blocks: ["task-007"]
+    estimated_steps: 4
+    tags: [acm, wildcard-covers-one-label, gates-all-non-prod, cross-account-validation,
+           issue-where-tls-terminates]
+
+  - id: "task-016"
+    subject: "Rewrite the four stale flat ALB host-header rules to hierarchical names"
+    description: >-
+      utms-api-uat / bnet-api-uat / bnet-smartpresence-api-uat / aandhipe-mpos-api-uat
+      .bnprs.in are live host-header conditions on utms-shared-alb that were created before
+      the scheme was ratified. None matches a name in the registry any more. Rewrite each to
+      its hierarchical form (utms-api.uat.bnprs.in etc.).
+      DO IT NOW, BEFORE ANY DNS: nothing resolves to these names, so nothing can break —
+      the change is free today and becomes a live cutover the moment a record exists.
+      The fifth rule, tms-api-uat.bnprs.in, is TERRAFORM-MANAGED (see registry faults
+      do-not-remove): change its condition in Terraform, never by hand, and only once tms
+      has an agreed name at all.
+    status: pending
+    priority: high
+    created_at: "2026-08-13"
+    blocks: ["task-007"]
+    estimated_steps: 5
+    tags: [alb-rules, superseded-flat-names, free-while-no-dns, terraform-for-tms]
+
+  - id: "task-017"
+    subject: "Decide whether to delegate uat.bnprs.in and sandbox.bnprs.in as their own zones"
+    description: >-
+      The payoff hierarchical makes possible, and the reason the env label exists: NS-delegate
+      each env label from bnprs.in into its own hosted zone, so a non-prod zone can be handed
+      to a non-prod account with its own IAM/WAF boundary and independent cert scope. The flat
+      scheme allowed none of this. Precedent already in place: bruid.bnprs.in is delegated to
+      the ITP account. NOT required to start — records can sit directly in bnprs.in — but
+      decide before record volume builds, because delegating later means moving records.
+    status: pending
+    priority: medium
+    created_at: "2026-08-13"
+    estimated_steps: 3
+    tags: [zone-delegation, per-env-boundary, bruid-precedent, decide-before-volume]
 
   - id: "task-003"
     subject: "Decide whether auth migrates to bnprs.in (d8)"
@@ -188,19 +246,27 @@ tasks:
   # ---- PHASE 3+ — provisioning ----
 
   - id: "task-007"
-    subject: "Create UAT records for the five names that already have ALB rules"
+    subject: "Create the first UAT records — the four names that have (stale) ALB rules"
     description: >-
-      utms-api-uat, bnet-api-uat, aandhipe-mpos-api-uat, bnet-smartpresence-api-uat,
-      tms-api-uat (all .bnprs.in, subject to the shape chosen in task-002). ONE NAME AT A
-      TIME, each verified end to end — dig, dig @authoritative-ns, HTTPS probe,
+      Hierarchical targets: utms-api.uat, bnet-api.uat, bnet-smartpresence-api.uat,
+      aandhipe-mpos-api.uat .bnprs.in. (tms excluded — no agreed name; see registry faults.)
+      Records go in Z04234212M3SJ07Y70SGQ, bnprs account 891963159778, while the target ALB
+      is in the ITP account — so the record form depends on task-012: CNAME to the ALB's
+      amazonaws.com name, or a cross-account Route53 ALIAS via CLI/API with the ELB's
+      canonical hosted-zone ID.
+      ORDER MATTERS: certs (task-015) and rule rewrites (task-016) must both land first, or
+      the name resolves and fails TLS, or resolves and 404s on a rule that no longer matches.
+      ONE NAME AT A TIME, each verified end to end — dig, dig @authoritative-ns, HTTPS probe
+      (confirm the served cert subject actually matches the name, per mem-009),
       describe-target-health — then flip the registry status to live with the date. No batch
       changes. REQUIRES USER APPROVAL per record.
     status: pending
     priority: high
     created_at: "2026-08-13"
-    blocked_by: ["task-001", "task-002", "task-003", "task-006"]
-    estimated_steps: 15
-    tags: [provisioning, one-at-a-time, needs-approval, verify-end-to-end]
+    blocked_by: ["task-012", "task-015", "task-016"]
+    estimated_steps: 14
+    tags: [provisioning, one-at-a-time, needs-approval, verify-end-to-end,
+           certs-and-rules-first, check-the-served-cert]
 
   - id: "task-008"
     subject: "Name the unmapped endpoints, especially the layer-4 ones"
