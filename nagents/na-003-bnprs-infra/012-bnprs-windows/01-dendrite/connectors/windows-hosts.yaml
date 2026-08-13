@@ -84,6 +84,23 @@ hosts:
       reads that refused. Diagnosis of which pending state is outstanding.
 
 # -----------------------------------------------------------------------------
+#  KNOWN WINDOWS HOSTS THAT ARE NOT SSH-REACHABLE
+#
+#  Listed so the inventory is complete, deliberately NOT under `hosts:` above so that
+#  win-ssh.sh cannot try to connect to them.
+#
+#  patwin-runner  EC2 i-03563f4ad6ca9abf0 (also "mces2-win-build-runner"), m5.4xlarge,
+#                 account 891963159778, ap-south-2, AWS profile `bnprs`.
+#                 GitLab runner id 14, "cPerso Windows build runner", tag `windows`.
+#                 ACCESS: SSM Run Command only. No SSH listener, no RDP, and no stable
+#                 address — so it has no `address` field by design.
+#                 Owned by na-003/001 bnprs-aws. Used by na-005/011 bruid-kms and
+#                 na-005/010 bruid-iperso for Windows CI builds.
+#                 Check the auto-stop before leaving it running: see mem-010, it once
+#                 idled for 8 days at $280.58.
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 #  Add further hosts by copying the block above. Keep `confirmed: false` until
 #  a human has verified the machine, and never fill `user` by guessing.
 # -----------------------------------------------------------------------------

@@ -244,6 +244,65 @@ memories:
 
 # Pruning rules
 pruning:
+
+  - id: mem-010
+    type: technical_knowledge
+    content: >-
+      PATWIN-RUNNER is the second Windows machine in this estate, and it is NOT reachable the way
+      MCES2 is. EC2 i-03563f4ad6ca9abf0, name 'patwin-runner' (also seen as
+      mces2-win-build-runner), m5.4xlarge, account 891963159778, region ap-south-2, AWS profile
+      `bnprs`. It is GitLab runner id 14, labelled "cPerso Windows build runner", tagged `windows`.
+      ADMINISTERED VIA SSM RUN COMMAND ONLY - there is no RDP and no SSH. Drive PowerShell on it with
+      `aws ssm send-command` using -EncodedCommand base64; do not try to add it to
+      01-dendrite/connectors/windows-hosts.yaml as an ssh-host, because it has no SSH listener and
+      the address is not stable.
+      OWNERSHIP: na-003/001 bnprs-aws owns the instance, its cost and its lifecycle. This agent's
+      interest is that it is a Windows endpoint whose access path differs from every other one here.
+      CONSUMERS: na-005/011 bruid-kms (GitLab CI `windows-build` job -> target/release/kms-app.exe,
+      PE32+ x64, artifact kms-windows-<sha>.zip; CARGO_HOME is set to C:\cargo because the deeply
+      nested registry paths otherwise breach the 260-character path limit and break checkout
+      cleanup) and na-005/010 bruid-iperso (iPerso Windows builds).
+      COST INCIDENT worth knowing before starting it: on 2026-07-25 it was found RUNNING 24/7 IDLE
+      since 2026-07-17 at ~0.13% CPU, final impact $280.58 over 8 days, peak $37.07/day. The
+      auto-stop was disabled in TWO places at once - EventBridge rule mces2-win-runner-idle-stop
+      was DISABLED, and Lambda win-runner-control had ReservedConcurrentExecutions=0, which throttles
+      every invoke including the rule's own (a manual invoke returns TooManyRequestsException). Both
+      had to be re-enabled. If you start this instance for a build, confirm the auto-stop is live
+      before you walk away, and check BOTH places.
+      RELATED TRAP: account 891963159778 is fully credit-funded, so default Cost Explorer views read
+      ~$0 and hide real consumption (July: $935.05 usage against -$935.03 credits). Never conclude
+      "it cost nothing" from an unfiltered view - see na-003/001 bnprs-aws mem-013.
+    created_at: "2026-08-13"
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [patwin-runner, ec2, ssm-only, no-ssh, no-rdp, gitlab-runner-14, windows-build,
+           ap-south-2, cost-anomaly, auto-stop, credit-funded-account, bruid-kms, bruid-iperso]
+
+  - id: mem-011
+    type: technical_knowledge
+    content: >-
+      2026-08-13 MCES2 TOOLCHAIN STATE, surveyed and then restored. Recorded because the survey
+      itself is the reusable part: MCES2 is AMD64 with Visual Studio 18 Community INCLUDING the
+      C++ x64 tools (found via vswhere -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64),
+      winget is available, and it has NO Rust, NO clang/LLVM, NO Perl, NO git and NO ProtectToolkit.
+      The only "Protect" match under Program Files is Windows Defender ATP - do not mistake it for
+      ProtectToolkit when grepping.
+      Rust, LLVM and Strawberry Perl were installed via winget for a one-off Windows link test and
+      then REMOVED, along with everything staged under C:\BPR\pHSM. C:\BPR itself holds six
+      pre-existing directories (bpr1010.misc.testbed, BprMces2_new, JavaCard_Toolbox_V1.29, JC_files,
+      TestApps, _bk) which were NOT touched - check that list before deleting anything under C:\BPR.
+      TWO GOTCHAS FOR SCRIPTED WORK OVER SSH HERE. (1) The SSH session runs ELEVATED, so
+      `winget uninstall` refuses per-user packages with "cannot be uninstalled when running with
+      administrator privileges" - rustup had to remove itself with `rustup self uninstall -y`, and
+      winget reported success for LLVM and Strawberry while leaving their directories behind, so
+      verify removal rather than trusting the exit code. (2) Non-ASCII characters in a .ps1 uploaded
+      by scp arrive mangled and produce parser errors ("Unexpected token"); keep scripts ASCII-only.
+    created_at: "2026-08-13"
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [mces2, winget, elevated-ssh, per-user-package, rustup-self-uninstall, vswhere,
+           visual-studio-18, ascii-only-scripts, no-protecttoolkit, cleanup-verified]
+
   max_entries: 500
   stale_after_days: 90
   min_confidence: 0.3
