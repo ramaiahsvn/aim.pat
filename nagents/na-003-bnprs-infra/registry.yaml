@@ -113,12 +113,21 @@ registry:
     created_by: "bnprs"
 
   - code: "012"
-    name: "bnprs-windows"
-    label: "bnprs-windows"
+    name: "patwin-laptop"
+    label: "patwin-laptop"
     role: "Windows Endpoint and Remote Access Manager"
-    path: "012-bnprs-windows"
+    path: "012-patwin-laptop"
     status: "active"
     created_at: "2026-08-11"
+    created_by: "bnprs"
+
+  - code: "013"
+    name: "bnprs-subdomains"
+    label: "bnprs-subdomains"
+    role: "DNS Subdomain Naming Standard & Provisioning Manager"
+    path: "013-bnprs-subdomains"
+    status: "active"
+    created_at: "2026-08-13"
     created_by: "bnprs"
 
 # ---- CODE ALLOCATION RULES ---- #

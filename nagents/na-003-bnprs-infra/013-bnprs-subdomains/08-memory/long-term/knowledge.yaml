@@ -1,0 +1,199 @@
+# Long-Term Memory — Persistent Knowledge (LTP)
+# Survives across sessions. The agent's accumulated wisdom.
+
+# Format: each entry is a strengthened "synapse"
+memories:
+  - id: mem-001
+    type: project_context
+    content: >-
+      THE bnprs.in TABLE IS A PLAN, NOT A DEPLOYED STATE — 0 OF 66 NAMES RESOLVE (verified
+      2026-08-13 by digging every one). What DOES exist is five host-header rules on
+      utms-shared-alb (eu-central-1, acct 819144294008): utms-api-uat, bnet-api-uat,
+      aandhipe-mpos-api-uat, bnet-smartpresence-api-uat, tms-api-uat — all .bnprs.in, all with
+      NO DNS RECORD. So the migration started ahead of both the DNS and the standard, and two of
+      those five names (smartpresence, tms) are not in the table at all.
+      WHY THIS MATTERS: every structural decision is still free. Switching the scheme costs 5 ALB
+      rules and 0 DNS records. It will never be cheaper than now.
+      AN ALB HOST RULE IS NOT AN ENDPOINT — it is invisible until DNS exists. Do not read
+      "rule configured" as "provisioned"; the client fails at resolution and never reaches the ALB.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [zero-of-66-resolve, table-is-a-plan, five-alb-rules-no-dns, rule-is-not-an-endpoint,
+           switching-is-free-now, smartpresence-and-tms-not-in-table]
+
+  - id: mem-002
+    type: technical_knowledge
+    content: >-
+      THE NODATA SIGNATURE — A ROUTE53 ALIAS TO A DELETED ELB LOOKS HEALTHY IN THE API AND
+      RESOLVES TO NOTHING. This is what broke bNet v2 on 2026-08-13.
+      smartpresence-api-uat.itpgateway.com still lists in list-resource-record-sets, aliased to
+      utms-smartpresence-api-alb-429499752.eu-central-1.elb.amazonaws.com — but that ALB HAS BEEN
+      DELETED, so the authoritative nameserver answers "status: NOERROR, ANSWER: 0" and the name
+      resolves to nothing. Client-side it presents as "nodename nor servname provided, or not
+      known", i.e. it reads like a local DNS problem, not a deleted load balancer.
+      DIAGNOSTIC RULE: always compare list-resource-record-sets against a real dig of the same
+      name, and query the DELEGATED nameserver directly (dig @ns-190.awsdns-23.com <host>) rather
+      than trusting the resolver. Disagreement between the two means the alias target is gone.
+      A control query matters: accounts-uat.itpgateway.com is an alias in the SAME zone and
+      answers fine, which proves the zone and delegation are healthy and isolates the fault to
+      one record's target.
+      THE STANDING RULE THIS PRODUCES: a record and its target are created and destroyed in the
+      SAME change. For ALB aliases the takeover risk is low (ELB names are not freely
+      re-claimable); for S3/CloudFront/Beanstalk targets the identical pattern is a real
+      subdomain-takeover vector.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [nodata-signature, dangling-alias, deleted-alb, dig-the-authoritative-ns,
+           api-shows-healthy-record, use-a-control-query, record-and-target-are-one-change]
+
+  - id: mem-003
+    type: technical_knowledge
+    content: >-
+      FLAT NAMING PUTS SANDBOX, UAT AND PRODUCTION IN ONE CERTIFICATE — the main objection to the
+      proposed <product>-<component>-<env>.bnprs.in scheme. Every name is a single label under
+      the apex, so ONE wildcard (*.bnprs.in, already ISSUED in acct 819144294008) covers all three
+      environments: one private key spanning every environment, so a sandbox compromise yields a
+      cert valid for production, and no per-environment zone exists to delegate to a separate
+      account or WAF.
+      A WILDCARD COVERS ONE LABEL ONLY: *.bnprs.in does NOT cover api.uat.bnprs.in. That single
+      fact is the whole flat-vs-hierarchical argument.
+      THE ORG ALREADY RUNS HIERARCHICAL, TWICE — the *.uat.itpgateway.com cert with
+      projects-api.uat.itpgateway.com on nagents-uat-alb, and the DELEGATED bruid.bnprs.in zone
+      (Z0491996155ALJADE0VR8, in the itp account) with its own *.bruid.bnprs.in cert. So the flat
+      table contradicts live internal precedent rather than establishing a first convention.
+      RECOMMENDED: keep the readable product-component prefix, move env to its own label —
+      bnet-api.uat.bnprs.in, prod bnet-api.bnprs.in — and delegate uat./sandbox. as separate zones
+      with their own wildcards, so a non-prod key can never sign a prod hostname.
+      ACM in eu-central-1 holds: *.bnprs.in, *.bruid.bnprs.in, uat-acs.bruid.bnprs.in,
+      *.itpgateway.com, *.uat.itpgateway.com, *.itpgateway.link.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [wildcard-covers-one-label, flat-shares-a-key-across-envs, hierarchical-precedent-exists,
+           bruid-zone-is-delegated, acm-inventory, per-env-delegation]
+
+  - id: mem-004
+    type: technical_knowledge
+    content: >-
+      ACM "ISSUED" SAYS NOTHING ABOUT WHAT A LISTENER PRESENTS — check the listener, not the
+      certificate list. On utms-shared-alb (eu-central-1) the DEFAULT cert on :443 and :8443 is
+      *.itpgateway.com, while every host-header rule on it is a .bnprs.in name. describe-listeners
+      shows only the default; a second SNI cert is attached (210edefa-cbda-4971-80cd-4a9a4e0280ce)
+      whose identity is UNVERIFIED as of 2026-08-13 — use describe-listener-certificates, which
+      lists all of them with IsDefault.
+      CONSEQUENCE: if that second cert is not *.bnprs.in, then the moment DNS is added for any of
+      the five waiting rules, TLS fails — the SAME class of error as bNet's original ALB mismatch,
+      where the raw ELB name was addressed against a CN=*.itpgateway.com cert and
+      Api.BypassCertificateValidation=true was used to paper over it. NEVER recommend disabling
+      TLS verification to work around a naming mismatch; it hides a wrong hostname.
+      VERIFY IN THIS ORDER or the answer is untrustworthy: dig -> dig @authoritative-ns ->
+      HTTPS probe -> describe-target-health. A 4-step check, and skipping any step is how a name
+      gets reported as working when it is not.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 0.9
+    source: "session-2026-08-13"
+    tags: [issued-is-not-served, describe-listener-certificates, default-cert-is-itpgateway,
+           second-sni-cert-unverified, never-bypass-tls, four-step-verification]
+
+  - id: mem-005
+    type: project_context
+    content: >-
+      THE NAMESPACE HAS FOUR COMPETING CONVENTIONS AND TWO APEX DOMAINS (2026-08-13):
+        1. FLAT, proposed:      <product>-<component>-<env>.bnprs.in        (0 live)
+        2. HIERARCHICAL, live:  <component>.<env>.itpgateway.com            (nagents-uat-alb:
+           erp, erp-api, projects, projects-api, chat-api, kc-temp)
+        3. HIERARCHICAL, live:  <component>.<env>.<product>.bnprs.in        (acs./bengine./
+           risk..sandbox.bruid.bnprs.in) AND <env>-<component>.<product>.bnprs.in
+           (uat-acs., uat-bpassengine..bruid.bnprs.in) — bRuID contradicts ITSELF
+        4. FLAT PROD, live:     <product>-<component>.itpgateway.com        (utms-api, utms,
+           accounts, utms-auth, btms-api, mini-apps on BPR-uTMS-LB us-east-2; tms-api, tms,
+           tms-emqx, tms-webrtc on itptms-lb)
+      REGIONS: eu-central-1 = UAT and newer work (utms-shared-alb fronts the APIs);
+      us-east-2 = older production on itpgateway.com. ITP account 819144294008, profile itp.
+      ZONE OWNERSHIP IS THE HARD BLOCKER: the bnprs.in APEX IS NOT IN THE ITP ACCOUNT. Only
+      bruid.bnprs.in is delegated there. The apex is on AWS DNS (ns-569.awsdns-07.net,
+      ns-219.awsdns-27.com, ns-1122.awsdns-12.org, ns-1865.awsdns-41.co.uk) in an account not yet
+      identified — and no record in the plan can be written until that account is found.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [four-competing-conventions, two-apex-domains, bruid-contradicts-itself,
+           apex-zone-not-in-itp-account, hard-blocker, eu-central-uat-us-east-prod]
+
+  - id: mem-006
+    type: technical_knowledge
+    content: >-
+      GAPS IN THE TABLE ARE THE DANGEROUS PART, NOT THE NAMES IT CONTAINS. Services that exist,
+      serve traffic, and have NO name in the standard:
+        * KEYCLOAK/AUTH (accounts-uat., accounts., utms-auth..itpgateway.com) — shared by every
+          product. If products move to bnprs.in and auth does not, BOTH apexes stay alive forever
+          and every OIDC issuer, redirect_uri and CORS allow-list spans two domains. This is the
+          same split-brain that broke bNet. HIGHEST-priority gap.
+        * SMARTPRESENCE API — has an ALB rule (bnet-smartpresence-api-uat.bnprs.in) but the table
+          only allows bnet-api-uat. This gap is the live bNet v2 outage.
+        * bengine/bPassEngine — named THREE ways (bengine.sandbox.bruid, uat-bpassengine.bruid,
+          ALB wgate-uat-bengine). Probably bRuID Pass's engine; NOT confirmed.
+        * tms/btms — tms-api-uat.bnprs.in rule exists, tms.itpgateway.com live. Distinct product
+          or the old name for uTMS?
+        * NLB/LAYER-4 ENDPOINTS (utms-emqx-nlb, utms-rsi-nlb, nagents-uat-livekit-nlb, tms-emqx,
+          tms-webrtc): host-header routing DOES NOT EXIST at layer 4, so each needs its own DNS
+          name pointing at its own load balancer — they cannot be folded behind a shared ALB rule
+          like the APIs, and the -api/-portal vocabulary has no slot for them.
+      ALSO: rEngine is named three ways (table "rengine", ALB "wgate-uat-risk-engine" which is
+      INTERNAL, live DNS "risk"), and the table makes ACS/wGate/rEngine/Pass sibling products
+      while every ALB name (wgate-uat-*) treats them as components OF wGate.
+      RULE: reserve the PATTERN centrally, create the RECORD only when there is a live target —
+      provisioning names ahead of services is what produced both drift states found here.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [auth-is-the-biggest-gap, smartpresence-unnamed, bengine-named-three-ways,
+           nlb-needs-its-own-name, no-host-routing-at-l4, rengine-three-names,
+           bruid-family-or-wgate-components, provision-on-first-deploy]
+
+  - id: mem-007
+    type: technical_knowledge
+    content: >-
+      PRODUCTION IS THE NAME YOU GET BY ACCIDENT, and mixed case is a real bug source.
+      In the proposed scheme production is the BARE <product>-<component>.bnprs.in — the value
+      produced when the env token is ABSENT. Any template like ${product}-api-${env} with env
+      unset, empty or stripped lands on PRODUCTION. This estate is repeatedly bitten by exactly
+      that shape (BNET_COMPANY_ID, BNET_RUNTIME_DIR and a missing ONNX model each silently
+      resolved to a default and presented as an unrelated failure), and here the default carries
+      the largest blast radius. MITIGATION: never template an environment into a hostname —
+      enumerate all three explicitly in config.
+      nAgent-api-uat.bnprs.in IS THE ONLY MIXED-CASE ENTRY in the table (mGate was correctly
+      lowercased to mgate). DNS resolution and ALB host-header matching are both
+      case-INSENSITIVE, so it appears to work; the damage lands where the literal string is
+      compared case-SENSITIVELY — OIDC redirect_uri (exact match), CORS origin checks in most
+      frameworks, cert SANs, hand-written config. Use lowercase, and settle singular vs plural:
+      the table says nAgent, the infra says nagents (nagents-uat-alb, nagents-uat-livekit-nlb).
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [prod-is-the-accidental-default, never-template-env-into-a-hostname,
+           mixed-case-breaks-oidc-and-cors, dns-is-case-insensitive-configs-are-not,
+           nagent-vs-nagents]
+
+# Pruning rules
+pruning:
+  max_entries: 500
+  stale_after_days: 90
+  min_confidence: 0.3
+  strategy: "least_recently_used"

@@ -1,0 +1,27 @@
+# Model Configuration — The Soma's Processing Power
+
+primary:
+  provider: anthropic
+  model: claude-sonnet-4-6
+  max_tokens: 8192
+  temperature: 0.7
+
+fallback:
+  provider: anthropic
+  model: claude-haiku-4-5-20251001
+  max_tokens: 4096
+  temperature: 0.5
+  use_when:
+    - rate_limit_exceeded
+    - low_complexity_task
+    - sub_agent_delegation
+
+escalation:
+  provider: anthropic
+  model: claude-opus-4-6
+  max_tokens: 16384
+  temperature: 0.3
+  use_when:
+    - high_stakes_decision
+    - complex_multi_step_reasoning
+    - verification_required

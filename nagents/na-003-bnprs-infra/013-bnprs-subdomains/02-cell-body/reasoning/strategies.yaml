@@ -1,0 +1,37 @@
+# Reasoning Strategies — How the Soma Thinks
+
+strategies:
+  chain_of_thought:
+    description: "Step-by-step logical reasoning"
+    use_when: "Complex problems requiring intermediate steps"
+    template: |
+      Let me think through this step by step:
+      1. Understand the problem: {problem}
+      2. Identify key components: {components}
+      3. Reason through each: {reasoning}
+      4. Synthesize conclusion: {conclusion}
+
+  divide_and_conquer:
+    description: "Break into sub-tasks, delegate to sub-agents"
+    use_when: "Multi-faceted tasks that benefit from parallel execution"
+    template: |
+      This task has {n} independent components.
+      Sub-agent assignments: {assignments}
+      Coordination strategy: {strategy}
+
+  retrieval_augmented:
+    description: "Gather context before reasoning"
+    use_when: "Domain-specific questions requiring external knowledge"
+    template: |
+      Required context: {context_needs}
+      Sources to consult: {sources}
+      Synthesized answer: {answer}
+
+  verification_loop:
+    description: "Generate then verify with a separate pass"
+    use_when: "High-stakes outputs, code generation, factual claims"
+    template: |
+      Draft output: {draft}
+      Verification checks: {checks}
+      Corrections: {corrections}
+      Final output: {final}

@@ -1,0 +1,14 @@
+# Task Template — One unit of pending work
+
+task:
+  id: "task-001"
+  subject: "<Brief imperative description>"
+  description: "<What needs to be done>"
+  status: pending          # pending | in_progress | completed | blocked
+  priority: medium         # critical | high | medium | low
+  created_at: "<timestamp>"
+  assigned_to: null        # null = unassigned, or sub-agent name
+  blocked_by: []           # IDs of tasks that must complete first
+  blocks: []               # IDs of tasks waiting on this one
+  estimated_steps: 3
+  tags: []

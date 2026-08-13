@@ -1,0 +1,158 @@
+# Tasks — bnprs.in subdomain standard and provisioning
+# Plan of record: 07-axon-terminals/deliverables/2026-08-13-subdomain-review-and-plan.md
+# Registry:       01-dendrite/connectors/subdomain-registry.yaml
+
+tasks:
+
+  # ---- PHASE 0 — decisions. No AWS changes. These gate everything else. ----
+
+  - id: "task-001"
+    subject: "Identify the AWS account that holds the bnprs.in apex zone"
+    description: >-
+      The apex is on AWS DNS (ns-569.awsdns-07.net, ns-219.awsdns-27.com,
+      ns-1122.awsdns-12.org, ns-1865.awsdns-41.co.uk) but is NOT in 819144294008 — only
+      bruid.bnprs.in is delegated there. Until the owning account is known, not one
+      record in the plan can be written. Ask na-003/002 bnprs-aws-itp and
+      na-003/005 bnprs-websites.
+    status: pending
+    priority: critical
+    created_at: "2026-08-13"
+    blocks: ["task-006", "task-007", "task-008"]
+    estimated_steps: 3
+    tags: [decision-d7, hard-blocker, zone-ownership]
+
+  - id: "task-002"
+    subject: "Ratify flat vs hierarchical environment labels"
+    description: >-
+      Flat <product>-<component>-<env>.bnprs.in shares one *.bnprs.in key across sandbox,
+      UAT and production and precludes per-env delegation. Recommendation is
+      <product>-<component>.<env>.bnprs.in with delegated uat./sandbox. zones. Cost of
+      switching today is 5 ALB rules and 0 DNS records — this is the cheapest it will ever be.
+    status: pending
+    priority: critical
+    created_at: "2026-08-13"
+    blocks: ["task-006", "task-007", "task-008"]
+    estimated_steps: 2
+    tags: [decision-d1, scheme, certificate-boundary]
+
+  - id: "task-003"
+    subject: "Decide SmartPresence's hostname, and whether auth migrates"
+    description: >-
+      d3: bnet-smartpresence-api-uat.bnprs.in already has an ALB rule but no table row —
+      own host, or a path under bnet-api? d8: Keycloak (accounts-uat/accounts/utms-auth
+      .itpgateway.com) has no name in the table at all; leaving it behind keeps both apexes
+      alive permanently and spans every OIDC issuer and CORS allow-list across two domains.
+    status: pending
+    priority: high
+    created_at: "2026-08-13"
+    blocks: ["task-007"]
+    estimated_steps: 2
+    tags: [decision-d3, decision-d8, auth, smartpresence]
+
+  - id: "task-004"
+    subject: "Settle the remaining naming decisions (d2, d4, d5, d6)"
+    description: >-
+      d2 nAgent case + singular/plural (6 names); d4 explicit -prod token or bare name
+      (config policy); d5 is bRuID a family or is wGate the product, and
+      rengine/risk-engine/risk (12 names); d6 which agent owns each AandhiPe surface
+      (18 names). d5 needs na-009/007 bpr1007-wgate.
+    status: pending
+    priority: medium
+    created_at: "2026-08-13"
+    estimated_steps: 4
+    tags: [decision-d2, decision-d4, decision-d5, decision-d6]
+
+  # ---- PHASE 1 — restore service ----
+
+  - id: "task-005"
+    subject: "Restore bNet v2 UAT — repoint the dangling SmartPresence alias"
+    description: >-
+      smartpresence-api-uat.itpgateway.com aliases a DELETED ALB, so it resolves to nothing
+      and bNet v2 reports sync 0/15. The API is healthy: ECS utms-smartpresence-api ACTIVE
+      1/1, target group utms-smartpresence-api-tg:8080 on utms-shared-alb. Option A from the
+      plan: repoint the existing alias at utms-shared-alb. Needs no cert work —
+      *.itpgateway.com is already the DEFAULT cert on that listener. One reversible Route53
+      change; does not prejudge task-002. REQUIRES USER APPROVAL (outward-facing DNS).
+    status: pending
+    priority: critical
+    created_at: "2026-08-13"
+    estimated_steps: 3
+    tags: [live-outage, bnet-v2, option-a, needs-approval, reversible]
+
+  # ---- PHASE 2 — certificates ----
+
+  - id: "task-006"
+    subject: "Verify the second SNI cert on utms-shared-alb, attach *.bnprs.in if missing"
+    description: >-
+      The :443 and :8443 listeners carry a default *.itpgateway.com cert plus a second cert
+      210edefa-cbda-4971-80cd-4a9a4e0280ce whose identity is unverified. If it is not
+      *.bnprs.in, every .bnprs.in host on that ALB fails TLS the moment DNS is added — the
+      same class of error as bNet's original mismatch. Must be settled BEFORE phase 3.
+      If task-002 goes hierarchical, also request *.uat.bnprs.in and *.sandbox.bnprs.in.
+    status: pending
+    priority: high
+    created_at: "2026-08-13"
+    blocked_by: ["task-001", "task-002"]
+    blocks: ["task-007"]
+    estimated_steps: 3
+    tags: [acm, sni, listener-certificates, gates-phase-3]
+
+  # ---- PHASE 3+ — provisioning ----
+
+  - id: "task-007"
+    subject: "Create UAT records for the five names that already have ALB rules"
+    description: >-
+      utms-api-uat, bnet-api-uat, aandhipe-mpos-api-uat, bnet-smartpresence-api-uat,
+      tms-api-uat (all .bnprs.in, subject to the shape chosen in task-002). ONE NAME AT A
+      TIME, each verified end to end — dig, dig @authoritative-ns, HTTPS probe,
+      describe-target-health — then flip the registry status to live with the date. No batch
+      changes. REQUIRES USER APPROVAL per record.
+    status: pending
+    priority: high
+    created_at: "2026-08-13"
+    blocked_by: ["task-001", "task-002", "task-003", "task-006"]
+    estimated_steps: 15
+    tags: [provisioning, one-at-a-time, needs-approval, verify-end-to-end]
+
+  - id: "task-008"
+    subject: "Name the unmapped endpoints, especially the layer-4 ones"
+    description: >-
+      Keycloak/auth, bengine/bPassEngine, tms/btms, mini-apps, and the NLBs (utms-emqx-nlb,
+      utms-rsi-nlb, nagents-uat-livekit-nlb, tms-emqx, tms-webrtc). The NLBs need a component
+      token (-mqtt/-rtc/-stream): host-header routing does not exist at layer 4, so each needs
+      its own DNS name pointing at its own load balancer.
+    status: pending
+    priority: medium
+    created_at: "2026-08-13"
+    blocked_by: ["task-001", "task-002"]
+    estimated_steps: 5
+    tags: [gaps, nlb, layer-4, component-vocabulary]
+
+  # ---- PHASE 5/6 — hygiene, ongoing ----
+
+  - id: "task-009"
+    subject: "Standing sweep — dangling records and rules without DNS"
+    description: >-
+      Two recurring checks. (1) Every A/ALIAS record whose target no longer exists: compare
+      list-resource-record-sets against a real dig; NOERROR/ANSWER:0 means the target is gone.
+      (2) Every ALB host-header rule with no DNS record — five as of 2026-08-13. Also
+      re-verify anything marked live; live is a claim with an expiry date.
+    status: pending
+    priority: medium
+    created_at: "2026-08-13"
+    estimated_steps: 4
+    tags: [hygiene, recurring, nodata-signature, drift-detection]
+
+  - id: "task-010"
+    subject: "Retire the itpgateway.com product hostnames after cutover"
+    description: >-
+      Only once each bnprs.in equivalent is verified live and clients are cut over. Delete
+      each record in the SAME change as its target, and mark it retired in the registry — a
+      reused hostname inherits every stale cache, bookmark, allow-list and OIDC redirect of
+      its predecessor. Auth hostnames depend on d8 (task-003).
+    status: blocked
+    priority: low
+    created_at: "2026-08-13"
+    blocked_by: ["task-007", "task-003"]
+    estimated_steps: 8
+    tags: [decommission, never-reuse-a-name, record-and-target-together]

@@ -150,7 +150,7 @@ memories:
     type: operation
     content: >-
       2026-08-11 VERIFIED THE RELEASED 2.22.28 ARTEFACT, then HANDED THE WINDOWS RUN OFF to the
-      new agent na-003/012 bnprs-windows. This closes the export-table check left open by
+      new agent na-003/012 patwin-laptop. This closes the export-table check left open by
       [[mem-006]] and hands on what this agent cannot do (own a Windows host).
       RELEASE LOCATION: ZohoWorkDrive Z_RELEASE/TRP1002-cPerso/BprQiScript.2/_GnD/2.22.28 —
       self-contained, including qiscript.ini and qiscript.c.perso-bio.dat (19,508 B, offset 1648
@@ -174,7 +174,7 @@ memories:
       bpr_versions.h entry; the release is also MISSING the SHA256SUMS.txt its own README lists):
         windows-32  aab1eefc392e72b58e0c4c3f37e91b2892a8a27a317cfa16f061eecda9af7e55
         windows-64  918415ce493e7dcb25cf8cf63a18ea411abee15c86170b9d97037fea73093031
-      HANDED TO na-003/012 bnprs-windows: getting onto the Windows PC and running it. The target
+      HANDED TO na-003/012 patwin-laptop: getting onto the Windows PC and running it. The target
       box has NO JVM AT ALL (neither java nor javac), which is the current blocker; a JVM is
       unavoidable because the JNI library IS the card-I/O path — the capi sibling QiGndPerso.dll
       is script-generation only and "never touches a reader" by its own README.
@@ -188,14 +188,14 @@ memories:
     confidence: 1.0
     source: "session 2026-08-11 — export check on Z_RELEASE 2.22.28 + parent-commit reproduction"
     tags: [2.22.28, release-verified, export-table, stdcall-confirmed, parent-commit-reproduction,
-           size-proves-nothing, non-reproducible-build, sha256, handoff-out, na-003-012-bnprs-windows,
+           size-proves-nothing, non-reproducible-build, sha256, handoff-out, na-003-012-patwin-laptop,
            raspberry-accept-list-still-open]
 
   - id: mem-008
     type: operation
     content: >-
       2026-08-11 FIRST WINDOWS RUN ACHIEVED, and TWO RELEASES CUT. Ran the released JNI library on a
-      real Windows host with a real card for the first time (MCES2 via na-003/012 bnprs-windows).
+      real Windows host with a real card for the first time (MCES2 via na-003/012 patwin-laptop).
       SOFTWARE IS PROVEN; the card was the problem. bpr.cpp commit faca401.
       2.22.34 — BprLogs diagnostics. Closes the open item from [[mem-005]]: -444 discarded BOTH the
       failing APDU index and the SW. The transmit loop now logs index/total, the 5-byte header

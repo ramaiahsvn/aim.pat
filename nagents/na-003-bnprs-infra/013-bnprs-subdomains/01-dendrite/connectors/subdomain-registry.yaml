@@ -1,0 +1,403 @@
+# ============================================================
+#  SUBDOMAIN REGISTRY — the single source of truth
+#  na-003/013 bnprs-subdomains
+# ============================================================
+#  Every hostname this org publishes is listed here, with its
+#  REAL state — not its intended state.
+#
+#  EDIT THIS FILE, not the deliverables. The review document in
+#  07-axon-terminals/deliverables/ is a snapshot of a decision;
+#  this file is the live registry. Add products, correct names,
+#  flip status values here.
+#
+#  status values — say what is TRUE, never what is planned:
+#    planned        nothing exists yet
+#    alb-rule-only  ALB host-header rule exists, NO DNS record
+#                   -> the name does not resolve; callers fail on DNS
+#    dns-only       DNS record exists, no listener rule / no target
+#    live           resolves, TLS valid, reaches a healthy target
+#    dangling       DNS record exists, its TARGET IS GONE
+#                   -> hard failure + hygiene risk; delete or repoint
+#    retired        deliberately removed; kept here so the name is
+#                   never silently reused
+#
+#  Verified 2026-08-13 against AWS acct 819144294008 (profile itp)
+#  and public DNS. 0 of the 66 names in the source table resolve.
+# ============================================================
+
+meta:
+  apex: "bnprs.in"
+  source_input: "01-dendrite/inputs/2026-08-13-subdomain-table-source.md"
+  verified_at: "2026-08-13"
+  verified_by: "na-003/013 bnprs-subdomains"
+
+  # WHERE THE ZONES LIVE. The apex is NOT in the ITP account — only the
+  # bruid.bnprs.in subzone is delegated there. Any apex-level record needs
+  # whoever holds the parent zone; find that account before promising a change.
+  zones:
+    - name: "bnprs.in"
+      account: "UNKNOWN — not in 819144294008"
+      nameservers: ["ns-569.awsdns-07.net", "ns-219.awsdns-27.com",
+                    "ns-1122.awsdns-12.org", "ns-1865.awsdns-41.co.uk"]
+      note: "Route53 (AWS DNS) but a different account. BLOCKER for every record below."
+    - name: "bruid.bnprs.in"
+      account: "819144294008 (itp)"
+      zone_id: "Z0491996155ALJADE0VR8"
+      note: "Delegated subzone, 8 records, ALREADY LIVE with its own convention."
+    - name: "itpgateway.com"
+      account: "819144294008 (itp)"
+      zone_id: "Z065126021WLLO6U774F7"
+      note: "The domain being migrated AWAY from. 40 records. Still carries auth."
+
+# ---- SCHEME ------------------------------------------------------------
+# The source table proposes FLAT: <product>-<component>-<env>.bnprs.in
+# with production as the bare <product>-<component>.bnprs.in.
+#
+# NOT YET RATIFIED. See decisions.d1 — the org already runs two
+# HIERARCHICAL schemes in production, and switching costs 5 ALB rules and
+# 0 DNS records today because nothing has been provisioned yet. This is the
+# cheapest this decision will ever be.
+scheme:
+  proposed: "<product>-<component>-<env>.bnprs.in"
+  production_form: "<product>-<component>.bnprs.in"    # no env token — see decisions.d4
+  ratified: false
+  envs: ["sandbox", "uat", "prod"]
+  components: ["api", "portal"]
+  charset: "lowercase a-z 0-9 and hyphen only"          # see decisions.d2
+  max_label: 63                                        # longest proposed name is 30 — no risk
+
+# ---- PRODUCTS ----------------------------------------------------------
+# owner_agent is the na-009 product agent where known. Marked ? where the
+# mapping is genuinely ambiguous — do not guess these into fact.
+products:
+
+  - key: "utms"
+    label: "uTMS"
+    owner_agent: "na-009/004 bpr1004-utms"
+    components:
+      api:
+        sandbox: { host: "utms-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "utms-api-uat.bnprs.in",     status: alb-rule-only,
+                   target: "utms-shared-alb (eu-central-1)" }
+        prod:    { host: "utms-api.bnprs.in",         status: planned,
+                   supersedes: "utms-api.itpgateway.com (LIVE, us-east-2 BPR-uTMS-LB)" }
+      portal:
+        sandbox: { host: "utms-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "utms-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "utms-portal.bnprs.in",         status: planned,
+                   supersedes: "utms.itpgateway.com (LIVE)" }
+
+  - key: "bnet"
+    label: "bNet"
+    owner_agent: "na-009/008 bpr1008-bnet"
+    components:
+      api:
+        sandbox: { host: "bnet-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bnet-api-uat.bnprs.in",     status: alb-rule-only,
+                   target: "utms-shared-alb (eu-central-1)" }
+        prod:    { host: "bnet-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "bnet-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bnet-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "bnet-portal.bnprs.in",         status: planned }
+    # NOT IN THE SOURCE TABLE but a rule already exists for it, and its absence
+    # is what is breaking bNet v2 right now. See decisions.d3.
+    unlisted_components:
+      smartpresence_api:
+        uat: { host: "bnet-smartpresence-api-uat.bnprs.in", status: alb-rule-only,
+               target: "utms-shared-alb -> utms-smartpresence-api-tg:8080",
+               ecs: "utms-smartpresence-api on utms-cluster, ACTIVE 1/1",
+               note: "Consumed by bNet v2 (sync, 1:N verify) and bpr1004.utms.api.bnet.smartpresence" }
+
+  - key: "aandhipe-mobile"
+    label: "AandhiPe Mobile"
+    owner_agent: "na-009/0?? bpr2001-aandhipe ?"
+    components:
+      api:
+        sandbox: { host: "aandhipe-mobile-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-mobile-api-uat.bnprs.in",     status: planned }
+        prod:    { host: "aandhipe-mobile-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "aandhipe-mobile-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-mobile-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "aandhipe-mobile-portal.bnprs.in",         status: planned }
+
+  - key: "aandhipe-mpos"
+    label: "AandhiPe mPos"
+    owner_agent: "na-009/003 bpr1003-mpos ?"   # or bpr2001-aandhipe — see decisions.d6
+    components:
+      api:
+        sandbox: { host: "aandhipe-mpos-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-mpos-api-uat.bnprs.in",     status: alb-rule-only,
+                   target: "utms-shared-alb (eu-central-1)" }
+        prod:    { host: "aandhipe-mpos-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "aandhipe-mpos-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-mpos-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "aandhipe-mpos-portal.bnprs.in",         status: planned }
+
+  - key: "aandhipe-kiosk"
+    label: "AandhiPe Kiosk"
+    owner_agent: "na-009/006 bpr1006-patkiosk ?"
+    components:
+      api:
+        sandbox: { host: "aandhipe-kiosk-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-kiosk-api-uat.bnprs.in",     status: planned,
+                   note: "utms-kiosk-iis-api-alb exists in eu-central-1 with no host rule — likely this" }
+        prod:    { host: "aandhipe-kiosk-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "aandhipe-kiosk-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "aandhipe-kiosk-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "aandhipe-kiosk-portal.bnprs.in",         status: planned }
+
+  # ---- the bRuID family --------------------------------------------------
+  # STRUCTURAL CONFLICT. The table makes ACS / wGate / rEngine / Pass SIBLING
+  # products under bRuID. The live infrastructure makes them COMPONENTS OF
+  # wGate: every ALB is named wgate-uat-<thing>. And the live DNS puts them
+  # under a delegated bruid.bnprs.in subzone, hierarchically. See decisions.d1/d5.
+  - key: "bruid-acs"
+    label: "bRuID ACS"
+    owner_agent: "na-009/007 bpr1007-wgate ?"
+    components:
+      api:
+        sandbox: { host: "bruid-acs-api-sandbox.bnprs.in", status: planned,
+                   conflicts_with: "acs.sandbox.bruid.bnprs.in (LIVE)" }
+        uat:     { host: "bruid-acs-api-uat.bnprs.in",     status: planned,
+                   conflicts_with: "uat-acs.bruid.bnprs.in (LIVE -> wgate-uat-acs)" }
+        prod:    { host: "bruid-acs-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "bruid-acs-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bruid-acs-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "bruid-acs-portal.bnprs.in",         status: planned }
+
+  - key: "bruid-wgate"
+    label: "bRuID wGate"
+    owner_agent: "na-009/007 bpr1007-wgate"
+    components:
+      api:
+        sandbox: { host: "bruid-wgate-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bruid-wgate-api-uat.bnprs.in",     status: planned }
+        prod:    { host: "bruid-wgate-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "bruid-wgate-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bruid-wgate-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "bruid-wgate-portal.bnprs.in",         status: planned }
+
+  - key: "bruid-rengine"
+    label: "bRuID rEngine"
+    owner_agent: "na-009/007 bpr1007-wgate ?"
+    components:
+      api:
+        # THREE NAMES FOR ONE SERVICE: table says rengine, the ALB says
+        # risk-engine, live DNS says risk. Pick one — see decisions.d5.
+        sandbox: { host: "bruid-rengine-api-sandbox.bnprs.in", status: planned,
+                   conflicts_with: "risk.sandbox.bruid.bnprs.in (LIVE)" }
+        uat:     { host: "bruid-rengine-api-uat.bnprs.in",     status: planned,
+                   note: "ALB wgate-uat-risk-engine is INTERNAL (internal-wgate-uat-risk-engine)" }
+        prod:    { host: "bruid-rengine-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "bruid-rengine-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bruid-rengine-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "bruid-rengine-portal.bnprs.in",         status: planned }
+
+  - key: "bruid-pass"
+    label: "bRuID Pass"
+    owner_agent: "na-009/005 bpr1005-bpass"
+    components:
+      api:
+        sandbox: { host: "bruid-pass-api-sandbox.bnprs.in", status: planned,
+                   conflicts_with: "bengine.sandbox.bruid.bnprs.in (LIVE) — IF bengine == Pass" }
+        uat:     { host: "bruid-pass-api-uat.bnprs.in",     status: planned,
+                   conflicts_with: "uat-bpassengine.bruid.bnprs.in (LIVE -> wgate-uat-bengine)" }
+        prod:    { host: "bruid-pass-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "bruid-pass-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "bruid-pass-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "bruid-pass-portal.bnprs.in",         status: planned }
+
+  - key: "nagent"
+    label: "nAgent"
+    owner_agent: "na-010 bna-platform / na-009 trp1004-bnagent ?"
+    # THE TABLE WRITES THESE WITH A CAPITAL A (nAgent-api-uat.bnprs.in).
+    # Corrected to lowercase here. DNS resolution is case-insensitive, but the
+    # literal string is compared case-SENSITIVELY in OIDC redirect_uri matching
+    # and most CORS origin checks. Also the live infra says "nagents" (plural):
+    # nagents-uat-alb, nagents-uat-livekit-nlb. See decisions.d2.
+    components:
+      api:
+        sandbox: { host: "nagent-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "nagent-api-uat.bnprs.in",     status: planned,
+                   note: "nagents-uat-alb currently serves *.uat.itpgateway.com names" }
+        prod:    { host: "nagent-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "nagent-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "nagent-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "nagent-portal.bnprs.in",         status: planned }
+
+  - key: "mgate"
+    label: "mGate"
+    owner_agent: "na-009/002 bpr1002-mgate"
+    components:
+      api:
+        sandbox: { host: "mgate-api-sandbox.bnprs.in", status: planned }
+        uat:     { host: "mgate-api-uat.bnprs.in",     status: planned }
+        prod:    { host: "mgate-api.bnprs.in",         status: planned }
+      portal:
+        sandbox: { host: "mgate-portal-sandbox.bnprs.in", status: planned }
+        uat:     { host: "mgate-portal-uat.bnprs.in",     status: planned }
+        prod:    { host: "mgate-portal.bnprs.in",         status: planned }
+
+# ---- REAL ENDPOINTS WITH NO NAME IN THE TABLE --------------------------
+# These all EXIST. Leaving them out of the standard does not make them go
+# away; it means they keep living on itpgateway.com or under a raw ELB name
+# after the migration, which is precisely the split-brain that broke bNet.
+unmapped_endpoints:
+
+  - service: "Keycloak / auth"
+    live: ["accounts-uat.itpgateway.com -> utms-keycloak-alb (eu-central-1)",
+           "accounts.itpgateway.com -> BPR-uTMS-LB (us-east-2)",
+           "utms-auth.itpgateway.com -> BPR-uTMS-LB (us-east-2)"]
+    why_it_matters: >-
+      Auth is shared by every product. If products move to bnprs.in and auth
+      stays on itpgateway.com you keep two domains alive permanently, and every
+      OIDC issuer, redirect_uri and CORS allow-list spans both. HIGHEST priority
+      gap in the table.
+    status: no-name-assigned
+
+  - service: "bengine / bPassEngine"
+    live: ["bengine.sandbox.bruid.bnprs.in", "uat-bpassengine.bruid.bnprs.in"]
+    infra: "ALB wgate-uat-bengine (eu-central-1)"
+    why_it_matters: >-
+      Named THREE ways already (bengine, bpassengine, wgate-uat-bengine). Probably
+      bRuID Pass's engine, but that is an assumption — confirm before mapping.
+    status: no-name-assigned
+
+  - service: "tms / btms"
+    live: ["tms-api.itpgateway.com", "tms.itpgateway.com (itptms-lb, us-east-2)",
+           "btms-api.itpgateway.com (BPR-uTMS-LB)"]
+    provisioned: "tms-api-uat.bnprs.in — ALB rule EXISTS on utms-shared-alb, not in the table"
+    why_it_matters: "Is tms a distinct product from utms, or the old name for it?"
+    status: no-name-assigned
+
+  - service: "MQTT / streaming / realtime — not HTTP"
+    live: ["utms-emqx-nlb", "utms-rsi-nlb", "nagents-uat-livekit-nlb",
+           "tms-emqx.itpgateway.com", "tms-webrtc.itpgateway.com"]
+    why_it_matters: >-
+      These are NLBs. Host-header routing does not exist at layer 4, so each one
+      needs its OWN DNS name pointing at its OWN load balancer — they cannot be
+      folded behind a shared ALB rule like the APIs. The <product>-api-<env>
+      pattern has no slot for them; decide a component token (-mqtt, -rtc, -stream).
+    status: no-name-assigned
+
+  - service: "mini-apps"
+    live: ["mini-apps.itpgateway.com (BPR-uTMS-LB)"]
+    status: no-name-assigned
+
+  - service: "ERP / projects / chat (internal tooling)"
+    live: ["erp.uat.itpgateway.com", "erp-api.uat.itpgateway.com",
+           "projects.uat.itpgateway.com", "projects-api.uat.itpgateway.com",
+           "chat-api.uat.itpgateway.com", "kc-temp.uat.itpgateway.com"]
+    note: >-
+      All on nagents-uat-alb using <component>.<env>.itpgateway.com — the
+      HIERARCHICAL scheme. Live internal precedent that contradicts the flat table.
+    status: no-name-assigned
+
+# ---- ACTIVE FAULTS -----------------------------------------------------
+faults:
+  - host: "smartpresence-api-uat.itpgateway.com"
+    status: dangling
+    detail: >-
+      Route53 A/ALIAS in itpgateway.com still points at
+      utms-smartpresence-api-alb-429499752.eu-central-1.elb.amazonaws.com, WHICH NO
+      LONGER EXISTS. Route53 returns NODATA, so the name resolves to nothing.
+    impact: >-
+      bNet v2 is broken as of 2026-08-13: sync 0/15 tables, "nodename nor servname
+      provided", Identified-people panel errors. The API itself is healthy — ECS
+      utms-smartpresence-api ACTIVE 1/1 behind utms-shared-alb.
+    fix_options: "see 07-axon-terminals/deliverables/2026-08-13-subdomain-review-and-plan.md §4"
+    raised: "2026-08-13"
+
+  - class: "rule-without-DNS"
+    hosts: ["utms-api-uat.bnprs.in", "bnet-api-uat.bnprs.in",
+            "bnet-smartpresence-api-uat.bnprs.in", "tms-api-uat.bnprs.in",
+            "aandhipe-mpos-api-uat.bnprs.in"]
+    detail: >-
+      Five host-header rules on utms-shared-alb whose names have NO DNS record.
+      An ALB rule is invisible until DNS exists; this reads as "provisioned" on
+      the AWS side while every client fails at resolution.
+    raised: "2026-08-13"
+
+# ---- OPEN DECISIONS — these block provisioning --------------------------
+decisions:
+
+  d1:
+    question: "Flat <product>-<component>-<env>.bnprs.in, or hierarchical <product>-<component>.<env>.bnprs.in?"
+    status: OPEN
+    blocking: "everything below phase 0"
+    evidence: >-
+      Flat puts sandbox, UAT and production in one wildcard namespace: a single
+      *.bnprs.in certificate (already ISSUED in acct 819144294008) covers all
+      three, so ONE private key spans every environment and a sandbox compromise
+      yields a cert valid for production. It also makes per-env zone delegation
+      impossible. The org already runs hierarchical in two places — the
+      *.uat.itpgateway.com cert with projects-api.uat.itpgateway.com, and the
+      delegated bruid.bnprs.in zone with its own *.bruid.bnprs.in cert.
+      Cost of switching TODAY: 5 ALB rules, 0 DNS records.
+    recommendation: >-
+      Hierarchical. Keep the table's readable <product>-<component> prefix, move
+      the env into its own label: bnet-api.uat.bnprs.in, prod bnet-api.bnprs.in.
+      Delegate uat.bnprs.in and sandbox.bnprs.in as separate zones with their own
+      wildcard certs, so a non-prod key can never sign a prod hostname.
+
+  d2:
+    question: "nAgent capital A, and nagent vs nagents (plural)?"
+    status: OPEN
+    recommendation: "lowercase; pick singular or plural once and match the ALBs (nagents-uat-alb)"
+
+  d3:
+    question: "Does SmartPresence get its own host, or a path under bnet-api?"
+    status: OPEN
+    blocking: "the bNet v2 outage fix"
+    evidence: >-
+      bnet-smartpresence-api-uat.bnprs.in already has an ALB rule but is absent
+      from the table, which only allows bnet-api-uat. Folding it under bnet-api
+      needs server-side path routing; keeping it separate needs a table row.
+
+  d4:
+    question: "Should production carry an explicit -prod token?"
+    status: OPEN
+    evidence: >-
+      As proposed, production is what you get when the env token is ABSENT. Any
+      template of the form ${product}-api-${env} with env unset or stripped
+      resolves to production. This estate has repeatedly been bitten by exactly
+      that shape (BNET_COMPANY_ID, BNET_RUNTIME_DIR, a missing ONNX model each
+      silently fell back to a default), and here the fallback has the largest
+      possible blast radius.
+    recommendation: >-
+      Keep the bare name as the published prod host, but forbid templating env
+      into hostnames in config — enumerate the three hosts explicitly.
+
+  d5:
+    question: "Is bRuID a product family or is wGate the product? And rengine/risk-engine/risk?"
+    status: OPEN
+    evidence: >-
+      Table = 4 sibling bRuID products. Infra = wgate-uat-acs, wgate-uat-bengine,
+      wgate-uat-risk-engine, i.e. components of wGate. Live DNS = a delegated
+      bruid.bnprs.in zone with TWO internal orderings already
+      (acs.sandbox.bruid.bnprs.in vs uat-acs.bruid.bnprs.in).
+
+  d6:
+    question: "Which agent owns each AandhiPe surface?"
+    status: OPEN
+    evidence: "na-009 has bpr2001-aandhipe AND bpr1003-mpos AND bpr1006-patkiosk."
+
+  d7:
+    question: "Who owns the bnprs.in apex zone, and which account issues its records?"
+    status: OPEN
+    blocking: "every single record in this file"
+    evidence: "The apex is on AWS DNS but NOT in 819144294008; only bruid.bnprs.in is delegated there."
+
+  d8:
+    question: "Does auth (Keycloak) migrate to bnprs.in?"
+    status: OPEN
+    evidence: "See unmapped_endpoints. Leaving it behind keeps two domains alive forever."

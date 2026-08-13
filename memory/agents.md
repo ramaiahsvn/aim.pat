@@ -34,7 +34,8 @@
 | 009  | na-003 | bnprs-lib-forge | Shared Library Package Registry & Distribution Manager (GitLab Generic, proj 230) | active | 2026-05-30 |
 | 010  | na-003 | bnprs-lib-multisdk | Native SDK Multi-Language Wrapper Builder (Maven/JNA, NuGet/P-Invoke, Go/purego) | active | 2026-06-01 |
 | 011  | na-003 | bnprs-lib-license | Shared Library Licensing & Activation Manager (hwid/appid, per-product, BprLicBase) | active | 2026-06-01 |
-| 012  | na-003 | bnprs-windows | Windows Endpoint and Remote Access Manager (OpenSSH/RDP/TeamViewer/SSM, JVM prereqs, PC-SC hosts) | active | 2026-08-11 |
+| 012  | na-003 | patwin-laptop | Windows Endpoint and Remote Access Manager (OpenSSH/RDP/TeamViewer/SSM, JVM prereqs, PC-SC hosts) | active | 2026-08-11 |
+| 013  | na-003 | bnprs-subdomains | DNS Subdomain Naming Standard & Provisioning Manager (bnprs.in, Route53/ACM/ALB host rules, sandbox-uat-prod) | active | 2026-08-13 |
 | 001  | na-004 | cpp-face | BprFace C++ Module (face detection, recognition, expression, action) | active | 2026-05-27 |
 | 002  | na-004 | cpp-finger | BprFinger C++ Module (Fjfx, Forg, M3gl, Nbis, Nfiq2, Nnmq) | active | 2026-05-27 |
 | 003  | na-004 | cpp-finger-cless | BprFingerCless C++ Module (contactless fingerprint preprocessing) | active | 2026-05-27 |
@@ -207,7 +208,7 @@
 |-------|----|------|-----|
 | na-001-personal          | na-001 | 6  | 255 |
 | na-002-bnprs-core        | na-002 | 10 | 255 |
-| na-003-bnprs-infra       | na-003 | 11 | 255 |
+| na-003-bnprs-infra       | na-003 | 13 | 255 |
 | na-004-bnprs-biometrics  | na-004 | 12 | 255 |
 | na-005-bnprs-fintech     | na-005 | 12 | 255 |
 | na-006-bnprs-deployments | na-006 | 7  | 255 |
@@ -228,6 +229,9 @@
 | na-003/010 bnprs-lib-multisdk | na-003/009 bnprs-lib-forge | Source of native binaries (Generic registry proj 230); lib-forge publishes the wrapper packages it builds |
 | na-003/010 bnprs-lib-multisdk | na-004 / na-005 domain agents | They build the native lib and own its version / source commit |
 | na-003/011 bnprs-lib-license | bpr.cpp BprCrypt / BprUtils | Crypto + hex/string primitives the BprLicense code calls |
+| na-003/013 bnprs-subdomains | na-003/002 bnprs-aws-itp | Route53 / ACM / ALB changes in 819144294008; and finding the account that holds the bnprs.in apex zone |
+| na-003/013 bnprs-subdomains | na-003/005 bnprs-websites | Registrar and domain-level ownership context for bnprs.in |
+| na-009 product agents | na-003/013 bnprs-subdomains | Own their services; this agent owns the hostnames those services are published under |
 | na-003/011 bnprs-lib-license | na-004 / na-005 domain agents | They build the libs that link BprLicBase and gate on its verification |
 | na-003/011 bnprs-lib-license | na-003/009 bnprs-lib-forge | Publishes BprLicBase to the registry like any other lib |
 
