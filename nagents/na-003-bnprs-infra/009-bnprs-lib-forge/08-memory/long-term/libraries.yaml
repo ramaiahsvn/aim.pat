@@ -703,8 +703,53 @@ published:
     note: >-
       NO Maven/NuGet wrapper yet, and neither has BprVideo — generic only. They never had one, so
       this is new work rather than a rebuild.
+  - package: "BprVideo"
+    package_type: "generic"
+    version: "2.60.1"
+    project_id: 230
+    source_commit: "b12332d"
+    published_at: "2026-08-01T17:04:37Z"
+    platforms: [macos, linux-x64, linux-arm64, windows-64, windows-32]
+    supersedes: "2.60.0"
+    abi: "3 exports — Bpr_FaceVideo_Streaming, Bpr_Video_ProbeSource, Bpr_Video_Version. No models, no licence gate."
+    why_a_rebuild: >-
+      SYMBOL HARDENING, not an API change — the export LIST is identical to 2.60.0's. 2.60.0 still
+      re-exported static OpenCV, so the artifact carried ~1327 exports of which 3 were ours. 2.60.1
+      carries exactly 3. This is the release that makes the overlap table below true.
+  - package: "BprVision"
+    package_type: "generic"
+    version: "2.61.1"
+    project_id: 230
+    source_commit: "b12332d"
+    published_at: "2026-08-01T17:05:20Z"
+    platforms: [macos, linux-x64, linux-arm64, windows-64, windows-32]
+    supersedes: "2.61.0"
+    abi: "10 exports — 8 smoke/fight + Bpr_Vision_Version + Bpr_FaceVideo_Streaming. Ships models m10005/m10006."
+    why_a_rebuild: >-
+      Same hardening as BprVideo 2.60.1. 2.61.0 carried ~2545 exports of which 10 were ours; 2.61.1
+      carries exactly 10.
   - cross_cutting_warning: >-
-      BprFace, BprVideo, BprVision and BprIDEngine SHARE symbols by design.
-      Bpr_FaceVideo_Streaming is in the first three; the smoke/fight eight are in BprVision and
-      BprIDEngine. LOAD EXACTLY ONE per process — two give an undefined winner while both report
-      plausible versions. API spec: na-004/001 deliverables/2026-08-01-bprface-bprvideo-bprvision-api.md
+      CORRECTED 2026-08-14 — the previous text was wrong in two ways and would have made a caller
+      refuse a valid pairing. It said "BprFace, BprVideo, BprVision and BprIDEngine SHARE symbols
+      by design … LOAD EXACTLY ONE per process", and that Bpr_FaceVideo_Streaming was in the first
+      three. BOTH describe BprFace 2.24.116. BprFace 2.24.117 SHED the video and smoke/fight entry
+      points — as this file's own 2.24.117 entry records — so it does not export
+      Bpr_FaceVideo_Streaming at all and shares NOTHING with the other two.
+      MEASURED 2026-08-14 with nm -gU on the published macOS artifacts:
+      BprFace 2.24.117 ∩ BprVideo 2.60.1 = 0 symbols;
+      BprFace 2.24.117 ∩ BprVision 2.61.1 = 0 symbols;
+      BprVideo 2.60.1 ∩ BprVision 2.61.1 = 1 symbol, Bpr_FaceVideo_Streaming.
+      So BprFace PAIRS SAFELY with either. Only BprVideo and BprVision genuinely collide, on that
+      one symbol, and a P/Invoke or JNA host binds per (library, symbol) so even that resolves
+      deterministically — the real hazard is a host that dlopens both with RTLD_GLOBAL.
+      THE RULE IS VERSION-DEPENDENT, WHICH IS WHY IT WENT STALE. At 2.60.0/2.61.0 the libraries
+      still re-exported static OpenCV: ~1327 and ~2545 exports with ~1325 shared (≈1060 cv::
+      functions plus libwebp SharpYuv*/WebP* and C++ runtime), and on ELF the first library loaded
+      wins all of them by interposition, silently. "Load exactly one" was CORRECT for .0 and is
+      WRONG for .1. Never quote an overlap figure without the version it was measured on.
+      STILL TRUE FOR BprIDEngine: it carries every modality plus the streaming extension — do not
+      pair it with a per-modality library.
+      API spec: na-004/001 deliverables/2026-08-01-bprface-bprvideo-bprvision-api.md (corrected in
+      bpr.cpp-side commit 7e39867 on 2026-08-03 — that correction never reached this file, which is
+      how the stale warning survived; propagate to all three homes: 001's deliverables, this file,
+      and na-004/009 cpp-video's nucleus).
