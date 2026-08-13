@@ -45,18 +45,19 @@ tasks:
   - id: "task-013"
     subject: "Settle whether 'Sprints' is ours or Zoho's before creating bna-sprints-*"
     description: >-
-      projects.bnprs.in is ALREADY LIVE as a CNAME to projects.cs.zohohost.com — Zoho
-      Projects — and people.bnprs.in likewise points at Zoho People. The BNA sub-project is
-      called "Sprints", the live ITP host it supposedly replaces is
-      projects.uat.itpgateway.com, and Zoho also sells Zoho Sprints. So "Sprints" may be a
-      Zoho-hosted product reached at a Zoho hostname rather than something we serve behind
-      bna-sprints-portal-*. Do not create any bna-sprints-* record until this is answered.
+      The NAME CLASH IS GONE — projects.bnprs.in and people.bnprs.in were deleted
+      2026-08-13 (see registry `retired:`), so both names are free. Downgraded from
+      blocking to open, because the identity question survives the deletion: is BNA's
+      "Sprints" our own service or Zoho Sprints? The live ITP host the sub-project
+      supposedly replaces is projects.uat.itpgateway.com, and Zoho sells both Projects and
+      Sprints. Pointing bna-sprints-portal-* at something we do not host would be wrong,
+      so answer this before creating those three records — but it no longer blocks the
+      erp/chat halves of task-011.
     status: pending
-    priority: high
+    priority: medium
     created_at: "2026-08-13"
-    blocks: ["task-011"]
     estimated_steps: 2
-    tags: [projects-vs-sprints, zoho, name-already-taken, blocks-bna-sprints]
+    tags: [projects-vs-sprints, zoho, clash-resolved-by-deletion, identity-still-open]
 
   - id: "task-014"
     subject: "mGate: keep the live hierarchical names, or migrate to the flat scheme?"

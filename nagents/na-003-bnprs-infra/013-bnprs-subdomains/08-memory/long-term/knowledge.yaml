@@ -234,6 +234,39 @@ memories:
            cost-is-auth-config-not-dns, 18-hostnames-for-bna, nagent-renamed-bna,
            d2-and-d3-resolved, projects-vs-sprints-unconfirmed]
 
+  - id: mem-009
+    type: technical_knowledge
+    content: >-
+      A SaaS VANITY CNAME THAT RESOLVES IS NOT A WORKING ENDPOINT — CHECK THE CERTIFICATE IT
+      SERVES. Found 2026-08-13 on projects.bnprs.in and people.bnprs.in (CNAMEs to
+      projects.cs.zohohost.com / people.cs.zohohost.com). Both resolved and Zoho ANSWERED
+      with a 302, so every cheap check said "working". But neither had a certificate for its
+      own name — Zoho's shared front end presented OTHER TENANTS' certs:
+      CN=projects.mysanitas.com for ours, and CN=hrportal.bulldog24x7.com for people. So a
+      browser hit a cert error before any page rendered. Nobody had been using them.
+      THE DIAGNOSTIC TELL for an unmapped Zoho custom domain: the redirect goes to
+      accounts.zoho.com/signin with servicename=NULL and serviceurl set to the GENERIC
+      product URL (projects.zoho.com). servicename=null means Zoho does not recognise the
+      hostname as a mapped custom domain. The DNS side had been done and the SaaS side never
+      was — a half-finished integration that looks live from the registrar's point of view.
+      GENERAL RULE, and it is the same lesson as the dangling smartpresence ALIAS: an HTTP
+      status proves something answered, not that YOUR hostname works. For any third-party
+      SaaS vanity name, verify the served certificate's subject matches the name you asked
+      for. openssl s_client -connect <h>:443 -servername <h> | openssl x509 -noout -subject.
+      DELETING ZOHO RECORDS — WHAT NOT TO TOUCH: the zone's Zoho MAIL plumbing is in active
+      use (MX mx.zoho.com, SPF include:zoho.com, DKIM, DMARC) and zb93244321.bnprs.in ->
+      zmverify.zoho.com is the DOMAIN-VERIFICATION record underpinning it. Removing that
+      could put domain ownership, and therefore mail, at risk. Vanity product CNAMEs are
+      safe to remove; verification and mail records are not.
+    created_at: "2026-08-13"
+    last_accessed: "2026-08-13"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-13"
+    tags: [resolves-is-not-working, check-the-served-cert, zoho-vanity-cname,
+           other-tenants-cert, servicename-null-means-unmapped, dns-done-saas-not,
+           never-delete-zmverify-or-mail-records, same-lesson-as-dangling-alias]
+
 # Pruning rules
 pruning:
   max_entries: 500

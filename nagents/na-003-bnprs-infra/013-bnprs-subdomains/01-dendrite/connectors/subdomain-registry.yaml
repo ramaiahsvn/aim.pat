@@ -452,19 +452,20 @@ faults:
     raised: "2026-08-13"
 
   - class: "name-already-taken"
-    host: "projects.bnprs.in"
-    status: live
-    detail: >-
-      Already a CNAME to projects.cs.zohohost.com — ZOHO PROJECTS. Sibling:
-      people.bnprs.in -> people.cs.zohohost.com (Zoho People).
-    why_it_matters: >-
-      This lands directly on the unconfirmed sprints assumption. The BNA sub-project is
-      called "Sprints" and the live ITP host it supposedly replaces is
-      projects.uat.itpgateway.com — but "projects" in THIS zone is Zoho Projects, and Zoho
-      also sells Zoho Sprints. So "Sprints" may be a Zoho product reached at a Zoho
-      hostname, NOT something we host behind bna-sprints-portal-*. Settle before creating
-      any bna-sprints-* record: is Sprints ours or Zoho's?
-    raised: "2026-08-13"
+    hosts: ["projects.bnprs.in", "people.bnprs.in"]
+    status: RESOLVED
+    resolved_at: "2026-08-13"
+    resolution: >-
+      Both records DELETED (user instruction) — see the `retired:` block for the exact
+      definitions and the rollback. Both names are now FREE, so the collision is gone.
+      They were already NON-FUNCTIONAL, which is why removing them broke nothing: see
+      retired[].evidence.
+    residual_question: >-
+      The sprints IDENTITY question survives the deletion, downgraded from blocking to
+      open: is BNA's "Sprints" our own service, or Zoho Sprints? The live ITP host the
+      sub-project supposedly replaces is projects.uat.itpgateway.com, and Zoho sells both
+      Projects and Sprints. It no longer blocks bna-sprints-* on a name clash, but
+      pointing a bna-sprints-portal record at something we do not host would be wrong.
 
   - class: "scheme-collision"
     hosts: ["mgate.bnprs.in", "api.mgate.bnprs.in", "portal-api.mgate.bnprs.in"]
@@ -509,6 +510,38 @@ faults:
       An ALB rule is invisible until DNS exists; this reads as "provisioned" on
       the AWS side while every client fails at resolution.
     raised: "2026-08-13"
+
+# ---- RETIRED — deleted deliberately. NEVER silently reuse these names. --
+# A reused hostname inherits every stale cache, bookmark, allow-list and OIDC
+# redirect of its predecessor, which is why they are recorded rather than dropped.
+retired:
+
+  - hosts: ["projects.bnprs.in", "people.bnprs.in"]
+    deleted_at: "2026-08-13"
+    deleted_by: "na-003/013 bnprs-subdomains, on user instruction"
+    zone: "Z04234212M3SJ07Y70SGQ (bnprs.in, acct 891963159778)"
+    change_id: "/change/C0491063MAJV8F82MMRN (INSYNC)"
+    was:
+      - { name: "projects.bnprs.in.", type: CNAME, ttl: 14400, value: "projects.cs.zohohost.com" }
+      - { name: "people.bnprs.in.",   type: CNAME, ttl: 14400, value: "people.cs.zohohost.com" }
+    evidence: >-
+      VERIFIED BROKEN BEFORE DELETION — this is why nothing broke. Both names resolved and
+      Zoho answered, but neither had a valid certificate for its own name; Zoho's shared
+      front end served OTHER TENANTS' certs: projects.bnprs.in got CN=projects.mysanitas.com
+      and people.bnprs.in got CN=hrportal.bulldog24x7.com. So every browser hit a
+      certificate error before any page loaded. projects.bnprs.in also redirected to
+      accounts.zoho.com/signin with servicename=NULL and serviceurl=projects.zoho.com,
+      which is Zoho's way of saying the hostname is not a mapped custom domain. The Zoho
+      custom-domain mapping was evidently never completed, or was withdrawn on Zoho's side.
+    deliberately_kept: >-
+      zb93244321.bnprs.in -> zmverify.zoho.com was NOT deleted. It is the Zoho
+      DOMAIN-VERIFICATION record, and the zone's MX (mx.zoho.com), SPF (include:zoho.com)
+      and DKIM records show Zoho Mail is in active use. Removing it could put domain
+      ownership — and therefore mail — at risk. Leave it alone.
+    rollback: >-
+      Re-create both CNAMEs exactly as listed in `was` above. Note that a rollback restores
+      the RECORDS but not the function: the Zoho custom-domain mapping would also have to be
+      completed on the Zoho side for these names to actually serve, which it never was.
 
 # ---- OPEN DECISIONS — these block provisioning --------------------------
 decisions:
