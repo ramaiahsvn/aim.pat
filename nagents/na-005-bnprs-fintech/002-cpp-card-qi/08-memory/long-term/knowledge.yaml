@@ -282,6 +282,49 @@ memories:
            raspberry-accept-list-masks-failure, 007C-biometric-writes, skipped-last-4,
            javacard-hypothesis-disproven]
 
+  - id: mem-010
+    type: operation
+    content: >-
+      2026-08-14 RELEASE 2.22.36 — SKIP THE PRE-PERSO UNLOCK (APDU 0) SO AN ALREADY-PERSONALISED
+      CARD CAN BE DRIVEN FURTHER. Built from bpr.cpp main (parent faca401), published to
+      Z_RELEASE/TRP1002-cPerso/BprQiScript.2/_GnD/2.22.36/.
+      WHAT CHANGED: a build-time constant `kSkippedApdus` in qiscript_jni.cpp, currently { 0 }.
+      Index 0 is 903C000010, 22 bytes — the vendor pre-perso UNLOCK carrying a fixed 16-byte
+      payload. It moves a VIRGIN card into the state where files may be created, so an already
+      personalised card is past that lifecycle stage and answers 6900 COMMAND NOT ALLOWED (see
+      [[mem-009]]). Skipping it is only meaningful on a used card; on a virgin card it would be
+      wrong. Skips are checked AFTER hex parsing so the withheld command's header and length are
+      logged like any other, at WARNING, and the run-end summary names the skipped index and states
+      that returning 0 means "nothing fatal was returned", NOT that the card is personalised.
+      THE REQUEST ORIGINALLY INCLUDED INDEX 118 AND THAT WAS WITHDRAWN ON EVIDENCE. A native
+      macOS harness over apdu_qi_write_central_perso_gnd.cpp (no card needed — the script is pure
+      computation) printed the index map and showed 118 = 007C00006C, 114 bytes: the FIRST of the
+      five biometric writes at 118-122 sourced from qiscript.c.perso-bio.dat. Skipping it would
+      have truncated the biometric payload by one fifth and produced incomplete cards by
+      construction. User chose index 0 only once shown. KEEP THAT HARNESS HABIT: dump the index map
+      before skipping anything — index numbers alone say nothing about what a command does.
+      WHAT SKIPPING 0 DOES NOT BUY: the card is still not provably complete. Index 3 (80E0 CREATE
+      FILE) returned 6A89 FILE ALREADY EXISTS on the test card, and the 2.22.35 accept-list still
+      tolerates 67xx/69xx, so a 0 return remains weak evidence. Read the card back.
+      SHA256 (windows-32 / windows-64):
+        2.22.36  8cf5d06b2070811bb7fa21921889cae6c0f7afcc6053deffc81475ab029f8470
+                 5fffbf9e1b78c57cdc3972126a9fea968a2e8a48e101157420ff92a828fda867
+      VERIFIED AT THE DESTINATION, not just at the build: published DLL hashes re-read from
+      WorkDrive match the built ones, both differ from 2.22.35 (so they really were replaced), and
+      the five inputs — ErrorCodes, qiScript.java, com_bnprs_jni_qiScript.h, qiscript.c.perso-bio.dat,
+      qiscript.ini — are byte-identical to 2.22.35, so the library is the only change.
+      windows-32 exports BOTH Java_com_bnprs_jni_qiScript_qiCardTransmit and ...@36, so the
+      __stdcall fix from [[mem-007]] survives; imports unchanged (WinSCard + CRT), still a drop-in.
+      Release folder is BINARIES ONLY per [[mem-008]] — no README.md, no SHA256SUMS.txt.
+      STILL TRUE: windows-32 HAS NEVER BEEN EXECUTED (no 32-bit JVM on MCES2), and no successful
+      end-to-end perso has been observed on any host.
+    created_at: "2026-08-14"
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [2.22.36, skip-apdu, kSkippedApdus, 903C-preperso-unlock, 6900, already-personalised-card,
+           index-118-is-biometric, native-harness-index-map, dump-before-skipping, workdrive-release,
+           binaries-only, verified-at-destination, windows-32-still-unexecuted]
+
 # Pruning rules
 pruning:
   max_entries: 500
