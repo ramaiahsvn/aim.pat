@@ -290,6 +290,15 @@ memories:
       tunnel is proven working, but cross-network reachability follows from the design, NOT from an
       observed off-subnet connection. Keep that distinction if it is ever audited — and confirm it
       the next time pat-m4p is genuinely off-subnet.
+      KEY EXPIRY DISABLED on BOTH nodes, 2026-08-14 — verified from the nodes, not the admin UI
+      (tailscale status --json -> Self/Peer KeyExpiry is null when disabled). This was the single
+      biggest standing risk for a user who travels: node keys default to expiring (these were set
+      for 2027-02-10) and re-authentication happens AT THE PHYSICAL CONSOLE via Google SSO, so an
+      expiry while abroad means no SSH and no way to fix it remotely. Do NOT re-raise this as an
+      open risk. GOTCHA IF IT EVER NEEDS REDOING: the admin console's Settings -> Device management
+      -> "Key Expiry" field is the TAILNET-WIDE DEFAULT and is capped at 1-180 days — it cannot
+      express "never". Disabling is PER DEVICE: Machines page -> the row's trailing "..." menu ->
+      Disable key expiry, once per node. The row then reads "Expiry disabled" instead of a date.
       ALSO SETTLED: TeamViewer CANNOT be driven from this Mac by any route. The desktop app has no
       macOS GUI control available, and the web-client angle is dead too — list_connected_browsers
       returned empty, no Chrome extension connected. TeamViewer stays a human-only fallback, which
