@@ -439,20 +439,54 @@ memories:
       scheduled task as SYSTEM (`schtasks /create ... /ru SYSTEM /rl HIGHEST /f` then
       `schtasks /run`). Also note Tee-Object writes the log as UTF-16, so a plain `grep DONE`
       over `type <log>` never matches — read it accordingly.
-      TO FINISH THIS: install Lenovo System Interface Foundation (Lenovo doc ID DS105970), which
-      realistically means downloading it in a BROWSER on MCES2, since scripted fetches are blocked.
-      Then the threshold is settable in Commercial Vantage, and probably from a shell via the
-      ThinkBatteryHelper policy key — confirm the exact value names against Lenovo documentation
-      rather than guessing at registry writes on a Kaspersky-managed endpoint.
-      NO RESIDUE LEFT: the staged C:\Windows\Temp\sif-install.ps1, its log, and the sif-install
-      scheduled task were all removed. The one lasting change is the Lenovo System Driver Update.
+      RESOLVED LATER THE SAME DAY, AND THE WHOLE SIF PREMISE ABOVE WAS WRONG. This model does not
+      use ImController/SIF at all. It uses LENOVO UNIVERSAL DEVICE CLIENT (UDC) — udc26605wx64
+      v26.6.0.5, ALREADY INSTALLED since 2026-07-27, UDCService running — which Lenovo documents as
+      required wherever Commercial Vantage is installed. The Power and Battery Driver and Power
+      Management Driver were already installed too. Nothing needed installing; the feature was
+      there the whole time. Chasing SIF (doc DS105970, now a dead page) was chasing the previous
+      generation's mechanism.
+      HOW THE ANSWER WAS ACTUALLY FOUND: `tvsu.exe /CM -search A -action LIST -exporttowmi` from
+      Lenovo System Update populates root\Lenovo:Lenovo_Updates with every applicable package AND
+      its Status. READ THE Status FIELD — the list includes AlreadyInstalled entries, and misreading
+      it as a to-install list is what made UDC look like the missing piece when it was already
+      present. That WMI dump is the fastest way to see this machine's true software inventory.
+      AND THE THRESHOLD WAS ALREADY PROTECTED: Vantage had ADAPTIVE/SMART charging enabled —
+      100% during active hours, capped at 80% during inactive hours. So the big win (100 -> 80) was
+      in place before any of this started; the remaining 80 -> 60 was a marginal optimisation.
+      Check what is already configured BEFORE hunting for a way to configure it.
+      SETTINGS NOW: user switched to the custom threshold, start 55% / stop 60%, in the Vantage GUI
+      (2026-08-14). Rationale: calendar aging flattens around 50-60% SoC; 60% still leaves usable
+      ride-through if mains drops, which matters because this battery is the de-facto UPS for the
+      only remote access to the box; a 5-point gap avoids constant micro-cycling.
+      WHERE IT IS *NOT* STORED: HKLM\SOFTWARE\WOW6432Node\Lenovo\PWRMGRV\Data has
+      ChargeStartControl / ChargeStopControl / ChargeStartPercentage / ChargeStopPercentage, and
+      they ALL REMAIN 0 after the GUI change. That is the LEGACY Power Manager store and is
+      vestigial on this model — the threshold lives in the EMBEDDED CONTROLLER. Writing those four
+      values from a shell would have read back perfectly and done absolutely nothing. Do not use
+      them as either the setter or the check.
+      Also present but a red herring: HKLM\SOFTWARE\Policies\Lenovo\ImController\Plugins\
+      ThinkBatteryPlugin with Imc-Block=1. It is a policy-store value and ImController is not even
+      installed, so it governs nothing here. Note the name is ThinkBatteryPlugin, NOT
+      ThinkBatteryHelper — an earlier sweep missed it by grepping the wrong name.
+      VERIFICATION IS BEHAVIOURAL, NOT A READ. There is no registry or WMI value to confirm this.
+      The only proof is the charge level walking down off 100% toward 60% over the following DAYS
+      (on AC it stops charging and self-discharges slowly; it does not dump charge). Baseline at
+      time of change: 100%, Win32_Battery BatteryStatus=2. Windows reporting "plugged in, not
+      charging" at the ceiling is the feature working, not a fault.
+      NO RESIDUE LEFT from the SIF detour: staged C:\Windows\Temp\sif-install.ps1, its log, and the
+      sif-install scheduled task all removed. Two lasting changes to the host, both benign: the
+      Lenovo System Driver Update (installed on the wrong inference) and Lenovo System Update
+      itself (Lenovo.SystemUpdate via winget), which is genuinely useful for patching this machine
+      and whose tvsu WMI export is now the inventory tool of choice.
     created_at: "2026-08-14"
     confidence: 1.0
     source: "session-2026-08-14"
     tags: [mces2, thinkpad-e16-gen3, battery-charge-threshold, system-interface-foundation,
            imcontroller-absent, thinkbatteryhelper, commercial-vantage, lenovo-403-bot-protection,
            windows-update-remote-access-denied, schtasks-system-workaround, battery-health-104pct,
-           version-shape-is-not-identification, incomplete]
+           version-shape-is-not-identification, udc-not-sif, adaptive-charging-was-already-on,
+           pwrmgrv-is-vestigial, threshold-lives-in-ec, verification-is-behavioural, custom-55-60]
 
 # Pruning rules
 pruning:
