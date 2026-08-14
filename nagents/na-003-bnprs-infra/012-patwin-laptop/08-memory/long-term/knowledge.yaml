@@ -261,11 +261,16 @@ memories:
       (most moving parts, needs inbound 22 somewhere).
       ADDRESSES AND FLAGS LIVE IN windows-hosts.yaml, NOT HERE. What belongs here is the reasoning.
       TWO TRAPS WORTH KEEPING:
-        (1) `winget install --id tailscale.tailscale` returns "No package found matching input
-            criteria" on MCES2 — the winget source index is missing/stale on that box even though
-            winget itself is present (see [[mem-011]], which recorded winget as available and was
-            right about the binary, not the index). Do not conclude the package ID is wrong. Fall
-            back to the vendor MSI: pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi via
+        (1) `winget install --id tailscale.tailscale --exact` returns "No package found matching
+            input criteria" on MCES2. CORRECTED 2026-08-14 LATER THE SAME DAY — the first
+            diagnosis written here ("the winget source index is missing/stale") was WRONG. winget
+            is entirely healthy on this box: `winget source update` reports Done for all three
+            sources and `winget search tailscale` finds the package. The real cause is CASE:
+            with `--exact`, winget matches the ID case-sensitively, and the true ID is
+            `Tailscale.Tailscale`, not `tailscale.tailscale`. Search first, copy the ID exactly,
+            or drop `--exact`. The MSI fallback below still works and is still fine to use, but
+            do not carry the "winget is broken on MCES2" belief forward — it is not.
+            Vendor MSI: pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi via
             Invoke-WebRequest + `msiexec /i /quiet /norestart`. MCES2 is AMD64. Set
             $ProgressPreference='SilentlyContinue' or PS 5.1's progress bar makes the download crawl.
             07-axon-terminals/deliverables/tailscale-bootstrap/mces2-tailscale.ps1 now tries winget,
@@ -353,6 +358,101 @@ memories:
     source: "session-2026-08-13"
     tags: [mces2, winget, elevated-ssh, per-user-package, rustup-self-uninstall, vswhere,
            visual-studio-18, ascii-only-scripts, no-protecttoolkit, cleanup-verified]
+
+  - id: mem-013
+    type: incident_learning
+    content: >-
+      2026-08-14 WINDOWS FIREWALL IS NOT THE CONTROL PLANE ON MCES2 — KASPERSKY IS.
+      Attempted to restrict inbound SSH to the tailnet by scoping the two inbound port-22 allow
+      rules (OpenSSH-Server-In-TCP, profile Private; and sshd, profile Any) to RemoteAddress
+      100.64.0.0/10. EVERY STATUS SIGNAL SAID IT WORKED: netsh reported State ON and
+      BlockInbound,AllowOutbound on all three profiles; Get-NetFirewallAddressFilter read back
+      100.64.0.0/255.192.0.0 on both rules; no other enabled inbound allow rule covered TCP/22.
+      IT DID NOTHING. A full SSH handshake to the LAN address still authenticated and returned
+      MCES2. Root cause: `Get-CimInstance -Namespace root/SecurityCenter2 -ClassName FirewallProduct`
+      reports "Kaspersky Endpoint Security for Windows" (14.0, productState 266240) as the
+      REGISTERED FIREWALL PRODUCT, with AVP.KES.14.0 and klnagent running. Kaspersky is the
+      effective packet filter; Windows Firewall rules are inert for inbound port control here.
+      klnagent = Kaspersky Security Center network agent, so the endpoint is CENTRALLY MANAGED —
+      firewall policy comes from an admin server, and any local change is the wrong lever and may
+      be overridden anyway. Restricting network access on this box is a KSC policy change, i.e. a
+      request to whoever administers Kaspersky, not something to do from a shell.
+      THE REUSABLE LESSON, and it is exactly this agent's core directive: CHECK THE REGISTERED
+      FIREWALL PRODUCT BEFORE TOUCHING WINDOWS FIREWALL ON ANY MANAGED ENDPOINT. Read-back of a
+      firewall rule proves the rule was STORED, not that it is ENFORCED. The only thing that
+      settled it was an end-to-end connection attempt from the network that was supposed to be
+      blocked. Never accept a rule read-back as proof of enforcement.
+      STATE LEFT BEHIND: NONE. Both rules restored to RemoteAddress Any, the 10-minute
+      self-rollback scheduled task ('ssh-fw-rollback', registered as a safety net before the
+      change) deleted, and both paths re-verified. Note `Unregister-ScheduledTask -Confirm:$false`
+      loses its flag through SSH quoting and silently leaves the task in place — `schtasks /delete
+      /tn <name> /f` is the reliable form over SSH.
+      IF LAN EXPOSURE STILL NEEDS CLOSING, the only host-local lever that does not depend on a
+      firewall is `ListenAddress 100.92.81.14` in sshd_config — sshd then never binds the LAN
+      address, so there is nothing for Kaspersky to permit. That was rejected earlier in this
+      session for a real reason: sshd and Tailscale are BOTH StartType Automatic with no ordering
+      guarantee, so on reboot sshd can start before the 100.x address exists, fail to bind, and
+      leave the box with no SSH at all. If it is ever taken, pair it with `sc config sshd depend=
+      Tailscale` AND service failure-recovery (auto-restart) so a lost race self-heals.
+    created_at: "2026-08-14"
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [mces2, kaspersky-kes-14, registered-firewall-product, securitycenter2, windows-firewall-inert,
+           centrally-managed-endpoint, klnagent, readback-is-not-enforcement, verify-end-to-end,
+           schtasks-delete-over-ssh, listenaddress-boot-race, no-state-left-behind]
+
+  - id: mem-014
+    type: operation
+    content: >-
+      2026-08-14 BATTERY CHARGE THRESHOLD ON MCES2 — ATTEMPTED, NOT ACHIEVED. Goal: cap charging
+      at 55/60% because the machine now lives permanently on AC as a remote-access host, and a
+      Li-ion cell held at 100% ages faster.
+      HARDWARE: ThinkPad E16 Gen 3, machine type 21SR005MGR, BIOS R30ET37W(1.11). Battery is
+      effectively NEW — designed 48000 mWh, full charge 50230 mWh (104.6% of design), 4 cycles.
+      Nothing has degraded yet, so this is preventative, not remedial, and NOT urgent.
+      WHY IT COULD NOT BE DONE: the charge threshold on ThinkPads is implemented by the
+      ThinkBatteryHelper plugin of LENOVO SYSTEM INTERFACE FOUNDATION (the ImController service),
+      and SIF IS NOT INSTALLED on this box. Verified four ways: no ImController/LenovoSystemInterface
+      service, no ImController directory under Program Files\Lenovo, the
+      HKLM\SOFTWARE\Policies\Lenovo\ImController\Plugins\ThinkBatteryHelper policy key is absent,
+      and the FULL Lenovo_BiosSetting list contains no threshold entry (only `ChargeInBatteryMode`,
+      which is a different feature — whether it charges from a dock in battery mode). Commercial
+      Vantage IS installed (E046963F.LenovoSettingsforEnterprise v20.2606.20.0) but its battery
+      feature depends on SIF, so the control does not appear. root\Lenovo namespace exists but
+      carries only standard CIM/system classes, no Lenovo battery classes.
+      ROUTES TRIED AND WHY THEY FAILED:
+        * winget — no System Interface Foundation package exists in the catalog at all.
+        * Direct download from Lenovo — support.lenovo.com and pcsupport.lenovo.com return 403 to
+          scripted requests BOTH from the Mac's fetch tool AND from Invoke-WebRequest on MCES2
+          itself (Akamai bot protection, possibly plus Kaspersky web filtering). A real browser on
+          the box would pass; a script will not.
+        * Windows Update — SIF is not offered. Two Lenovo updates were on offer: "Lenovo Ltd.
+          Firmware Driver Update (1.0.0.55)", deliberately NOT installed (flashing firmware on a
+          perso station is not an acceptable side effect of a battery setting), and "Lenovo System
+          Driver Update (10.17.2606.3)", which WAS installed on the assumption the 10.x version
+          scheme meant SIF. IT DID NOT BRING SIF — it added LenovoSmartStandby and LenovoBrightCtrl
+          instead. Installed cleanly (result 2, no reboot required), harmless, but it was not the
+          target. Do not repeat that inference: version-number shape is not identification.
+      A WINDOWS UPDATE TRAP WORTH KEEPING: IUpdateInstaller::Install fails with a bare
+      "Access is denied." when called over SSH — the Windows Update Agent refuses to install from
+      a REMOTE session. Workaround that works: stage the script, then run it from a local
+      scheduled task as SYSTEM (`schtasks /create ... /ru SYSTEM /rl HIGHEST /f` then
+      `schtasks /run`). Also note Tee-Object writes the log as UTF-16, so a plain `grep DONE`
+      over `type <log>` never matches — read it accordingly.
+      TO FINISH THIS: install Lenovo System Interface Foundation (Lenovo doc ID DS105970), which
+      realistically means downloading it in a BROWSER on MCES2, since scripted fetches are blocked.
+      Then the threshold is settable in Commercial Vantage, and probably from a shell via the
+      ThinkBatteryHelper policy key — confirm the exact value names against Lenovo documentation
+      rather than guessing at registry writes on a Kaspersky-managed endpoint.
+      NO RESIDUE LEFT: the staged C:\Windows\Temp\sif-install.ps1, its log, and the sif-install
+      scheduled task were all removed. The one lasting change is the Lenovo System Driver Update.
+    created_at: "2026-08-14"
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [mces2, thinkpad-e16-gen3, battery-charge-threshold, system-interface-foundation,
+           imcontroller-absent, thinkbatteryhelper, commercial-vantage, lenovo-403-bot-protection,
+           windows-update-remote-access-denied, schtasks-system-workaround, battery-health-104pct,
+           version-shape-is-not-identification, incomplete]
 
 # Pruning rules
 pruning:
