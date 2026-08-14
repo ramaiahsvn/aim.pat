@@ -285,11 +285,17 @@ memories:
       is the wrong place to discover a DNS change broke something) — the CONSEQUENCE is that the
       MagicDNS name `mces2` does NOT resolve, so the 100.x IP is the only working handle;
       --hostname to pin the node name.
-      NOT YET DEMONSTRATED: at the moment of verification pat-m4p had rejoined the LAN
-      (192.168.1.107), so `tailscale ping` reported the direct path "via 192.168.1.235:41641". The
-      tunnel is proven working, but cross-network reachability follows from the design, NOT from an
-      observed off-subnet connection. Keep that distinction if it is ever audited — and confirm it
-      the next time pat-m4p is genuinely off-subnet.
+      DEMONSTRATED 2026-08-14, off-subnet, end to end. First verification was inconclusive because
+      pat-m4p had rejoined the LAN (192.168.1.107) and `tailscale ping` took the direct path "via
+      192.168.1.235:41641" — proving the tunnel worked but NOT that it crossed networks. Retested
+      with pat-m4p on the iPhone hotspot (172.20.10.3/28) and it passed with a proper control:
+        1. TCP to the LAN address 192.168.1.235:22 -> UNREACHABLE (this is the control; without it
+           a success proves nothing, since a Mac on the same /24 reaches the box either way)
+        2. tailscale ping -> pong via 5.107.254.176:41641, 56ms — a PUBLIC endpoint, not the LAN one
+        3. win-ssh.sh --probe -> port 22 OPEN, banner SSH-2.0-OpenSSH_for_Windows_9.5
+        4. real command over SSH -> MCES2 / Windows 11 Pro / SCardSvr Running
+      THE REUSABLE BIT: when testing "works from a different network", always confirm the OLD path
+      is dead first. Otherwise you are only proving the host is up.
       KEY EXPIRY DISABLED on BOTH nodes, 2026-08-14 — verified from the nodes, not the admin UI
       (tailscale status --json -> Self/Peer KeyExpiry is null when disabled). This was the single
       biggest standing risk for a user who travels: node keys default to expiring (these were set
