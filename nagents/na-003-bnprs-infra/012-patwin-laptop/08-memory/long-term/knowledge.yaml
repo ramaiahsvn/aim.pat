@@ -554,14 +554,27 @@ memories:
       emits UTF-16 and makes a plain grep over `type <log>` never match.
       C: ENDED THE SESSION AT 51.46 GB free / 29.6%, from 13.3 GB / 7.8%. Windows.old (30.74 GB) is
       still present and is deliberately left for Windows to purge itself (~22 Aug).
-      E: IS NOT SCRATCH SPACE. 1863 GB WD My Passport over USB, 788 GB free. E:\Office holds
-      1036.72 GB in 601,614 files: BiometricData 707.48 GB, Datasets 267.48 GB, ramaiah.softwares
-      30.68 GB (67 files, so installers/ISOs), ramaiah.sdks_from laptop 16.44 GB, ramaiah.sdks
-      14.64 GB. $RECYCLE.BIN and found.000 are ~0 GB — found.000 was initially suspected as a space
-      hog and is NOT, though its existence means CHKDSK ran on this volume at some point. Because
-      it is USB, E: can vanish; never let a workflow assume it is mounted. Treat BiometricData as
-      sensitive per the nucleus guardrails, and note a .dropbox.device marker sits at the volume
-      root.
+      E: IS NOT SCRATCH SPACE — 1863 GB WD My Passport over USB. REORGANISED 2026-08-14; the layout
+      below supersedes the old E:\Office\BiometricData\ paths, which NO LONGER EXIST. Biometric
+      data now sits at the VOLUME ROOT, deliberately, to shorten paths (longest went 180 -> 159
+      chars; this machine has already hit the 260-char MAX_PATH limit once, see [[mem-011]]):
+        E:\face\{visible,masked,cross-spectral,hyperspectral}   102.74 GB      12 files
+        E:\multi-modal\Multi-modal-Cqi                          447.56 GB 148,549 files
+        E:\animal\sheep                                         145.29 GB   1,328 files
+        E:\finger-knuckle  14.41 GB   E:\finger-vein  0.51 GB   E:\_misc  3.29 GB
+        TOTAL 713.80 GB in 149,893 files
+      THREE DELIBERATE CHOICES: no palmprint folder (no palmprint data exists here);
+      cross-spectral kept as its own folder because the PolyU 7z archives could be iris OR
+      palmprint and it was not opened to find out — do not file it under a modality on a guess;
+      and Multi-modal-Cqi left INTACT because its face/iris/fingerprint are per-subject across
+      148,546 files, so splitting it means restructuring a dataset, not moving folders.
+      Also on E:: E:\Office\Datasets (267 GB) remains, $RECYCLE.BIN and found.000 are ~0 GB —
+      found.000 was suspected as a space hog and is NOT, though it means CHKDSK ran here once.
+      E:\Office\ramaiah.sdks, ramaiah.sdks_from laptop and ramaiah.softwares (61.76 GB total) were
+      DELETED BY THE USER on 2026-08-14, confirmed deliberate — do not flag as missing or restore.
+      Because it is USB, E: can vanish; never let a workflow assume it is mounted. Treat the
+      biometric data as sensitive per the nucleus guardrails, and note a .dropbox.device marker
+      sits at the volume root.
     created_at: "2026-08-14"
     confidence: 1.0
     source: "session-2026-08-14"
