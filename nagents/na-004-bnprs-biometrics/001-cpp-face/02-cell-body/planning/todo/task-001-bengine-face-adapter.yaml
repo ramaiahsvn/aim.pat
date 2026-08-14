@@ -99,11 +99,31 @@ task:
     silent no-op, so nobody can accidentally half-enable this. Remove that guard as part of the
     work, not before it.
 
-  status: blocked
+  resolution_2026_08_14: >-
+    DONE. The decision is written into na-004/007
+    07-axon-terminals/deliverables/bpridengine-library-architecture.md as a new section,
+    "Heavyweight and encumbered dependencies — the opt-in rule", plus Rule 6 in the Rules list.
+    Written as the RULE rather than as a T12 exception, per the note above: a variant with a
+    heavyweight or licence-encumbered dependency gets its own default-off option, and
+    BENGINE_BUILD_ALL never turns it on.
+    TWO THINGS IN THIS TASK FILE WERE STALE and were checked against the CMake before writing:
+      * "leaving only T13 iFace(InspireFace) without one" — WRONG as of 2026-08-14. T13 IS
+        adapted: src/adapters/face_inspire.cpp exists and CMakeLists.txt has a full
+        BENGINE_BUILD_FACE_T13 block with INSPIREFACE_ROOT discovery. ALL FIVE variants are
+        adapted; the option is off because the SDK is not vendored and ships no licence file.
+      * "BENGINE_BUILD_FACE is currently a deliberate configure-time FATAL_ERROR ... Remove that
+        guard as part of the work" — ALREADY GONE. It is now a normal option that builds the M11
+        matcher with no OpenCV. Nothing to remove.
+    WORTH RECORDING: four of the five variants are gated on LICENSING, not size (T13 SDK licence,
+    T14/T15 research-licensed checkpoints), so the rule is deliberately phrased around "can we
+    ship it?" rather than "is it big?". The mechanism only works because the registry is keyed on
+    TemplateId rather than Modality — Rule 4 is what makes Rule 6 possible.
+  status: completed
   priority: medium
   created_at: "2026-07-31"
+  completed_at: "2026-08-14"
   assigned_to: null
-  blocked_by: ["opencv-in-bpridengine-decision"]   # not a task id — an architectural decision
+  blocked_by: []   # was ["opencv-in-bpridengine-decision"] — that decision is now written down
   blocks: []
   estimated_steps: 2
   tags: [face, 4a, decision-only, m11-done, t12-done, bengine-adapter, opencv-decision, last-modality-in-gate, na-004-007, na-002]

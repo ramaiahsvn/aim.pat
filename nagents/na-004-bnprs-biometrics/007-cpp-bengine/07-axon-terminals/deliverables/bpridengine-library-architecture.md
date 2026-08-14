@@ -169,6 +169,62 @@ generalized ABI just makes it the parameter instead of part of the symbol name.
    `bengine_core`, or it stops being independently shippable.
 4. **New capability = new TID/MID**, never a new exported function.
 5. `extern "C"`, C types only across the boundary.
+6. **A variant with a heavyweight or licence-encumbered dependency gets its own default-off
+   option, and `BENGINE_BUILD_ALL` never turns it on.** See *Heavyweight and encumbered
+   dependencies* below. The consolidated library's dependency footprint is a property of the
+   default build, not of what happens to be enabled on someone's machine.
+
+## Heavyweight and encumbered dependencies — the opt-in rule
+
+*Decided 2026-08-14. Records the rule the code already follows; nothing here changes behaviour.*
+
+**The default consolidated `BprIDEngine` carries no OpenCV, and still matches faces.**
+
+That is the whole decision, and it is possible because modality 4A splits cleanly in two. The
+matcher **M11 sFace(pat-cosine)** is plain C++ — `BprUtils::computeCosineSimilarity_t11` in
+`AprCommon` — so `BENGINE_BUILD_FACE` adds face matching at zero dependency cost. Everything
+that needs OpenCV is an **extractor**, and every extractor sits behind its own option:
+
+| Option | Variant | Default | Why it is opt-in |
+|---|---|:--:|---|
+| `BENGINE_BUILD_FACE` | M11 sFace(pat-cosine) | OFF | none — pure C++, free to enable |
+| `BENGINE_BUILD_FACE_T12` | T12/M12 sFace(OpenCV) | OFF | **size** — OpenCV plus ONNX models not in git (~44 MB loose, 72 MB encrypted blob) |
+| `BENGINE_BUILD_FACE_T13` | T13/M13 iFace(InspireFace) | OFF | **licence** — SDK is not vendored and ships no licence file |
+| `BENGINE_BUILD_FACE_T14` | T14/M14 aFace(AdaFace-CCTV) | OFF | **licence** — research-licensed checkpoints that must not ship |
+| `BENGINE_BUILD_FACE_T15` | T15/M15 mFace(MagFace) | OFF | **licence** — as T14 |
+
+Three distinct reasons, one mechanism. That matters: the pattern is not an accommodation for
+OpenCV specifically, it is how a variant with *any* dependency the default build should not carry
+gets added. Note four of the five are gated on **licensing**, not size — so "is it big?" is the
+wrong question to ask of a new variant. Ask *"can we ship it?"*
+
+**`BENGINE_BUILD_ALL` means every modality that costs nothing to add.** It enables all six
+modalities — face contributes M11 — and deliberately does **not** enable `FACE_T12`, which the
+build announces at configure time rather than leaving to be discovered:
+
+```
+bengine: BUILD_ALL -> FACE(M11) + FINGER + FINGER_CLESS + PALMPRINT + IRIS + OTHERBIO
+bengine: BUILD_ALL does NOT enable FACE_T12 (OpenCV + ~70 MB of ONNX models)
+```
+
+**Why this is expressible at all:** the registry is keyed on **TemplateId, not Modality**. A
+modality can therefore land one variant at a time, and a variant can be withheld without
+withholding the modality. Rule 4 — new capability is a new TID/MID — is what makes rule 6
+possible.
+
+**Two constraints on anyone adding a variant:**
+
+1. **Any face variant implies `BENGINE_BUILD_FACE`.** One registrar per modality, so enabling
+   T12/T13/T14/T15 turns FACE on automatically and says so. Do not add a second registrar.
+2. **A missing dependency is a configure-time `FATAL_ERROR`, never a silent skip.** T12 fails if
+   its model directory is absent; T13 fails if the InspireFace SDK is not found under
+   `INSPIREFACE_ROOT`. A build either has the adapter or says why it does not — a library that
+   silently lacks a variant is indistinguishable from one where the variant is broken.
+
+**Consequence for releases.** The shipped `libBprIDEngine` is the default build: six modalities,
+seventeen symbols each, no OpenCV, no third-party runtime, nothing licence-encumbered. Enabling
+any `FACE_T1x` produces a binary that is **not** the release artefact, and for T13/T14/T15 not a
+distributable one at all. Keep them off in anything that leaves the building.
 
 ## Delivery order
 
