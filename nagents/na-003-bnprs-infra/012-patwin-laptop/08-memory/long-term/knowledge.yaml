@@ -503,6 +503,64 @@ memories:
            version-shape-is-not-identification, udc-not-sif, adaptive-charging-was-already-on,
            pwrmgrv-is-vestigial, threshold-lives-in-ec, verification-is-behavioural, custom-55-60]
 
+  - id: mem-015
+    type: technical_knowledge
+    content: >-
+      2026-08-14 MCES2 POWER, DISPLAY AND DISK — several corrections to earlier claims in this
+      session, plus the single most useful triage fact about this machine.
+      CLOSED LID KILLS TEAMVIEWER BUT NOT SSH. Reported symptom was "TeamViewer shows a black
+      screen". The machine was fine and had been reachable over SSH the entire time. Diagnosis
+      without touching it: Win32_VideoController reported status OK but VideoModeDescription and
+      resolution BLANK, WmiMonitorBasicDisplayParams returned no instances, and there were zero
+      display/GPU errors. No active display mode = no surface for TeamViewer to capture. The lid
+      was shut. Opening it restored 1920x1200 @ 60Hz immediately. LID_SWITCH is not exposed in WMI
+      on this model, so lid state cannot be read remotely — infer it from a healthy GPU with no
+      mode set. TRIAGE RULE: a black TeamViewer is a VIEWING problem; test reachability with SSH
+      before assuming the host is down.
+      MODERN STANDBY — EARLIER "SLEEP: NEVER" WAS WRONG. powercfg SUB_SLEEP STANDBYIDLE reads 0 on
+      both AC and DC, which is true for CLASSIC standby, but this machine uses MODERN STANDBY and
+      does engage it: System log ids 506/507 show it entering at 11:50:50 and exiting at 13:01:09,
+      a 70-minute window. IT DOES NOT COST REMOTE ACCESS — powercfg /a reports
+      "Standby (S0 Low Power Idle) Network Connected", and SSH kept answering throughout, verified.
+      Do not re-report "never sleeps" from STANDBYIDLE alone; check the 506/507 events.
+      CHANGES MADE (both deliberate, both approved):
+        * powercfg /hibernate off — reclaimed ~6 GB of hiberfil.sys. Side effect: Fast Startup is
+          also gone, so reboots are marginally slower. Harmless on a box set never to hibernate.
+        * VIDEOIDLE set to 0 (never) on AC, left at 180s on DC. Removes the 5-minute screen blank
+          as a future nuisance. NOTE it did NOT fix the black screen — that was the lid, not a
+          timeout — so do not treat this setting as the cure if the symptom returns.
+      C: DISK. Was at 13.3 GB free / 7.8% — genuinely risky, since a wedged Windows Update on this
+      box cannot be cleared without console access. Cleared temp (4.3 GB) and hiberfil (~6 GB);
+      now 35.8 GB / 20.6%.
+      DO NOT USE takeown TO DELETE Windows.old. Tried `takeown /R` + icacls + rd on the 30.74 GB
+      Windows.old (created 2026-08-12 by a feature update). takeown burned 3,528 CPU-SECONDS —
+      nearly an hour — walking the tree and had still not finished; killed it. No data was deleted,
+      the rd step never ran, and the only residue is mixed ownership inside Windows.old, which
+      nothing reads. Windows purges Windows.old itself about 10 days after the upgrade (~22 Aug),
+      so THE CORRECT ACTION IS TO WAIT. If it must be forced, use Disk Cleanup's "Previous Windows
+      installation(s)" handler from a LOCAL SYSTEM context — it uses privileged internals instead
+      of brute-forcing ACLs file by file.
+      STILL AVAILABLE: DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase — WinSxS holds
+      ~12.65 GB in "Backups and Disabled Features" and DISM reports "Cleanup Recommended: Yes" with
+      6 reclaimable packages. Never ran; safe to do when the box is idle. /ResetBase blocks
+      uninstalling already-installed updates, which is an acceptable trade here since remote
+      rollback is not practical anyway.
+      E: IS NOT SCRATCH SPACE. 1863 GB WD My Passport over USB, 788 GB free. E:\Office holds
+      1036.72 GB in 601,614 files: BiometricData 707.48 GB, Datasets 267.48 GB, ramaiah.softwares
+      30.68 GB (67 files, so installers/ISOs), ramaiah.sdks_from laptop 16.44 GB, ramaiah.sdks
+      14.64 GB. $RECYCLE.BIN and found.000 are ~0 GB — found.000 was initially suspected as a space
+      hog and is NOT, though its existence means CHKDSK ran on this volume at some point. Because
+      it is USB, E: can vanish; never let a workflow assume it is mounted. Treat BiometricData as
+      sensitive per the nucleus guardrails, and note a .dropbox.device marker sits at the volume
+      root.
+    created_at: "2026-08-14"
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [mces2, closed-lid-black-screen, teamviewer-vs-ssh-triage, no-display-mode,
+           modern-standby, s0-network-connected, standbyidle-is-not-the-whole-story,
+           hibernation-off, videoidle-never, windows-old, takeown-is-the-wrong-tool,
+           dism-resetbase-pending, e-drive-inventory, usb-removable, biometric-data]
+
 # Pruning rules
 pruning:
   max_entries: 500
