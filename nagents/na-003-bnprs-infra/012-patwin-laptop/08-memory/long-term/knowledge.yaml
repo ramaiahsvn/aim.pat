@@ -573,12 +573,32 @@ memories:
           IRIS. Datasets\Iris held PolyUCrossSpectralIris-Session-1, PolyuCrossSpectralData-
           Session-2 and the Springer book-chapter archive alongside it. The folder was misfiled
           under face\ and has been MOVED to E:\iris\cross-spectral.
-      FULL LAYOUT NOW (986.31 GB, 617,322 files; E: free 837.94 GB):
-        E:\iris 220.89 GB/365,795 f   E:\multi-modal 447.56 GB/148,549 f
-        E:\animal 145.29 GB           E:\face 82.62 GB    E:\finger-knuckle 42.77 GB/40,858 f
-        E:\fingerprint 18.56 GB/12,137 f   E:\video 14.25 GB (IITH CCTV footage)
-        E:\models 5.54 GB   E:\palmprint 3.84 GB   E:\_misc 3.29 GB
-        E:\finger-vein 0.98 GB   E:\_unsorted-vendor 0.73 GB
+      LAYOUT SUPERSEDED — THE USER RENAMED THE TREE THEMSELVES on 2026-08-14, WHILE this agent was
+      operating on the drive. Current root: _finger_big_data, face, face-animal, finger,
+      finger-cless, finger-knuckle, finger-vein, iris, palmprint, video. Roughly: animal ->
+      face-animal, fingerprint -> finger, multi-modal -> _finger_big_data, plus a new finger-cless;
+      _misc and _unsorted-vendor are gone. DO NOT trust any folder list in this file as current —
+      re-inventory before acting.
+      THE REAL LESSON IS CONCURRENCY, NOT NAMING. Twice today the drive changed underneath a
+      running job: a tree read mid-rename reported _misc as holding 163,683 items including
+      Multi-modal-Cqi and then as empty seconds later, and free space ROSE 14.5 GB during a job
+      that only writes. `quser` showed the console session Active with idle time "none" — someone
+      was at the keyboard. WHEN FREE SPACE MOVES THE WRONG WAY FOR WHAT YOU ARE DOING, STOP AND
+      CHECK FOR A HUMAN; do not rationalise it. The verify-then-delete pattern is only safe while
+      the filesystem holds still: if a folder is removed between the verify and the delete, an
+      archive gets deleted with no surviving copy.
+      SPACE RECLAIMED 2026-08-14, ~31.6 GB, every deletion verified first:
+        8.4 GB  Polyu-CrossSpectral-Processeddata — SHA-256 identical under two names
+        3.16 GB Face DBs.zip — all 7 entries SHA-256 identical to the unpacked copies
+        544 MB  FingerVeinPolyU.zip — SHA-256 identical
+        11.84 GB NDSet-CorrectlySegmentedImages.7z + 8.34 GB of other already-extracted archives
+      7-ZIP 26.02 INSTALLED (winget 7zip.7zip) at C:\Program Files\7-Zip\7z.exe — Windows has NO
+      native .7z support and 25 archives / 76 GB were unverifiable and unextractable without it.
+      FOUR "EXTRACTED" FOLDERS WERE MISSING 15,256 FILES — set3 (8,276 of 63,034), set2 (6,908 of
+      53,188), FingerVein-USM_Dec2013 (55 of 24,889), FVC2002 (5 of 329), CASIA1 (12 of 9,085).
+      They look complete from a directory listing. Anything evaluated against set2/set3 ran on
+      PARTIAL DATA — worth telling whoever owns those experiments. This is why an archive must be
+      verified entry-by-entry against its folder, never by "a folder with the same name exists".
       Multi-modal-Cqi still left INTACT — its face/iris/fingerprint are per-subject across
       148,546 files, so splitting it means restructuring a dataset, not moving folders.
       E:\_unsorted-vendor holds nine vendor bags (Data-Tech5, tascent_data, ssb2018, Vrdm_Dataset,
