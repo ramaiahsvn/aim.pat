@@ -95,7 +95,7 @@ For each evaluation run:
 - [ ] Add DET curves, score histograms, EER and FMR@FNMR tables — only TAR@FAR exists today
 - [ ] **Evaluate face on low-quality data.** LFW and ORL are both frontal and saturated, so
       neither speaks to CCTV imagery — the premise of the AdaFace-CCTV variant. BioID, Yale and
-      PolyU are already in `~/BPR/FaceData`
+      PolyU are already in `~/BPR/Datasets`
 - [ ] Extend the harness beyond face — it is face-only today (`--tid T1x`)
 - [ ] Run BprFinger MINEX-style evaluation (NIST SD302 or FVC2004)
 - [ ] Run BprIris IREX-style evaluation (CASIA-IrisV4-Interval)

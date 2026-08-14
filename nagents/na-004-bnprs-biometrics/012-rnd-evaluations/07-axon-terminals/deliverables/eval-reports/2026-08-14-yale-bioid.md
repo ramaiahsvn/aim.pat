@@ -59,7 +59,7 @@ verifying it is its own task, not a step inside this one.
 
 ## 3. "Yale" is two different databases, and one of them was already evaluated
 
-`~/BPR/FaceData/Yale/` holds both:
+`~/BPR/Datasets/Yale/` holds both:
 
 | | contents | status |
 |---|---|---|
@@ -295,7 +295,7 @@ ln -sf <repo>/.models/bpr.m1000*.onnx <repo>/.models/Pikachu build/cmake/eval-ya
 
 # Yale: unzip, drop the duplicate, rename the mangled centerlight, GIF -> PNG,
 # one directory per subject (see §3.1 — do not skip these steps)
-unzip ~/BPR/FaceData/Yale/yalefaces.zip
+unzip ~/BPR/Datasets/Yale/yalefaces.zip
 #   exclude subject01.glasses.gif   (byte-identical duplicate of subject01.glasses)
 #   subject01.gif -> subject01/centerlight.png
 sips -s format png yalefaces/subjectNN.<cond> --out yale-verify/subjectNN/<cond>.png
@@ -306,7 +306,7 @@ python3 apps/bengine-eval/protocols/make_pairs.py yale-verify yale_pairs.txt \
 ./bengine-eval --data yale-verify --pairs yale_pairs.txt --tid T13 --pack Pikachu   # T13 only
 
 # BioID: DETECTION ONLY. Self-pairs to force extraction; read the FTE list, never the accuracy.
-./bengine-eval --data ~/BPR/FaceData/BioID-FaceDatabase-V1.2 \
+./bengine-eval --data ~/BPR/Datasets/BioID-FaceDatabase-V1.2 \
                --pairs bioid_detect.txt --tid T12 --fte-list bioid_fte_T12.txt
 ```
 

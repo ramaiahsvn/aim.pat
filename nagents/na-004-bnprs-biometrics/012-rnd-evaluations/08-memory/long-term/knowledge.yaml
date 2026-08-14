@@ -287,7 +287,7 @@ memories:
   - id: mem-007
     type: project_context
     content: >-
-      "YALE" IS TWO DIFFERENT DATABASES AND ONE WAS ALREADY EVALUATED. ~/BPR/FaceData/Yale/ holds
+      "YALE" IS TWO DIFFERENT DATABASES AND ONE WAS ALREADY EVALUATED. ~/BPR/Datasets/Yale/ holds
       BOTH: CroppedYale/ (38 subjects x ~64 illumination directions, 2452 pgm) which IS the set
       evaluated in the 2026-08-01 report S4c/S4d, and yalefaces.zip which is the ORIGINAL Yale Face
       Database (15 subjects x 11 conditions = 165 images, 320x243 GIF) and had NOT been evaluated.
@@ -392,7 +392,7 @@ memories:
     type: project_context
     content: >-
       PolyU IS PolyU-HSFD (HYPERSPECTRAL FACE) AND IT IS THE ONLY POSE DATA WE HAVE.
-      ~/BPR/FaceData/PolyU/ holds hsface.zip (364 MB) plus an already-extracted hsface/ containing
+      ~/BPR/Datasets/PolyU/ holds hsface.zip (364 MB) plus an already-extracted hsface/ containing
       THREE RAR ARCHIVES — SampleImages_F, _L, _R. The zip contains nothing but those same RARs.
       Extract with unar; UNRAR IS NOT INSTALLED on pat-m4p.
       F 151 images / 47 subjects, L 124/47, R 125/47 — 400 images, 48 subjects union, 46 in all

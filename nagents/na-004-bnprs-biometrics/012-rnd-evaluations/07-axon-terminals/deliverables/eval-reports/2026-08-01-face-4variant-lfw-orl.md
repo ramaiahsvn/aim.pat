@@ -223,7 +223,7 @@ is wired correctly, not that any of it suits surveillance capture.
 dbase is a step closer — 640×480 posed indoor capture, more varied than ORL — and it already
 changed the ranking, which is the point. But it is still cooperative capture, not surveillance.
 
-Closer data already present in `~/BPR/FaceData`: **BioID** (marked-up, varied lighting), **Yale**
+Closer data already present in `~/BPR/Datasets`: **BioID** (marked-up, varied lighting), **Yale**
 (illumination and expression extremes), **PolyU**. Recommended next evaluation.
 
 ## 8. Defects found by this evaluation
@@ -247,13 +247,13 @@ cmake --build build -j8
 ln -s <repo>/.models/bpr.m1000*.onnx <repo>/.models/Pikachu build/   # resolved beside the binary
 
 # protocols
-python3 apps/bengine-eval/protocols/lfw_pairs_from_xlsx.py ~/BPR/FaceData/LFW/pairs.xlsx pairs.txt
-python3 apps/bengine-eval/protocols/make_pairs.py ~/BPR/FaceData/orl_faces orl.txt   --ext .pgm
-python3 apps/bengine-eval/protocols/make_pairs.py ~/BPR/FaceData/dbase     dbase.txt --ext .jpg
+python3 apps/bengine-eval/protocols/lfw_pairs_from_xlsx.py ~/BPR/Datasets/LFW/pairs.xlsx pairs.txt
+python3 apps/bengine-eval/protocols/make_pairs.py ~/BPR/Datasets/orl_faces orl.txt   --ext .pgm
+python3 apps/bengine-eval/protocols/make_pairs.py ~/BPR/Datasets/dbase     dbase.txt --ext .jpg
 
 # run
-./build/bengine-eval --data ~/BPR/FaceData/LFW/lfw   --pairs pairs.txt     --tid T14
-./build/bengine-eval --data ~/BPR/FaceData/orl_faces --pairs orl_pairs.txt --tid T14
+./build/bengine-eval --data ~/BPR/Datasets/LFW/lfw   --pairs pairs.txt     --tid T14
+./build/bengine-eval --data ~/BPR/Datasets/orl_faces --pairs orl_pairs.txt --tid T14
 ```
 
 Do **not** use `--limit` for a reported number — it populates only the first folds and the

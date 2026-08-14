@@ -563,17 +563,51 @@ memories:
         E:\animal\sheep                                         145.29 GB   1,328 files
         E:\finger-knuckle  14.41 GB   E:\finger-vein  0.51 GB   E:\_misc  3.29 GB
         TOTAL 713.80 GB in 149,893 files
-      THREE DELIBERATE CHOICES: no palmprint folder (no palmprint data exists here);
-      cross-spectral kept as its own folder because the PolyU 7z archives could be iris OR
-      palmprint and it was not opened to find out — do not file it under a modality on a guess;
-      and Multi-modal-Cqi left INTACT because its face/iris/fingerprint are per-subject across
+      EXTENDED 2026-08-14 (second pass) after analysing E:\Office\Datasets — 267 GB that had not
+      been looked at when the first structure was built. TWO EARLIER STATEMENTS HERE WERE WRONG
+      AND ARE CORRECTED:
+        * "no palmprint data exists here" — FALSE. Three sets, 3.84 GB: PalmprintMultiSpectral.zip
+          (3425 MB), Palmprint-Pune.zip (386 MB), CASIA-Multi-Spectral-PalmprintV1.zip (117 MB).
+          E:\palmprint now exists.
+        * cross-spectral "could be iris OR palmprint, not opened to find out" — RESOLVED, it is
+          IRIS. Datasets\Iris held PolyUCrossSpectralIris-Session-1, PolyuCrossSpectralData-
+          Session-2 and the Springer book-chapter archive alongside it. The folder was misfiled
+          under face\ and has been MOVED to E:\iris\cross-spectral.
+      FULL LAYOUT NOW (986.31 GB, 617,322 files; E: free 837.94 GB):
+        E:\iris 220.89 GB/365,795 f   E:\multi-modal 447.56 GB/148,549 f
+        E:\animal 145.29 GB           E:\face 82.62 GB    E:\finger-knuckle 42.77 GB/40,858 f
+        E:\fingerprint 18.56 GB/12,137 f   E:\video 14.25 GB (IITH CCTV footage)
+        E:\models 5.54 GB   E:\palmprint 3.84 GB   E:\_misc 3.29 GB
+        E:\finger-vein 0.98 GB   E:\_unsorted-vendor 0.73 GB
+      Multi-modal-Cqi still left INTACT — its face/iris/fingerprint are per-subject across
       148,546 files, so splitting it means restructuring a dataset, not moving folders.
+      E:\_unsorted-vendor holds nine vendor bags (Data-Tech5, tascent_data, ssb2018, Vrdm_Dataset,
+      Sample Images, AirSnap, PassiveLiveness, two Dermalog API Testing) deliberately NOT filed on
+      a guess; classifying them needs their contents opened.
+      DUPLICATES FOUND AND HANDLED: a size-collision scan over all 91 files >=50 MB found exactly
+      three collisions. FingerVeinPolyU.zip (544,149,761 B) was SHA-256 identical in
+      E:\finger-vein and Datasets\Finger-Hand — the Datasets copy was deleted. Polyu-CrossSpectral-
+      Processeddata (8,449,281,301 B) collides under two different names (…-20by240size.7z in
+      Datasets\Iris vs …Processeddata.7z in the cross-spectral folder) — STILL UNCONFIRMED, hash
+      deferred because reading 16.9 GB off USB would have fought a running transfer; confirm before
+      deleting 8.4 GB. The third, ffc_85.pth vs ffc_85_45.pth (69,302,582 B), is NOT a duplicate —
+      different SHA-256, same size because PyTorch checkpoints of one architecture always are.
+      Size alone is a candidate signal, never a verdict.
+      TWO TRAPS THAT BIT DURING THIS: PowerShell variables are CASE-INSENSITIVE, so a `foreach
+      ($d …)` loop silently clobbered the `$D` source-path variable and the script tried to move
+      files out of the wrong root — it failed loudly at the first move, but rename loop variables
+      away from single letters. And WINDOWS FILENAMES ARE CASE-INSENSITIVE: moving `lfw.zip`
+      (117 MB) next to the existing `LFW.zip` (533 MB) reported "already exists" and the file was
+      silently routed to the wrong folder. They are DIFFERENT datasets; the smaller is now
+      face\visible\lfw-zoho-plain.zip.
+      Also note a >8 KB base64 -EncodedCommand exceeds the Windows command-line limit
+      ("The command line is too long") — scp the .ps1 and run it by path instead.
       E:\models (6.61 GB, 23,842 files) holds ML models and code moved off the Mac 2026-08-14 —
       Real-world-Anomaly-Detection, VadCLIP.zip, bnet-worker, Yowov2, PyTorch_YOWO, YOWOv3.zip,
       UR-DMU. Kept OUTSIDE the modality tree on purpose: they are code and weights, not biometric
       datasets, and filing them under face/ would imply otherwise. NOTE bpr-runtime belongs on the
       MAC, not here — it was moved across in that batch and then restored to
-      /Users/bnprs/BPR/FaceData/bpr-runtime at the user's correction; do not move it again.
+      /Users/bnprs/BPR/Datasets/bpr-runtime at the user's correction; do not move it again.
       TRANSFERRING A MAC TREE TO WINDOWS: stream it as one tar over ssh
       (`COPYFILE_DISABLE=1 tar --no-xattrs -cf - <dirs> | ssh host "tar -xf - -C E:/dest"`),
       NOT scp -r — 26,216 files over per-file scp round-trips is painfully slow, and WITHOUT

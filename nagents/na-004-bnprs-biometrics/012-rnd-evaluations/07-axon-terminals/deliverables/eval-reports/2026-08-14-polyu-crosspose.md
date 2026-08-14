@@ -24,7 +24,7 @@ that does not saturate.
 
 ## 2. What is actually in the database
 
-`~/BPR/FaceData/PolyU/` holds `hsface.zip` (364 MB) and an already-extracted `hsface/` containing
+`~/BPR/Datasets/PolyU/` holds `hsface.zip` (364 MB) and an already-extracted `hsface/` containing
 three RAR archives. The zip holds nothing but those same three RARs. Extracted with `unar`
 (`unrar` is not installed on pat-m4p).
 
@@ -267,7 +267,7 @@ outstanding; the next database has to be sourced, not found on disk.
 
 ```bash
 # extract (unrar is NOT installed on pat-m4p; unar is)
-unar -o polyu ~/BPR/FaceData/PolyU/hsface/SampleImages_F.rar   # and _L, _R
+unar -o polyu ~/BPR/Datasets/PolyU/hsface/SampleImages_F.rar   # and _L, _R
 
 # reorganise: identity is in the FILENAME, make_pairs.py keys on the DIRECTORY
 #   SampleImages_F/F_22_3.jpg  ->  polyu-verify/subject22/F_3.jpg

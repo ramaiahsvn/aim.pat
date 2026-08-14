@@ -272,7 +272,7 @@ memories:
       to T12 if the selected variant can't init (a persisted t14 selection had silently killed the
       dedup worker while detection/OC kept running).
       LOCAL DEV (pat-m4p): docker bnet-mysql root/bnetdev :3399 db cqi_bnet; runtime dir
-      /Users/bnprs/BPR/FaceData/bpr-runtime; published worker /Users/bnprs/BPR/FaceData/bnet-worker/
+      /Users/bnprs/BPR/Datasets/bpr-runtime; published worker /Users/bnprs/BPR/Datasets/bnet-worker/
       (+ libBprFace.dylib); App launched from the built .app with BNET_* env.
       PENDING: rotate shared verify token + Keycloak client secret + $GITLAB_PAT; provision
       BNET_VERIFY_TOKEN for the packaged app; decide whether to commit the App.config host fix.
