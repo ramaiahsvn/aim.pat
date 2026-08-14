@@ -540,11 +540,20 @@ memories:
       so THE CORRECT ACTION IS TO WAIT. If it must be forced, use Disk Cleanup's "Previous Windows
       installation(s)" handler from a LOCAL SYSTEM context — it uses privileged internals instead
       of brute-forcing ACLs file by file.
-      STILL AVAILABLE: DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase — WinSxS holds
-      ~12.65 GB in "Backups and Disabled Features" and DISM reports "Cleanup Recommended: Yes" with
-      6 reclaimable packages. Never ran; safe to do when the box is idle. /ResetBase blocks
-      uninstalling already-installed updates, which is an acceptable trade here since remote
-      rollback is not practical anyway.
+      WINSXS CLEANUP DONE 2026-08-14, exit 0, "The operation completed successfully". Component
+      store 20.81 -> 11.35 GB; Backups and Disabled Features 12.65 -> 3.25 GB; reclaimable packages
+      6 -> 2; C: free 43.51 -> 51.52 GB. ~18 minutes of DISM work. CONSEQUENCE: /ResetBase means
+      already-installed Windows updates can NO LONGER be uninstalled — accepted deliberately, since
+      rolling back an update needs console access this machine's owner will not have while
+      travelling. Note DISM still reports "Cleanup Recommended: Yes" with 2 packages afterwards;
+      that is normal (recent updates stay inside the servicing window) and is NOT a failed run.
+      HOW TO RUN LONG JOBS ON THIS HOST: stage the .ps1, then run it from a SYSTEM scheduled task
+      (schtasks /create ... /ru SYSTEM /rl HIGHEST /f, then /run) and poll a LOG FILE. That
+      decouples the work from the SSH session, so it survives a dropped connection, a closed lid
+      or Modern Standby. Write the log with Add-Content -Encoding ASCII, NOT Tee-Object, which
+      emits UTF-16 and makes a plain grep over `type <log>` never match.
+      C: ENDED THE SESSION AT 51.46 GB free / 29.6%, from 13.3 GB / 7.8%. Windows.old (30.74 GB) is
+      still present and is deliberately left for Windows to purge itself (~22 Aug).
       E: IS NOT SCRATCH SPACE. 1863 GB WD My Passport over USB, 788 GB free. E:\Office holds
       1036.72 GB in 601,614 files: BiometricData 707.48 GB, Datasets 267.48 GB, ramaiah.softwares
       30.68 GB (67 files, so installers/ISOs), ramaiah.sdks_from laptop 16.44 GB, ramaiah.sdks
