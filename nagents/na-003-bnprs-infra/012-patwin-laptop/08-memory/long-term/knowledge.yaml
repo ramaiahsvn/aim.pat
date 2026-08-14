@@ -242,8 +242,59 @@ memories:
     tags: [card-safety, fail-closed, scardconnect-not-getstatuschange, indeterminate-is-unsafe,
            bogus-reader-dry-run, icmp-not-a-verdict, scardlistreaders-authoritative, near-miss]
 
-# Pruning rules
-pruning:
+  - id: mem-012
+    type: technical_knowledge
+    content: >-
+      2026-08-14 MCES2 IS NOW REACHABLE FROM ANY NETWORK — Tailscale installed, SSH proven over it.
+      THE PROBLEM IT SOLVED: pat-m4p was on an iPhone hotspot (172.20.10.0/28, en0 flagged
+      `constrained`, "not associated with an AirPort network") while MCES2 sits on 192.168.1.0/24.
+      Both behind NAT, neither able to initiate — no packet path at all. DIAGNOSE THIS BY CHECKING
+      pat-m4p's OWN SUBNET FIRST: `ipconfig getifaddr en0` plus `route -n get default`. A dead probe
+      is not automatically the host's fault, and editing `address` in the inventory on that evidence
+      would have been guessing at a problem that was on this side.
+      WHY TAILSCALE over the alternatives: outbound-only so no router change, no port forward and
+      nothing exposed; gives a REAL SSH shell so scp/hashing/the whole existing workflow keeps
+      working unchanged; and the 100.x address is pinned per node, which retires the recurring
+      "the DHCP lease moved" problem outright. Rejected: port-forwarding 22 (exposes a Windows admin
+      sshd to the internet, dynamic home IP, trips the inbound-access guardrail); SSM hybrid
+      activation (Run Command only — no interactive shell, no scp); reverse SSH to a jump host
+      (most moving parts, needs inbound 22 somewhere).
+      ADDRESSES AND FLAGS LIVE IN windows-hosts.yaml, NOT HERE. What belongs here is the reasoning.
+      TWO TRAPS WORTH KEEPING:
+        (1) `winget install --id tailscale.tailscale` returns "No package found matching input
+            criteria" on MCES2 — the winget source index is missing/stale on that box even though
+            winget itself is present (see [[mem-011]], which recorded winget as available and was
+            right about the binary, not the index). Do not conclude the package ID is wrong. Fall
+            back to the vendor MSI: pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi via
+            Invoke-WebRequest + `msiexec /i /quiet /norestart`. MCES2 is AMD64. Set
+            $ProgressPreference='SilentlyContinue' or PS 5.1's progress bar makes the download crawl.
+            07-axon-terminals/deliverables/tailscale-bootstrap/mces2-tailscale.ps1 now tries winget,
+            treats failure as non-fatal, and falls through to the MSI automatically.
+        (2) `tailscale up` BLOCKS until the login URL is approved AND THE COMMAND RETURNS. Approving
+            the URL while the command has been interrupted leaves the node logged out — that happened
+            here and showed as the Mac seeing zero peers. Verify with `tailscale status` on BOTH ends:
+            both nodes must appear under the SAME account (here np.ramaiah@) or they are on separate
+            tailnets and will never see each other.
+      CHOSEN FLAGS AND WHY: --unattended (stays connected with nobody logged on, which a perso
+      station needs); --accept-dns=false ON BOTH ENDS (MCES2 resolves fine today and a perso station
+      is the wrong place to discover a DNS change broke something) — the CONSEQUENCE is that the
+      MagicDNS name `mces2` does NOT resolve, so the 100.x IP is the only working handle;
+      --hostname to pin the node name.
+      NOT YET DEMONSTRATED: at the moment of verification pat-m4p had rejoined the LAN
+      (192.168.1.107), so `tailscale ping` reported the direct path "via 192.168.1.235:41641". The
+      tunnel is proven working, but cross-network reachability follows from the design, NOT from an
+      observed off-subnet connection. Keep that distinction if it is ever audited — and confirm it
+      the next time pat-m4p is genuinely off-subnet.
+      ALSO SETTLED: TeamViewer CANNOT be driven from this Mac by any route. The desktop app has no
+      macOS GUI control available, and the web-client angle is dead too — list_connected_browsers
+      returned empty, no Chrome extension connected. TeamViewer stays a human-only fallback, which
+      is precisely why this tunnel was worth building.
+    created_at: "2026-08-14"
+    confidence: 1.0
+    source: "session-2026-08-14"
+    tags: [mces2, tailscale, cross-network-access, hotspot-cgnat, check-own-subnet-first,
+           winget-source-stale, vendor-msi-fallback, tailscale-up-blocks, same-tailnet-account,
+           accept-dns-false, magicdns-does-not-resolve, teamviewer-undrivable, not-yet-demonstrated]
 
   - id: mem-010
     type: technical_knowledge
@@ -303,6 +354,8 @@ pruning:
     tags: [mces2, winget, elevated-ssh, per-user-package, rustup-self-uninstall, vswhere,
            visual-studio-18, ascii-only-scripts, no-protecttoolkit, cleanup-verified]
 
+# Pruning rules
+pruning:
   max_entries: 500
   stale_after_days: 90
   min_confidence: 0.3

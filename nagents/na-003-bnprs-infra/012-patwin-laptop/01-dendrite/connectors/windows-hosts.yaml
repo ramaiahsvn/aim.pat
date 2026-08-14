@@ -29,8 +29,14 @@ resolution_order: [address, hostname]
 hosts:
   - id: mces2
     label: "cPerso / MCES2 station"
-    # ---- change this one line if the IP moves ----
-    address: "192.168.1.235"
+    # ---- TAILSCALE address (2026-08-14). Reachable from ANY network, not just the LAN.
+    #      Tailscale pins this 100.x per node, so unlike the old DHCP lease it does not
+    #      drift -- which is exactly the failure this replaced. Do not put the LAN
+    #      address back.
+    #      NOT the MagicDNS name `mces2`: both ends run --accept-dns=false, so tailnet
+    #      names deliberately do not resolve. The 100.x IP is the only working handle.
+    address: "100.92.81.14"
+    # LAN address, reference only: 192.168.1.235 -- works solely from 192.168.1.0/24.
     # ---- used automatically when `address` is empty ----
     hostname: "mces2.lan"
     port: 22
@@ -56,10 +62,19 @@ hosts:
       # Probes on 2026-08-11 from pat-m4p (192.168.1.107/24, gw 192.168.1.1):
       # 445/tcp OPEN (SMB); 22, 3389, 5985 CLOSED. ICMP replied on some runs and not
       # others — informational only, never a verdict (see the note in 03-nucleus).
-      last_probe: "2026-08-11"
+      # 2026-08-14 from pat-m4p over Tailscale: tailscale ping -> pong 17ms, TCP 22 open,
+      # key auth verified (hostname MCES2, user mces2\mcesii, Windows 10.0.26200.9168).
+      last_probe: "2026-08-14"
       ports_open: [22, 445]
       ports_closed: [3389, 5985]
       ssh_ready: true           # OpenSSH_for_Windows_9.5, key auth verified 2026-08-11
+      tailscale:
+        installed: "2026-08-14"
+        ip4: "100.92.81.14"
+        hostname: "mces2"       # MagicDNS name; does NOT resolve, see address note above
+        tailnet_account: "np.ramaiah@"
+        flags: "--unattended --accept-dns=false --hostname=mces2"
+        install_route: "vendor MSI from pkgs.tailscale.com -- winget has no package on this box"
       jvm_present: true         # NOT on PATH - Android Studio's bundled JDK
       jvm_path: "C:\\Program Files\\Android\\openjdk\\jdk-21.0.8\\bin\\java.exe"
       jvm_version: "21.0.8"
@@ -75,13 +90,14 @@ hosts:
     notes: >
       First found via this Mac's ARP cache as mces2.lan; the name matches
       trp1002.cperso.mces2 in the cPerso repo, and the transcript confirmed it.
-      TeamViewer reaches this box but provides no IP route; SSH is viable because it
-      sits on the same /24 as pat-m4p.
-      BLOCKED 2026-08-11: `Add-WindowsCapability -Online OpenSSH.Server` fails with
-      "The operation could not be completed due to pending operations" — the component
-      store is held by another servicing operation (usually a pending reboot from
-      Windows Update). Nothing has been modified on the host; both failures so far were
-      reads that refused. Diagnosis of which pending state is outstanding.
+      TeamViewer reaches this box but provides no IP route, and cannot be driven from
+      the Mac at all — it stays a human-only fallback.
+      RESOLVED 2026-08-11: the `Add-WindowsCapability -Online OpenSSH.Server` "pending
+      operations" failure cleared itself once Windows Update finalised; sshd installed
+      with no intervention. Kept only so the error is recognised if it recurs.
+      RESOLVED 2026-08-14: reachability no longer depends on being on the same /24.
+      Tailscale now carries SSH from any network, so the old "SSH is viable because it
+      sits on the same /24 as pat-m4p" caveat no longer applies.
 
 # -----------------------------------------------------------------------------
 #  KNOWN WINDOWS HOSTS THAT ARE NOT SSH-REACHABLE
