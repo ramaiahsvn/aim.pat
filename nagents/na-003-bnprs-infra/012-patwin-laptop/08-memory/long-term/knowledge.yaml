@@ -568,6 +568,19 @@ memories:
       palmprint and it was not opened to find out — do not file it under a modality on a guess;
       and Multi-modal-Cqi left INTACT because its face/iris/fingerprint are per-subject across
       148,546 files, so splitting it means restructuring a dataset, not moving folders.
+      E:\models (6.61 GB, 23,842 files) holds ML models and code moved off the Mac 2026-08-14 —
+      Real-world-Anomaly-Detection, VadCLIP.zip, bnet-worker, Yowov2, PyTorch_YOWO, YOWOv3.zip,
+      UR-DMU. Kept OUTSIDE the modality tree on purpose: they are code and weights, not biometric
+      datasets, and filing them under face/ would imply otherwise. NOTE bpr-runtime belongs on the
+      MAC, not here — it was moved across in that batch and then restored to
+      /Users/bnprs/BPR/FaceData/bpr-runtime at the user's correction; do not move it again.
+      TRANSFERRING A MAC TREE TO WINDOWS: stream it as one tar over ssh
+      (`COPYFILE_DISABLE=1 tar --no-xattrs -cf - <dirs> | ssh host "tar -xf - -C E:/dest"`),
+      NOT scp -r — 26,216 files over per-file scp round-trips is painfully slow, and WITHOUT
+      COPYFILE_DISABLE macOS bsdtar injects AppleDouble "._" files: a test folder arrived as 5,208
+      files instead of 2,374. Verify by file count AND byte total per item, and expect a small
+      surplus on the Windows side from .DS_Store files that tar carries but a Mac-side count may
+      exclude — reconcile that gap exactly rather than waving it through.
       Also on E:: E:\Office\Datasets (267 GB) remains, $RECYCLE.BIN and found.000 are ~0 GB —
       found.000 was suspected as a space hog and is NOT, though it means CHKDSK ran here once.
       E:\Office\ramaiah.sdks, ramaiah.sdks_from laptop and ramaiah.softwares (61.76 GB total) were
