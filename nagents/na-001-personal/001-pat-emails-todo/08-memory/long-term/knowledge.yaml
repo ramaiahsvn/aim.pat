@@ -93,6 +93,23 @@ memories:
     source: "session-init"
     tags: [bnprs, business, domains]
 
+  - id: mem-005
+    type: technical_knowledge
+    content: >-
+      SENDING: the WORKING path is Zoho — 01-dendrite/zoho-mail-mcp/send-zoho.mjs, from
+      ramaiah@bnprs.in, creds at ~/.zoho-mail-mcp/<account>.json (self-refreshing; four bnprs.in
+      accounts available: ramaiah, info, hr, accounts). Usage:
+      node send-zoho.mjs <html-file> <to> <cc-or-empty> <subject>. Sends the house HTML format.
+      The GMAIL path is DEAD until re-authed: ~/.gmail-mcp tokens (both polyu and iith) return
+      invalid_grant — the GCP OAuth app is in Testing mode, so refresh tokens expire after ~7
+      idle days; they died in June. Fix is `npx @gongrzhe/server-gmail-autoauth-mcp auth`
+      (interactive) or publishing the GCP app. Do not burn time on Gmail first again —
+      2026-08-15 a send was attempted there before rediscovering the Zoho script.
+    created_at: "2026-08-15"
+    confidence: 1.0
+    source: "session-2026-08-15"
+    tags: [send-email, zoho-works, gmail-tokens-dead, send-zoho-mjs, house-html]
+
 # Pruning rules
 pruning:
   max_entries: 500
