@@ -105,6 +105,13 @@ memories:
       idle days; they died in June. Fix is `npx @gongrzhe/server-gmail-autoauth-mcp auth`
       (interactive) or publishing the GCP app. Do not burn time on Gmail first again —
       2026-08-15 a send was attempted there before rediscovering the Zoho script.
+      GMAIL NOW WORKS VIA A SECOND PATH: the claude.ai Gmail connector (user runs /mcp ->
+      "claude.ai Gmail" -> authorizes; done 2026-08-15 for ramaiah.polyu). Tools
+      mcp__claude_ai_Gmail__send_message etc. accept htmlBody directly — sent the letterhead-
+      format test this way. Auth is per-claude.ai-session-ish; if the tools are gone, /mcp
+      re-auth takes seconds. TWO house formats now exist: plain (Segoe 15px card) and
+      LETTERHEAD (navy banner + red callout blocks + signature card) — ask which before a
+      formal send.
     created_at: "2026-08-15"
     confidence: 1.0
     source: "session-2026-08-15"
