@@ -650,6 +650,55 @@ memories:
            hibernation-off, videoidle-never, windows-old, takeown-is-the-wrong-tool,
            dism-resetbase-pending, e-drive-inventory, usb-removable, biometric-data]
 
+  - id: mem-016
+    type: operation
+    content: >-
+      2026-08-15 HANDOVER — E: ARCHIVE EXTRACTION IS PAUSED MID-JOB, AND 7z IS CURRENTLY BLOCKED.
+      Read this before restarting the work.
+      WHERE IT STOPPED: 81 of the original 97 archives extracted, verified entry-by-entry and
+      deleted. E: free 709.17 GB, floor 150 GB, so space was never the constraint. The scheduled
+      task \extract-all is registered and Ready (stopped cleanly, not running).
+      THE COUNT GREW, IT DID NOT SHRINK — 41 archives / 175.82 GB now remain, not the 16 implied by
+      97-81. EXTRACTION REVEALS NESTED ARCHIVES: unpacking FVC2002.zip yields FVC2002\DB1_B.zip,
+      Yale.zip yields yalefaces.zip, and so on, and the job re-enumerates E: on every start so they
+      join the queue. Expect the queue to keep growing for a few passes. It terminates, but "N
+      remaining" is never a reliable estimate of remaining work.
+      BLOCKER, UNRESOLVED: 7z.exe sat on a 1 MB archive (csip_info.zip, 2,004 entries, 1.17 MB
+      uncompressed) for 18 minutes having written ONE file of ZERO bytes, with ZERO total CPU —
+      not slow, never scheduled at all. The USB drive reports Healthy/Online with no disk,
+      storahci, USBSTOR, Ntfs or volmgr errors, and the SAME script wrote 562,489 files at ~78
+      files/sec on the SAME volume two hours earlier. PRIME SUSPECT IS KASPERSKY: it is the
+      registered AV and firewall here, centrally managed from a KSC server, and [[mem-013]] already
+      records it silently overriding local behaviour. NEXT DIAGNOSTIC, cheap and read-only: run
+      `7z l` against a small file on C:. If that also hangs at 0 CPU, 7-Zip is being intercepted
+      generally rather than anything being wrong with this archive or drive.
+      HOW TO RESUME: the task is on-demand only (no trigger) with MultipleInstances=IgnoreNew,
+      SYSTEM, RunLevel Highest, 24h limit. `Start-ScheduledTask -TaskName 'extract-all'`.
+      C:\Windows\Temp\extract-all.ps1 honours the machine env var BPR_EXTRACT_MAX_GB as a BATCH
+      CEILING (currently 0.5) — archives are processed smallest-first, so a ceiling turns the queue
+      into size bands. Planned bands: 0.5 GB (items 1-23), 5 GB (24-32), 13 GB (33-38), then the
+      last three: FingerKnuckle 14.41, Face_dataset 17.72, Nec-MaskDatabase 61.57 GB.
+      TWO ARCHIVES ARE NOW SKIPPED BY NAME, not retried — Results_onCloudPc1.zip and
+      Results_all_onlyScoreXlss.zip both failed 7z exit 2 on two separate runs (~20 min wasted each
+      pass). They need investigating, not re-attempting.
+      TWO OF MY OWN DIAGNOSTICS WERE WRONG HERE AND BOTH COST TIME. (1) "7z not running" was read
+      as the job having died; it was the gap between archives and the job was healthy — the log's
+      last line is the truth, not whether 7z happens to be executing. (2) A process filter of
+      `CommandLine -like '*extract-all*'` MATCHED THE QUERY COMMAND ITSELF, so every check reported
+      one instance too many; I killed a healthy 8-hour-old run chasing a duplicate that never
+      existed. Filter on '*-File*extract-all.ps1' instead. Nothing was lost either time — the
+      script overwrites with -aoa and deletes only after full verification — but archive 82
+      restarted from scratch.
+      ALSO: `schtasks /create /sc once /st 00:00` fires on registration AND on /run because the
+      trigger time is past, and the default policy runs them in parallel. Register with
+      Register-ScheduledTask, no trigger, -MultipleInstances IgnoreNew.
+    created_at: "2026-08-15"
+    confidence: 1.0
+    source: "session-2026-08-15"
+    tags: [e-drive-extraction, paused, 7z-blocked-zero-cpu, kaspersky-suspect, nested-archives,
+           queue-grows, batch-ceiling, bpr-extract-max-gb, corrupt-archives-skipped,
+           self-matching-process-filter, schtasks-past-trigger-duplicates, resume-instructions]
+
 # Pruning rules
 pruning:
   max_entries: 500
