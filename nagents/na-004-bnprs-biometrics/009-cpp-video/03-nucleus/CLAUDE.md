@@ -125,6 +125,27 @@ BprVision changes, it is likely recorded in **three** places — 001's deliverab
 bnprs-lib-forge` `libraries.yaml`, and here. A correction applied to only one of them has happened
 before and caused a stale warning to survive for two weeks.
 
+## Pending Actions
+
+> From the 2026-08-15 BprVision session (bpr.cpp 8b427fa, 529a1aa — file-as-camera parity,
+> full-rate previews with carry overlays, stale-box cap, letterbox preprocessing).
+
+- [ ] **Validate the letterbox change with positive footage before any publish.** Correct by
+      construction (YOLOv8 trains letterboxed; the old path stretched 16:9 by 1.78x), but the
+      only local measurement was a negative frame and it was neutral-to-slightly-worse there.
+      No 2.61.2 ships without a smoke/fight before/after.
+- [ ] **The fight model produces field false alarms — model problem, not plumbing.** bpr.m10006
+      fires "violence" at conf 0.78 on a static group-photo CCTV frame under BOTH old and new
+      preprocessing, and persistent FPs on a static scene pass the 3/8 temporal gate. The fix
+      direction is na-004/011's three-tier report (skeleton-based fight detection), not
+      threshold fiddling.
+- [ ] **BprModelPath is a BprFace header** (`../../BprIDEngine/BprFace/sFace_t12/BprModelPath.h`
+      included by both detectors) — contradicts this file's "BprVision -> BprVideo, never the
+      reverse" dependency rule and quietly blocks the own-library future the API header
+      contemplates. Move it to a common location when that future firms up.
+- [ ] Minor, for symmetry: smoke/fight `process()` clones + draws even when headless
+      (face gates on `annotate`). 1 fps cost, cosmetic priority.
+
 ## Planned scope — NOT started
 
 None of the original video-biometrics scope exists yet. Keep it separate from the transport and
