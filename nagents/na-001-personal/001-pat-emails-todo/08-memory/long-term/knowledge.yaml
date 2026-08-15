@@ -136,8 +136,9 @@ memories:
       survive its background disappearing.
     created_at: "2026-08-16"
     confidence: 1.0
-    source: "session-2026-08-15/16 (Aparna letter, TEST v1-v15)"
+    source: "session-2026-08-15/16 (formal-letter design, TEST v1-v15)"
     tags: [email-format, formal-letter, approved-template, calibri, d9e4f4-bands, dark-mode-safe]
+    template_file: "07-axon-terminals/templates/formal-letter.html"
 
 # Pruning rules
 pruning:
