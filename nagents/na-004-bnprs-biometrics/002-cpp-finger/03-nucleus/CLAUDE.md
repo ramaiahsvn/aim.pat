@@ -23,20 +23,30 @@
 ```
 BprFinger/
   Fjfx/           ← FJFX — ISO/IEC 19794-2 minutiae extraction (Microsoft)
-  Forg/           ← Finger orientation / segmentation (segmentfb.cpp)
   M3gl/           ← M3GL — minutiae-based fingerprint matching
   Nbis/           ← NBIS — NIST Biometric Image Software (MINDTCT, BOZORTH3)
   Nfiq2/          ← NFIQ2 — NIST Fingerprint Image Quality v2
   Nnmq/           ← ISO matching (finger_iso_matching, finger_iso_template)
+                    + segmentfb.cpp (was Forg/, moved 2026-08-15)
   bpr_finger_src.cmake
 ```
+
+> **Forg/ no longer exists** — 2026-08-15 its only file, `segmentfb.cpp`, moved to `Nnmq/`.
+> Nnmq was chosen because its CMake entry names one file explicitly, so the move is
+> build-neutral; `M3gl/` is globbed `*.cpp` and would have pulled it into the build, where
+> it fails immediately on `#include "afx.h"`.
+>
+> The file is **not built and never was**: it is MFC/Win32-only (`afx.h` is not even
+> vendored here, `__declspec(dllexport)` is unguarded), has zero callers, and still carries
+> its original DLL scaffolding (`int add(int a, int b)`). It is parked pending review, not
+> in service. Note also that `Segmentfgbg()` works on a raw **image**, so it can only ever
+> improve an EXTRACTOR — a matcher receives templates, by which point the image is gone.
 
 ## Sub-Engine Roles
 
 | Engine | Role | Standard |
 |--------|------|----------|
 | Fjfx | Minutiae extraction | ISO/IEC 19794-2, ANSI 378 |
-| Forg | Orientation field / segmentation | Preprocessing |
 | M3gl | Fingerprint matching (minutiae graph) | ISO 19794-2 |
 | Nbis | Full NIST pipeline — MINDTCT + BOZORTH3 | NIST SP 500-245 |
 | Nfiq2 | Image quality score (0–100) | NIST NFIQ 2.0 |
