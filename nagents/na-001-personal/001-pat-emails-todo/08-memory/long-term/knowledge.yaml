@@ -117,6 +117,28 @@ memories:
     source: "session-2026-08-15"
     tags: [send-email, zoho-works, gmail-tokens-dead, send-zoho-mjs, house-html]
 
+  - id: mem-006
+    type: user_preference
+    content: >-
+      APPROVED FORMAL-LETTER EMAIL FORMAT (user-approved 2026-08-16 after 15 iterations; use
+      this as the STARTING POINT for formal/legal letters, not the plain house format):
+      Font Calibri,Candara,'Trebuchet MS',Verdana fallback stack, body 17px (Calibri renders
+      compact), line-height 1.5 (user rejected 1.7 as too airy). White card max-width 640px on
+      #eef0f3 page, 3px #2e6bd6 rule at very top and bottom. Header band #d9e4f4 with
+      right-aligned date in navy (IST date!). Footer band #d9e4f4 carrying the signature: name
+      DARK NAVY #16294a bold 19px (NEVER light text on a colored band — a stripped background
+      made a white name invisible once), then slate #33465f details: Ph.D., IIT Hyderabad |
+      Post-Doctorate, Hong Kong University / CEO and Founder, BNPRS Private Limited ("Private
+      Limited" required) / Flat No. 505, Zicon | Mobile: +91 90000 24334 (address+mobile ONE
+      line). NO name/letterhead at top — name appears only in the signature. Emphasis passages:
+      #fcf5f5 callout, 3px #b00020 left border, red text NOT bold. "Without prejudice" line in
+      muted italic. Body copy rules learned: dark-mode strips/remaps backgrounds, so text must
+      survive its background disappearing.
+    created_at: "2026-08-16"
+    confidence: 1.0
+    source: "session-2026-08-15/16 (Aparna letter, TEST v1-v15)"
+    tags: [email-format, formal-letter, approved-template, calibri, d9e4f4-bands, dark-mode-safe]
+
 # Pruning rules
 pruning:
   max_entries: 500
