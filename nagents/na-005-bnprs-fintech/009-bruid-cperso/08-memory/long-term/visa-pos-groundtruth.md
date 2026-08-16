@@ -1,5 +1,71 @@
 # Visa POS Ground-Truth — offline decline analysis (KEEP until Visa txn succeeds)
 
+## HOST DECLINE 05 "Chip Data missing — TVR Bit 3" (after the ATC reset) — ROOT CAUSE FOUND
+Progress ladder so far: AUC fix cleared the OFFLINE decline → card goes ONLINE → ATC reset cleared
+the ATC-replay decline → now the ISSUER declines on the TVR.
+
+**"TVR Bit 3" = TVR byte 1 bit 0x20 = "ICC data missing"** (numbering the 40 TVR bits from the MSB
+of byte 1: bit1 = 0x80 ODA-not-performed, bit2 = 0x40 SDA failed, **bit3 = 0x20 ICC data missing**).
+Our measured TVR was **2880808000**, byte 1 = **0x28** = 0x20 (ICC data missing) + 0x08 (DDA failed).
+So the host is declining on a bit our card has set all along. It never caused a TERMINAL decline
+because those bits sit in TAC/IAC-**Online**, not Denial — which is exactly why the terminal was
+happy to go online and the issuer is not.
+
+**Cause:** the card claims DDA in the AIP (`82 = 3800`, bit 0x20 = DDA supported — the profile's
+mandated value) but carries **no ODA certificate chain at all** (`8F`, `90`, `9F32`, `92`, `9F46`,
+`9F47`, `9F48` all absent, `fullOdaCertChain = false`). A card that advertises DDA and then supplies
+no certificates is exactly "ICC data missing". Dropping the DDA claim is NOT the fix — the profile
+mandates AIP 3800 and the host is provisioned for a DDA-capable card. **The fix is to ship the
+certificates.**
+
+### Why fullOda was deferred is WRONG — it is not the applet, it is our APDU layer
+The deferral note says "loading the cert into 0301 currently returns 6A88 → keep OFF until the
+applet's ODA record spec is confirmed". Two findings kill that reading:
+
+1. **`[SFI][rec]` DGIs are valid for ANY SFI 1-30** (VSDC 2.9.2 manual, "DGIs supported by applet":
+   *"For readable records in any file with SFI in the range 1-30 … data should be embedded within
+   template 70 in TLV format"*). DGI 0301 was never unsupported.
+2. **The real blocker is that a 248-byte issuer certificate cannot fit in one STORE DATA command,
+   and our Visa path cannot split it.** Manual §4.4 "Long data loading" is explicit:
+   > "EMV CPS allows to load data with one DGI spanned on 2 STORE DATA command. **It is mandatory
+   > to support such a feature to load 248 bytes Issuer Public Key certificate (tag 90).**"
+   > "The VISA implementation on VSDC2.9.2 applet requires that **DGI length be always coded on 3
+   > bytes when a DGI is spanned on 2 STORE DATA command.**"
+
+   Worked example from the manual — one DGI, two commands, P2 increments per COMMAND:
+   ```
+   CMD: 80E2 00 08 FF  0201 FF00FE 70 81fb 90 81f8 <…248-byte cert…>   STATUS: 9000
+   CMD: 80E2 00 09 04  8E79628D                                        STATUS: 9000
+   ```
+   (DGI data = 254 bytes, total encoded = 2+3+254 = 259, sent as 255 + 4.)
+
+**Our code cannot do this.** `orchestrator.cpp` (Visa STORE DATA loop) builds exactly one APDU per
+DGI with `Lc = static_cast<uint8_t>(dgi.size())` — for a 259-byte DGI that **silently truncates to
+Lc = 3**, producing a malformed command the applet rejects with a confusing SW. That misleading SW
+is what got recorded as "the applet does not support this DGI".
+Note the MC path is safer but no more capable: `sequencer::build_store_data_apdus` **throws**
+`"STORE DATA block exceeds 255 bytes"` rather than truncating, so MC fails loudly. Neither scheme
+can currently load a spanned DGI.
+
+### The fix (three parts, all in our code — no vendor input needed)
+1. **Split any encoded DGI > 255 bytes across two STORE DATA commands** — first carries 255 bytes,
+   second the remainder — with **P2 incrementing per command, not per DGI**.
+2. **Force the 3-byte `FF <len16>` DGI length whenever the DGI will be spanned**, even when the data
+   length would fit in one byte (the manual's own example uses `FF00FE` for 254). `encode_dgi`
+   currently uses the 3-byte form only at `size >= 0xFF`, so it needs a "spanned" flag.
+3. Keep the end-of-perso `P1 |= 0x80` on the **final command overall** — i.e. the second half of a
+   split last DGI, not the first.
+Then set `fullOdaCertChain = true` and re-perso. Also add the missing `Lc` guard to the Visa loop so
+an oversized DGI can never again be silently truncated into a misleading card error.
+
+### Watch on re-test
+- Expect TVR byte 1 to lose 0x20 (and 0x08 if DDA actually verifies). ODA also needs the terminal to
+  hold a CAPK for our `8F` index — the logs show `数据库中未找到匹配的CAPK` (no matching CAPK), so
+  with a TEST CA the terminal may instead set bit1 0x80 "ODA not performed". **Confirm with the
+  issuer which they check**: if the host declines on "ODA not performed" too, we need a real
+  issuer certificate under a CA the terminal already carries, not our UAT test CA.
+- That question is worth asking BEFORE spending a card, since it decides test-CA vs real-CA.
+
 ## RE-TEST 2026-08-16 09:28 — AUC FIX CONFIRMED WORKING. Three things remain.
 Source: `VISA IC without PIN and Cless issue.txt` (Pid=6432), same card 4177630226449323.
 
