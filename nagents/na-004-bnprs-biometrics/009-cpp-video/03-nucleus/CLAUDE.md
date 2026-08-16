@@ -125,6 +125,34 @@ BprVision changes, it is likely recorded in **three** places — 001's deliverab
 bnprs-lib-forge` `libraries.yaml`, and here. A correction applied to only one of them has happened
 before and caused a stale warning to survive for two weeks.
 
+## ⚠️ LICENCE EXPOSURE on the SHIPPED models — raise before any further BprVision publish
+
+Both models we already ship inside BprVision 2.61.x carry this in their own ONNX metadata:
+
+```
+author  : Ultralytics
+license : AGPL-3.0 License (https://ultralytics.com/license)
+bpr.m10005 "Ultralytics best model trained on datasets/smoke/data.yaml"
+bpr.m10006 "Ultralytics Yolo_nano_weights model trained on /content/data.yaml"
+```
+
+**AGPL-3.0 is copyleft, and BprVision 2.61.0/2.61.1 is published to the Generic registry (project
+230, 5 platforms) as a closed-source library that "Ships models m10005/m10006", consumed by
+na-009/008 bpr1008-bnet.** Ultralytics sells a commercial licence for exactly this use.
+
+na-004/011's own licence ledger (`2026-08-15-activity-recognition-three-tier.md`) flags
+AGPL YOLOv8 weights as **"no — prototype only, or Ultralytics commercial licence"** — but that
+check was applied to their prototype, and **nobody applied it to what is already published**.
+`bnprs-lib-forge` `libraries.yaml` tracks no licence field for these packages (it does carry the
+BprFinger / FingerJetFX LGPL question, so there is precedent for tracking one).
+
+**Not a call this agent can make.** Route to **na-002/002 bnprs-admin-hr** (legal/compliance, owns
+the BprFinger LGPL question) and **na-003/009 bnprs-lib-forge** (publisher). Note the legal
+position on whether AGPL reaches trained *weights* is genuinely contested — the point is that it is
+unassessed, on artifacts already distributed, not that the outcome is settled.
+This also constrains the replacement: the three-tier successor must be licence-clean, and 011's
+ledger already picked Apache-2.0 components (RTMPose, PoseC3D/ST-GCN, Qwen2.5-VL) for that reason.
+
 ## Detector accuracy — MEASURED, and the workstream is PARKED (2026-08-16)
 
 > **VERDICT: neither smoke nor fight detection is acceptable as an autonomous alarm.**
