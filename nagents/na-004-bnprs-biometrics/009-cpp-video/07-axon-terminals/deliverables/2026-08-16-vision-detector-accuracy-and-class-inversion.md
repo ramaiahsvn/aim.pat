@@ -159,6 +159,152 @@ BabyCrawling  11/42 (26%)   BalanceBeam 7/37 (19%)   Archery     6/40 (15%)
 BandMarching   4/42 (10%)   ApplyLipstick 3/37 (8%)  BasketballDunk 3/39 (8%)
 ```
 
+## DETECTION RATE — measured 2026-08-16, the missing half of the ROC
+
+The gap flagged throughout the sections above ("no positive footage") is now closed. Positives were
+built from the **kinetics-400** download in `Datasets/activity-video/kinetics-dataset`: the
+annotations CSV was fetched, the violence and fire/smoke class IDs selected, and only those members
+extracted from the 28 downloaded `part_*.tar.gz` shards. Yield: **211 fight positives** and
+**417 smoke positives**, against the same **405 UCF101 negatives**.
+
+### Headline — both detectors miss far more than they false-alarm
+
+| detector | operating point | **recall** | false-alarm |
+|---|---|---|---|
+| Fight (corrected mapping) | 3/8 @ 0.50 — current | **36.0%** | 3.2% |
+| Smoke | 2/6 @ 0.50 — current | **23.3%** | 8.1% |
+
+**The dominant defect in both is missed events, not false alarms.** Fight misses roughly two of
+every three; smoke misses more than three of four. Every earlier discussion in this document — and
+the whole framing of the original session note — was about false alarms, which turn out to be the
+smaller problem by a wide margin.
+
+### Per-class recall — the aggregate hides a lot
+
+```
+FIGHT (211)                              SMOKE (417)
+  wrestling                71%             extinguishing fire   39%
+  punching person (boxing) 48%             cooking on campfire  30%
+  headbutting              26%             smoking hookah       27%
+  slapping                 21%             welding              25%
+  sword fighting           18%             barbequing           17%
+  ALL                    36.0%             juggling fire         4%
+                                           ALL                23.3%
+```
+
+Two readings matter here:
+
+**Fight does best on exactly the right thing.** Wrestling (71%) and boxing (48%) are sustained
+person-on-person grappling and striking — the closest proxies to a real CCTV brawl. The weak classes
+are brief single actions (slapping, headbutting) and an exotic one (sword fighting). So real-world
+recall on an actual sustained fight is plausibly better than the 36% aggregate.
+
+**Smoke's aggregate is unfairly depressed.** `juggling fire` at 4% is the model behaving
+**correctly** — that is flame with no smoke plume, so it is closer to a true negative than a miss.
+Excluding it and the frequently-plumeless `barbequing`, the plume-bearing classes
+(extinguishing fire, cooking on campfire, welding) give **55/178 = 31%**. Still low.
+
+### Both detectors are mis-tuned in the same direction
+
+With positives and negatives in hand, threshold and gate can finally be priced together. Per-frame
+scores were cached once per model so every combination is evaluated on identical detections:
+
+```
+FIGHT                                   SMOKE
+gate   thr    recall  false-alarm       gate   thr    recall  false-alarm
+3/8   0.30    54.0%       7.7%          2/6   0.30    37.9%      13.8%
+3/8   0.40    45.0%       4.7%          2/6   0.40    29.3%       9.4%
+3/8   0.50    36.0%       3.2%  <-cur   2/6   0.50    23.3%       8.1%  <-cur
+3/8   0.60    28.4%       2.0%          2/6   0.60    17.3%       5.9%
+3/8   0.70    19.9%       0.5%          3/8   0.30    26.9%       8.4%
+2/6   0.50    49.3%       6.2%          3/8   0.40    18.0%       5.9%
+2/6   0.60    41.2%       4.0%          4/8   0.50     8.4%       1.7%
+```
+
+**Neither current setting sits on the efficient frontier**, and both err the same way — threshold
+too high, temporal window too short:
+
+- **Fight:** `3/8 @ 0.40` buys **+9 points of recall (36.0 → 45.0%) for +1.5 points of false alarm**.
+  Trading confidence for temporal evidence is the better deal at every point tested — at a matched
+  ~4% false-alarm budget, the wider 3/8 gate beats the shorter 2/6 one.
+- **Smoke:** `3/8 @ 0.30` gives **more recall (26.9% vs 23.3%) at essentially the same false-alarm
+  rate (8.4% vs 8.1%)** — a strict improvement over the current setting, and it *widens* the window
+  rather than shortening it. This supersedes the earlier gate-only table above, which could only see
+  the false-alarm axis and therefore made tightening look attractive; with recall priced in,
+  tightening to 4/8 collapses recall to 8.4% and is clearly wrong.
+
+The latency point still stands for smoke and constrains how far the window can widen: at one
+analysis per second `minHits` is time-to-alarm, so 3/8 costs ~1 s more than 2/6 in the best case.
+That is a small price for the recall, but it is the fire-safety requirement's call, not a free win.
+
+### Caveats that bound all of the above
+
+1. **Kinetics is a proxy corpus, not CCTV.** Clips are 10 s of web video — handheld, close, well
+   framed. Real CCTV is fixed, wide and distant with small subjects, so these numbers are more
+   likely an **upper** bound than a lower one.
+2. **Class membership is approximate.** Some `wrestling` is professional staged wrestling; some
+   `barbequing` has no visible smoke. This is why the per-class table matters more than the total.
+3. Negatives remain UCF101 ordinary activity; a proper negative set would include CCTV of empty
+   scenes, weather, headlights and shadows.
+
+### What this changes
+
+- Fight detection is **usable but weak** once the class inversion is fixed. It is no longer a
+  false-alarm generator (3.2%), it is a detector that finds about a third to a half of events.
+- Smoke is the **weaker of the two on both axes** — lower recall and higher false alarms — and it
+  was never touched by the inversion bug, so this is its true standing performance.
+- The skeleton-based direction (na-004/011) is **re-justified, on new grounds**. The original
+  argument was false alarms and that argument dissolved with the class fix; the real case is the
+  recall ceiling, which no threshold or gate setting reaches past ~54% even at 7.7% false alarms.
+- Any 2.61.2 that ships fight detection should quote these numbers rather than imply a working
+  alarm, and the operating point should be moved to at least `3/8 @ 0.40`.
+
+## VERDICT — is this acceptable accuracy? No, not as an autonomous alarm
+
+Rates alone under-state the problem. At one analysis per second, converting the negative corpus into
+distinct alarm **onsets** gives what an operator actually experiences:
+
+| detector | point | recall | false alarms/camera/hour | /camera/day | 50 cameras/day |
+|---|---|---|---|---|---|
+| fight | 3/8 @ 0.50 (current) | 36.0% | **19.0** | 457 | ~22,800 |
+| fight | 3/8 @ 0.40 (proposed) | 45.0% | 30.7 | 738 | ~36,900 |
+| smoke | 2/6 @ 0.50 (current) | 23.3% | **49.8** | 1,194 | ~59,700 |
+
+And there is **no setting that fixes both**. Searching gates from 3/8 out to 12/16 and thresholds to
+0.90, every operating point that brings false alarms under ~60/camera/day collapses recall:
+
+```
+FIGHT  best points under 60 FA/day:  recall 0.0% – 9.0%
+SMOKE  best points under 60 FA/day:  recall 0.0% – 2.9%
+```
+
+The two failure modes cannot be traded against each other into an acceptable region. That is the
+signature of a model with **too little separation between the classes**, not a tuning problem.
+
+**Two independent reasons it fails, and the first does not depend on the negative corpus at all:**
+
+1. **Recall is too low for the job.** 36% (fight) and 23% (smoke) mean most events are missed. For
+   smoke this is the serious one — a fire-safety function that misses three fires in four is worse
+   than none, because it will be trusted. This number is a property of the model and positives; the
+   choice of negatives cannot rescue it.
+2. **On busy scenes the alarm rate is unusable.** 19–50 false alarms per camera per hour guarantees
+   alarm fatigue, at which point even correct detections stop being acted on.
+
+**Caveat, stated plainly:** the negative corpus (UCF101 sports and gym activity) is adversarial —
+densely populated, vigorous motion, exactly what these models confuse. A fixed camera on a quiet
+corridor would false-alarm far less; the two real CCTV field clips produced **zero** alarms after
+the class fix. But that is 44 seconds of footage, far too little to estimate a rate from, and it
+does nothing for the recall problem. So the honest reading is: false-alarm figures are an upper
+bound, recall figures are not.
+
+**What they ARE good enough for:** retrospective / review-assist use — flagging candidate segments
+for a human to scan, where a missed event is recoverable by review and a false positive costs a few
+seconds. Not live alerting, not unattended monitoring, and not anything safety-certified.
+
+**Targets to aim at**, so a future model has a bar rather than a vibe: for live alerting, recall
+≥ 90% on the target event with < 1 false alarm per camera per day. Both detectors are one to two
+orders of magnitude away on the false-alarm axis and 2–4x away on recall.
+
 ## Reproducing
 
 `fight_eval.py` (production path, class 0) and `fight_eval_c1.py` (class 1) sit next to this
