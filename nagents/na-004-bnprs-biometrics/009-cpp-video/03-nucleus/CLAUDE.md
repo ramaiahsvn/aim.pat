@@ -194,6 +194,25 @@ This **re-justifies na-004/011's skeleton-based direction on new grounds** — t
 was false alarms, and that argument dissolved with the class fix; the real case is the recall
 ceiling, which nothing in the sweep passes ~54% even at 7.7% false alarms.
 
+### Skeleton prototype TRIED and PARKED (2026-08-16) — full writeup:
+`07-axon-terminals/deliverables/2026-08-16-skeleton-fight-prototype.md`.
+Built pose (YOLOv8n-pose ONNX on onnxruntime) → handcrafted-features MLP AND a pure-torch ST-GCN,
+trained on RWF-2000 (real surveillance). Outcome, honestly:
+- **Recall ceiling IS breakable** — handcrafted skeleton doubled recall (36% → 76%); ST-GCN fit RWF
+  to 0.995 train. The direction is confirmed.
+- **BUT the ST-GCN OVERFIT and did NOT generalize cross-dataset** — cross-domain AUC **0.572**
+  (near chance), *worse* than the handcrafted 0.667. The 0.995 "in-domain" is TRAIN-FIT, not
+  held-out — meaningless as a generalization number (methodology gap). Cause: 903k params on 700
+  clips, no augmentation, no tracking, weakest pose model.
+- **The recurring blocker is the real point: cross-DATASET proxies mislead in both directions.**
+  Every number (YOLO 36%, handcrafted 0.67, ST-GCN 0.57) is confounded by domain mismatch. The
+  literature's 90–95% is in-domain (RWF→RWF); it does not claim cross-dataset transfer. **We cannot
+  tell an overfit model from a good one without target-site CCTV footage** — that capture GATES more
+  model work.
+- If resumed (scope for na-004/011): held-out RWF val, augmentation + tracking + RTMPose (Apache,
+  also fixes the pose licence), and target CCTV first. Prototype code: `bpr.rnd/activity-recognition/`
+  (`skel_fight.py`, `stgcn.py`). Caveats: AGPL pose = prototype only; RWF = research-only.
+
 ### Done in this workstream — do not redo
 - **Fight class inversion FIXED and SHIPPED** (bpr.cpp `35d2c63`, pushed). `bpr.m10006.onnx` declares
   `{0: 'non_violence', 1: 'violence'}`; the code declared the reverse and alerted on class 0, so
