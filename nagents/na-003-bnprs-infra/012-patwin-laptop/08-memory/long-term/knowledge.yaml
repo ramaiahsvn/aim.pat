@@ -699,6 +699,44 @@ memories:
            queue-grows, batch-ceiling, bpr-extract-max-gb, corrupt-archives-skipped,
            self-matching-process-filter, schtasks-past-trigger-duplicates, resume-instructions]
 
+  - id: mem-017
+    type: operation
+    content: >-
+      2026-08-16 EXTRACTION MYSTERY SOLVED AND QUEUE RESTARTED — supersedes the Kaspersky
+      suspicion in [[mem-016]]. THE "7z BLOCKED AT ZERO CPU" WAS A PASSWORD PROMPT: csip_info.zip
+      (and the whole "iris\Cross-Sensor dataset using 10 mobile setups" CSIP set) is
+      PASSWORD-PROTECTED. Headless 7z under the SYSTEM task waits forever on the invisible
+      "Enter password:" prompt at zero CPU; interactively it exits 255 in ~100 ms after writing
+      one zero-byte file. Kaspersky was innocent. Diagnostic that cracked it: `7z t` run
+      INTERACTIVELY shows the prompt — always test an archive interactively before blaming AV.
+      FIXES APPLIED to C:\Windows\Temp\extract-all.ps1 (all live):
+        * every 7z call now passes -pBPR_NO_PASSWORD — unencrypted archives ignore it, encrypted
+          ones fail FAST with exit 2 ("FAILED, archive kept") instead of hanging the queue;
+        * csip_info.zip added to $BADARCHIVES (needs the real password, not retries — it is a
+          distributed research dataset, password comes with the licence email; ask the user);
+        * $SKIP is now a LIST @('_finger_big_data','_untouch') — the user created E:\_untouch
+          (291 GB: BioData-2ndGen.zip 270 GB, FingerKnuckle.zip, Cqi-Qi-First-Gen zip,
+          BioData-1stGen) which must NEVER be extracted; the script re-enumerates E: each start,
+          so any resume WITHOUT this exclusion would have eaten it.
+      QUEUE STATE at restart 08:46: 31 archives / 94.26 GB pending, E: free 989.5 GB, floor
+      150 GB, batch ceiling BPR_EXTRACT_MAX_GB=0.5 (machine env). First 13 small archives went
+      through in 2 minutes; csip_masks failed-fast in 8 s. Estimates from measured rates:
+      0.5 band ~1 h, 5 GB band 3-5 h, final band incl Nec-MaskDatabase.zip (61.6 GB, in
+      face\masked) 4-6 h; whole queue ~8-14 h. Duration scales with ENTRY COUNT not GB.
+      Raise the ceiling per band, or set 0 for unlimited — with fail-fast nothing can hang it.
+      OTHER STATE 2026-08-16: 7z itself healthy (161 ms list on C:). Windows.old still on C:
+      (self-purges ~22 Aug, leave it). IIITDContactLens extracted+verified (153,272 files,
+      13.69 GB, zip deleted). NotreDame only LG2200+LG4000 remain, big archives verified+deleted.
+      db_fvc2004.zip (277 MB) sits in E:\finger\FVC2004 next to its extracted folder. Aware XM
+      in E:\_experiments\XM. Still held for investigation: Results_onCloudPc1.zip and
+      Results_all_onlyScoreXlss.zip (7z exit 2 twice — possibly ALSO encrypted, retest
+      interactively with `7z t` now that the password pattern is known), plus the CSIP set.
+    created_at: "2026-08-16"
+    confidence: 1.0
+    source: "session-2026-08-16"
+    tags: [e-drive-extraction, password-protected-zip, csip, fail-fast-pBPR_NO_PASSWORD,
+           untouch-excluded, queue-31-of-94gb, kaspersky-exonerated, band-0.5-running]
+
 # Pruning rules
 pruning:
   max_entries: 500
