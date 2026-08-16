@@ -18,7 +18,35 @@ no certificates is exactly "ICC data missing". Dropping the DDA claim is NOT the
 mandates AIP 3800 and the host is provisioned for a DDA-capable card. **The fix is to ship the
 certificates.**
 
-### Why fullOda was deferred is WRONG — it is not the applet, it is our APDU layer
+### ⚠️ CORRECTION (same day) — the length theory below does NOT explain our 6A88
+I claimed the 6A88 was our Lc truncation on an oversized DGI. **Checked, and it does not hold at our
+key sizes.** With the test CA at 1792 bits the issuer certificate (tag 90) is 224 bytes, so
+`8F+90+9F32+92+9F49+9F4A` = 248, `tlv(70,…)` = 251, and DGI 0301 encodes to **254 bytes — one
+command, no span.** The manual's example spans only because its CA is 1984-bit (248-byte cert → 262).
+So:
+- The spanning support is **correct and mandated** (VSDC 2.9.2 §4.4) and is needed the moment we
+  move to a real 1984-bit CA — keep it, along with the Lc guard that stops silent truncation.
+- **It is not the cure for the 6A88, and enabling fullOda will not obviously fix anything.**
+  The cause of the 6A88 on DGI 0301 remains UNKNOWN.
+- Corroboration that record size is not the issue: our **MC** cards already ship a full chain at the
+  same sizes (`CA1792 → Iss1536 → ICC1152`, with `8F 90 92(4B) 9F32 9F46 9F47` all present on the
+  card — see the -4108 analysis in `knowledge.yaml`). So a ~251-byte ODA record is loadable in
+  practice; whatever fails on the Visa applet is Visa-specific and still undiagnosed.
+
+### ⚠️ THE TERMINAL CANNOT VERIFY ODA AT ALL — POS-side bug, already recorded
+`knowledge.yaml` (2026-07-24) captured this and it was never closed:
+> CAPK load CRASHED — `hexStr2Bytes StringIndexOutOfBounds length=495 index=495` (odd-length CAPK
+> hex) in `CAPKsLoader.syncCAPKsToEMVKernel` → **NO CAPKs loaded into kernel**
+
+That is a POS/ITP config bug, not our card. **With no CAPK in the kernel the terminal cannot verify
+any certificate chain we ship**, so loading ODA would most likely turn TVR bit 3 (0x20 "ICC data
+missing") into bit 1 (0x80 "offline data authentication was not performed") rather than clearing the
+decline. **Ask the issuer which bit they actually gate on before spending a card** — if they decline
+on "ODA not performed" too, no card-side change helps until the POS CAPK table is fixed AND we hold
+a real issuer certificate under a CA the terminal carries (the long-outstanding bureau ask,
+`rnd-cperso 2026-07-15-issuer-rsa-key-process.md`).
+
+### Original (partly wrong) reasoning, kept for the trail
 The deferral note says "loading the cert into 0301 currently returns 6A88 → keep OFF until the
 applet's ODA record spec is confirmed". Two findings kill that reading:
 
