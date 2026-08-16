@@ -1,66 +1,161 @@
-# task-003 — Visa POS approval (offline decline fixed; online-host vs offline-approve decision pending)
-# Deferred by user 2026-07-24 ("keep this action item to work on later"). Full analysis in
-# 08-memory/long-term/visa-pos-groundtruth.md. Do NOT re-derive — start from the decision below.
+# task-003 — Visa POS approval
+# ROOT CAUSE FOUND 2026-08-16: 9F07 Application Usage Control = C080 (orchestrator.cpp:308).
+# The 2026-07-24 CVM diagnosis was WRONG (wrong TVR byte). Full analysis in
+# 08-memory/long-term/visa-pos-groundtruth.md. Do NOT re-derive — start from below.
 
 task:
   id: "task-003"
-  subject: "Get our Visa card to an APPROVED POS sale (decline root-cause fixed; needs host or offline-config)"
+  subject: "Get our Visa card to an APPROVED POS sale (AUC 9F07=C080 is the decline cause; fix + retest)"
   description: >
-    Our perso'd Visa (PAN 4177630223489082, AID A0000000031010) reads perfectly at the Sunmi/aeonpay
-    POS (read-app-data=0) but the terminal declined OFFLINE (Terminal Action Analysis requested AAC).
-    Computed root cause: the SOLE denial trigger was TVR byte2 0x10 "PIN required, PIN pad not
-    present/working" — the card's CVM list led with ONLINE PIN, impossible in an offline flow.
-    FIXED + DEPLOYED (see status below). Remaining work is a decision + follow-through, NOT the CVM.
-  status: in_progress        # CVM fix done+deployed; approval path decision pending
+    Our perso'd Visa reads fine at the Sunmi/aeonpay POS but the terminal declines OFFLINE
+    (Terminal Action Analysis -> AAC, GENERATE AC P1=00, CID=00). Kernel diag DF816F gives
+    TVR=2890808000 vs TAC/IAC-Denial=0010000000. The SOLE denial bit is TVR byte 2 bit 0x10 =
+    "Requested service not allowed for card product" = Processing Restrictions / Application
+    Usage Control. Our 9F07 = C080 (cash only; b2 valid-at-ATM = 0 AND b1 valid-at-other-terminals
+    = 0), so the bit is set on EVERY terminal for EVERY transaction type. Reference Visa card on
+    the same terminal has 9F07 = FF80 and passes. Full TLV diff of the two cards shows 9F07 as the
+    only decline-causing difference.
+  status: in_progress
   priority: high
   created_at: "2026-07-24"
+  updated_at: "2026-08-16"
   assigned_to: null
   blocked_by: []
   blocks: []
-  estimated_steps: 4
-  tags: [visa, pos, emv, terminal-action-analysis, cvm, offline-vs-online, kiosk-dxb-014]
+  estimated_steps: 3
+  tags: [visa, pos, emv, terminal-action-analysis, auc, 9f07, processing-restrictions, kiosk-dxb-014]
 
 # ---- DONE (do not redo) ----
 completed:
   - id: "task-003.1"
     what: >
-      CVM decline fixed. orchestrator.cpp:291 8E CVM list changed from online-PIN-first
-      (0000000000000000020542035E031F02) to offline-plaintext-PIN + No-CVM fallback
-      (000000000000000041031F00). Card PIN=1234 (self-verify VERIFY->9000). Removes the ONLY
-      TVR&Denial bit -> no more offline AAC decline.
+      CVM list changed from online-PIN-first (0000000000000000020542035E031F02) to offline
+      plaintext PIN + No-CVM (000000000000000041031F00). Deployed to the bureau 2026-07-24.
     proof: >
-      Bureau rebuilt aarch64 in local Docker (source ro) + redeployed to EC2 98.130.14.127
-      (i-00eb79ff8e9e1788b), systemd perso-bureau active, listening 9099, binary sha
-      9d64613d93455391 (NEW-CVM string present, OLD absent). Not yet committed to bpr.cpp git.
+      Confirmed PRESENT on the card tested 2026-08-16 (8E = 000000000000000041031F00).
+    note: >
+      This did NOT fix the decline and was never the cause — the July analysis mislabelled TVR
+      byte 2 bit 0x10 ("requested service not allowed for card product") as byte 3 bit 0x10
+      ("PIN pad not present"). The July TVR byte 3 was 0x04 = "Online PIN entered", i.e. the PIN
+      pad was working. Keep the new CVM list (it is fine), but do not credit it with anything.
+
+  - id: "task-003.5"
+    what: "Root-cause the real decline from the 2026-08-16 two-card log (VISA SP logs.txt)."
+    proof: >
+      Decoded both taps' APDU traces from the kernel log, full TLV diff of our card vs the
+      reference Visa on the same terminal, TVR/TAC/IAC read directly from kernel diag tag DF816F
+      (not inferred). Single discriminator: 9F07 = C080 (ours) vs FF80 (reference).
+    completed_at: "2026-08-16"
+
+  - id: "task-003.6"
+    what: >
+      FIX the Visa AUC — DONE 2026-08-16. The hardcoded tlv(0x9F07, from_hex("C080")) in visa_dgis()
+      is replaced by a profile-driven VisaPersoConfig::auc (std::string, default "FF80"), mirroring
+      how the MC path takes its AUC from sequencer::PersoRecord::auc. Default FF80 = what the working
+      reference Visa carries. visa_dgis() gained an aucHex parameter; the single call site passes
+      cfg.auc.
+    proof: >
+      Files: orchestrator.hpp (new product-config `auc` field + why-it-matters comment),
+      orchestrator.cpp (visa_dgis signature + tlv(0x9F07, from_hex(aucHex)) + call site).
+      98/98 tests green on macOS arm64 AND on linux/arm64 in Docker. Built binary verified:
+      literal "C080" absent, "FF80" present. No other C080 remains anywhere in bpr.cpp/src.
+    completed_at: "2026-08-16"
+
+  - id: "task-003.7"
+    what: "Rebuild + redeploy the bureau — DONE 2026-08-16."
+    proof: >
+      Built linux/arm64 in Docker (ubuntu:24.04, bpr.cpp mounted READ-ONLY at /src, Release,
+      -DPERSOENGINE_BUILD_TLS=ON), shipped ONLY the binary. Deployed to EC2 i-00eb79ff8e9e1788b
+      (98.130.14.127, ap-south-2b, t4g.small arm64). Binary sha256
+      f582a042b1c9e667820f400bd334d5f593970f1080d070c3e550ae9e68af8cf7 — identical local and on the
+      instance. Previous binary preserved as ~/bureau/bpr-iperso-bureau.bak-pre-auc.
+      Service bpr-iperso-bureau enabled + active, pid 153179, clean start log
+      "listening on 0.0.0.0:9099 (PROD, TLS 1.2+ mutual auth; token required; up to 8 concurrent
+      kiosk sessions)". On-box check: FF80 present, C080 absent.
+    completed_at: "2026-08-16"
+
+  - id: "task-003.8"
+    what: >
+      PROFILE CONFORMANCE pass — DONE 2026-08-16. The issuer VPA profile XML + VSDC 2.9.2 perso
+      manual were located (Resources/Card Profiles/Visa/ + Resources/Perso Manual and LoA/) and are
+      AUTHORITATIVE. Two more engine values were wrong against it and are now fixed:
+        (a) 8E CVM list: was 000000000000000041031F00 (offline plaintext PIN + No-CVM, the wrong
+            July change) -> now the profile value 0000000000000000020542035E031F02 = the declared
+            contactcvms [Online PIN, Signature, No CVM Required]. This is what restores the PIN
+            prompt: the terminal does NOT support offline plaintext PIN, so the old list fell
+            through to No-CVM (live proof 9F34 = 3F0001).
+        (b) 9F10 IAD (DGI 9200): was 06010A030000000F04 = CVN 0x0A (CVN 10) with 2 stray bytes past
+            the declared length -> now the profile value 06011203000000 = DKI 01, CVN 0x12 (CVN 18).
+            The CVN tells the issuer host how to rebuild the cryptogram; a CVN mismatch fails ARQC
+            validation even with the correct IMK-AC. Fix this BEFORE asking the issuer to re-test.
+      Both are now profile-driven config (VisaPersoConfig::cvmList / ::iad) alongside ::auc, rather
+      than literals; visa_dgis() now takes the whole VisaPersoConfig.
+    proof: >
+      98/98 tests green on macOS arm64 and linux/arm64. Binary byte-searched: FF80 +
+      0000000000000000020542035E031F02 + 06011203000000 all PRESENT; C080 +
+      000000000000000041031F00 + 06010A030000000F04 all ABSENT.
+      (Note: verify with `grep -a`, not `strings | grep -x` — short literals share a strings line
+      and the line-anchored match gives a false MISSING.)
+    completed_at: "2026-08-16"
+
+  - id: "task-003.9"
+    what: "Redeploy the bureau with the CVM + CVN fixes — DONE 2026-08-16."
+    proof: >
+      Same recipe as 003.7 (Docker linux/arm64, source RO, Release, TLS ON, binary only).
+      sha256 8e907be992652248688ffdbdc4681740802bdc0fb2f396d32e1ec680c31fe7d3 — identical local and
+      on the instance. Previous kept as ~/bureau/bpr-iperso-bureau.bak-pre-cvm-cvn. Service active,
+      pid 154644, clean start on 9099 TLS. All three expected values verified in the RUNNING binary
+      on the box; all three old values absent. Temp SG ingress added for the deploy and REVOKED
+      after — sg-061425921af1f1451 confirmed back to its original 2 x port-22 and 4 x port-9099 CIDRs.
+    completed_at: "2026-08-16"
 
 # ---- PENDING ----
 pending:
   - id: "task-003.2"
-    what: "Commit the CVM fix to bpr.cpp (ramaiahsvn token, clean commit, no Claude attribution)."
-    note: "Currently uncommitted local edit on main. Do when the fix is user-confirmed or on request."
+    what: "Commit the AUC + CVM + CVN fixes to bpr.cpp (ramaiahsvn token, clean commit, no Claude attribution)."
+    note: >
+      ALL of it is still uncommitted on main: the July CVM edit (now superseded/overwritten by the
+      profile value), the AUC fix, and the CVM+CVN profile-conformance fixes. User wants
+      confirmation before commit/push. Commit as one profile-conformance change once a card confirms.
     priority: medium
 
   - id: "task-003.3"
-    what: "Re-perso ONE Visa card over PC/SC (OMNIKEY) with the deployed bureau, tap at POS."
+    what: "Re-perso ONE Visa card against the redeployed bureau, tap at POS. THE FIX IS LIVE — this is now the next action."
     expect: >
-      CVM decline GONE; card advances PAST Terminal Action Analysis. On THIS terminal it will then
-      request ARQC (ONLINE) — because termOfflineFloorLmt=0 forces every txn online (floor-limit bit
-      is in TAC-Online). That is parity with the proven MC flow, NOT an offline approval.
+      The card's 0201 record should now carry 9F07 = FF80 (verify by reading the card, or in the
+      POS log's READ RECORD response). Denial bit clears; card passes Terminal Action Analysis and
+      requests ARQC (ONLINE) — the terminal's floor limit is 0 so every txn is forced online. That
+      is parity with the proven MC flow, not an offline approval.
+    watch: >
+      Recompute TVR & (TAC|IAC)-Denial from kernel diag tag DF816F. Expect TVR byte 2 to drop 0x10
+      (keeping 0x80 = app-version mismatch, which is harmless). If a NEW denial bit appears,
+      recompute before changing anything and update visa-pos-groundtruth.md.
     priority: high
-    note: "User has FEW cards — only spend once the target path (3.4a or 3.4b) is chosen."
+    note: "User has FEW cards. The AUC fix is built, tested and DEPLOYED, so this card is worth spending."
 
   - id: "task-003.4"
-    what: "DECISION (user's call) — which approved-sale path for the Visa demo:"
-    options:
-      - "3.4a ONLINE (mirrors MC): needs a Visa auth host to validate our Visa ARQC — provision PAN
-         4177630223489082 + route Visa BIN to an issuer host; host must hold our Visa IMK-AC (KCV
-         944A44) at the right DKI. Card side READY (Visa already derives UDK with the card PSN — never
-         had MC's hardcoded-00 bug). Cross-ref MC host handoff in mc-pos-groundtruth.md."
-      - "3.4b OFFLINE approve: POS TEAM must RAISE the terminal offline floor limit (terminal-side, we
-         cannot perso it) AND we drop the AIP DDA claim (or ship fullOda=true + load our TEST CA on the
-         terminal at index 08) so DDA-failed/ICC-missing stop forcing online. Then terminal -> TC."
+    what: "ONLINE approval follow-through (offline approval is impossible on this terminal, floor limit 0)."
+    detail: >
+      MAGSTRIPE transactions with our card ALREADY SUCCEED on this terminal — so the PAN/BIN routes
+      and the acquirer/issuer path is live. That removes the 'provision + route the BIN' unknown
+      from the old 3.4a. What remains: confirm the issuer host can VALIDATE our Visa ARQC, i.e. it
+      holds our Visa IMK-AC (KCV 944A44) at the matching DKI. Compare by KCV only, never key values.
     priority: high
-    blocked_by_external: "3.4a = issuer/host team; 3.4b = POS/terminal team (floor limit)."
+    blocked_by_external: "issuer/host team (ARQC key validation)."
+
+# ---- Secondary findings (from the 2026-08-16 log; NOT the decline cause — do not chase) ----
+secondary:
+  - "Zero chip PAN/track2 (5A + 57 all zeros). The REFERENCE card has this too and still works —
+     the terminal takes the PAN from the magstripe (service code 201 forces chip after swipe).
+     Worth fixing for a proper card, but it is not a blocker."
+  - "No ODA certs (fullOda=false) -> TVR byte1 0x28 (ICC data missing + DDA failed). Those bits are
+     in TAC/IAC-Online, not Denial -> they route online, they do not decline."
+  - "No PSE: SELECT 1PAY.SYS.DDF01 -> 6A82, terminal brute-scans ~28 AIDs before finding ours.
+     Works but slow/fragile; the reference card publishes a PSE."
+  - "9F08 = 00A0 vs terminal 9F09 = 0002 -> TVR byte2 0x80 (different app versions). Not in any
+     Denial code -> harmless."
+  - "SFI 1 rec 1 carries a tag-61 directory entry, not application data, though the AFL points the
+     kernel at it. Harmless but wrong content for that record."
 
 # ---- Guardrails ----
 guardrails:
@@ -71,7 +166,7 @@ guardrails:
 
 # ---- Cross-refs ----
 see_also:
-  - "08-memory/long-term/visa-pos-groundtruth.md — full Terminal Action Analysis computation + fix"
-  - "08-memory/long-term/mc-pos-groundtruth.md — MC online-host handoff (same shape as 3.4a)"
-  - "this agent task-002 (Visa perso — upstream; ODA cert 9F46/8F/90 still fullOda=false, relevant to 3.4b)"
-  - "bpr.cpp src/BprCardEmv/persoengine/src/orchestrator.cpp (visa_dgis fullOda flag, 8E CVM at :291)"
+  - "08-memory/long-term/visa-pos-groundtruth.md — corrected Terminal Action Analysis + full TLV diff"
+  - "08-memory/long-term/mc-pos-groundtruth.md — MC online-host handoff (same shape as 3.4)"
+  - "bpr.cpp src/BprCardEmv/persoengine/src/orchestrator.cpp:308 (visa_dgis 9F07)"
+  - "bpr.cpp src/BprCardEmv/persoengine/include/persoengine/sequencer.hpp:37 (MC auc = FF00, the working pattern)"

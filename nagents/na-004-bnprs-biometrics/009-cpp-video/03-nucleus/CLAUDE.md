@@ -134,15 +134,60 @@ before and caused a stale warning to survive for two weeks.
       construction (YOLOv8 trains letterboxed; the old path stretched 16:9 by 1.78x), but the
       only local measurement was a negative frame and it was neutral-to-slightly-worse there.
       No 2.61.2 ships without a smoke/fight before/after.
-- [ ] **The fight model produces field false alarms — model problem, not plumbing.** bpr.m10006
-      fires "violence" at conf 0.78 on a static group-photo CCTV frame under BOTH old and new
-      preprocessing, and persistent FPs on a static scene pass the 3/8 temporal gate. The fix
-      direction is na-004/011's three-tier report (skeleton-based fight detection), not
-      threshold fiddling.
+- [ ] **FIGHT DETECTION IS WIRED UP BACKWARDS — one-line bug, found 2026-08-16. Fix before any
+      other fight work.** `bpr.m10006.onnx` states its own classes in ONNX metadata as
+      **`{0: 'non_violence', 1: 'violence'}`**. `BprFightDetect.cpp:24,34` declares the reverse
+      (`{"violence","no-violence"}`) and alerts on `classId == 0`. **Every "VIOLENCE DETECTED"
+      alarm the library has raised was the model saying the scene is NOT violent — and real
+      violence (class 1) is filtered out and discarded, so it would also stay SILENT during an
+      actual fight.**
+      Measured on 405 UCF101 clips of ordinary activity (zero violence present):
+      | | class 0 (our code) | class 1 (model's labels) |
+      |---|---|---|
+      | clips with confirmed alarm | 230 (56.8%) | **13 (3.2%)** |
+      | frames firing | 1455 (59.1%) | **105 (4.27%)** |
+      On the two annotated field CCTV clips the false alarms go to **zero**.
+      Fix: `FIGHT_CLASSES = {"non_violence","violence"}`, alert on `classId == 1` (3 sites:
+      `detectTemporal` filter, `_fight_detect_image` violenceCount, and its box colour), and correct
+      the comment at lines 23-24. **Do not change the threshold in the same edit** — 0.5 has never
+      been evaluated against a correctly-mapped detector.
+      **FIX APPLIED 2026-08-16** (uncommitted): `FIGHT_CLASSES = {"non_violence","violence"}` +
+      `FIGHT_CLASS_VIOLENCE = 1` used at all three sites; BprVision rebuilt clean on macOS.
+      Full write-up + reproducible harnesses:
+      `07-axon-terminals/deliverables/2026-08-16-vision-detector-accuracy-and-class-inversion.md`.
+      Still open after the fix: **detection rate is unmeasured** (no positive footage — kinetics-400
+      is downloading; RWF-2000 / Hockey Fight are better). Whether na-004/011's skeleton-based
+      direction is still needed is now an OPEN question — it was justified by false-alarm numbers
+      that turned out to be this bug. Preprocessing is exonerated either way (blank/black/white/
+      noise all score <=0.002), so the letterbox item is genuinely separate.
+      **Read a model's labels from the artifact, never from a comment** — Core Directive 3 applies
+      to model metadata, not just symbol tables:
+      `strings -n 3 .models/<model>.onnx | grep -A1 '^names$'`
 - [ ] **BprModelPath is a BprFace header** (`../../BprIDEngine/BprFace/sFace_t12/BprModelPath.h`
       included by both detectors) — contradicts this file's "BprVision -> BprVideo, never the
       reverse" dependency rule and quietly blocks the own-library future the API header
       contemplates. Move it to a common location when that future firms up.
+- [ ] **Smoke's temporal gate is the loosest while its per-frame error rate is the higher — the two
+      detectors' settings are inverted relative to the evidence.** Measured 2026-08-16 on the same
+      405 non-smoke UCF101 clips: smoke fires on 5.73% of frames (vs corrected fight's 4.27%) yet
+      raises confirmed alarms on **8.1% of clips** (vs fight's 3.2%), purely because its gate is
+      2/6 against fight's 3/8. Holding the detections fixed: 2/6 -> 8.1%, **3/8 -> 4.2%**,
+      4/8 -> 1.7%, 5/10 -> 1.0%. Smoke's CLASS MAPPING IS CORRECT ({0:'smoke'}, single class) — it
+      was never touched by the fight inversion.
+      **Do not simply tighten it.** Smoke is a fire-safety signal and at 1 analysis/sec `minHits`
+      IS time-to-alarm (2/6 ~2 s, 5/10 up to 10 s), and there is no positive smoke footage, so the
+      recall cost is unmeasured. This is a latency/false-alarm trade for the fire-safety
+      requirement to settle, not a number to pick off the table.
+      FPs concentrate on bright outdoor/gym scenes (BaseballPitch 37%, BenchPress 33%,
+      Basketball 27%) — haze, sky, dust, lighting.
+
+- [ ] **`Bpr_Video_RequestStop` (uncommitted, in `BprVideoCapture.cpp`) changes the DOCUMENTED
+      EXPORT SETS.** A fresh macOS BprVision build now exports **11**, not the 10 recorded above
+      (BprVideo goes 3 -> 4). It is still declared in no header and consumed by nothing. Either
+      land it properly — header declaration, API-spec update in 001's
+      `2026-08-01-bprface-bprvideo-bprvision-api.md`, lib-forge `libraries.yaml` — or drop it before
+      a publish, but do not publish with the export tables in this file left stale.
+
 - [ ] Minor, for symmetry: smoke/fight `process()` clones + draws even when headless
       (face gates on `annotate`). 1 fps cost, cosmetic priority.
 
