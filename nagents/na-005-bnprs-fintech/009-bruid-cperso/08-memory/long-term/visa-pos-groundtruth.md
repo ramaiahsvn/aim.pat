@@ -1,5 +1,37 @@
 # Visa POS Ground-Truth — offline decline analysis (KEEP until Visa txn succeeds)
 
+## AIP 1800 RESULT (2026-08-16 18:04, log 2026-08-16_18-03-53-660_1_.txt) — WORKED on the card
+Two identical taps (18:04, 18:05), both clean. Decoded from the APDU trace:
+- **GPO answer: AIP = 1800** ✓ (the new bureau build was used — DDA claim dropped).
+- 0201 record: 8E = `00000000000000000205 42035E031F02` (profile CVM ✓), 9F07 = FF80 ✓, 9F08 = 00A0.
+- CVM: online PIN entered and accepted — `importPinInputStatus inputResult:0`, `9F34 = 420300`
+  (0x42 online PIN, result 00 = pending issuer, correct for online PIN). Contrast the AIP-3800 run,
+  which fell through to No-CVM (9F34 = 3F0001).
+- **TVR = 8080048000** — byte1 0x80 "offline data authentication was NOT performed", byte2 0x80
+  (app-version diff, harmless), byte3 **0x04 "online PIN entered"**, byte4 0x80 (floor limit).
+  **The 0x20 "ICC data missing" and 0x08 "DDA failed" bits are GONE** — exactly the bit the issuer
+  declined 05 on. AIP 1800 removed the DDA claim, so the terminal does no offline auth and sets
+  "ODA not performed" instead — the same class of TVR the MC card transacts under.
+- **GENERATE AC → CID = 0x80 (ARQC)**, ATC = 0004, AC = A5E5B97F74FA45BC, **IAD 9F10 = 06011203A09000
+  → DKI 01, CVN 0x12 (CVN 18)** ✓. The card produced a valid online cryptogram and requested ONLINE.
+
+**The card side is fully working now: clean read → online PIN → ARQC (CVN 18) → online request, with
+the issuer's exact decline bit cleared.**
+
+### Why the txn still ends -20003 here — it is the TEST HARNESS, not the card
+`importOnlineProcStatus status:-1`, tags 71/72/91/8A/89 EMPTY → `finalStatus -20003`. This is the
+**aeonpay/Sunmi SDK test app with no acquirer configured** — it validates EMV up to the online
+request and then has no host to authorize against. Same -20003 seen in every prior SDK-app log
+(VISA SP logs, VISA IC without PIN). It is NOT a card decline. The REAL host test is a SEPARATE
+setup — the one that returned "05 Chip Data missing - TVR Bit 3".
+
+### NEXT — tap this same card on the REAL acquirer/host (the one that gave 05)
+With AIP 1800 the TVR no longer carries "ICC data missing", so that 05 reason is removed. Expected:
+the issuer validates the CVN 18 ARQC (Visa IMK-AC KCV 944A44, DKI 01) and authorizes — OR declines
+on a NEW reason, which would then be the next real gate. Either is progress; capture the host
+FLD39/response. (This 1800 card is a DIAGNOSTIC, not production-conformant — production = 3800 + the
+cert-chain re-layout, task-003.14.)
+
 ## KEY FINDING (2026-08-16) — the 6A88 is a WRONG DGI LAYOUT, and MC shows the right one
 Prompted by "we have keys already; check how we did for MasterCard." Two things settled it.
 
