@@ -133,6 +133,41 @@ completed:
       issuer certificate load, and it removes the silent-truncation trap.
     completed_at: "2026-08-16"
 
+  - id: "task-003.13"
+    what: >
+      UAT DIAGNOSTIC deployed 2026-08-16 — contact AIP 3800 -> 1800 (drop the DDA claim). Isolates
+      whether the online ARQC path works end to end, given we cannot yet load a verifiable ODA cert
+      chain (wrong Visa DGI layout + no terminal CAPK). We HAVE the Visa IMKs (KCV 944A44) for the
+      ARQC. NOT profile-conformant — a 1800 card proves the path, it is not shippable.
+    how: >
+      New VisaPersoConfig::contactAip (default 3800, conformant); bureau sets it to 1800 with an
+      explicit UAT-revert comment. Engine default unchanged.
+    proof: >
+      100/100 tests macOS + linux/arm64. Bureau binary sha
+      1651828828d31eb48c841bd57514663ab1d3f8d41512ae0b77517932c2212dc5, identical local and on the
+      instance; previous (e80ef88f) kept as ~/bureau/bpr-iperso-bureau.bak-pre-aip1800. Service
+      active pid 157240 on 9099 TLS. Temp SG ingress added + REVOKED (SG back to original CIDRs).
+    watch_on_reperso: >
+      In the perso log expect DGI "9104 GPO" to carry 82=1800. At the POS: no "ICC data missing"
+      decline (bit 3 gone, since no DDA claimed), no PIN-pad/ODA offline issues; card requests ARQC
+      and goes online. Outcomes: (a) APPROVED -> the whole online path works, ODA is the only
+      remaining production gap, and we have a demoable sale; (b) declines on something ELSE -> that
+      is the next real blocker, now visible without the ODA red herring. Either way, capture the
+      terminal log.
+    completed_at: "2026-08-16"
+
+  - id: "task-003.14"
+    what: "AFTER the 1800 signal — the conformant fix: re-map Visa cert DGIs to the manual + enable fullOda."
+    detail: >
+      Mirrors the working MC path. Manual "VISA common Personalization specification" distribution:
+      issuer cert (90) -> DGI 0201 (SFI2 r1) [we wrongly put it in 0301]; 9F32/92/8F -> 0202;
+      ICC cert 9F46/9F47/9F48 -> its record; PAN/5F34/8E/9F0D-E-F/5F24/5F28/9F07/5F25 -> 0301;
+      9F4A/8C/8D/9F08 -> 0302; track2/name -> 0101 [we wrongly put a 4F/50/9F12/87 directory entry].
+      Self-gen keys are fine (MC self-generates too — no real issuer RSA key needed to clear
+      'ICC data missing'). Fix the AFL to match. Revert contactAip to 3800.
+    risk: "Re-lays-out a working online perso; a wrong AFL wastes a tap. Unit-test DGI structure; validate on a card."
+    priority: high
+
 # ---- PENDING ----
 pending:
   - id: "task-003.11"
