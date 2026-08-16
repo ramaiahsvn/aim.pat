@@ -124,6 +124,27 @@ memories:
     confidence: 1.0
     tags: [deployment, bnprs.in, content-update, founding-year, i18n, s3, cloudfront, stale-token]
 
+  - id: mem-010
+    type: infrastructure
+    content: >
+      DOMAIN REGISTRAR MAP (verified via WHOIS 2026-08-16) — the three company domains use THREE
+      DIFFERENT registrars, and bnprs.com's DNS is NOT on Route53 like the others:
+        • bnprs.com — Registrar: TUCOWS Domains Inc. (via reseller; panel shows Reseller Contact tab).
+          Nameservers: ns1/ns2/ns3.systemdns.com (NOT Route53). Expiry 2026-09-15. Locked
+          (clientTransferProhibited + clientUpdateProhibited). So bnprs.com DNS records (the A/alias
+          to CloudFront EIRPPLAXGKOQA) live at the systemdns.com reseller, NOT in a Route53 zone.
+        • bnprs.ai  — Registrar: GoDaddy. DNS on Route53 (zone Z04070871PF9UEZWZ728D, awsdns NS).
+          Expiry 2027-02-26. (mem-001 "Registrar: GoDaddy" is bnprs.ai-specific and correct.)
+        • bnprs.in  — Registrar: Gandi SAS. DNS on Route53 (awsdns NS). Expiry 2027-05-15.
+      Do NOT assume all three share GoDaddy or Route53 — a common mistake when reading the older
+      bnprs.ai-centric notes. For a bnprs.com DNS change, work at the Tucows/systemdns reseller panel,
+      not Route53.
+      RENEWAL: bnprs.com is the soonest to expire (2026-09-15). Renewal notices for it are legitimate
+      but verify at the actual Tucows reseller (never an emailed link) and consider enabling auto-renew.
+    created_at: "2026-08-16"
+    confidence: 0.99
+    tags: [domain, registrar, tucows, gandi, godaddy, whois, dns, systemdns, renewal, bnprs.com, bnprs.ai, bnprs.in]
+
 # Pruning rules
 pruning:
   max_entries: 500
