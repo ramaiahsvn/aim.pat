@@ -1,5 +1,66 @@
 # Visa POS Ground-Truth — offline decline analysis (KEEP until Visa txn succeeds)
 
+## KEY FINDING (2026-08-16) — the 6A88 is a WRONG DGI LAYOUT, and MC shows the right one
+Prompted by "we have keys already; check how we did for MasterCard." Two things settled it.
+
+**What keys we actually have** (`keys/uat_keystore.txt`, labels only): ISD-KVN01, MC IMKs
+(IMK-AC/SMI/SMC), **Visa IMKs (VISA-IMK-AC/SMI/SMC)**, DEKs. These are all SYMMETRIC. The
+VISA-IMK-AC (KCV 944A44) is the **ARQC/online** key — we have it, so the online path is fully keyed.
+There is **NO issuer RSA private key** in the keystore. So "we have keys" = the Visa IMKs; do NOT
+re-ask the issuer for those.
+
+**MC does NOT use a real issuer RSA key either — it self-generates one.** `build_mc_cert_key_data`
+(orchestrator.cpp) calls `oda::generate_rsa_keypair` for CA/issuer/ICC and self-signs the chain,
+exactly like the Visa path does. MC's cert chain is UAT-self-signed and MC still transacts online:
+the terminal has no matching CAPK for the self-gen CA, logs "CAPK not found, skip", and goes online
+where the ARQC authenticates. **So we do NOT need a real issuer RSA key to clear "ICC data missing"
+— we need the certs to LOAD onto the card.** They don't, and here is why:
+
+**The DGI layout is home-grown and INVERTS the manual's distribution.** VSDC 2.9.2 manual, "Tag
+distribution — VISA common Personalization specification recommends":
+```
+DGI 0101 (SFI1 r1): 57 Track2, 5F20 Name, 9F1F Track1-disc
+DGI 0201 (SFI2 r1): 90  Issuer PK Certificate          <-- ISSUER CERT LIVES IN 0201
+DGI 0202 (SFI2 r2): 9F32 exponent, 92 remainder, 8F CA-index
+DGI 0203 (SFI2 r3): 93  SSAD (SDA only)
+DGI 0301 (SFI3 r1): 5A PAN, 5F34 PSN, 8E CVM, 9F0D/E/F IAC, 5F24, 5F28, 9F07, 5F25
+DGI 0302 (SFI3 r2): 9F4A SDA-tag-list, 8C, 8D, ... 9F08
+```
+Our engine (orchestrator.cpp `visa_dgis`) does the OPPOSITE:
+- 0201 (SFI2 r1) = PAN/expiry/PSN/track2/name/CVM/AUC/IAC   ← should be the ISSUER CERT
+- 0301 (SFI3 r1) = the issuer-cert block when fullOda=true   ← should be PAN/CVM/AUC
+- 0101 (SFI1 r1) = a 4F/50/9F12/87 DIRECTORY entry           ← should be track2/name
+SFI2 and SFI3 roles are essentially SWAPPED, and SFI1 holds the wrong thing. Stuffing the
+certificate into 0301 — a record the applet expects to hold PAN/CVM — is almost certainly the
+**6A88**. (It is not a length problem — checked: our 1792-bit CA cert encodes to 254 bytes, one
+command. And MC proves a ~251-byte cert record loads fine when it goes in the RIGHT DGI.)
+
+**Why MC works and Visa doesn't, in one line:** MC loads its self-gen cert chain via M/Chip's OWN
+cert DGIs — `0404` (issuer cert 90+92), `0402` (8F+9F32), `0401/0403` (ICC cert 9F46/9F47/9F48),
+`A004` (key-length alloc) — i.e. it FOLLOWS the applet's perso spec. Visa uses an invented
+[SFI][rec] layout that contradicts the VSDC applet's spec.
+
+### The real fix (mirrors MC; needs NO external key)
+Re-map the Visa records to the manual's distribution: issuer cert → DGI 0201, exponent+92+8F → 0202,
+ICC cert → its record; PAN/CVM/AUC/IAC → 0301/0302; track2/name → 0101. Fix the AFL to match. Enable
+fullOda. Self-gen keys are fine (as for MC). Expected result: chain LOADS → "ICC data missing" (TVR
+bit 3) clears → becomes "ODA not performed" (terminal still has no CAPK) — the SAME state MC
+transacts in, so the issuer may accept it exactly as the MC issuer does.
+
+### RISK — why this was NOT blind-deployed
+It is a full record + AFL re-layout of a CURRENTLY-WORKING online perso. Get the AFL wrong and the
+terminal can't read PAN/track2 → the card fails to read (a wasted tap, worse than today's clean
+online decline). The manual's example is "not a real profile" and the recommended table is
+abbreviated (no explicit ICC-cert record). This needs careful construction + card validation, which
+could not be done from here (kiosk remote, no reader on pat-m4p). Surface for a go/no-go, and decide
+against the quick alternative below.
+
+### Quick alternative (non-conformant DIAGNOSTIC) — drop the DDA claim
+Set the contact AIP 3800 → 1800 (CVM + TRM, no DDA). Terminal performs no ODA → "ICC data missing"
+never set → card authorizes on the ARQC alone (keys we HAVE). One-value change, low risk, isolates
+"does the online path work end to end". NOT profile-conformant (production must be 3800 + certs), so
+it proves the path, it does not ship a real card.
+
 ## HOST DECLINE 05 "Chip Data missing — TVR Bit 3" (after the ATC reset) — ROOT CAUSE FOUND
 Progress ladder so far: AUC fix cleared the OFFLINE decline → card goes ONLINE → ATC reset cleared
 the ATC-replay decline → now the ISSUER declines on the TVR.
