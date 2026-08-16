@@ -109,8 +109,54 @@ completed:
       after — sg-061425921af1f1451 confirmed back to its original 2 x port-22 and 4 x port-9099 CIDRs.
     completed_at: "2026-08-16"
 
+  - id: "task-003.10"
+    what: >
+      Spanned-DGI support in the Visa STORE DATA path — DONE + DEPLOYED 2026-08-16.
+      encode_dgi now switches to the 3-byte FF len16 form at the APDU boundary (data > 252) rather
+      than at 0xFF, because VSDC 2.9.2 4.4 requires the long form whenever a DGI is spanned (its own
+      example uses FF00FE for 254, where one byte would fit). The Visa loop spans a DGI across two
+      STORE DATA commands with P2 advancing PER COMMAND, end-of-perso P1.b8 on the final command
+      overall, and a guard that refuses >2 commands — replacing Lc = (uint8_t)dgi.size(), which
+      silently truncated an oversized DGI into a malformed command.
+    proof: >
+      100/100 tests on macOS arm64 and linux/arm64 (2 new KATs pin the 252/253 boundary and
+      reproduce the manual's worked issuer-certificate example byte-for-byte).
+      Bureau binary sha256 e80ef88ff7b363f8f6945ea1d72d82b8b92605663da76344f226598c8ff7e86c,
+      identical local and on the instance; previous (8e907be9…) kept as
+      ~/bureau/bpr-iperso-bureau.bak-pre-spandgi. Service active, pid 156416, clean start on 9099
+      TLS. Temp SG ingress added for the deploy and REVOKED after (SG confirmed back to its original
+      2 x port-22 and 4 x port-9099 CIDRs).
+    note: >
+      BEHAVIOURALLY A NO-OP TODAY and deliberately so: at the 1792-bit test CA the ODA record encodes
+      to 254 bytes (one command) so the spanning path never triggers, and fullOdaCertChain is false
+      so no certificate DGI is emitted at all. Its value is latent — it is what lets a real 1984-bit
+      issuer certificate load, and it removes the silent-truncation trap.
+    completed_at: "2026-08-16"
+
 # ---- PENDING ----
 pending:
+  - id: "task-003.11"
+    what: "ASK THE ISSUER which TVR bit they gate on, BEFORE spending a card."
+    detail: >
+      The 05 decline cites TVR bit 3 = 0x20 "ICC data missing". If they ALSO decline on bit 1 = 0x80
+      "offline data authentication was not performed", then no card-side change helps yet, because
+      this terminal cannot verify any chain we ship: its CAPK loader crashes on an odd-length hex
+      string and loads NO CAPKs into the kernel (POS/ITP bug, open since 2026-07-24), and we sign
+      with a UAT TEST CA rather than a CA the terminal carries.
+    priority: high
+    blocked_by_external: "issuer (which bit), POS/ITP (CAPK loader), bureau (real issuer RSA key)."
+
+  - id: "task-003.12"
+    what: "OPTIONAL diagnostic — set fullOdaCertChain = true, redeploy, re-perso ONE card, read the SW on DGI 0301."
+    detail: >
+      The 6A88 on 0301 is UNDIAGNOSED. The earlier length theory was checked and does NOT hold at our
+      key sizes, and our MC cards already carry the same chain at the same sizes, so record size is
+      not the issue. This run would produce the actual SW instead of another theory.
+      Fails safe: a rejected DGI aborts before SET STATUS, so the card is left unfinalized and can be
+      re-persod rather than burnt.
+    priority: medium
+    note: "Hold until 003.11 answers — if the issuer declines on 'ODA not performed' too, this buys nothing yet."
+
   - id: "task-003.2"
     what: "Commit the AUC + CVM + CVN fixes to bpr.cpp (ramaiahsvn token, clean commit, no Claude attribution)."
     note: >
