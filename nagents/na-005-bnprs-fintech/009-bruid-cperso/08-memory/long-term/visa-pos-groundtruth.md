@@ -1,5 +1,33 @@
 # Visa POS Ground-Truth — offline decline analysis (KEEP until Visa txn succeeds)
 
+## ✅✅ SUCCESS — VISA POS TRANSACTION APPROVED (user-reported 2026-08-17)
+The perso'd Visa card (PAN 4177630226449323, AID A0000000031010) **completed an APPROVED sale on the
+Sunmi/aeonpay POS terminal.** This is the first successful Visa transaction and it validates the
+ENTIRE online path end to end:
+- read app data OK → online PIN → Terminal Action Analysis → **ARQC (CVN 18, DKI 01)** → online to
+  the acquirer/issuer host → **host validated the cryptogram and APPROVED.**
+- Confirms live: our Visa perso, the Visa IMK-AC (KCV 944A44) matching the issuer host, the ATC
+  reset, the CVM restore, the CVN-18 IAD fix, and the **AIP 1800** change (drop the DDA claim) that
+  cleared the "ICC data missing" (TVR bit 3) decline.
+
+**What the winning card was:** the **AIP 1800 UAT diagnostic** build (bureau sha 1651828828d3, deployed
+2026-08-16) — DDA NOT claimed, so the terminal did no offline authentication and authorized purely on
+the online ARQC. The bureau's Visa IMKs + the July→Aug fixes did the rest.
+
+**CONFORMANCE NUANCE for production (decide with the issuer):** the approved VPA profile mandates
+contact AIP **3800** (DDA) + an ODA cert chain; the winning card used 1800 (no DDA). Two production
+paths, now that the online path is PROVEN:
+  (a) **Keep AIP 1800** if the issuer accepts an online-only card with no offline DDA for this
+      "ISC Visa Debit | Online-Only" product (the host already approved it) — simplest, and it works.
+  (b) **Go to AIP 3800 + ODA cert chain** for strict profile conformance — needs the Visa DGI
+      re-layout (issuer cert → DGI 0201, task-003.14, spanned-DGI support already deployed) and a
+      terminal that can verify it (the POS CAPK loader bug must be fixed). More work, and the issuer
+      may not require it given online-only.
+This is now a business/issuer call, NOT a blocked engineering problem — the hard part (a live approved
+transaction) is DONE.
+
+---
+
 ## AIP 1800 RESULT (2026-08-16 18:04, log 2026-08-16_18-03-53-660_1_.txt) — WORKED on the card
 Two identical taps (18:04, 18:05), both clean. Decoded from the APDU trace:
 - **GPO answer: AIP = 1800** ✓ (the new bureau build was used — DDA claim dropped).

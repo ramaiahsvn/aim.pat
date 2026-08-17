@@ -5,6 +5,7 @@
 
 task:
   id: "task-003"
+  status_headline: "✅ DONE 2026-08-17 — Visa POS transaction APPROVED (AIP 1800 card, online ARQC validated by host)"
   subject: "Get our Visa card to an APPROVED POS sale (AUC 9F07=C080 is the decline cause; fix + retest)"
   description: >
     Our perso'd Visa reads fine at the Sunmi/aeonpay POS but the terminal declines OFFLINE
