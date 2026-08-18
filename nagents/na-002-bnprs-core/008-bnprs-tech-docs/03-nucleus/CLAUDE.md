@@ -68,9 +68,20 @@
 
 ## Project Conventions
 
-<!-- Add project-specific conventions here -->
-<!-- Examples: -->
-<!-- - Use TypeScript strict mode -->
-<!-- - Prefer python-docx for Word documents -->
-<!-- - Brand colors: #2D4A3E (green), #D4952B (gold) -->
-<!-- - All output files go to 07-axon-terminals/deliverables/ -->
+### Document versioning (thumb rule — always)
+
+- **One canonical file per document.** The editable source (e.g. `.docx`) has **no version in its
+  filename**. Edit it in place; never create `-v1.0` / `-v1.1` copies of the same document.
+- **Version lives inside the document** (cover metadata + revision history) and in **git/VCS** — that
+  is the version history, not the filename.
+- **Only an exported PDF carries the version in its filename** (e.g. a copy saved to the Desktop:
+  `Name-v1.1.pdf`). The canonical editable doc stays version-less.
+- **One deliverable per document** in `07-axon-terminals/deliverables/` — consolidate, don't accumulate.
+
+### Authoring
+
+- Prefer **python-docx** for `.docx` (available in default `python3`).
+- Export PDF with **pandoc `--pdf-engine=weasyprint`** + the house CSS (no LibreOffice/Word on this Mac).
+- Follow the **K3 TDN/FSD house style** (see long-term memory) for technical documents.
+- **Never embed key values or credentials** in a document — reference keys by Key Version + KCV only.
+- All output files go to `07-axon-terminals/deliverables/`.

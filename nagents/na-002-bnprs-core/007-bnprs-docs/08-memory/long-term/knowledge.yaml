@@ -5,13 +5,33 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: "Jurisdiction for all bnprs-docs documents is INDIA — DPDP Act 2023, POSH Act 2013, Companies Act 2013, GST tax invoices, PF/ESI/Gratuity. Apply India statutory requirements by default."
+    created_at: "2026-08-18"
+    last_accessed: "2026-08-18"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.98
+    source: "session-catalog"
+    tags: [jurisdiction, india, compliance]
+
+  - id: mem-002
+    type: project_context
+    content: "Master document catalog for a software company built at 07-axon-terminals/deliverables/document-catalog.md — 8 categories, ~75 doc types, 38 Core. Catalog-only stage; templates not yet generated."
+    created_at: "2026-08-18"
+    last_accessed: "2026-08-18"
+    access_count: 1
+    confidence: 0.95
+    source: "session-catalog"
+    tags: [catalog, taxonomy, deliverable]
+
+  - id: mem-003
+    type: project_context
+    content: "IIS Kiosk (Instant Issuance Kiosk) technical proposal was TRANSFERRED to agent na-002/008 bnprs-tech-docs (Technical Products Documentation Manager) — it owns that engagement, its deliverables and its context now. Route kiosk/technical-design docs to 008; keep business documents (offer letters, NDA, contracts, invoices) here in 007."
+    created_at: "2026-08-18"
+    last_accessed: "2026-08-18"
+    access_count: 1
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [handoff, iis-kiosk, routing]
 
   # Example entries:
   # - id: mem-002

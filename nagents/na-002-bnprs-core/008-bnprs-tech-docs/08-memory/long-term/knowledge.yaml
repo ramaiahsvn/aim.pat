@@ -5,13 +5,33 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: "House style for technical documents = the K3 TDN/FSD format: cover + metadata table + revision history + TOC + numbered sections + running header/footer + CONFIDENTIAL banner + '— End of Document —'. EXACT K3 METRICS (extracted from Downloads/files/K3_TDN_FSD.docx styles.xml — K3 PDF is the docx rendered via Liberation/Arial, US Letter): page = US Letter 8.5x11in, margins 1in (1440 twips) all sides, header/footer at 0.49in. Font = ARIAL throughout, body 11pt, body LEFT-ALIGNED (ragged right, NOT justified). Headings Arial bold: H1 18pt / H2 15pt / H3 13pt; heading spacing before/after = H1 18/10pt, H2 14/8pt, H3 10/6pt; H1 has a thin bottom rule (0.75pt). Cover run sizes: title-main 22pt, title-sub 16pt, product 20pt, subtitle 14pt, sub-subtitle 12pt, CONFIDENTIAL 14pt, meta table 11pt. K3 colours = navy H1/H2 #1F3864, blue H3/accent/rule #2E75B6, table header fill #1F3864 white text, zebra #F2F7FB, cover meta key-column fill #D6E4F0, red CONFIDENTIAL #CC0000. NOTE: for BNPRS-brand docs the palette is remapped to green (navy #1F3864->#2D4A3E, blue #2E75B6->#3E7D5A, zebra->#EFF4F0, key-fill->#DCE6E0) while keeping ALL K3 sizes/spacing/margins identical. Build .docx with python-docx (default python3). NEVER embed key values/credentials — reference keys by Key Version + KCV only. VERSIONING CONVENTION: maintain ONE canonical .docx per document (no version in the filename) — version tracked inside the file (metadata/revision history) and by git/VCS. Only the Desktop PDF carries the version in its filename (e.g. -v1.0.pdf). One deliverable per document. PDF export: pandoc --toc + python post-process (K3 HTML cover injected, TOC moved before Executive Summary) + weasyprint with scratchpad/proposal.css (no LibreOffice/Word on this Mac; pandoc DROPS docx font sizes/colours + page breaks, so cover is authored in HTML and forced page breaks live in CSS). GOTCHA: pandoc -s (standalone) injects its OWN <style> with `body{max-width:36em;padding:50px}` which narrows/offsets the text column ON TOP of the @page margin — proposal.css MUST reset `html,body{margin:0!important;max-width:none!important;padding:0!important}` so the @page 1in margin is the only inset (verified: table borders land at 0.99in L/R == K3 1.00in). K3 HEADER/FOOTER RULES: K3 draws a thin full-width line under the running header (~0.69in from top) and above the footer (~0.7in from bottom). weasyprint margin-box borders do NOT span full width and running-element borders don't render — draw them as position:fixed divs `#hrule{position:fixed;top:-0.31in;left:0;right:0;border-top:0.75pt solid #b9c7bf}` `#frule{...bottom:-0.31in...}` (fixed origin = content box, so left:0/right:0 = 1in..1in column). Fixed divs repeat on EVERY page incl cover and can't be per-page-hidden, so COVER must be a clean separate render: render cover.html (no rules) -> cover.pdf AND body.html (Revision History onward, WITH rules) -> body.pdf, then `pdfunite cover.pdf body.pdf out.pdf` (2-file merge stays lean ~6MB; NEVER pdfseparate every page then pdfunite — that duplicates fonts per page and bloats to 185MB). Body page numbers must start at 2: margin-box counter(page) IGNORES in-flow counter-reset — offset with `@page:first{counter-reset:page 2}` (verified works; in-flow counter-reset and counter-increment do NOT). @page cover{@top-left/@top-right/@bottom-right{content:none}} + .cover{page:cover} blanks header/footer text on the cover."
+    created_at: "2026-08-18"
+    last_accessed: "2026-08-18"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [house-style, tdn-fsd, docx, key-safety]
+
+  - id: mem-002
+    type: project_context
+    content: "MAJOR PROJECT — Instant Issuance Kiosk (IIS Kiosk) proposal (transferred from bnprs-docs 007). Client ISC/Menta (menta.ae; CEO/MD Mr. Mohammad Demashkieh; contact Osama Shaath). BNPRS (Pattabhi Ramaiah) leads ALL electronics/software/integration IP; Alpha91 KP Solutions = mechanical enclosure fabrication ONLY. Next-gen self-service instant card issuance kiosk; flagship/production-ready platform. MUST stay fully independent of the Pointman kiosk project. Deliverable: High-Level Proposal with Multiple Design Options for the MD. Proposal written GENERIC/white-label (no client names in the doc). Commercials: USD, target 10k-20k/unit, phase-1 5-10 units indoor bank branches, CAPEX only (margin quoted separately), 45-day delivery after procurement, prices preliminary +/-5%."
+    created_at: "2026-08-18"
+    last_accessed: "2026-08-18"
+    access_count: 1
+    confidence: 0.98
+    source: "session-iis-kiosk"
+    tags: [iis-kiosk, proposal, flagship]
+
+  - id: mem-003
+    type: technical_knowledge
+    content: "IIS Kiosk resources at /Users/bnprs/BPR/GitRepos2/BPR0000_Misc/IIS_Kisok_Resources (BOM xlsx, design doc with 3 renders, MTK-F8-1400 card personalizer SDK/spec/comms/3D, kiosk-final.png 3D model, measurements.png). Design finalised to 3D model + 4-sheet electrical schematics (KSK-001..004). Kiosk dims 580x680x1620mm, interaction panel 25deg, display 10deg, receipt/card outlet 820mm, iris 1490 camera 1570. DIFFERENTIATOR: modular quick-release VENDOR PANEL (swap component vendors without modifying body). BOM=17 items, $7,972 (+/-5%): dual controller (i7 Box PC $705 OR Android panel + RPi5 $94), fingerprint $104, iris $57, webcam $73, MRZ $835, EPP $251, card printer $991, 6x hopper $2664 (~444 ea), receipt $115, UPS $261, SMPS $157, 21.5in touch $261, body $1305. NOT in BOM (optional deltas, price with/without): card embosser, deposit module, HSM/SAM. Card engine candidate MTK-F8-1400-DYC18 (NOT confirmed). All card types (contact/contactless/magstripe/emboss); schemes Visa/MC/RuPay/Qi Card(Pure); KYC via SuperQi app; Host/CMS from ISC. SINGLE canonical deliverable: 08-bnprs-tech-docs/07-axon-terminals/deliverables/Instant-Card-Issuance-Kiosk-Proposal.docx (internal version 1.1). Desktop PDF: Instant-Card-Issuance-Kiosk-Proposal-v1.1.pdf. Card engine = MUTEK MTK-F8-1400-DYC18 ('mutex'=MUTEK) — embossing is INTEGRAL to it (chip R/W, magstripe, print, emboss/indent 51-digit, tipping, turntable dispense, 6x100 card boxes, 2x120 reject bin, RS-232, DC24V/5A, ~665x536x763mm); its photo embedded from spec. Alpha91's 3D model = kiosk-final.png (already embedded as Fig 8.2, in sync with BNPRS design study). MUTEK 665x536 footprint fits 580x680 cabinet only if oriented 665mm front-to-back. Electrical schematic split into 4 sheets (KSK-001 AC / 002 DC / 003 Control&Data / 004 Earth) each explained. STILL NEEDED before MD submission: embosser(=MUTEK)/deposit/HSM prices, per-option A/B/C price bands, confirm controller (Win i7 vs Android)."
+    created_at: "2026-08-18"
+    last_accessed: "2026-08-18"
+    access_count: 1
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [iis-kiosk, bom, mtk-f8-1400, design, requirements]
 
   # Example entries:
   # - id: mem-002
