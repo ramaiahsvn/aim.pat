@@ -3,6 +3,16 @@
 
 # Format: each entry is a strengthened "synapse"
 memories:
+  - id: mem-004
+    type: project_context
+    content: "Business/HR/legal documents are version-controlled in the shared GitLab repo BPR1010/bpr1010.misc.docs (local /Users/bnprs/BPR/GitRepos2/BPR2002_Misc/bpr1010.misc.docs) under business/ — one self-contained folder per document, editable .docx only (NO PDFs; rendered PDFs go to Zoho WorkDrive). Same repo shared with bnprs-tech-docs (its docs under technical/). document-catalog.md lives there too. Conventions in aim.pat CLAUDE.md Repository-hygiene."
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [doc-repo, bpr1010-misc-docs, business-folder, docx-only, pdf-to-zoho]
+
   - id: mem-001
     type: project_context
     content: "Jurisdiction for all bnprs-docs documents is INDIA — DPDP Act 2023, POSH Act 2013, Companies Act 2013, GST tax invoices, PF/ESI/Gratuity. Apply India statutory requirements by default."

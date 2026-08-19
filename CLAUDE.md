@@ -114,6 +114,23 @@ nagents/<group>/<agent>/
 Shared secrets: LLM API keys, Slack, storage, databases.
 Per-agent secrets: connector credentials, API tokens for that agent only.
 
+## Repository hygiene — text-only, no blobs
+
+**aim.pat is a clean, text-only repo.** It holds agent definitions, memory (`.yaml`/`.md`),
+scripts, references and links — nothing else. **Never commit blobs or big/binary files** here:
+no PDFs, `.docx`/`.xlsx`/office files, images (`.png`/`.jpg`/… — `.svg` is text and allowed),
+archives (`.zip`/`.tar.gz`), ML models (`.pt`/`.onnx`), or native binaries (`.dylib`/`.so`). These
+are blocked by `.gitignore`.
+
+**Deliverables are referenced by path, not stored.** When an agent produces a deliverable, keep the
+**source/build script** (text) in the agent folder and write the actual output **elsewhere** —
+Zoho WorkDrive, the Desktop, or a dedicated repo — then record its **path** in the agent's memory.
+- **Documents** (technical & business): edit/version in the dedicated GitLab repo
+  **`BPR1010/bpr1010.misc.docs`** (one folder per document, `.docx` only, PDFs → Zoho WorkDrive).
+- **Build artifacts** (Lambda zips, compiled binaries): rebuilt on demand from committed source,
+  never committed.
+- **Input datasets/resources**: live under `BPR0000_Inputs`, referenced by path.
+
 ## Neuron anatomy → agent component map
 
 ```
