@@ -661,6 +661,26 @@ memories:
     tags: [project-transfer, zpr0000-deprecated, group-338, bpr0000-dashboard, bpr1010-misc-latex,
            inherited-members-drop-on-transfer, deprecation, redirects, verified-by-reread]
 
+  - id: mem-034
+    type: operation
+    content: >-
+      2026-08-19: Created BPR0000/bpr0000.bnprs.mcp (project id 264, private) in group "BPR0000 - Bnprs"
+      (id 163) for the CENTRALIZED MCP SERVER. Used the standard 07-axon-terminals/deliverables/
+      gitlab-create-project.py --group BPR0000 --name bpr0000.bnprs.mcp --desc "Centralized MCP server
+      for BNPRS": README on master -> org .gitlab-ci.yml (approval-check template BPR1000/ci-templates)
+      -> branches bp_dev/bp_rel/ai_dev -> all four protected push40/merge40 force=false -> MR settings
+      (remove_source_branch + only_allow_merge_if_pipeline_succeeds). Verified by re-reading the API:
+      4 protected branches all 40/40/no-force. MEMBERS inherited from the BPR0000 group (user asked for
+      "same users as BPR0000") — no per-project member work needed; project members/all EXACTLY equals the
+      group roster: Owners root/charan/jranjithk/doddamurali, Maintainer pardhiv, Developers Anil/
+      Hemanthlanke/Tarunvenkatasai. NOTE: this is a NEW active repo in BPR0000, unrelated to the two
+      Dashboard repos moved OUT of BPR0000 to ZPR0000 earlier the same day ([[mem-033]]).
+    created_at: "2026-08-19"
+    confidence: 1.0
+    source: "session-2026-08-19"
+    tags: [project-create, BPR0000, bpr0000-bnprs-mcp, project-264, mcp-server, group-163,
+           group-inherited-members, four-protected-branches, create-script, verified-by-reread]
+
 # Pruning rules
 pruning:
   max_entries: 500
