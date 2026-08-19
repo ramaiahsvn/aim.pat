@@ -129,7 +129,7 @@ Zoho WorkDrive, the Desktop, or a dedicated repo — then record its **path** in
   **`BPR1010/bpr1010.misc.docs`** (one folder per document, `.docx` only, PDFs → Zoho WorkDrive).
 - **Build artifacts** (Lambda zips, compiled binaries): rebuilt on demand from committed source,
   never committed.
-- **Input datasets/resources**: live under `BPR0000_Inputs`, referenced by path.
+- **Input datasets/resources**: live under `BPR1010_Inputs`, referenced by path.
 
 ## Neuron anatomy → agent component map
 
