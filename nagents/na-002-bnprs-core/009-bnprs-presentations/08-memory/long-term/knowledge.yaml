@@ -42,6 +42,31 @@ memories:
     source: "session-iis-kiosk"
     tags: [bnprs-sales-deck, pptxgenjs, missing-team-photos, 04-sales-finance, v1.0]
 
+  - id: mem-003
+    type: project_context
+    content: >-
+      DECK — Qi.SuperApp (Mini Apps) Framework (v1.0), 5 slides, product-architecture pitch:
+      "why a separate SuperApp layer is essential for mini-app services" on POS/mPOS (EMV-kernel
+      isolation, Unified Library bridge, mini-app loader, mPOS flow diagram + vendor/TMS table).
+      Product-technical topic -> filed under 06-product-technical (NOT 04-sales-finance like the
+      BNPRS Sales Deck). Source: bpr1010.misc.docs/06-product-technical/qi-superapp-mini-apps/
+      build_final.js (pptxgenjs; check/feature icons rendered to PNG at build via React+react-icons+sharp;
+      slide 2 embeds assets/diagram.png = the mPOS flow diagram, also kept as assets/*.svg vector source).
+      REBUILT successfully 2026-08-19 (npm install pptxgenjs react react-dom react-icons sharp && node
+      build_final.js -> 941KB pptx, matches original 940KB). Verified faithful: rendered rebuilt pptx to
+      PDF via local LibreOffice (now installed) and pixel-diffed vs the user's original PDF — 5 slides,
+      content-identical (slide-2 17% diff was only the embedded diagram sitting marginally lower + 'Arial
+      Black' title rendering heavier locally; all text/boxes/colors/icons preserved). Fixed /home/claude/
+      paths (diagram + output) to __dirname-relative. package.json/lock committed for repeatable build.
+      Rendered deck -> Zoho A_Docs/06-product-technical/qi-superapp-mini-apps/Qi-SuperApp-Mini-Apps-v1.0.pptx.
+      Committed dd1dbe2. See [[reference_pat_m4p_toolchain_cloud]] — LibreOffice now available for pptx->pdf checks.
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.96
+    source: "session-iis-kiosk"
+    tags: [qi-superapp, mini-apps, pptxgenjs, mpos, 06-product-technical, rebuilt-verified, v1.0]
+
   # Example entries:
   # - id: mem-002
   #   type: project_context
