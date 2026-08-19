@@ -83,14 +83,14 @@ memories:
       Framework for Issuer Banks" (Pattabhi Ramaiah N, PhD (IIT Hyderabad), BNPRS; dated Dec 11 2025;
       9pp; RBI-themed, about the wGate biometric payment gateway — fraud limits of OTP/PIN/device-biometric
       auth -> issuer-anchored on-chip biometric model). 6th doc in bpr1010.misc.docs, at
-      06-product-technical/rbi-zero-fraud-biometric-framework/; owner bnprs-tech-docs. FORMAT = LaTeX
+      06-product-technical/rbi-first-report/; owner bnprs-tech-docs. FORMAT = LaTeX
       (XeLaTeX + biber), NOT docx — first LaTeX doc in the repo. Source copied from GitHub
       BNPRS/bpr1010.misc.latex -> RBIReport/ (source-only: document.tex/config.tex/coversheet.tex/
       citations.bib/core class+packages/assets; build artifacts gitignored). Cover title/subtitle are
       baked into assets/img/background.png (~4.8MB) — that's why config.tex \def\title{} is empty and
       harmless. PINNED the date to 'December 11, 2025' (template ships \def\date{\today}) so archival
       rebuilds are reproducible. Fresh compile is PIXEL-IDENTICAL to the committed original PDF (0.00-0.08%/page,
-      9pp) except the date. Rendered PDF -> Zoho A_Docs/06-product-technical/rbi-zero-fraud-biometric-framework/
+      9pp) except the date. Rendered PDF -> Zoho A_Docs/06-product-technical/rbi-first-report/
       RBI-Zero-Fraud-Biometric-Framework-v1.0.pdf. Reusable class registered at templates/latex-report/.
       TOOLCHAIN (NEW on this Mac 2026-08-19): BasicTeX (TeX Live 2026) installed at
       /usr/local/texlive/2026basic/bin/universal-darwin (needs sudo to install the .pkg; user ran it) +
@@ -106,6 +106,53 @@ memories:
     confidence: 0.97
     source: "session-iis-kiosk"
     tags: [rbi, zero-fraud, biometric-framework, wgate, latex, xelatex-biber, basictex-installed, templates-latex-report, 06-product-technical]
+
+  - id: mem-008
+    type: project_context
+    content: >-
+      DOCUMENT — wGate "Worldwide Payment Gateway — Technical Proposal and Project Plan"
+      (authors Ali Muneam + Pattabhi Ramaiah; Circle Tech FZCO; v1.0.1, Aug 2025; 60pp). 7th doc in
+      bpr1010.misc.docs, at 06-product-technical/wgate-worldwide-payment-gateway/; owner bnprs-tech-docs.
+      FORMAT = LaTeX, built on the IPLeiria thesis class (IPLeiriaThesis.cls) — a DIFFERENT template
+      from the RBI report's report-template.cls. Source copied from GitHub BNPRS/bpr1010.misc.latex ->
+      wGate/. Chapters/Appendices/Annexes/Matter/Configurations; uses biblatex(biber) + glossaries
+      (makeglossaries) + minted(Pygments) + one SVG logo (cached in svg-inkscape/ so NO inkscape needed).
+      PINNED dates for archival: Metadata \Date -> "August 2025" (was \DTMmonthname{\month} \number\year),
+      and 3 copyright lines (Matter/01-Front-Page, 02-Copyright, 08-Back-Page) \the\year -> 2025. Fresh
+      compile is faithful (cover matches original v1.0.1); 60pp vs original 59pp = minor 1-page reflow from
+      newer TeX Live font versions. .gitignore RE-INCLUDES the figure/cover asset PDFs (Figures/Theme/*.pdf,
+      svg-inkscape/*.pdf) which the repo-root *.pdf rule would block — they are build INPUTS; the compiled
+      IPLeiriaMain.pdf/wGate*.pdf stay ignored. Minion Pro fonts bundled in Configurations/Fonts/ (loaded by
+      path). Rendered PDF -> Zoho A_Docs/06-product-technical/wgate-worldwide-payment-gateway/wGate-v1.0.1.pdf.
+      Committed 4872d67. BUILD GOTCHAS (this Mac): XeLaTeX resolves \setmainfont{TeX Gyre Pagella} and
+      \fontspec{Lato} by SYSTEM font name -> had to copy TeX Live's tex-gyre Pagella OTFs + lato TTFs into
+      ~/Library/Fonts (no sudo) or fontspec errors 'font cannot be found'. minted 3.x needs Pygments +
+      latexminted (pip --user, PATH ~/Library/Python/3.14/bin). newpxmath needs stxscr.tfm (TeX Live package
+      'newtx'). Extra pkgs needing MAIN-tree (sudo tlmgr, user ran it): glossaries/glossaries-extra/datatool/
+      datetime2/svg/tabularray/pgfgantt/tocloft/minted/fvextra/tcolorbox/newpx/tex-gyre/koma-script/... (glossaries
+      is NOT relocatable so can't go usermode); small leftovers (titling, pdfcol, kastrup[binhex.tex], newtx, lato,
+      stix) went into user tree. tlmgr needed `update --self` before install worked.
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [wgate, worldwide-payment-gateway, latex, ipleiria-thesis, glossaries-minted, system-font-fontspec, 06-product-technical]
+
+  - id: mem-009
+    type: reference
+    content: >-
+      FOLDER RENAME (2026-08-19): the RBI report folder was renamed
+      rbi-zero-fraud-biometric-framework -> rbi-first-report on BOTH the repo
+      (bpr1010.misc.docs/06-product-technical/) and Zoho A_Docs (mirrored). The document itself
+      (title, PDF filename RBI-Zero-Fraud-Biometric-Framework-v1.0.pdf) is unchanged — only the
+      container folder label changed. See [[mem-007]] (paths there already updated).
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.95
+    source: "session-iis-kiosk"
+    tags: [rename, rbi-first-report, folder-label, 06-product-technical]
 
 # Pruning rules
 pruning:
