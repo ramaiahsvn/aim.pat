@@ -127,7 +127,7 @@ are blocked by `.gitignore`.
 Zoho WorkDrive, the Desktop, or a dedicated repo — then record its **path** in the agent's memory.
 - **Documents**: edit/version the editable `.docx` in the GitLab repo **`BPR1010/bpr1010.misc.docs`**.
   Both the repo and Zoho WorkDrive use the **same notation — the numbered categories from that repo's
-  `document-catalog.md`** (`01-hr-employment-lifecycle` … `03-legal-commercial`, `04-sales-finance`,
+  `document-catalog.md`** (`01-hr-empl-lifecycle` … `03-legal-commercial`, `04-sales-finance`,
   `06-product-technical` … `08-compliance-security`), with **one folder per document** inside its
   category. The repo holds `.docx` only (no PDFs). Exported **PDFs go to Zoho WorkDrive**, NOT git:
   `~/Library/CloudStorage/ZohoWorkDriveTrueSync-bnprs/A_Docs/<NN-category>/<document-folder>/` —
