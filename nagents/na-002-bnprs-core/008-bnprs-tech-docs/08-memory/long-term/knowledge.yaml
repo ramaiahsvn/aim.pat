@@ -84,8 +84,10 @@ memories:
       9pp; RBI-themed, about the wGate biometric payment gateway — fraud limits of OTP/PIN/device-biometric
       auth -> issuer-anchored on-chip biometric model). 6th doc in bpr1010.misc.docs, at
       06-product-technical/rbi-first-report/; owner bnprs-tech-docs. FORMAT = LaTeX
-      (XeLaTeX + biber), NOT docx — first LaTeX doc in the repo. Source copied from GitHub
-      BNPRS/bpr1010.misc.latex -> RBIReport/ (source-only: document.tex/config.tex/coversheet.tex/
+      (XeLaTeX + biber), NOT docx — first LaTeX doc in the repo. CANONICAL COPY = this docs-repo
+      folder ONLY — the original bpr1010.misc.latex/RBIReport/ was REMOVED 2026-08-19 (it was untracked;
+      decision: docs-repo is single source of truth). Originally copied from that RBIReport/
+      (source-only: document.tex/config.tex/coversheet.tex/
       citations.bib/core class+packages/assets; build artifacts gitignored). Cover title/subtitle are
       baked into assets/img/background.png (~4.8MB) — that's why config.tex \def\title{} is empty and
       harmless. PINNED the date to 'December 11, 2025' (template ships \def\date{\today}) so archival
