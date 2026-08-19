@@ -5,13 +5,14 @@
 memories:
   - id: mem-004
     type: project_context
-    content: "Business/HR/legal documents are version-controlled in the shared GitLab repo BPR1010/bpr1010.misc.docs (local /Users/bnprs/BPR/GitRepos2/BPR1010_Misc/bpr1010.misc.docs) under business/ — one self-contained folder per document, editable .docx only (NO PDFs; rendered PDFs go to Zoho WorkDrive). Same repo shared with bnprs-tech-docs (its docs under technical/). document-catalog.md lives there too. Conventions in aim.pat CLAUDE.md Repository-hygiene."
+    content: "Business/HR/legal documents are version-controlled in the shared GitLab repo BPR1010/bpr1010.misc.docs (local /Users/bnprs/BPR/GitRepos2/BPR1010_Misc/bpr1010.misc.docs) organised by document-catalog.md categories (e.g. 03-legal-commercial/, 04-sales-finance/) — one self-contained folder per document under its category, editable .docx only (NO PDFs; rendered PDFs go to Zoho WorkDrive). Same repo shared with bnprs-tech-docs (its docs under technical/). document-catalog.md lives there too. Conventions in aim.pat CLAUDE.md Repository-hygiene."
     created_at: "2026-08-19"
     last_accessed: "2026-08-19"
     access_count: 1
     confidence: 0.97
     source: "session-iis-kiosk"
-    tags: [doc-repo, bpr1010-misc-docs, business-folder, docx-only, pdf-to-zoho]
+    content2_note: "OWNS the K3 Development Agreement (Software Dev & IP Assignment, MENTA) at bpr1010.misc.docs/03-legal-commercial/k3-development-agreement-menta/ (gen_k3.js Node docx). PDF -> Zoho A_Docs/03-legal-commercial/k3-development-agreement-menta/."
+    tags: [doc-repo, bpr1010-misc-docs, catalog-categories, docx-only, pdf-to-zoho, owns-k3-dev-agreement]
 
   - id: mem-001
     type: project_context

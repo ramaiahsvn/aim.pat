@@ -125,12 +125,16 @@ are blocked by `.gitignore`.
 **Deliverables are referenced by path, not stored.** When an agent produces a deliverable, keep the
 **source/build script** (text) in the agent folder and write the actual output **elsewhere** —
 Zoho WorkDrive, the Desktop, or a dedicated repo — then record its **path** in the agent's memory.
-- **Documents** (technical & business): edit/version the editable `.docx` in the GitLab repo
-  **`BPR1010/bpr1010.misc.docs`** (one folder per document under `technical/` or `business/`, `.docx`
-  only — no PDFs). Exported **PDFs go to Zoho WorkDrive**, NOT git:
-  `~/Library/CloudStorage/ZohoWorkDriveTrueSync-bnprs/A_Docs/<document-folder>/` — **one folder per
-  document** (mirroring the repo), with **versioned PDF filenames** (`<name>-vX.Y.pdf`) kept side by
-  side inside that folder as the version history.
+- **Documents**: edit/version the editable `.docx` in the GitLab repo **`BPR1010/bpr1010.misc.docs`**.
+  Both the repo and Zoho WorkDrive use the **same notation — the numbered categories from that repo's
+  `document-catalog.md`** (`01-hr-employment-lifecycle` … `03-legal-commercial`, `04-sales-finance`,
+  `06-product-technical` … `08-compliance-security`), with **one folder per document** inside its
+  category. The repo holds `.docx` only (no PDFs). Exported **PDFs go to Zoho WorkDrive**, NOT git:
+  `~/Library/CloudStorage/ZohoWorkDriveTrueSync-bnprs/A_Docs/<NN-category>/<document-folder>/` —
+  **mirroring the repo exactly**, versioned filenames (`<name>-vX.Y.pdf`) kept inside as the history.
+  Ownership is per-document (recorded in the owning agent's memory), not per-category: e.g.
+  `bnprs-tech-docs` (na-002/008) owns the K3 TDN/FSD and the IIS proposal; `bnprs-docs` (na-002/007)
+  owns the K3 Development Agreement.
 - **Build artifacts** (Lambda zips, compiled binaries): rebuilt on demand from committed source,
   never committed.
 - **Input datasets/resources**: live under `BPR1010_Inputs`, referenced by path.
