@@ -125,8 +125,12 @@ are blocked by `.gitignore`.
 **Deliverables are referenced by path, not stored.** When an agent produces a deliverable, keep the
 **source/build script** (text) in the agent folder and write the actual output **elsewhere** —
 Zoho WorkDrive, the Desktop, or a dedicated repo — then record its **path** in the agent's memory.
-- **Documents** (technical & business): edit/version in the dedicated GitLab repo
-  **`BPR1010/bpr1010.misc.docs`** (one folder per document, `.docx` only, PDFs → Zoho WorkDrive).
+- **Documents** (technical & business): edit/version the editable `.docx` in the GitLab repo
+  **`BPR1010/bpr1010.misc.docs`** (one folder per document under `technical/` or `business/`, `.docx`
+  only — no PDFs). Exported **PDFs go to Zoho WorkDrive**, NOT git:
+  `~/Library/CloudStorage/ZohoWorkDriveTrueSync-bnprs/A_Docs/<document-folder>/` — **one folder per
+  document** (mirroring the repo), with **versioned PDF filenames** (`<name>-vX.Y.pdf`) kept side by
+  side inside that folder as the version history.
 - **Build artifacts** (Lambda zips, compiled binaries): rebuilt on demand from committed source,
   never committed.
 - **Input datasets/resources**: live under `BPR1010_Inputs`, referenced by path.
