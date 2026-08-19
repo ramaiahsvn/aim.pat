@@ -616,6 +616,51 @@ memories:
            maven-package-coordinates, container-registry-not-renamed, job-token-allowlist,
            wgate-estate-spans-groups, bpass-engine-bengine, floors-not-totals]
 
+  - id: mem-032
+    type: technical_knowledge
+    content: >-
+      2026-08-19 GOTCHA — PROJECT TRANSFER ON THIS INSTANCE IS `PUT /projects/:id/transfer`, NOT POST.
+      Every doc/example says `POST /projects/:id/transfer` with `namespace=<id>`, but on this GitLab
+      (CE 18.9.0) POST returns a MISLEADING route-level 404 `{"error":"404 Not Found"}` — carrying an
+      x-gitlab-meta correlation_id, so it is GitLab/Grape returning it, not nginx, and it looks exactly
+      like a nonexistent route (empty-body POST also 404s, where a real route would 400 on the missing
+      param). Other POST sub-routes (star, archive) work, so it is not a proxy/WAF. DIAGNOSIS THAT WORKED:
+      `curl -X OPTIONS .../projects/:id/transfer` -> `Allow: OPTIONS, PUT` (vs transfer_locations ->
+      `Allow: OPTIONS, GET, HEAD`). The companion GET `/projects/:id/transfer_locations` DOES work and
+      lists valid target groups — use it to confirm a target is allowed. RULE: when a documented POST
+      endpoint 404s here, OPTIONS-probe the path for the real verb before assuming the route is missing.
+      Red herrings ruled out first: token scopes fine (api/admin_mode/sudo/write), target group readable,
+      root is Owner of the target group, 0 container images. Fixed with `PUT .../transfer namespace=338`.
+    created_at: "2026-08-19"
+    confidence: 1.0
+    source: "session-2026-08-19"
+    tags: [project-transfer, put-not-post, options-probe-for-verb, misleading-404, transfer-locations,
+           grape-route, gitlab-18-9]
+
+  - id: mem-033
+    type: operation
+    content: >-
+      2026-08-19: Created group "ZPR0000 - Deprecated" (path ZPR0000, group id 338, private,
+      project_creation_level developer, root Owner) as the holding pen for retired repos, and TRANSFERRED
+      three projects into it (via PUT, see [[mem-032]]): 106 bpr0000.bnprs (Dashboard backend), 244
+      bpr0000.bnprs.dashboard.web (Dashboard frontend) — both left group BPR0000 (id 163); and 62
+      bpr1010.misc.latex — left BPR1010 (id 113). USER DECISION: these are deprecated (Dashboard retired;
+      the LaTeX repo superseded by bpr1010.misc.docs which is now canonical for the RBI/wGate report
+      sources). "Remove all assigned users" was achieved BY THE TRANSFER: the 7 users on 106/244 (Anil,
+      Hemanthlanke, Tarunvenkatasai, pardhiv[Maintainer], charan, jranjithk, doddamurali) were all
+      INHERITED from BPR0000, so leaving that group dropped them automatically — verified members/all on
+      106 = [root] only afterward. Direct members: 106 had only root (KEPT per user), 244 & 62 none.
+      NOT archived (user did not confirm archiving) — repos are writable in ZPR0000. Old BPR0000/... and
+      BPR1010/bpr1010.misc.latex paths now 301-redirect to ZPR0000/... (GitLab auto-redirect on transfer;
+      dies if a path is reused — see [[mem-030]]/[[mem-031]]). No CI/submodule/package-coordinate
+      references were fixed (deprecation, breakage acceptable). Verified by re-reading the API: group 338
+      lists all 3 projects; each namespace = ZPR0000.
+    created_at: "2026-08-19"
+    confidence: 1.0
+    source: "session-2026-08-19"
+    tags: [project-transfer, zpr0000-deprecated, group-338, bpr0000-dashboard, bpr1010-misc-latex,
+           inherited-members-drop-on-transfer, deprecation, redirects, verified-by-reread]
+
 # Pruning rules
 pruning:
   max_entries: 500
