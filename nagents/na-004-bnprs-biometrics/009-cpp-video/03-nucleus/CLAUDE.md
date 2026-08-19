@@ -240,11 +240,16 @@ model metadata, not just symbol tables:
 
 ## Pending Actions — BprVideo / BprVision code
 
-- [ ] **Validate the letterbox change with positive footage before any publish.** Correct by
-      construction (YOLOv8 trains letterboxed; the old path stretched 16:9 by 1.78x), but the
-      only local measurement was a negative frame and it was neutral-to-slightly-worse there.
-      No 2.61.2 ships without a smoke/fight before/after. **Now cheap to do** — the positive sets
-      above exist, and `roc.py` caches per-frame scores, so a before/after is one run each.
+- [x] **Letterbox change VALIDATED 2026-08-19 — and it FAILED. Do not ship it.** Full A/B
+      (`07-axon-terminals/deliverables/2026-08-19-letterbox-ab-validation.md` + `letterbox_ab.py`):
+      letterbox loses recall at every relevant operating point on BOTH detectors (fight 3/8@0.50:
+      44.5% stretch vs 36.0% letterbox; smoke 2/6@0.50: 29.0% vs 23.3%), with no ROC win at
+      matched false alarms. Two knock-ons: (1) revert the preprocessing half of `529a1aa` before
+      any 2.61.2 (the overlay/stale-box halves are display-only, keep if wanted) — route to
+      001-cpp-face as owner; (2) the 2026-08-16 report's numbers ARE letterbox numbers (`roc.py`
+      letterboxes), so the shipped 2.61.1 stretch binary performs BETTER than that report says —
+      quote 44.5%/4.0%FA fight, 29.0%/10.4%FA smoke for the shipped artifact. The live-alerting
+      verdict is unchanged (still nowhere near 90%/<1 FA/day).
 - [ ] **`Bpr_Video_RequestStop` (uncommitted, in `BprVideoCapture.cpp`) changes the DOCUMENTED
       EXPORT SETS.** A fresh macOS BprVision build exports **11**, not the 10 recorded above
       (BprVideo goes 3 -> 4). It is still declared in no header and consumed by nothing. Either

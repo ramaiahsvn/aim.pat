@@ -23,7 +23,20 @@ measure honestly. This document is the plan + live results log.
   mAP50 / mAP50-95 / precision / recall, per class. Published D-Fire yolov8 ≈ 0.75–0.85 mAP50.
 - **Then (if strong):** ONNX-export for BprVision integration; optionally add FASDD/Pyro-SDIS for
   cross-domain robustness.
-- **RESULT:** _pending (training queued behind dataset convert)._
+- **RESULT (2026-08-19):** 640-res fine-tune COMPLETE (80 epochs, `runs/dfire_yolov8s/weights/best.pt`):
+  D-Fire test P 0.79 / R 0.73 / mAP50 0.79 — in the published band. (1280 refinement crashed at
+  epoch 9 on an ultralytics-MPS TAL index bug — `resume_1280.log`; restartable, not blocking.)
+  **VIDEO-ALARM eval vs shipped m10005** (`dfire_video_eval.py` beside this file; same corpora +
+  gate-sweep as the 2026-08-16 report): at matched recall the D-Fire model HALVES false alarms —
+  28.8% recall @ 5.7% FA (2/6@0.30) vs m10005's 29.0% @ 10.4% (2/6@0.50). Fire class: 1.0–1.7% FA
+  on 405 negatives. Aggregate recall unchanged (~29%) BUT the per-class split shows the aggregate
+  is dragged by proxy classes a correct detector SHOULD ignore: smoke recall 74.6% on
+  `extinguishing fire` (real plumes) vs 3.7% on `juggling fire` (flame, NO smoke — and its FIRE
+  recall is 64.8%, the right answer) and 8.9% on `barbequing` (often no visible smoke). Read:
+  on genuinely fire-like footage this model works substantially better than any aggregate over
+  kinetics proxies shows; the honest unknown remains real CCTV fire/smoke footage. NEXT: ONNX
+  export + BprVision drop-in swap test; per-class-curated positives; ⚠️ weights are
+  ultralytics-derived → AGPL question applies exactly as for m10005/6 — prototype only.
 
 ## Task 2 — BULLDOZING  (planned; object-detection, reuses Task-1 pipeline)
 
@@ -59,6 +72,31 @@ data; **no inappropriate content is collected or generated.**
   than any other task here. Prototype = research signal only; **not** a deployable classifier without
   that review.
 - **RESULT:** _data identification done; baseline pending compute._
+
+## VLM-as-judge MEASURED (2026-08-19) — `vlm_judge.py` beside this file
+
+Qwen2.5-VL-7B-4bit (MLX, local) as a strict YES/NO judge, 8 frames/clip, scored with the same
+recall/FA vocabulary as the detectors. Sample: 50 fight + 50 smoke positives (stride across
+classes) + 60 UCF negatives per question (~±12% CI — sample, not the full corpora).
+
+| task | recall | FA | speed |
+|---|---|---|---|
+| SMOKE | **56.0%** | **0.0%** | 10.5 s/clip |
+| FIGHT | 26.0% | **0.0%** | 7.8 s/clip |
+
+- **SMOKE: the best judge measured to date by a wide margin** — ~2x the recall of both the
+  shipped m10005 (29.0% @ 10.4% FA) and the D-Fire prototype at matched recall (28.8% @ 5.7%),
+  at ZERO false alarms on the adversarial UCF negatives. Per-class: extinguishing-fire 70%,
+  hookah 73%, welding 50%, barbequing 27%.
+- **FIGHT: the low aggregate is largely CORRECT judgment on bad proxies.** The prompt excluded
+  sport, and the VLM obeyed: wrestling 88.9% caught, while boxing (37.5%), sword-fighting (8.3%)
+  and slapping (0%) — mostly staged/sport clips — were rejected. 0 FA on sports-heavy negatives.
+  Do not read 26% as "worse than YOLO's 36-44%": those YOLO numbers COUNT sport-alarms as wins
+  on positives and pay 3-4% FA on negatives.
+- **Economics unchanged:** 8-10 s/clip = tier-3 only (second opinion on tier-1 alarms,
+  review-assist descriptions, offline auto-labeling for the licence-clean retrain). Qwen2.5-VL
+  is Apache-2.0 — no AGPL entanglement.
+- Verdict log for audit: `vlm_judge.jsonl` (session scratchpad; regenerate via the script).
 
 ## Compute reality & sequencing
 

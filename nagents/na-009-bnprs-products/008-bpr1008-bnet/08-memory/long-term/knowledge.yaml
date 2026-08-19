@@ -331,6 +331,38 @@ memories:
            git-state-to-resolve, quality-gate-experiment, deploy-recipe, eval-native-restage,
            launchd-keepalive-unload-first, verify1tonface-400-open]
 
+  - id: mem-010
+    type: technical_knowledge
+    content: >-
+      DEDUP SCAN IS NOW NEWEST-RUN-FIRST (2026-08-19, uncommitted edit in DedupWorker.cs on top of
+      the mem-009 revert). Symptom: "Macbook camera never chains." Root causes found, in order of
+      what was WRONGLY suspected first: (1) NOT image quality — a direct native scoring harness
+      (BprID_SetLicense + BprID_Quality via a small C program linked against the worker's EVAL
+      libBprFace) proved the fresh Macbook crops score T12=64/T15=23, BETTER than gate-passing
+      Hikvision crops (29/17). Historical frame_quality.csv averages (cam4 T12=5.0, 2.9% pass over
+      28k frames) described OLD sessions of tiny 34-52px faces and do not indict new footage —
+      per-camera averages in that CSV span different sources/sessions; segment by time before
+      concluding. (2) Camera 4 "Macbook" is NOT the webcam: its STREAM_URL is a recorded clip
+      /Users/bnprs/BPR/Datasets/activity-video/VideoClips/2026-08-03_115835_C5012.MP4. (3) The REAL
+      blocker: DedupWorker._seen/_seenAt are IN-MEMORY ONLY, so a worker restart re-pays T12+T15
+      inference (~100ms+/frame) over the whole day's backlog, and filesystem enumeration order put
+      the new camera's folders LAST — 20+ min starvation. FIX: order run dirs by the
+      <serial>_<yyyyMMddHHmmss> suffix descending (ordinal), so live footage gets each pass's 20s
+      budget first and the backlog drains via _seenAt on later passes. Verified: 8 cam4 chains
+      (quality 83-93, Status 9) within ~30s of restart. STILL OPEN: persist _seen/_seenAt across
+      restarts (would remove the cold-start re-scoring entirely). Scoring-harness recipe: compile a
+      C file declaring BprIDSample (bprid_abi.h layout) + BprID_* externs, link against
+      ~/BPR/Datasets/bnet-worker/libBprFace.dylib with -rpath to that dir, run FROM that dir so
+      models resolve; qiCode C884C92A9295C92F (run-macos.sh default). Deploy recipe per mem-009
+      (publish -> re-stage EVAL dylib -> launchctl unload/load).
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-19-macbook-chains"
+    tags: [dedup-newest-first, seen-cache-in-memory-only, cold-start-starvation, macbook-cam-is-a-video-file,
+           quality-csv-segment-by-time, native-quality-harness, uncommitted-on-top-of-mem009-revert]
+
 # Pruning rules
 pruning:
   max_entries: 500
