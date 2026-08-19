@@ -76,6 +76,37 @@ memories:
     source: "session-iis-kiosk"
     tags: [mgate, tdn-fsd, v1.1.2, notification-gateway, use-user-original-docx-pdf, 06-product-technical]
 
+  - id: mem-007
+    type: project_context
+    content: >-
+      DOCUMENT — "Towards a Zero-Fraud Payment Ecosystem in India: A Biometric-Centric Core Processing
+      Framework for Issuer Banks" (Pattabhi Ramaiah N, PhD (IIT Hyderabad), BNPRS; dated Dec 11 2025;
+      9pp; RBI-themed, about the wGate biometric payment gateway — fraud limits of OTP/PIN/device-biometric
+      auth -> issuer-anchored on-chip biometric model). 6th doc in bpr1010.misc.docs, at
+      06-product-technical/rbi-zero-fraud-biometric-framework/; owner bnprs-tech-docs. FORMAT = LaTeX
+      (XeLaTeX + biber), NOT docx — first LaTeX doc in the repo. Source copied from GitHub
+      BNPRS/bpr1010.misc.latex -> RBIReport/ (source-only: document.tex/config.tex/coversheet.tex/
+      citations.bib/core class+packages/assets; build artifacts gitignored). Cover title/subtitle are
+      baked into assets/img/background.png (~4.8MB) — that's why config.tex \def\title{} is empty and
+      harmless. PINNED the date to 'December 11, 2025' (template ships \def\date{\today}) so archival
+      rebuilds are reproducible. Fresh compile is PIXEL-IDENTICAL to the committed original PDF (0.00-0.08%/page,
+      9pp) except the date. Rendered PDF -> Zoho A_Docs/06-product-technical/rbi-zero-fraud-biometric-framework/
+      RBI-Zero-Fraud-Biometric-Framework-v1.0.pdf. Reusable class registered at templates/latex-report/.
+      TOOLCHAIN (NEW on this Mac 2026-08-19): BasicTeX (TeX Live 2026) installed at
+      /usr/local/texlive/2026basic/bin/universal-darwin (needs sudo to install the .pkg; user ran it) +
+      homebrew biber 2.22 (matches TL2026 biblatex). NO latexmk in BasicTeX -> run xelatex/biber/xelatex/xelatex
+      manually. Extra CTAN packages installed into USER TREE (~/Library/texmf, no sudo) via `tlmgr --usermode install`:
+      biblatex awesomebox fontawesome5 inconsolata csvsimple csquotes changepage eso-pic lastpage lstaddons
+      sectsty pgf tikzfill listings float helvetic courier titlesec xstring (GOTCHA: lstautogobble.sty is in
+      package 'lstaddons'; phvr8t.tfm Helvetica metrics are in 'helvetic'; tectonic FAILED — its bundled
+      biblatex 3.17 emits bcf 3.8, incompatible with biber 2.22). Committed 911eeba.
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [rbi, zero-fraud, biometric-framework, wgate, latex, xelatex-biber, basictex-installed, templates-latex-report, 06-product-technical]
+
 # Pruning rules
 pruning:
   max_entries: 500
