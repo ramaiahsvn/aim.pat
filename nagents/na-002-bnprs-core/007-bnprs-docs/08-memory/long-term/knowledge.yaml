@@ -11,7 +11,7 @@ memories:
     access_count: 1
     confidence: 0.97
     source: "session-iis-kiosk"
-    content2_note: "OWNS the K3 Development Agreement (Software Dev & IP Assignment, MENTA) at bpr1010.misc.docs/03-legal-commercial/k3-development-agreement-menta/ (gen_k3.js Node docx). PDF -> Zoho A_Docs/03-legal-commercial/k3-development-agreement-menta/."
+    content2_note: "OWNS the K3 Development Agreement (Software Dev & IP Assignment, MENTA) at bpr1010.misc.docs/03-legal-commercial/k3-dev-agreement-menta/ (gen_k3.js Node docx). PDF -> Zoho A_Docs/03-legal-commercial/k3-dev-agreement-menta/."
     tags: [doc-repo, bpr1010-misc-docs, catalog-categories, docx-only, pdf-to-zoho, owns-k3-dev-agreement]
 
   - id: mem-001
