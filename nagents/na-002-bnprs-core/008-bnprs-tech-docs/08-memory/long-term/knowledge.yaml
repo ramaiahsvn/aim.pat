@@ -66,6 +66,16 @@ memories:
     source: "session-iis-kiosk"
     tags: [secure-payment-framework, rbi, architecture, docx-npm, logo-build-asset, 06-product-technical]
 
+  - id: mem-006
+    type: project_context
+    content: "DOCUMENT — mGate TDN/FSD (mGate = Smart Notification Gateway Platform; multi-channel OTP/Authorization/Notification delivery on AWS ECS Fargate + SQS + partitioned MySQL, Terraform IaC, ops web portal). 5th document in bpr1010.misc.docs, at 06-product-technical/mgate-tdn-fsd/; owner bnprs-tech-docs. CURRENT VERSION per the doc's own revision history = 2.0 (2026-02-25; v1.0 initial). Editable doc mGate_TDN_FSD.docx tracked in repo (188 paras, 24 tables, text+tables, does NOT embed diagrams). Source recovered from Desktop/files/: 01_generate_diagrams.py (Pillow -> 7 block diagrams: system_architecture, gateway_flow, channel_switching, pipeline, bitmap, deployment, security; OUT made script-relative, diagrams/ generated + committed as build assets) and 02_apply_grc_changes.py (an XML patch that edits an UNPACKED docx to apply GRC feedback). GAP: 02 needs helper scripts unpack.py/pack.py + input mGate_TDN_FSD_v1_1_1.docx — NONE shipped; and its README talks a 1.1.0->1.1.2 lineage that is a SEPARATE/older numbering from the shipped doc (1.0->2.0). Treat 02 as a reference patch, not a runnable step. PDF -> Zoho A_Docs/06-product-technical/mgate-tdn-fsd/mGate-TDN-FSD-v2.0.pdf (14pp, pandoc+weasyprint quick-convert with a navy CSS; no LibreOffice on this Mac). The authoritative docx came from Zoho 'Shared with Me/mGate_TDN_FSD.docx'. Committed aefa76e."
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.96
+    source: "session-iis-kiosk"
+    tags: [mgate, tdn-fsd, notification-gateway, aws-ecs-sqs, diagrams-pillow, grc-patch-gap, 06-product-technical]
+
 # Pruning rules
 pruning:
   max_entries: 500
