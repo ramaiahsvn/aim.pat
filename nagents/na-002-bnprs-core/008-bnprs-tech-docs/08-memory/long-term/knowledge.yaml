@@ -93,7 +93,11 @@ memories:
       harmless. PINNED the date to 'December 11, 2025' (template ships \def\date{\today}) so archival
       rebuilds are reproducible. Fresh compile is PIXEL-IDENTICAL to the committed original PDF (0.00-0.08%/page,
       9pp) except the date. Rendered PDF -> Zoho A_Docs/06-product-technical/rbi-first-report/
-      RBI-Zero-Fraud-Biometric-Framework-v1.0.pdf. Reusable class registered at templates/latex-report/.
+      RBI-Zero-Fraud-Biometric-Framework-v1.1.pdf (renamed from -v1.0 2026-08-19: the Zoho deliverable is
+      a SLIM/linearized ~200KB copy — full-res 5MB build with the ipsum-fix + Figure-3 \resizebox fix is
+      reproducible from source; the fresh filename was to bust Zoho's cached truncated preview of the old 5MB
+      file, which was silently cutting the 9-page PDF short in Zoho's web/app inline preview — NOT a compile
+      problem; downloading always showed all 9 pages). Reusable class registered at templates/latex-report/.
       TOOLCHAIN (NEW on this Mac 2026-08-19): BasicTeX (TeX Live 2026) installed at
       /usr/local/texlive/2026basic/bin/universal-darwin (needs sudo to install the .pkg; user ran it) +
       homebrew biber 2.22 (matches TL2026 biblatex). NO latexmk in BasicTeX -> run xelatex/biber/xelatex/xelatex
@@ -147,7 +151,7 @@ memories:
       FOLDER RENAME (2026-08-19): the RBI report folder was renamed
       rbi-zero-fraud-biometric-framework -> rbi-first-report on BOTH the repo
       (bpr1010.misc.docs/06-product-technical/) and Zoho A_Docs (mirrored). The document itself
-      (title, PDF filename RBI-Zero-Fraud-Biometric-Framework-v1.0.pdf) is unchanged — only the
+      (title unchanged; PDF later renamed v1.0 -> v1.1, see [[mem-007]]) — only the
       container folder label changed. See [[mem-007]] (paths there already updated).
     created_at: "2026-08-19"
     last_accessed: "2026-08-19"
