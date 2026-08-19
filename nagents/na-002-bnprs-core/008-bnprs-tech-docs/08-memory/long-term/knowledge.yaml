@@ -112,7 +112,7 @@ memories:
     content: >-
       DOCUMENT — wGate "Worldwide Payment Gateway — Technical Proposal and Project Plan"
       (authors Ali Muneam + Pattabhi Ramaiah; Circle Tech FZCO; v1.0.1, Aug 2025; 60pp). 7th doc in
-      bpr1010.misc.docs, at 06-product-technical/wgate-worldwide-payment-gateway/; owner bnprs-tech-docs.
+      bpr1010.misc.docs, at 06-product-technical/wgate-pg/; owner bnprs-tech-docs.
       FORMAT = LaTeX, built on the IPLeiria thesis class (IPLeiriaThesis.cls) — a DIFFERENT template
       from the RBI report's report-template.cls. Source copied from GitHub BNPRS/bpr1010.misc.latex ->
       wGate/. Chapters/Appendices/Annexes/Matter/Configurations; uses biblatex(biber) + glossaries
@@ -123,7 +123,7 @@ memories:
       newer TeX Live font versions. .gitignore RE-INCLUDES the figure/cover asset PDFs (Figures/Theme/*.pdf,
       svg-inkscape/*.pdf) which the repo-root *.pdf rule would block — they are build INPUTS; the compiled
       IPLeiriaMain.pdf/wGate*.pdf stay ignored. Minion Pro fonts bundled in Configurations/Fonts/ (loaded by
-      path). Rendered PDF -> Zoho A_Docs/06-product-technical/wgate-worldwide-payment-gateway/wGate-v1.0.1.pdf.
+      path). Rendered PDF -> Zoho A_Docs/06-product-technical/wgate-pg/wGate-v1.0.1.pdf.
       Committed 4872d67. BUILD GOTCHAS (this Mac): XeLaTeX resolves \setmainfont{TeX Gyre Pagella} and
       \fontspec{Lato} by SYSTEM font name -> had to copy TeX Live's tex-gyre Pagella OTFs + lato TTFs into
       ~/Library/Fonts (no sudo) or fontspec errors 'font cannot be found'. minted 3.x needs Pygments +
