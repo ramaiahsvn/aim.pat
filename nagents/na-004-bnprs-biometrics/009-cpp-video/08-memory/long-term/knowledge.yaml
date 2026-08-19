@@ -5,13 +5,13 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: "Fire/smoke DETECTION = YOLOv8s on the D-FIRE dataset, trained locally on this MacBook (Apple M4 Pro, MPS). Env: /Users/bnprs/BPR/GitRepos1/bpr.cpp/.models/venv/bin/python (ultralytics 8.4.21, torch 2.10, mps=True). Runs live at /Users/bnprs/BPR/Datasets/fire-smoke/runs/ (NOT bpr.cpp/runs). Data cfg: /Users/bnprs/BPR/Datasets/fire-smoke/dfire/dfire.yaml, classes [smoke, fire]. Launch scripts in that dir: train_fire.py (@640 base), train_fire_1280.py (@1280 fine-tune). STAGE 1 dfire_yolov8s @640: COMPLETE 80/80 epochs (Aug 17), best ~epoch64 mAP50=0.793 mAP50-95=0.465, weights runs/dfire_yolov8s/weights/best.pt. STAGE 2 dfire_yolov8s_1280ft (fine-tune of stage-1 best at imgsz=1280, 40 epochs, batch 8, lr0=0.005): first attempt DIED at epoch 3/40 (~06:45 Aug 18, likely Mac sleep). RESUMED 2026-08-18 evening from last.pt via resume_fire_1280.py (YOLO(last.pt).train(resume=True)), run under `nohup caffeinate -is <venv-python> resume_fire_1280.py > resume_1280.log 2>&1 &` (caffeinate prevents the sleep that killed it; PID in resume_1280.pid). ~1.9 s/it, 2153 it/epoch ≈ ~68 min/epoch → ~1.75 days for the remaining 37 epochs. Monitor: tail runs/dfire_yolov8s_1280ft/results.csv or resume_1280.log; completion prints 'FIRE1280_DONE' + val metrics. LESSON: long local MPS trainings MUST be launched under caffeinate -is or they die on sleep. DECISION (2026-08-19): the @1280 fine-tune was ABANDONED — after ~8 epochs it plateaued at mAP50~0.68, BELOW the @640 base (0.793), because lr0=0.005 disrupted the good base weights without recovering. STOPPED it. SHIP THE @640 BASE as the fire/smoke detector: runs/dfire_yolov8s/weights/best.pt (YOLOv8s, epoch 64, mAP50=0.793 mAP50-95=0.465, classes [smoke,fire]). If a 1280 fine-tune is retried, use a gentler lr0 (~0.001) and fewer epochs so it refines rather than resets the base. **TODO (open, user-requested 2026-08-19): RESUME/RE-DO the fire training later** — retry the @1280 fine-tune from the @640 best.pt with gentler lr0 (~0.001, ~10-15 epochs), OR train longer/with more data to push past mAP50 0.79. Launch under `caffeinate -is`. Base best.pt (runs/dfire_yolov8s/weights/best.pt) is the interim shipped detector until then."
+    created_at: "2026-08-18"
+    last_accessed: "2026-08-18"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [fire-smoke, yolov8, d-fire, training, mps, caffeinate, resume]
 
   # Example entries:
   # - id: mem-002
@@ -25,6 +25,27 @@ memories:
   #   content: "LibreOffice PDF conversion fails in sandbox environments"
   #   confidence: 0.95
   #   tags: [workaround, pdf, libreoffice]
+
+  - id: mem-004
+    type: project_context
+    content: >-
+      KINETICS-400 DATASET TRANSFER COMPLETE (2026-08-19) for the activity-recognition / smoke-video
+      classifier. Local: /Users/bnprs/BPR/Datasets/activity-video/kinetics-dataset/k400_targz/
+      {train,val,test,replacement}. Mirrored to MCES2 (Windows, tailscale 100.92.81.14, key
+      ~/.ssh/id_ed25519_qitest_win, user mcesii) at E:/video/kinetics-dataset/k400_targz/ over scp.
+      train was MOVED (drain, local deleted); val/test/replacement were COPIED (local KEPT). All
+      byte-verified, 0 failures: 39 test + 20 val part_*.tar.gz, plus the single
+      replacement/replacement_for_corrupted_k400.tgz (9.78 GB). GOTCHA: the copy_nontrain.sh glob was
+      `part_*.tar.gz`, which SKIPPED the replacement split (one file named replacement_for_corrupted_k400.tgz,
+      not part_*) — copied it manually afterwards. Transfer scripts in the session scratchpad
+      (copy_nontrain.sh / xfer_kinetics.sh / drain2.sh / copy_replacement.sh). Nothing copy-related is
+      still running.
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.98
+    source: "session-iis-kiosk"
+    tags: [kinetics-400, transfer-complete, mces2-e-video, replacement-glob-gotcha, activity-recognition]
 
 # Pruning rules
 pruning:

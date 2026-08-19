@@ -1,0 +1,92 @@
+/* ============================================================================
+   K3 TDN/FSD house style — EXACT metrics (US Letter, 1" margins, Arial).
+   Palette kept in BNPRS green/gold (K3 navy 1F3864 -> green 2D4A3E,
+   K3 blue 2E75B6 -> medium green 3E7D5A). Font sizes/spacing/margins = K3.
+   ============================================================================ */
+@page {
+  size: letter;                 /* 8.5in x 11in, as K3 */
+  margin: 2.54cm;               /* 1 inch all sides, as K3 (pgMar 1440 twips) */
+  @top-left    { content: "PROP-ICISKIOSK-2026-001  |  CONFIDENTIAL"; font-family: Arial, sans-serif; font-size: 9pt; color: #c00000; }
+  @top-right   { content: "Instant Card Issuance Solution (Kiosk) — Proposal"; font-family: Arial, sans-serif; font-size: 9pt; color: #666; }
+  @bottom-right{ content: "Page " counter(page); font-family: Arial, sans-serif; font-size: 9pt; color: #666; }
+}
+/* cover = clean page: no running header/footer text (its rule lines are removed by the page-1 swap) */
+@page cover { @top-left { content: none; } @top-right { content: none; } @bottom-right { content: none; } }
+/* K3 draws a thin rule under the header and above the footer — full content-width fixed lines
+   (origin is the content box, so left:0/right:0 span exactly the 1in..1in text column) */
+#hrule { position: fixed; top: -0.31in;    left: 0; right: 0; border-top: 0.75pt solid #b9c7bf; }
+#frule { position: fixed; bottom: -0.31in; left: 0; right: 0; border-top: 0.75pt solid #b9c7bf; }
+/* neutralise pandoc's default template CSS (body{max-width:36em;padding:50px}) so
+   the @page 1in margin is the ONLY inset — matches K3 text block exactly */
+html { margin: 0 !important; padding: 0 !important; }
+/* body render omits the cover (rendered separately); start its page numbering at 2.
+   margin-box counter(page) ignores in-flow counter-reset, so offset via @page:first */
+@page:first { counter-reset: page 2; }
+body { margin: 0 !important; max-width: none !important; padding: 0 !important;
+       font-family: Arial, "Liberation Sans", "Helvetica Neue", sans-serif;
+       font-size: 11pt; color: #000; line-height: 1.18; }
+p { margin: 0 0 6pt; text-align: left; orphans: 2; widows: 2; }
+
+/* Headings — exact K3 sizes & spacing (half-pt/twips converted to pt) */
+h1 { font-family: Arial, sans-serif; font-size: 18pt; font-weight: bold; color: #2D4A3E;
+     margin: 18pt 0 10pt; padding-bottom: 4pt; border-bottom: 0.75pt solid #D4952B;
+     page-break-after: avoid; }
+h2 { font-family: Arial, sans-serif; font-size: 15pt; font-weight: bold; color: #2D4A3E;
+     margin: 14pt 0 8pt; page-break-after: avoid; }
+h3 { font-family: Arial, sans-serif; font-size: 13pt; font-weight: bold; color: #3E7D5A;
+     margin: 10pt 0 6pt; page-break-after: avoid; }
+
+/* Lists — K3 indent */
+ul { margin: 4pt 0 8pt; padding-left: 20pt; }
+li { margin: 2pt 0; }
+
+/* Tables — K3: navy header (green here), light-blue zebra (light green here) */
+table { border-collapse: collapse; width: 100%; font-size: 10pt; margin: 8pt 0; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th { background: #2D4A3E; color: #fff; text-align: left; padding: 4pt 7pt; font-weight: bold; }
+th strong { color: #fff; }
+td { border: 1px solid #cfdad3; padding: 3pt 7pt; vertical-align: top; }
+tr:nth-child(even) td { background: #EFF4F0; }
+strong { color: #2D4A3E; }
+
+/* Figures */
+img { max-width: 100%; display: block; margin: 8pt auto 2pt; border: 1px solid #e3e3e3;
+      padding: 3pt; background: #fff; page-break-inside: avoid; page-break-after: avoid; }
+img + p { text-align: center; page-break-before: avoid; font-size: 9.5pt; color: #595959; }
+
+/* ===== K3-style cover (authored in HTML by make_pdf.sh). Sizes = K3 cover runs. ===== */
+.cover { page: cover; min-height: 22cm; display: flex; flex-direction: column; justify-content: center;
+         text-align: center; page-break-after: always; }
+.cover-type-main { font-size: 22pt; font-weight: bold; color: #2D4A3E; letter-spacing: .3pt; }
+.cover-type-sub  { font-size: 16pt; font-weight: bold; color: #3E7D5A; margin-top: 5pt; }
+.cover-rule { border: none; border-top: 0.75pt solid #3E7D5A; width: 62%; margin: 20pt auto; }
+.cover-product   { font-size: 20pt; font-weight: bold; color: #2D4A3E; margin-top: 4pt; }
+.cover-subtitle  { font-size: 14pt; color: #666; margin-top: 10pt; }
+.cover-subtitle2 { font-size: 12pt; color: #666; margin-top: 5pt; }
+.cover-confidential { font-size: 14pt; font-weight: bold; color: #c00000; margin-top: 16pt; letter-spacing: .3pt; }
+.cover-meta { margin: 26pt auto 0; border-collapse: collapse; width: 82%; }
+.cover-meta td { border: 1px solid #cfdad3; padding: 5pt 9pt; text-align: left; font-size: 11pt; color: #000; }
+.cover-meta td.k { background: #DCE6E0; color: #2D4A3E; font-weight: bold; width: 34%; }
+.cover-meta td.conf { color: #c00000; font-weight: bold; }
+
+/* Table of Contents — own page (page 3, after Revision History) */
+.toc-page { page-break-before: always; page-break-after: always; }
+.toc-title { font-family: Arial, sans-serif; font-size: 18pt; font-weight: bold; color: #2D4A3E;
+             border-bottom: 0.75pt solid #D4952B; padding-bottom: 4pt; }
+nav#TOC ul { list-style: none; padding-left: 0; margin: 2pt 0; }
+nav#TOC ul ul { padding-left: 1.4em; }
+nav#TOC li { margin: 3pt 0; }
+nav#TOC a { text-decoration: none; color: #2D4A3E; }
+nav#TOC > ul > li > a { font-weight: normal; }
+/* pandoc wraps every TOC entry in <strong> (from the bold headings) — force non-bold */
+nav#TOC strong, nav#TOC a { font-weight: normal !important; }
+nav#TOC a::after { content: leader('.') " " target-counter(attr(href url), page); color: #666; font-weight: normal; }
+
+/* Forced page breaks (pandoc drops docx page breaks) */
+#component-wise-certifications-for-pci-compliance { page-break-before: always; }
+#functional-capabilities { page-break-before: always; }
+#commercials { page-break-before: always; }
+#software-architecture { page-break-before: always; }
+#pro-model-recommended, #max-model { page-break-before: always; }
+.pbreak { page-break-before: always; }
+figure { page-break-inside: avoid; }

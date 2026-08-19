@@ -286,6 +286,51 @@ memories:
            rotate-leaked-verify-token, event-push-enabled, studentimages-sync-wired, identified-panel-server-driven,
            worker-pidfile-singleton, only-t12-ships-t14-t15-need-eval, dedup-falls-back-to-t12]
 
+  - id: mem-009
+    type: project_context
+    content: >-
+      FACE-CHAIN MERGE WORK (2026-08-19, macOS v2 = bpr1008.bnet.main.v2). DedupWorker.cs has TWO
+      merge decision points: (1) LIVE GROUPING (chain birth, ~line 272) matched T14-only (>=0.60);
+      (2) CONSOLIDATION (ConsolidateAsync, every ~2min) fused T12+T14 by AVERAGING gate-normalised
+      scores and requiring avg>=1.0. DIAGNOSED under-merge: instrumenting consolidation (env
+      BNET_MERGE_DEBUG=1, logs per-chain best s14/s12) showed ~50% of separate chains had M12 above
+      its 0.363 gate (same person) but averaging let a weak T14 veto a confident T12. On STATIC data,
+      changing the rule to OR-of-gates (s14>=gate14 || s12>=gate12 || avg>=1.0) collapsed 111/225
+      chains cleanly (validated: one 689-frame chain = one person). Committed as f39a995 (birth-fusion
+      too: extended GetChainGalleryAsync to return Image_File_Path so gallery .t12.yml loads, matched
+      new frames with both models). BUT UNDER LIVE INGESTION IT OVER-MERGED/CHURNED — chains created
+      then collapsed faster than they accumulated, draining querydata to ~2 single-frame chains
+      (per-frame gallery M12 match is also O(frames*gallery) expensive). REVERTED both files to the
+      pre-session baseline (`git checkout abd7439 -- src/Bpr.BNet.Worker/DedupWorker.cs
+      src/Bpr.BNet.Data/QueryDataRepository.cs`) and redeployed; baseline accumulates chains reliably
+      (original average-fusion). GIT STATE TO RESOLVE: local commit f39a995 is NEVER PUSHED and the
+      working tree currently reverts it — either `git reset --hard abd7439` to drop it, or land the
+      revert as a follow-up commit. The DIAGNOSIS (use both M12+M14) is correct; the IMPLEMENTATION
+      needs: (a) redo during ACTIVE camera hours with live monitoring (not static counts), (b) a
+      merge-rate/over-merge safety cap, (c) cheaper birth-match (single M12 on best-M14 candidate, not
+      M12 per gallery entry). QUALITY-GATE EXPERIMENT: 'T12>=31 OR T15>=21' (BNET_QUALITY_OR=1) is
+      ~2x STRICTER than default 'T12>=20 AND T15>=14' (admits 8.7% vs 16.6% of frames) — it drops the
+      mediocre-on-both middle band; reverted to the default AND gate. DEPLOY RECIPE: edit source ->
+      `dotnet publish src/Bpr.BNet.Worker -c Debug -o ~/BPR/Datasets/bnet-worker` -> re-stage EVAL
+      native `cp ~/BPR/GitRepos1/bpr.cpp/build/cmake/eval/face-variants/libBprFace.dylib
+      ~/BPR/Datasets/bnet-worker/libBprFace.dylib` (publish keeps the T12+T14+T15 EVAL lib; without it
+      dedup falls back to T12) -> `launchctl unload/load ~/Library/LaunchAgents/ai.bnprs.bnet.worker.plist`
+      (KeepAlive=true, so ALWAYS unload before file surgery/clean-data or it relaunches mid-wipe).
+      Run all: `BNET_WORKER_EXTERNAL=1 bash run-macos.sh`. Wipe: `./clean-data.sh --yes` (unload daemon
+      first). DB: cqi_bnet on docker bnet-mysql :3399 (root/bnetdev); chains keyed FC_Label_ID; disk
+      chains under bpr-runtime/bnet_fc_final/<FC>/ (+.t14.yml/.t12.yml sidecars), sources bnet_oc_raw/.
+      Gate at startup log: det>=82/T12>=20/T15>=14, similarity>=0.6. OPEN BUG (separate from merging):
+      event-push verify1toNFace returns HTTP 400 -> chains never get named (StudentName NULL); needs
+      investigation of the request/token vs the ALB endpoint.
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [dedup-merge, m12-m14-fusion, or-gate-over-merges-live, reverted-to-abd7439, f39a995-unpushed,
+           git-state-to-resolve, quality-gate-experiment, deploy-recipe, eval-native-restage,
+           launchd-keepalive-unload-first, verify1tonface-400-open]
+
 # Pruning rules
 pruning:
   max_entries: 500
