@@ -5,13 +5,42 @@
 memories:
   - id: mem-001
     type: project_context
-    content: "<Persistent fact about the project>"
-    created_at: "<timestamp>"
-    last_accessed: "<timestamp>"
+    content: >-
+      DECK STORAGE CONVENTION (this agent owns all presentations/pitch decks). Deck SOURCES
+      live in the shared docs repo bpr1010.misc.docs (GitLab BPR1010, local
+      /Users/bnprs/BPR/GitRepos2/BPR1010_Misc/bpr1010.misc.docs) under the document-catalog
+      category folder, one folder per deck (source only — .pptx is git-ignored). Rendered
+      decks go to Zoho WorkDrive, MIRRORING the repo path under A_Docs, versioned
+      <Name>-vX.Y.pptx. Same repo/notation the bnprs-docs / bnprs-tech-docs agents use;
+      decision (2026-08-19) was to keep decks INSIDE bpr1010.misc.docs, not a separate repo.
+      Push docs repo with `git push origin main` (glab credential), NO Claude/AI attribution.
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
     access_count: 1
-    confidence: 0.9
-    source: "session-<id>"
-    tags: []
+    confidence: 0.97
+    source: "session-iis-kiosk"
+    tags: [convention, deck-storage, bpr1010-misc-docs, zoho-a_docs, ownership]
+
+  - id: mem-002
+    type: project_context
+    content: >-
+      BNPRS SALES DECK (v1.0) — corporate sales/pitch deck "BNPRS: Biometric Networks for
+      Payment Resilience & Security". Source: bpr1010.misc.docs/04-sales-finance/bnprs-sales-deck/
+      create_deck.js (pptxgenjs; renders some graphics via React + react-icons + sharp at build
+      time). Regenerate: `npm install pptxgenjs react react-dom react-icons sharp && node create_deck.js`
+      (writes BNPRS_Sales_Deck.pptx locally, git-ignored). Rendered deck in Zoho:
+      A_Docs/04-sales-finance/bnprs-sales-deck/BNPRS-Sales-Deck-v1.0.pptx (the original also sits at
+      B_BDPM/05_Product_Strategies/BNPRS_Sales_Deck.pptx from the build session). GOTCHA: source
+      had /home/claude/*.png paths (foreign sandbox) -> fixed to ${__dirname}/assets/. Only
+      assets/logo_transparent.png is present; the 3 team headshots (photo_pattabhi/ramesh/shanavas.png)
+      did NOT travel with the source and must be supplied in assets/ before the team slide can rebuild.
+      Team slide roster: Pattabhi Ramaiah (CEO), Ramesh Chugh (CPO), Shanavas K (CCO). Committed 2aec746.
+    created_at: "2026-08-19"
+    last_accessed: "2026-08-19"
+    access_count: 1
+    confidence: 0.96
+    source: "session-iis-kiosk"
+    tags: [bnprs-sales-deck, pptxgenjs, missing-team-photos, 04-sales-finance, v1.0]
 
   # Example entries:
   # - id: mem-002
