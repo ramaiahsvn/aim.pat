@@ -588,6 +588,16 @@ memories:
       swap this evening). RATIFIED DESIGN LAW for bnprs.in: dark-navy-dominant surfaces +
       orange accent is the settled identity. Do not propose or entertain full dominance
       flips again; palette experiments should stay within accents/tints, preview-first.
+      HERO LIGHTENED (commit a9dd380, user: navy only till the menu, light navy/orange mix
+      below): homepage hero bg-graphite -> new .hero-light class (pale #eef1fa->#f7f5f2->
+      #fdf1e3 wash + faint indigo/orange radials; .dark .hero-light = #0b1226). Hero text
+      flipped dark (h1 text-teal, sub gray-600, white badge, teal ghost CTA, float cards
+      now white w/ shadow, teal scroll indicator). NAVBAR IS NOW PERMANENTLY SOLID NAVY
+      (bg-[#0a1024]/95 + blur + border-b white/5) on ALL pages — updateNavbar simplified to
+      shadow-on-scroll only, logo always dark lockup, links always white (the old
+      white-nav-on-scroll + light-lockup swap logic REMOVED — do not resurrect it).
+      logo-lockup-light.png is now unused. Product/gff/404 pages keep dark navy heroes
+      (solid navy nav reads seamless over them). Footer stays navy.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
