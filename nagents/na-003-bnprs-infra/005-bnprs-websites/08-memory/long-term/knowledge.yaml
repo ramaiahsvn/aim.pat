@@ -270,6 +270,28 @@ memories:
     confidence: 1.0
     tags: [deployment, bnprs.in, redesign, green-bookends, section-lite, direction-b, artifact]
 
+  - id: mem-016
+    type: project
+    content: >
+      2026-08-20: bnprs.in GLOBAL-READINESS programme started — user goal: compete with major
+      global fintechs, "don't miss any opportunities globally". Phase 1 (SEO/discoverability)
+      SHIPPED, commit a263c46: homepage title was just "BNPRS" with no OG/canonical/sitemap —
+      added canonical URLs (astro.config site: https://bnprs.in), full Open Graph + Twitter
+      card meta, JSON-LD Organization schema (both offices + phone), robots.txt,
+      static public/sitemap.xml (17 URLs), og-image.png 1200x630 (Payments lockup padded via
+      sips), apple-touch-icon.png 180 + favicon-32.png (from Desktop logo-bnprs-in.png round
+      mark), strong homepage title/description. Product pages already had real titles via
+      ProductLayout. All verified live 200. REMAINING ROADMAP (proposed, not yet approved):
+      hero copy + typography tightening; customer proof section (deployments, 15k+ terminals);
+      dedicated Security/Compliance page; footer legal pages (privacy, terms — currently dead
+      links?); performance pass (font subsetting, image formats); accessibility audit;
+      per-locale URLs with hreflang if i18n SEO wanted; possibly consolidate global story on
+      bnprs.com (biometrics) vs bnprs.in (payments). Follow preview-first workflow for visual
+      items.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [project, bnprs.in, seo, global-readiness, open-graph, sitemap, roadmap]
+
 # Pruning rules
 pruning:
   max_entries: 500
