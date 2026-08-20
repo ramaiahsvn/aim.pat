@@ -418,6 +418,30 @@ memories:
     confidence: 1.0
     tags: [deployment, bnprs.in, gff-2026, banner, landing-page, event]
 
+  - id: mem-020
+    type: deployment
+    content: >
+      2026-08-20: PRODUCT RENAME on bnprs.in (commit b0d0caf): bRUID mGate (Smart Messaging
+      Gateway) -> bRUID wGate (Worldwide Gateway for Payment Processing) — user: "basically it
+      is a payment gateway". New /products/wgate page: full payment-gateway rewrite keeping the
+      product-page structure (hero + routing diagram now Payment Request -> Smart Routing
+      Engine -> Cards/UPI/Wallets/Banking -> Authorized; stats 4+ methods / zero downtime /
+      3DS 2.3; payment-methods cards; Smart Routing + Biometric 3-D Secure split section
+      (cross-sells bRUID ACS + rEngine); platform features incl. tokenization vault,
+      acquirer management, settlement/recon; 10 microservice tiles; security tiles incl.
+      PCI-DSS + HSM-backed keys via bRUID Kms; navy CTA card replacing old teal-gradient one).
+      Demo video: youtube wPzipPPlpQw (user-supplied mid-task; old mgate video z6HZUEjmGdk
+      dropped). /products/mgate is now a noindex meta-refresh + JS redirect stub -> wgate
+      (old URL kept working). New 'wGate' glyph in ProductIcon (globe + card). References
+      updated: index entry (name/display/tagline/desc/href), Footer processing list, ACS
+      related-product card, patmpos copy de-branded ("mGate messaging gateway" -> generic
+      multi-channel notifications), i18n product.mgate.desc updated in all 4 locales (key name
+      kept as product.mgate.desc), sitemap mgate->wgate. 22 pages built. Verified live:
+      wgate 200 + video, mgate redirects, homepage shows wGate.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, bnprs.in, wgate, mgate, rename, payment-gateway, redirect]
+
 # Pruning rules
 pruning:
   max_entries: 500
