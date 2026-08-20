@@ -305,6 +305,30 @@ memories:
     confidence: 1.0
     tags: [project, bnprs.in, seo, global-readiness, open-graph, sitemap, roadmap]
 
+  - id: mem-017
+    type: deployment
+    content: >
+      2026-08-20: bnprs.in VISUAL REFRESH shipped (commit b40c1eb) — user found graphite "dull"
+      and wanted unique product icons. Mockup artifact
+      claude.ai/code/artifact/891ad0a5-bc02-44ba-9f05-13cbb2d55f79; user picked D1 Midnight
+      Petrol + full icon system via AskUserQuestion. PALETTE: --color-graphite now #0a1c26;
+      .bg-graphite overridden in global.css (after the tailwind import so it wins) with teal
+      radial (#12454d) + 150deg linear gradient (#0c2230->#0a1c26->#081720) — dark surfaces are
+      lit, not flat. Dark-mode neutrals migrated graphite->petrol (#0b1822 / #13252f / #081420)
+      across global.css + Layout body + Navbar scrolled; theme-color #0a1c26; section-lite tint
+      #f4f8f9. ICONS: ProductIcon.astro gained 7 glyphs (AandhiPe monogram REPLACED with
+      phone+fingerprint; new iPerso, Kms, dPrep, ACS, bPass, rEngine) — all 12 grid products
+      now unique (previously cPerso x3, BfzCore x3 shared). Homepage grid + hero floats use
+      .icon-tile with family gradients: .fam-pay orange (AandhiPe), .fam-perso deep teal
+      (card perso), .fam-proc indigo (processing) — IconCrescent removed from index (import
+      deleted) but KEPT on product detail pages as the brand frame. Product page hero glyphs
+      updated (bruid-pass->bPass, risk-engine->rEngine, acs->ACS, phsm->Kms, data-prep line
+      31->dPrep, cperso-instant line 31->iPerso); related-product side lists still use old
+      names (render fine, could align later). Verified live: 7/5/5 fam tiles + #0a1c26 in CSS.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, bnprs.in, midnight-petrol, palette-d1, product-icons, icon-tiles]
+
 # Pruning rules
 pruning:
   max_entries: 500
