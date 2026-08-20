@@ -388,6 +388,29 @@ memories:
     confidence: 1.0
     tags: [incident, bnprs.in, section-lite, three-stage, glassmorphism, watermark, fix]
 
+  - id: mem-019
+    type: deployment
+    content: >
+      2026-08-20: GFF 2026 banner + landing page shipped per user brief
+      (Downloads/bnprs-gff-banner-and-page-brief.md), commit bc0ee24. BANNER: new
+      src/components/GffBanner.astro included in Layout.astro body (so ALL pages get it,
+      now 21 pages) — fixed 44px bar z-[60] bg #0e1630 above the fixed navbar, text "Meet us
+      at Global Fintech Fest 2026 — 8–10 Sept, Jio World Centre, Mumbai" (mobile: "Meet us at
+      GFF 2026"), orange Explore pill -> /gff, dismissible × stores gff-banner-dismissed=1 in
+      sessionStorage; html.gff-banner-on class + global.css rule pushes #navbar to top:2.75rem
+      while visible. PAGE /gff (src/pages/gff.astro): navy hero (eyebrow, "Meet BNPRS at GFF
+      2026", facts row location/dates/Booth TBA, Book-a-meeting + Get-in-touch CTAs ->
+      #gff-contact), 3 booth cards (live demo / bRUID ACS deep-dive / meet the team), 3
+      why-visit cards (section-lite), and a COPY of the homepage contact form + submit JS
+      posting to the same Lambda with "[GFF 2026] " prefixed to the message. Footer bottom bar
+      gained orange "GFF 2026" link; sitemap 21 URLs. NOTE brief had date conflict (8-10 vs
+      9-11 Sept) — standardised on 8-10 as stated 3x. Booth number TBA — update
+      gff.astro facts row when user provides it; "Book a meeting" may later point to a
+      Calendly link (currently anchors to the form). All acceptance criteria verified live.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, bnprs.in, gff-2026, banner, landing-page, event]
+
 # Pruning rules
 pruning:
   max_entries: 500
