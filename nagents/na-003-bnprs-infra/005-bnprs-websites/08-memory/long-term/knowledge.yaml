@@ -618,6 +618,12 @@ memories:
       intercept, nothing to forget."), bullets now EVIDENCE not features (Live on 15,000+
       POS terminals / EMVCo 3DS 2.3 + UPI ready / PCI-DSS certified). All 4 locales.
       Hero narrative: hook -> identity -> mechanism -> proof -> action.
+      TYPOGRAPHY UNIFIED (commit f68a982, user choice via AskUserQuestion): PLUS JAKARTA
+      SANS is now the single site-wide family (weights 400-800 from Google Fonts); Inter
+      DROPPED entirely. Set in three places for certainty: --font-family-sans token,
+      --font-sans (Tailwind v4 token name), and explicit html{font-family} in global.css.
+      Hero h1 inline PJS style now redundant but harmless (left in place). Verified live:
+      zero Inter references served. Do not reintroduce Inter.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
