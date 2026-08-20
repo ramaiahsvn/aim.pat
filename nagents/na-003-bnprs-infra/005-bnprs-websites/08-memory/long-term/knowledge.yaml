@@ -189,6 +189,26 @@ memories:
     confidence: 1.0
     tags: [incident, contact-form, lambda, function-url, 403, bnprs.in, bnprs.com, ap-south-1]
 
+  - id: mem-013
+    type: deployment
+    content: >
+      2026-08-20 (follow-up "take latest"): Replaced the HTML-recreated nav/footer brand lockup
+      (mark img + BNPRS span + tagline span) with the actual latest lockup artwork on ALL THREE
+      sites. Assets: public/logo-lockup-light.png + logo-lockup-dark.png per site (sips
+      --resampleHeight 192 from Desktop/Logos kit; ~32-40KB each). bnprs.ai + bnprs.com use the
+      BnprsUnique "be unique" lockup; bnprs.in uses the BNPRS_Payments lockup (full-color = light
+      variant, orange-mono = dark variant). Navbar.astro: single <img id="nav-logo"> h-12 md:h-14,
+      src swapped in updateNavbar() — dark lockup over transparent/hero nav and in dark theme,
+      light lockup on scrolled white nav (brandText logic removed). Footer.astro: dark lockup h-12.
+      Built + s3 sync (no --delete) + invalidated EHKEPP01C2TFV / EIRPPLAXGKOQA / E1SC03F64TLZZ0;
+      verified live (HTML refs + assets 200). GAP: no "BNPRS Biometrics" lockup exists in the kit —
+      bnprs.com (tagline was BIOMETRICS) now shows the generic "be unique" lockup; ask for a
+      Biometrics variant if wanted. Old logo.svg/favicon.svg stay in public/ (favicon still uses
+      the mark).
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, logo, lockup, rebrand, bnprs.ai, bnprs.com, bnprs.in, navbar, footer]
+
 # Pruning rules
 pruning:
   max_entries: 500
