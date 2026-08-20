@@ -541,6 +541,18 @@ memories:
       sm:grid-cols-2), i18n trust.iamai keys deleted + security.member retexted in all 4
       locales. Verified live: zero IAMAI on /, /security, /i18n.js. Do NOT re-add IAMAI
       as a membership in future copy.
+      HOW-IT-WORKS LOOK&FEEL (commit a1677da): problem/solution trio got hierarchy — two
+      problem cards muted (gray-100 chips, gray-400 X icons), BNPRS Solution card is now a
+      NAVY STATEMENT CARD (.solution-card class: #101b3d->#0a1024 gradient styled in
+      global.css because .section-lite .text-white overrides would repaint text-white
+      markup — the card deliberately carries NO text-white/text-white/N classes; icons use
+      text-[#ffffff] arbitrary class to dodge the override, same trick as tech-card icons).
+      Proprietary Technologies icon chips -> navy icon-tile fam-proc (consistent with
+      product tiles). .section-lite gained a faint navy DOT-GRID texture (radial-gradient
+      1px / 24px) — dark mode unaffected because .dark .section-lite uses the background
+      SHORTHAND which resets background-image. ESCAPE-HATCH PATTERN recorded: inside
+      section-lite, use arbitrary classes (text-[#ffffff]) or scoped CSS classes for
+      elements that must keep dark-surface styling.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
