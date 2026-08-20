@@ -633,6 +633,16 @@ memories:
       phone+fingerprint SVG — appears on homepage hero float, grid card, and aandhipe page
       hero (all navy tiles). currentColor tinting doesn't apply to img — if a light-bg
       usage appears later, switch that context to aandhipe-mark.png.
+      EXTENDED TO WHOLE FAMILY (commit 0f25a8e, user: same logo "to the power of" m/p/k/u):
+      all four AandhiPe products now share the official mark with a superscript exponent —
+      AandhiPe->m, PatMpos->p, PatKiosk->k, uTMS->u. Rendering switched from <img> to a
+      CSS-MASK technique (.aandhipe-mask in global.css: background currentColor +
+      mask-image aandhipe-mark.png) so the mark inherits text colour like the SVG glyphs —
+      white on navy tiles, navy (text-teal) on light related-product chips — one markup
+      works everywhere. Exponent letter is positioned top-right at 0.58em font-extrabold,
+      mark inset right by 0.32em to make room. The old phone/kiosk/monitor SVG glyphs for
+      these four names are GONE. mask-image browser support is universal-modern; the
+      aandhipe-mark-white.png asset is now unused but kept.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
