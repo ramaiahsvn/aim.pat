@@ -325,6 +325,11 @@ memories:
       updated (bruid-pass->bPass, risk-engine->rEngine, acs->ACS, phsm->Kms, data-prep line
       31->dPrep, cperso-instant line 31->iPerso); related-product side lists still use old
       names (render fine, could align later). Verified live: 7/5/5 fam tiles + #0a1c26 in CSS.
+      SUPERSEDED same day: user switched palette to D2 INK NAVY (commit 35e9b0f) — current
+      live values: --color-graphite #0a1024; .bg-graphite radial #1e2c5e + linear
+      #0e1630->#0a1024->#080d1d; dark-mode neutrals #0b1226 / #141d38 / #070d1c (also in
+      Layout body + Navbar scrolled); theme-color #0a1024; section-lite tint #f5f7fa. Icon
+      system unchanged. Hero's cyan/purple glow blobs read naturally on navy.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, midnight-petrol, palette-d1, product-icons, icon-tiles]
