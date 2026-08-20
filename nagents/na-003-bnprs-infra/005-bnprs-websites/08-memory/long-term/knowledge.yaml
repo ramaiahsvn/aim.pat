@@ -336,6 +336,16 @@ memories:
       glass idioms, so the re-skin is clean — unlike the homepage 3-stage block, mem-018);
       one dark highlight card -> bg-graphite. Only bg-teal/5 tints remain (fine on light).
       bg-teal utility now UNUSED for surfaces site-wide — text-teal still used for headings.
+      Also (commit 6fb4eed): About section Vision/Mission cards redesigned — old mint/orange
+      pale tints (off-palette after navy switch) replaced with brand-pair gradient cards:
+      Vision navy (from-[#101b3d] to-[#0a1024], indigo glow, white text) + Mission deep amber
+      (from-[#e8892a] to-[#b35c12], white text). MOBILE FIX: the grid was grid-cols-2 at ALL
+      widths (cards crushed to ~150px on phones) -> grid-cols-1 sm:grid-cols-2 so they stack
+      one-by-one on mobile per user request. Cards use explicit gradients so they render
+      identically in dark mode. NOTE the recurring pattern: several older blocks used
+      non-responsive grid-cols-N — check for missing sm:/md: prefixes when users report
+      mobile layout issues (only remaining fixed pair is the contact form name fields,
+      which is standard).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, midnight-petrol, palette-d1, product-icons, icon-tiles]
