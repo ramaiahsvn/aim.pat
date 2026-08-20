@@ -25,7 +25,8 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  129 hostnames, 6 products (2 of them groups) + 15 sub-projects. NONE resolve yet — every one is `planned`.
+#  129 hostnames, 6 products (2 of them groups) + 15 sub-projects. ONE resolves
+#  (aandhipe-mobile-api.sandbox, dns-only, 2026-08-20); the rest are `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
 #  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, TalabQi, uTMS last —
 #  AandhiPe and bRuID are GROUPS: they own no api/portal themselves, only sub-projects.
@@ -209,7 +210,17 @@ products:
       - key: "mobile"
         components:
           api:
-            sandbox: { host: "aandhipe-mobile-api.sandbox.bnprs.in", status: planned }
+            # FIRST RECORD OF THE STANDARD TO EXIST IN DNS (2026-08-20, user approval).
+            # A 300 -> 63.183.165.64 = EIP of i-0bbc3bb5415249d9b "aandhipe-sandbox"
+            # (t3a.medium, ITP acct 819144294008, eu-central-1a). Change
+            # /change/C06319733PV7N12DA0IA4 INSYNC; verified at the authoritative NS and
+            # via 8.8.8.8 + 1.1.1.1. Status is dns-only NOT live because the target EC2
+            # was STOPPED at creation time (EIP stays associated) — flip to live only
+            # after the instance is up and TLS on the instance is verified. Direct-to-EIP,
+            # no ALB involved, so the *.sandbox.bnprs.in cert gate does not apply here.
+            sandbox: { host: "aandhipe-mobile-api.sandbox.bnprs.in", status: dns-only,
+                       target: "EIP 63.183.165.64 (i-0bbc3bb5415249d9b aandhipe-sandbox, STOPPED)",
+                       verified_at: "2026-08-20" }
             uat:     { host: "aandhipe-mobile-api.uat.bnprs.in",     status: planned }
             prod:    { host: "aandhipe-mobile-api.bnprs.in",         status: planned }
           portal:
