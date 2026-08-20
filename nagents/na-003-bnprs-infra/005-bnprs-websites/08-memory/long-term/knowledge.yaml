@@ -553,6 +553,17 @@ memories:
       SHORTHAND which resets background-image. ESCAPE-HATCH PATTERN recorded: inside
       section-lite, use arbitrary classes (text-[#ffffff]) or scoped CSS classes for
       elements that must keep dark-surface styling.
+      MICRO-ENHANCEMENTS (commit 79b9aa1, all 23 pages via Layout): orange scroll-progress
+      bar (2.5px, z-70, rAF-throttled), back-to-top navy button (appears >600px scroll,
+      respects reduced-motion), proof-band count-up animation (data-countup attrs, cubic
+      ease-out, skipped for reduced-motion), branded ::selection (orange/white), and a
+      branded /404 page (navy hero, orange 404 numeral). 404 WIRING PENDING: CloudFront
+      still serves raw S3 403 XML for missing keys — cfdist2-new.json prepared in
+      scratchpad (CustomErrorResponses 403+404 -> /404.html as 404, TTL 10, layered on the
+      config that includes the /api/* proxy, etag E13V1IB3VIYZZH) — user must run
+      update-distribution (classifier blocks it). CAVEAT once wired: any 403 from the
+      /api/* Lambda path would also render the 404 page body (acceptable; form only
+      expects 200/400/500).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
