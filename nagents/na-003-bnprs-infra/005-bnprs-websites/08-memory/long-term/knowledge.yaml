@@ -352,6 +352,14 @@ memories:
       justify-items-start lg:justify-items-center, gap-10 lg:gap-2 (desktop layout
       unchanged). PATTERN: justify-items-center on a grid that stacks on mobile is a
       recurring misalignment source — audit for it when mobile screenshots look ragged.
+      CONTACT SECTION MOBILE FIX (commit f14ed64): third mobile-alignment bug class found —
+      whitespace-nowrap on the "Let's Build Something Secure" h2 clipped the heading on
+      phones (section has overflow-hidden, so it silently truncated instead of scrolling)
+      -> md:whitespace-nowrap. Also: address rows gap-4 sm:gap-5 + icons w-12 sm:w-14 +
+      min-w-0 text columns (wider text lane on phones), grid gap-12 lg:gap-16, form card
+      p-6 sm:p-8 md:p-10, name fields gap-3 sm:gap-4 (same form tweaks applied on /gff).
+      MOBILE BUG CLASSES SO FAR: (1) non-responsive grid-cols-N, (2) justify-items-center
+      on stacking grids, (3) whitespace-nowrap on long headings inside overflow-hidden.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, midnight-petrol, palette-d1, product-icons, icon-tiles]
