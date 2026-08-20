@@ -241,6 +241,26 @@ memories:
     confidence: 1.0
     tags: [deployment, bnprs.in, theme-flip, colours, green-primary, orange-sections, global-css]
 
+  - id: mem-015
+    type: deployment
+    content: >
+      2026-08-20: bnprs.in "Direction B — Green Bookends" redesign SHIPPED (follow-up to the
+      rejected full colour flip): user found dark green occupying ~55% of page surface
+      unprofessional. Process that worked: built a 3-option comparison artifact with full
+      homepage mockups + surface-coverage bars (claude.ai/code/artifact/865145d8-05dc-4fdb-899a-
+      e348ffc0210d), user picked B via AskUserQuestion. Implementation: hero + footer keep
+      #133331; the two dark middle sections (How-It-Works at index.astro:223, Security at :481)
+      changed bg-teal -> new class `section-lite`. Re-skin is SCOPED CSS in global.css (same
+      !important idiom the site's dark mode uses): .section-lite maps text-white->#133331,
+      [class*="text-white/"]->#64766f, [class*="bg-white/"]->#ffffff, [class*="border-white/"]
+      ->#dfe7e2, red-500 tints->pale red, on bg #f4f8f6; a .dark .section-lite block restores
+      the original dark styling in dark mode. Markup inside the sections untouched. Deployed +
+      invalidated E1SC03F64TLZZ0, verified live. Site repo commit 970afa4. Green coverage now
+      ~27% (bookends). Design lesson recorded: propose mockups first, deploy after approval.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, bnprs.in, redesign, green-bookends, section-lite, direction-b, artifact]
+
 # Pruning rules
 pruning:
   max_entries: 500
