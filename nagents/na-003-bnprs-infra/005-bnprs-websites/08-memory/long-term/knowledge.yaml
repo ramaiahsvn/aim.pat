@@ -257,6 +257,15 @@ memories:
       the original dark styling in dark mode. Markup inside the sections untouched. Deployed +
       invalidated E1SC03F64TLZZ0, verified live. Site repo commit 970afa4. Green coverage now
       ~27% (bookends). Design lesson recorded: propose mockups first, deploy after approval.
+      SUPERSEDED same day by Direction C (user: "Graphite Professional try this"), commit
+      1c6ceba: hero (index.astro:52) + footer surfaces bg-teal -> new bg-graphite token
+      (#191d1f); dark-mode palette neutralized green->graphite (#0c1f1e->#15181a,
+      #122b29->#1d2124, #0a1918->#101315 in global.css + Layout body + Navbar scrolled bg);
+      CTA orange deepened (--color-primary #f2992f->#e8892a, dark #c9701c, light #f2992f);
+      section-lite tint neutralized (#f4f8f6->#f7f8f8, muted #6b7280). Green now only in
+      headings (text-teal #133331), teal-tint chips, and the untouched logo artwork. The
+      section-lite mechanism from B is retained. Current live state: graphite bookends,
+      light neutral middle, green+orange as accents.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, redesign, green-bookends, section-lite, direction-b, artifact]
