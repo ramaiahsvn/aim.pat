@@ -693,6 +693,16 @@ memories:
       right of the B (=B= currency read) and the ₹ curve/leg show through the counters.
       out = (rupee - dilate(B,19)) | B. Source: scratchpad bruid-btop.png. THIS IS THE
       SETTLED bRUID MARK unless user says otherwise.
+      PB MONOGRAM VERSION (commit 9ddf2ae, user: "extract that pb symbol and use it"):
+      final-final mark = the OFFICIAL PB MONOGRAM with rupee cropped behind (bar stubs
+      both sides). EXTRACTION LESSONS: (1) Desktop logo-bnprs-ai.png raster monogram is a
+      heavy AI-rendered blob — unusable; (2) the crisp source is the site's own
+      favicon.svg VECTOR paths; (3) rasterize SVG on macOS with `qlmanage -t -s 1024 -o
+      dir file.svg` (no cairosvg needed) BUT QuickLook bakes a WHITE bg (alpha useless) —
+      extract by the monogram's ORANGE colour range instead (r>180, 90<g<200, b<120).
+      Composition: monogram 340px on 512 canvas, rupee 66% behind, MaxFilter(17) gap,
+      stubs +-18px. The rupee body is fully hidden behind the solid monogram — only the
+      = = stubs show; user offered offset option if more rupee wanted.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
