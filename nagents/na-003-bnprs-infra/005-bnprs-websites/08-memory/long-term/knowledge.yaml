@@ -703,6 +703,12 @@ memories:
       Composition: monogram 340px on 512 canvas, rupee 66% behind, MaxFilter(17) gap,
       stubs +-18px. The rupee body is fully hidden behind the solid monogram — only the
       = = stubs show; user offered offset option if more rupee wanted.
+      FINAL (commit cdafbcc, user: "rupee symbol not required here"): bRUID mark is the
+      CLEAN OFFICIAL PB MONOGRAM, no rupee at all — extracted from favicon.svg vector via
+      qlmanage + orange-colour threshold, 512px, served through .bruid-mask (currentColor).
+      Exponent letters (c/i/k/d/a/p/r/w) remain. Journey for the record: font-B engraved ->
+      B-on-top -> PB+rupee stubs -> plain PB. The AandhiPe A keeps its rupee; bRUID is the
+      plain monogram. DO NOT re-add a rupee to the bRUID mark.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
