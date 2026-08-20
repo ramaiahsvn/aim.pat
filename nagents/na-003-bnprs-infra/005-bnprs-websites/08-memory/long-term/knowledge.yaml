@@ -598,6 +598,15 @@ memories:
       white-nav-on-scroll + light-lockup swap logic REMOVED — do not resurrect it).
       logo-lockup-light.png is now unused. Product/gff/404 pages keep dark navy heroes
       (solid navy nav reads seamless over them). Footer stays navy.
+      HERO CONTENT SHARPENED (commit ea457d5): GOTCHA FOUND — i18n.js hero.desc (EN) was
+      OVERRIDING the markup's better inline copy on every load with a stale blander line;
+      when editing hero copy, ALWAYS update i18n.js in the same change or it silently
+      reverts at runtime. New content: issuer-focused sub-line ("Issuer-controlled
+      biometric payment infrastructure... No OTPs. No PINs."), three orange-check proof
+      bullets (hero.f1-f3: chip-level HSM enrolment / online+offline auth / issuer-side
+      authorization — previews the 3-stage story), secondary CTA "Learn More"->#about
+      replaced with "Meet us at GFF 2026" -> /gff (calendar icon). All in 4 locales
+      (EN/HI/AR/TE). POST-GFF: revert hero.cta2 to a durable label.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
