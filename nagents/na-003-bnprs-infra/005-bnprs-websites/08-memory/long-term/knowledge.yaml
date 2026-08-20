@@ -513,6 +513,16 @@ memories:
       (red survives ONLY as semantic form error/success feedback). ORANGE IS THE SOLE
       ACCENT: CTAs, links, stage/booth number chips, trust checks, hero badge, dark-mode
       gradient-text. Verified live: zero cyan/red-400/old-tile hexes served.
+      PRODUCT PAGES PASS (commit 31cf1aa): all 13 hero IconCrescent wrappers (12 pages +
+      ProductLayout) replaced with the unified navy icon-tile (w-20, fam-proc class — all
+      fam-* identical); IconCrescent imports removed from products (component file kept,
+      now unused site-wide except nothing — do not delete without checking); remaining
+      stale related-card icon names fixed by verified mapping (all leftover BfzCore cards
+      were "bRUID ACS" -> name ACS; all pHSM cards were "bRUID Kms" -> name Kms); wgate
+      stats strip made responsive (grid-cols-1 sm:grid-cols-3). Verified live on 6 sample
+      pages: 1 tile, 0 crescents, 0 stale each. Small grid-cols-3 chip grids inside phone
+      mockup visuals (aandhipe/utms/patmpos/cperso-instant) left as-is — they are
+      constrained decorative mini-grids, not full-width content.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
