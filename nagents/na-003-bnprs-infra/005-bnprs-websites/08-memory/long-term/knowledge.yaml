@@ -497,6 +497,26 @@ memories:
     confidence: 1.0
     tags: [deployment, bnprs.ai, green-theme, brand-split, tokens]
 
+  - id: mem-023
+    type: deployment
+    content: >
+      2026-08-20: bnprs.in STRICT TWO-COLOUR SYSTEM (user: "only navy blue + orange, more
+      professional, more elegant; icons consistent"), commit 78b1f87. Icon tiles: the
+      per-family colour coding (orange/teal/indigo) is RETIRED — .fam-pay/.fam-perso/
+      .fam-proc all resolve to one navy gradient (#1e2c5e->#101b3d, white/14 border, navy
+      shadow) via global.css; the three class names REMAIN in markup (index grid + hero
+      floats) but are visually identical — do not "fix" markup to a single class, and do
+      not reintroduce per-family colours without user ask. Decorative sweeps: all
+      cyan-500/purple-500 blobs -> blue-500 tints, cyan/purple floating dots -> primary/
+      white, across index, gff, security, product pages. How-It-Works "problem" cards
+      de-redded: bg-white border-gray-100 cards with bg-teal/10 chips + text-teal X icons
+      (red survives ONLY as semantic form error/success feedback). ORANGE IS THE SOLE
+      ACCENT: CTAs, links, stage/booth number chips, trust checks, hero badge, dark-mode
+      gradient-text. Verified live: zero cyan/red-400/old-tile hexes served.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
+
 # Pruning rules
 pruning:
   max_entries: 500
