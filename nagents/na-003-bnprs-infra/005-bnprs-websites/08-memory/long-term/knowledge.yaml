@@ -678,6 +678,15 @@ memories:
       LESSON: never iterate icon geometry blind in production — render a raster preview
       locally, look at it, then ship. Scratchpad keeps bruid-alpha.png + PJS-ExtraBold.ttf
       for regenerating variants (white/orange cuts for booth materials on request).
+      V2-FINAL (commit b082dee, user: "v2, but B stroke should appear, mixing OK"): tried
+      three compositions with visual iteration — (1) engrave on open-counter B: rupee
+      disintegrates (erasing over holes shows nothing); (2) XOR: glitchy dazzle bands;
+      (3) WINNER = overlap-with-gap: natural open-counter B, ₹ at 66% cap height laid
+      SOLID on top, a ~9px dilated-knockout gap separating it from the letter, bars
+      extended full letter width. Both letterform and rupee fully legible and interlocked.
+      User sent the 3-candidate sheet (66%/74%/glyph-only) via SendUserFile — 66% deployed,
+      user may still switch ("middle"/"right"). Asset regeneration: scratchpad
+      bruid-ov-{0,1,2}.png + the generator scripts in session history.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
