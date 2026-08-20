@@ -687,6 +687,12 @@ memories:
       User sent the 3-candidate sheet (66%/74%/glyph-only) via SendUserFile — 66% deployed,
       user may still switch ("middle"/"right"). Asset regeneration: scratchpad
       bruid-ov-{0,1,2}.png + the generator scripts in session history.
+      LAYER FLIP (commit 92b789c, user: "left okay, but B should on top, rupee cropping
+      behind fine"): final composition = SOLID B IN FRONT, rupee (66%, full-width bars)
+      layered BEHIND with a dilated gap around the letter — rupee bar stubs emerge left+
+      right of the B (=B= currency read) and the ₹ curve/leg show through the counters.
+      out = (rupee - dilate(B,19)) | B. Source: scratchpad bruid-btop.png. THIS IS THE
+      SETTLED bRUID MARK unless user says otherwise.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
