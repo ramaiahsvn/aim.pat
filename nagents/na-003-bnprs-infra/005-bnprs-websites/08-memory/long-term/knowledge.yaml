@@ -624,6 +624,15 @@ memories:
       --font-sans (Tailwind v4 token name), and explicit html{font-family} in global.css.
       Hero h1 inline PJS style now redundant but harmless (left in place). Verified live:
       zero Inter references served. Do not reintroduce Inter.
+      AANDHIPE OFFICIAL MARK (commit f24a0b8): user supplied the AandhiPe logo (navy A with
+      integrated rupee symbol, Desktop screenshot — NOTE macOS screenshot filenames contain
+      a narrow no-break space before AM/PM, copy via glob not literal path). Processed with
+      Pillow (luminance->alpha mask, trim, square pad, 512px): public/aandhipe-mark.png
+      (navy on transparent, for light contexts) + aandhipe-mark-white.png (white cut, used
+      NOW). ProductIcon 'AandhiPe' branch renders the white <img> instead of the
+      phone+fingerprint SVG — appears on homepage hero float, grid card, and aandhipe page
+      hero (all navy tiles). currentColor tinting doesn't apply to img — if a light-bg
+      usage appears later, switch that context to aandhipe-mark.png.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
