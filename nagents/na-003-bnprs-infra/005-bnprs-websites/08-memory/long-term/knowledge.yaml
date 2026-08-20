@@ -145,6 +145,50 @@ memories:
     confidence: 0.99
     tags: [domain, registrar, tucows, gandi, godaddy, whois, dns, systemdns, renewal, bnprs.com, bnprs.ai, bnprs.in]
 
+  - id: mem-011
+    type: deployment
+    content: >
+      2026-08-20: Logo rebrand rollout. New official BNPRS logo files delivered on Desktop/Logos
+      (BnprsUnique.zip: "BNPRS be unique" lockup, Lite_bg/Dark_bg; BnprsPayments.zip: "BNPRS
+      Payments" lockup). Official mark = PB monogram, teal circle #133331 + orange crescent rim
+      #f2992f — exactly what bnprs.in already used. bnprs.ai was off-brand (burgundy #800020 /
+      #0a0a0a) and bnprs.com was off-brand (indigo #6366f1 / slate #0f172a). Fix: copied
+      bnprs.in's canonical logo.svg, favicon.svg (and logo-orange.svg to .ai) into the .ai and
+      .com site public/ folders, rebuilt (Astro), s3 sync to bnprs-ai-fe + bnprs-com-fe
+      (NO --delete — the permission classifier blocks sync --delete; plain sync suffices),
+      CloudFront invalidations EHKEPP01C2TFV + EIRPPLAXGKOQA "/*". Verified live: both sites
+      serve #f2992f/#133331 logo + orange favicon. The nav lockup (BNPRS wordmark + orange
+      underline + "BE UNIQUE"/"PAYMENTS" tagline) is HTML/CSS in Navbar.astro, not an image —
+      matches the new lockup design already. Full-lockup PNGs kept on Desktop only (repo is
+      text-only; blobs not committed).
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, logo, rebrand, bnprs.ai, bnprs.com, brand-colors, f2992f, "133331"]
+
+  - id: mem-012
+    type: incident
+    content: >
+      2026-08-20: bnprs.in contact form broken — ROOT CAUSE FOUND. Form posts to Lambda Function
+      URL https://lilbfbto4ngczeypuduituohte0cusba.lambda-url.ap-south-1.on.aws/ (function
+      bnprs-contact-form, ap-south-1, nodejs22.x — NOTE ap-south-1, not the usual ap-south-2).
+      CORS preflight (OPTIONS) returns 200 but every POST/GET returns 403 "Forbidden ...
+      Function URL authorization". AuthType is NONE and the old FunctionURLAllowPublicAccess
+      (lambda:InvokeFunctionUrl) statement exists, but since AWS's October 2025 change a SECOND
+      resource-policy statement is required: lambda:InvokeFunction with condition
+      lambda:InvokedViaFunctionUrl=true. Direct CLI invoke works (function code is fine); no
+      CloudWatch log group exists (requests die at the front door). Fix command (classifier
+      blocked Claude from running it — needs user):
+      aws lambda add-permission --function-name bnprs-contact-form
+      --statement-id FunctionURLInvokeFunctionAllowPublicAccess --action lambda:InvokeFunction
+      --principal "*" --invoked-via-function-url --profile bnprs --region ap-south-1.
+      Also noted: bnprs.com's form is decorative (no action/name/handler in
+      bpr2004.bnprs.com/src/pages/index.astro:303) — wire it like bnprs.in's (and add its origin
+      to the function URL CORS AllowOrigins) if it should work. Function URL CORS currently
+      allows only bnprs.in, www.bnprs.in, d5wdai0sk03wf.cloudfront.net.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [incident, contact-form, lambda, function-url, 403, bnprs.in, bnprs.com, ap-south-1]
+
 # Pruning rules
 pruning:
   max_entries: 500
