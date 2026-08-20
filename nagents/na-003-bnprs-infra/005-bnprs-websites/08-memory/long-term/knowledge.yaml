@@ -329,6 +329,28 @@ memories:
     confidence: 1.0
     tags: [deployment, bnprs.in, midnight-petrol, palette-d1, product-icons, icon-tiles]
 
+  - id: mem-018
+    type: incident
+    content: >
+      2026-08-20: bnprs.in 3-Stage Transformation block "looked odd" (user report) — root cause:
+      the section-lite re-skin (mem-015) collided with this block's glass-on-dark idioms.
+      Specifically: (1) 80px watermark numerals used text-white/[0.03] and the
+      [class*="text-white/"] override turned them SOLID grey; (2) card surfaces were
+      bg-gradient from-white/10 (gradient utilities NOT caught by the [class*="bg-white/"]
+      background-color override) so cards had no surface on light bg; (3) pills/inner boxes
+      bg-white/5 became white-on-white. FIX (commit 7a0a8d2): made the block light-native in
+      markup — 5 glass cards (3 stages + 2 tech) -> bg-white card-hover border-gray-100
+      shadow-sm; watermarks -> text-teal/[0.06]; pills/boxes -> bg-gray-50 border-gray-100
+      text-gray-500; added a horizontal orange gradient connector between stage number
+      circles. Dark mode handled by existing overrides (.dark .card-hover.bg-white -> #13252f,
+      .dark .bg-gray-50 -> #081420). LESSON: the section-lite CSS re-skin does NOT catch
+      Tailwind gradient utilities (from-white/*, to-white/*) or arbitrary-value opacity
+      classes — audit any glassmorphism block inside section-lite; light-native markup beats
+      adding more overrides.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [incident, bnprs.in, section-lite, three-stage, glassmorphism, watermark, fix]
+
 # Pruning rules
 pruning:
   max_entries: 500
