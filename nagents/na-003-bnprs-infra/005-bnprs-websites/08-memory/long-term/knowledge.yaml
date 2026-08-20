@@ -368,6 +368,16 @@ memories:
       Tailwind gradient utilities (from-white/*, to-white/*) or arbitrary-value opacity
       classes — audit any glassmorphism block inside section-lite; light-native markup beats
       adding more overrides.
+      ROUND 2 (user: "still need lot of improvements", commit 253385e): full redesign as a
+      connected STEPPER — removed floating number circles + animate-ping rings + BOTH leftover
+      connector bars (the old framework-grid white/10 animated bar at top-[52px] AND the thin
+      gradient line) + watermark numerals + font-black uppercase headings. New: equal-height
+      (items-stretch, flex flex-col) white cards; orange number chip inside card header next
+      to "STAGE 01/02/03" eyebrow + normal-case bold title; stage-2 sub-boxes compact
+      bg-gray-50 with dot markers; circular arrow badges BETWEEN cards — desktop
+      right-chevron at -right-[34px] (gap-8=32px, centered), mobile down-chevron at
+      -bottom-[30px] (grid gap-12 mobile); hover lift. framework-grid id removed (verified
+      no JS references it).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [incident, bnprs.in, section-lite, three-stage, glassmorphism, watermark, fix]
