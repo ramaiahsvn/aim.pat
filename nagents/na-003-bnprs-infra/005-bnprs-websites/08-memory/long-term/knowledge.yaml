@@ -607,6 +607,17 @@ memories:
       authorization — previews the 3-stage story), secondary CTA "Learn More"->#about
       replaced with "Meet us at GFF 2026" -> /gff (calendar icon). All in 4 locales
       (EN/HI/AR/TE). POST-GFF: revert hero.cta2 to a durable label.
+      HERO COPY REWRITE (commit 1e836e5, user pushed again): structural fix — the 5-line
+      B-N-P-R-S acrostic H1 was explaining the NAME, not selling. New structure: badge
+      "Zero-OTP · Zero-PIN · Zero-Fraud" (plain text so i18n swap can't strip styling; AR/TE
+      badge originals differed from assumption — always grep actual locale strings before
+      replacing), H1 "Payments that know / who's paying." (gradient on line 2, 58px), the
+      ACROSTIC PRESERVED as an uppercase gray kicker line with orange B/N/P/R/S initials
+      (not i18n'd — it is the name expansion, constant across locales), mechanism sub-line
+      ("enrol on chip, authenticate online/offline, authorize at issuer. Nothing to
+      intercept, nothing to forget."), bullets now EVIDENCE not features (Live on 15,000+
+      POS terminals / EMVCo 3DS 2.3 + UPI ready / PCI-DSS certified). All 4 locales.
+      Hero narrative: hook -> identity -> mechanism -> proof -> action.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
