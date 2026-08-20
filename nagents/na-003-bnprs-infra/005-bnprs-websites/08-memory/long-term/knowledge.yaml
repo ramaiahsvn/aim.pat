@@ -523,6 +523,18 @@ memories:
       pages: 1 tile, 0 crescents, 0 stale each. Small grid-cols-3 chip grids inside phone
       mockup visuals (aandhipe/utms/patmpos/cperso-instant) left as-is — they are
       constrained decorative mini-grids, not full-width content.
+      GFF-READINESS FINAL POLISH (commit d97665b, user: fintech professionals will look at
+      this site for GFF): (1) PROOF BAND from the long-pending approved mockup SHIPPED —
+      white band with orange top rule between hero and trust strip, 4 real stats (15,000+
+      POS terminals / 16 products / PCI-DSS·PIN / IIT Hyderabad), 2x2 on mobile, 4-across
+      with dividers on md+. (2) EMAIL was absent from the ENTIRE site — added info@bnprs.in
+      row to the contact section (icon block matching address rows) and to the footer
+      contact column. (3) US English normalized site-wide (personalisation->personalization
+      incl. the Layout default meta description, recognised->recognized) — UK spellings had
+      crept in via my own gff/security page copy. (4) nav+footer lockup imgs got
+      width=557 height=192 (CLS fix). Verified live. STILL OPEN for GFF: booth number
+      (TBA on /gff), Calendly link for Book-a-meeting, partner/bank logo row (needs real
+      names from user).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
