@@ -573,6 +573,19 @@ memories:
       established claim, nothing invented), i18n all 4 locales. Verified live: zero
       PCI-PIN on /, /security, /gff, /products/phsm, /products/bruid-acs, /i18n.js.
       Do NOT re-add PCI-PIN claims (same class as the IAMAI removal).
+      LITERAL COLOUR SWAP DEPLOYED (commit 93dbfe8): user chose option B from the
+      colour-swap preview artifact (claude.ai/code/artifact/8f2a30a6-...) WITH the explicit
+      warning that the identical green-flip was rolled back this morning as "dominating".
+      Current live state: ORANGE-DOMINANT — primary tokens now NAVY (#101b3d/#0a1024/
+      #1e2c5e — CTAs/links/selection/focus/scroll-bar), teal tokens now AMBER (#b35c12
+      headings / #fdf1e3 tints / #d9741c), graphite surfaces = amber gradient
+      (#e8892a->#d9741c->#b35c12, radial #f2992f), icon tiles orange, dark mode warm
+      (#2a1808/#3a220c/#1c0f04), section-lite warm tint #faf6f1 + amber dot grid,
+      vision/mission cards traded gradients, solution card amber, gradient-text light=amber
+      dark=light-navy, GFF banner #3a220c, 404 numeral #fbb862. REVERT = git revert 93dbfe8
+      + rebuild/redeploy — likely outcome based on the green precedent; option C "Deep
+      Amber" (dark burnt-amber surfaces, orange CTAs) from the same artifact is the
+      fallback compromise if user finds B too loud again.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
