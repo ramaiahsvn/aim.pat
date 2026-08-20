@@ -738,6 +738,9 @@ memories:
       KEYED BY GROUP TITLE — renamed keys in the same change; any future title rename
       must update that map or tiles lose their class (currently harmless since all fam-*
       are identical navy, but keep correct).
+      Footer polish (commit 787cea1): all four footer column headings text-base->text-sm,
+      tracking-wider->tracking-wide, + whitespace-nowrap — "Payment Processing" was
+      wrapping to two lines in its narrow lg:col-span-2 track.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
