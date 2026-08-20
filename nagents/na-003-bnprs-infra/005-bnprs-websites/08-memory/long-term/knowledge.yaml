@@ -477,6 +477,26 @@ memories:
     confidence: 1.0
     tags: [deployment, bnprs.in, contact-form, api-proxy, cloudfront, navy, green-removed]
 
+  - id: mem-022
+    type: deployment
+    content: >
+      2026-08-20: bnprs.ai re-themed from burgundy/black to the CLASSIC GREEN theme (user:
+      "apply this green theme in bnprs.ai" right after green was removed from bnprs.in).
+      BRAND SPLIT NOW DELIBERATE: bnprs.in (Payments) = navy/indigo (#101b3d family, orange
+      CTAs); bnprs.ai (main brand) = deep green #133331 + orange #f2992f — matching the
+      official logo colours on both. bnprs.ai change was pure token swap in
+      src/styles/global.css (site shares the .in template; no hardcoded hexes in astro
+      files): primary #800020/#660018/#a0334d -> #f2992f/#d9821f/#fbb862; teal
+      #0a0a0a/#f5f5f5/#1a1a1a -> #133331/#eaf6f5/#1a4a47; gradient-text -> orange gradient.
+      Deployed bnprs-ai-fe + EHKEPP01C2TFV invalidated; verified live (zero burgundy/black
+      hexes in served CSS). bpr2004.bnprs.ai IS its own git repo — commit 092d3a1, pushed
+      via one-off $GITLAB_PAT URL (embedded token stale, same as .in). bnprs.com untouched
+      (still indigo/slate theme + old crescent nav on its own palette) — flag if it should
+      join either identity.
+    created_at: "2026-08-20"
+    confidence: 1.0
+    tags: [deployment, bnprs.ai, green-theme, brand-split, tokens]
+
 # Pruning rules
 pruning:
   max_entries: 500
