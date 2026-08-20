@@ -667,6 +667,17 @@ memories:
       plus the diagonal leg (12.8,11.1 -> 8.6,17.9), stroke 1.9, all negative space; the
       external stubs removed (the A mark has none either). This is the settled bRUID mark:
       B with an engraved ₹, exponent letter top-right.
+      FINAL (commit 105f878, after user "still not as expected"): abandoned blind SVG-text
+      cuts entirely. WORKFLOW THAT WORKED: rasterize with Pillow + the REAL font (PJS
+      ExtraBold TTF fetched from github.com/tokotype/PlusJakartaSans), draw B, FLOOD-FILL
+      the counters solid (ImageDraw.floodfill from corner, invert), engrave the AUTHENTIC
+      ₹ GLYPH from the same font (PJS contains it) dead-centre at 62% cap height, then
+      VIEW the preview with the Read tool and iterate BEFORE shipping. Result:
+      public/bruid-mark.png (512px navy-on-transparent) served via .bruid-mask CSS
+      (currentColor mask, same as .aandhipe-mask). The svg <text>+mask branches are gone.
+      LESSON: never iterate icon geometry blind in production — render a raster preview
+      locally, look at it, then ship. Scratchpad keeps bruid-alpha.png + PJS-ExtraBold.ttf
+      for regenerating variants (white/orange cuts for booth materials on request).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
