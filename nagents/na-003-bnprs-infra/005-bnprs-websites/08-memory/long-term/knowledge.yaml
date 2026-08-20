@@ -346,6 +346,12 @@ memories:
       non-responsive grid-cols-N — check for missing sm:/md: prefixes when users report
       mobile layout issues (only remaining fixed pair is the contact form name fields,
       which is standard).
+      FOOTER MOBILE FIX (commit 7243238, from user screenshot): footer grid had
+      justify-items-center + gap-2 — on stacked mobile each column BLOCK centered at its own
+      width while inner text stayed left-aligned -> ragged mixed indents. Fix:
+      justify-items-start lg:justify-items-center, gap-10 lg:gap-2 (desktop layout
+      unchanged). PATTERN: justify-items-center on a grid that stacks on mobile is a
+      recurring misalignment source — audit for it when mobile screenshots look ragged.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, midnight-petrol, palette-d1, product-icons, icon-tiles]
