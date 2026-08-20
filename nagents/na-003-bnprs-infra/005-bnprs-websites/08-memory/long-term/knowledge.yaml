@@ -709,6 +709,19 @@ memories:
       Exponent letters (c/i/k/d/a/p/r/w) remain. Journey for the record: font-B engraved ->
       B-on-top -> PB+rupee stubs -> plain PB. The AandhiPe A keeps its rupee; bRUID is the
       plain monogram. DO NOT re-add a rupee to the bRUID mark.
+      GREEN STRAGGLERS + LIGHT PRODUCT HEROES (commit f270ff6): user spotted green on the
+      aandhipe page — root cause: from-[#0a1918] (ORIGINAL green-era dark hex) in the
+      phone-mockup gradients of aandhipe/patmpos/phsm/patkiosk, missed by every sweep
+      because sweeps only targeted the then-current generation of hexes -> now
+      from-[#080d1d] navy. Also navbar lang dropdown dark:bg-[#122b29] -> [#141d38].
+      LESSON: when re-theming, grep for ALL historical palette hexes, not just the
+      previous generation. PRODUCT HEROES: all 13 (12 pages + ProductLayout) converted
+      from bg-graphite to new .hero-lite scoped re-skin (same pale navy->orange wash as
+      homepage .hero-light + section-lite-style overrides; .dark restores). IMPORTANT
+      GUARD ADDED for both .hero-lite AND .section-lite: .bg-primary.text-white and
+      [class*="from-primary"].text-white keep color #fff — otherwise primary buttons/
+      number chips inside re-skinned areas get navy text on navy/orange fill. Site now:
+      navy nav -> light heroes everywhere -> light body -> navy footer.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
