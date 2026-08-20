@@ -231,8 +231,12 @@ memories:
       product marks keep official logo colours). Deployed + invalidated E1SC03F64TLZZ0, verified
       live tokens. Site repo commits: 4e8ceeb (lockup checkpoint), 493e295 (flip) — pushed via
       one-off $GITLAB_PAT URL (embedded remote token STILL stale, mem-009 gotcha confirmed
-      again). REVERT = git revert 493e295 + rebuild/redeploy. NOTE: white text on orange
-      (#f2992f) sections is lower-contrast than before — flag if user reports readability issues.
+      again).
+      ROLLED BACK same day: user verdict "dominating" — orange as the section/background colour
+      overwhelms the design. git revert 493e295 (commit 0d66688), rebuilt, redeployed, verified
+      live (primary back to orange #f2992f, teal #133331). LESSON: bnprs.in's design language is
+      dark-green-dominant with orange as ACCENT only; do not invert dominance. If a colour
+      refresh is wanted later, propose a preview/screenshot before deploying.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, theme-flip, colours, green-primary, orange-sections, global-css]
