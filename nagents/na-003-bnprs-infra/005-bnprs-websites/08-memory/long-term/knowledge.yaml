@@ -654,6 +654,14 @@ memories:
       are ever unwound. ICON SYSTEM NOW: two family marks with exponents (A-rupee for
       AandhiPe x4, B-rupee for bRUID x8) + standalone glyphs for mGate(legacy)/bNet/
       Sbioids/iBecs/etc.
+      FIX (commit 062e171, user: "rupee symbol not appearing"): the original B-mark drew
+      the two bars in currentColor OVER the B — same colour, mostly overlapping the stem =
+      invisible. Now the strokes CUT THROUGH the letter as negative space (SVG mask
+      "bruid-rupee-cut" removes two slits from the <text>) with short protruding stubs on
+      the left in currentColor — mirrors how the AandhiPe mark embeds its rupee as negative
+      space. LESSON: a same-colour overlay on a solid glyph is invisible; currency cues on
+      letterforms must be knocked OUT of the form. (Mask id is duplicated across instances
+      on a page — identical content, first-def-wins, harmless.)
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
