@@ -564,6 +564,15 @@ memories:
       update-distribution (classifier blocks it). CAVEAT once wired: any 403 from the
       /api/* Lambda path would also render the 404 page body (acceptable; form only
       expects 200/400/500).
+      PCI-PIN REMOVED SITE-WIDE (user instruction, commits d887e20 + 7f4a096): first the
+      proof-band tile ("PCI-DSS · PIN" -> "PCI-DSS"), then every remaining claim — homepage
+      security card ("Full PCI-DSS and ISO compliance") + Kms product desc, /security cert
+      entry deleted (grid -> sm:grid-cols-3) + page meta, GFF why-visit, phsm hero
+      subtitle/CTA + floating badge (PCI-PIN Certified -> HSM Secured/Key protection),
+      bruid-acs security tile (PCI-PIN -> ISO/Compliant systems — ISO already an
+      established claim, nothing invented), i18n all 4 locales. Verified live: zero
+      PCI-PIN on /, /security, /gff, /products/phsm, /products/bruid-acs, /i18n.js.
+      Do NOT re-add PCI-PIN claims (same class as the IAMAI removal).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
