@@ -407,6 +407,13 @@ memories:
       9-11 Sept) — standardised on 8-10 as stated 3x. Booth number TBA — update
       gff.astro facts row when user provides it; "Book a meeting" may later point to a
       Calendly link (currently anchors to the form). All acceptance criteria verified live.
+      Follow-up (commit a435294): user supplied Downloads/GFF_BNPRS.png — official CO-BRANDED
+      artwork (BNPRS Payments lockup + white GFF 2026 logo on transparent; looks blank on
+      white preview, view on dark). Now used as: /gff hero image (public/gff-lockup.png,
+      929x320, right column lg:col-span-2) and page-specific OG card public/og-gff.png
+      (1200x630, sips-padded onto navy 0A1024 — the pad flattened fine since consumers
+      composite PNG alpha over the pad edges; verified visually). Layout.astro gained an
+      optional ogImage prop (default /og-image.png) — reusable for future per-page OG cards.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, gff-2026, banner, landing-page, event]
