@@ -363,6 +363,36 @@ memories:
     tags: [dedup-newest-first, seen-cache-in-memory-only, cold-start-starvation, macbook-cam-is-a-video-file,
            quality-csv-segment-by-time, native-quality-harness, uncommitted-on-top-of-mem009-revert]
 
+  - id: mem-011
+    type: technical_knowledge
+    content: >-
+      "ACTIVITIES SURVIVE THE WIPE" SOLVED (2026-08-21): clean-data.sh truncated imp_events
+      fine, but it only pkill'd the worker - launchd (KeepAlive=true) relaunched it within
+      seconds and, since the camera streams are RECORDED CLIPS that replay from the start,
+      it refilled imp_events + smoke/fight frames immediately. Measured: 7 rows + 16 frames
+      within ~1 min of a "clean" wipe. FIX committed 6959fba: clean-data.sh now unloads the
+      launchd job BEFORE pkill. TRAP INSIDE THE FIX: `launchctl list | grep -q LABEL` under
+      `set -o pipefail` is always-false when it matters - grep -q exits on first match,
+      launchctl dies of SIGPIPE(141), pipeline "fails", unload skipped. Use
+      `launchctl list <label> >/dev/null 2>&1` as the test.
+      FONT: app moved Poppins -> Plus Jakarta Sans (site-brand font, same as bnprs.in).
+      One global rename Poppins->PlusJakartaSans across 10 files (62 refs: aliases AND ttf
+      filenames share the weight suffixes) + 4 static TTFs (OFL, tokotype GitHub) in
+      Resources/Fonts. TWO BUILD TRAPS: (1) run-macos.sh NEVER BUILDS the app - it picks the
+      newest existing bundle; after source changes run
+      `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer dotnet build src/Bpr.BNet.App
+      -f net10.0-maccatalyst` yourself. (2) incremental resizetizer keeps STALE font staging -
+      verify the .app/Contents/Resources actually contains the new ttfs, old Poppins copies
+      linger in the bundle harmlessly until a clean build.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [keepalive-refills-after-wipe, unload-before-pkill, grep-q-pipefail-sigpipe,
+           launchctl-list-label, plus-jakarta-sans, run-macos-does-not-build,
+           resizetizer-stale-fonts]
+
 # Pruning rules
 pruning:
   max_entries: 500
