@@ -519,6 +519,31 @@ memories:
            utms-api-67, spring-relaxed-binding, ecs-mutations-classifier-gated,
            getattendance-500-open]
 
+  - id: mem-017
+    type: reference
+    content: >-
+      WORKING CAMERA RTSP URLs (verified 2026-08-21, streams confirmed via ffprobe). The
+      cameras are on the INDIA office LAN (192.168.0.x) behind public IP 103.106.181.48,
+      port-forwarded on NON-standard ports (554 is NOT forwarded; 5541->cam1, 5542->cam2).
+      Paths differ per camera and are NOT /profile0 for both:
+        Camera 1 EZVIZ (2K):     rtsp://admin:123456@103.106.181.48:5541/ch1/main/av_stream  (2560x1440)
+        Camera 2 Hikvision (4K): rtsp://admin:Chinni12%23@103.106.181.48:5542/profile0        (3840x2160)
+      SET these into camera.STREAM_URL manually (docker exec bnet-mysql mysql ... UPDATE);
+      the sync's ComposeCameraStreamUrls now fills ONLY-empty, so a manual public URL sticks.
+      The server only stores the LAN ip/port (192.168.0.2/.4:554) which is unreachable
+      remotely. 103.106.181.48 is a DYNAMIC IP (other agents saw it rotate 103.106.181.48 ->
+      103.80.12.217); when it moves, re-probe: nmap-style port scan 1-10000 for the two
+      forwarded RTSP ports, then ffprobe path candidates (EZVIZ=/ch1/main/av_stream,
+      Hikvision=/profile0). BEST FIX: DDNS on that router. NOTE pat-m4p shell PATH sometimes
+      loses coreutils (head/tr/cut "command not found") - use /usr/bin/python3 for probing.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [camera-rtsp-urls, forwarded-ports-5541-5542-not-554, per-camera-paths, dynamic-public-ip,
+           compose-fills-only-empty, ddns-recommended, ffprobe-path-discovery]
+
 # Pruning rules
 pruning:
   max_entries: 500
