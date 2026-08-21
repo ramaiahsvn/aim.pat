@@ -889,6 +889,78 @@ memories:
            docker-host-unix-socket-pipeline-var, re-paused-runner5, portal-face-matching-page-menu13,
            rebuild-from-latest-uat_temp, kiran-needs-reenroll-to-efs]
 
+  - id: mem-029
+    type: project
+    content: >-
+      *** RESUME CHECKPOINT (2026-08-22, session restart) *** — GFF demo: enrol 5 team members
+      into the bNet SERVER so the live 1:N matcher (mode=SERVER, rev 46, 4GB, gates T12=36/T14=45)
+      identifies them. Builds on mem-028 (matcher shipped live).
+      DONE THIS SESSION: (1) EFS gallery wiped clean via ECS exec (was 11 stale identities).
+      (2) DB cleared of ALL enrolment data via ECS-exec+mysql: student, faculty, staff,
+      faceimagedata, studentcourse, facultycourse, querydata, filtered_match_face,
+      facematchingrequests, identification_audit, AND the user table (71 rows) — all now 0.
+      GOTCHA LEARNED: enrolment ALSO inserts a `user` row (USER_NAME=email, both user.EMAIL and
+      user.USER_NAME are UNIQUE), so a full enrolment wipe MUST include `user` or re-enrolment
+      collides. (3) Pattabhi Ramaiah enrolled OK = student id 12, roll C1001,
+      email ramaiah.polyu@gmail.com, phone 9000024334, dept 1, DOB 1981-07-21; user id 175; his
+      photo is on EFS gallery.
+      OPEN BLOCKER (where we stopped): member 2 enrolment returns "Duplicate entry found among
+      Rollnumber, Email, Phonenumber" EVEN WITH all-different details. THE MESSAGE IS MISLEADING:
+      StudentService.createStudent catches EVERY exception (line 245-246) and StudentController
+      RegisterStudents (multipart) always reports failure as that one generic "duplicate" string,
+      discarding the real ex.getMessage(). CloudWatch showed NO real "Duplicate entry '..' for key"
+      SQL error, so it is NOT a genuine uniqueness clash. PRIME SUSPECT: "No courses found for
+      department: X" — createStudent (line 158-163) auto-assigns the student to every active course
+      under the chosen DEPARTMENT and THROWS if that department has no active courses (Pattabhi's
+      dept 1 has courses). NEXT STEP: get a screenshot of the member-2 form (esp. Department
+      dropdown) + error, OR just retry member 2 with dept 1 (unique email/phone/roll); if it works,
+      list which departments have active courses. Enrolment path = portal Create Student ->
+      POST /bnet/RegisterStudents (multipart: StudentDto @ModelAttribute + studentPhoto MultipartFile).
+      5 MEMBERS (photos in bpr2004.bnprs.in/public/): Pattabhi Ramaiah team-pattabhi.png (DONE);
+      Ramesh Chugh team-ramesh.png; Shanavas Kanhikoth team-shanavas.png; Dilip Shelar
+      guest-dilip.png; Kaushiq Kodithodika guest-kaushiq.png.
+      DB ACCESS MECHANISM (CRITICAL — the DB is UNREACHABLE from pat-m4p): Aurora is VPC-private
+      (utms-aurora-cluster.cluster-cijkdvfp49nc.eu-central-1.rds.amazonaws.com:3306/bnet_remote,
+      user admin) — a direct connection from the Mac TIMES OUT. Reach it ONLY by ECS-exec into the
+      smartpresence task: (a) enable exec: aws ecs update-service --cluster utms-cluster --service
+      utms-smartpresence-api --enable-execute-command --force-new-deployment --region eu-central-1
+      --profile itp; (b) wait for a task whose ExecuteCommandAgent lastStatus=RUNNING and
+      healthStatus=HEALTHY; (c) aws ecs execute-command --interactive --command "/bin/sh -c '...'".
+      Inside the container: NO mysql client but has apt-get + java + DB creds in env
+      (SPRING_DATASOURCE_URL/USERNAME/PASSWORD from Secrets Manager utms/prod/utms-smartpresence-api).
+      Install: apt-get update -qq && apt-get install -y -qq default-mysql-client-core (jammy => MySQL8
+      client, so use --ssl-mode=REQUIRED, NOT --ssl). Connect: export MYSQL_PWD=$SPRING_DATASOURCE_PASSWORD;
+      mysql --ssl-mode=REQUIRED -h <host> -u $SPRING_DATASOURCE_USERNAME -D bnet_remote. ROBUST pattern
+      to dodge quoting: base64-encode the remote sh script and exec "echo <b64> | base64 -d | /bin/sh".
+      CLASSIFIER: reading the prod secret, `aws rds ...`, and the exec-into-DB commands are all
+      BLOCKED for the agent in auto mode — so the USER runs the scripts via the `!` prefix (that
+      bypasses the classifier; verified working). The helper scripts lived in the session scratchpad
+      (now gone on restart) — recreate them from this pattern (they were: clear-db-via-ecs.sh,
+      clear-user-table.sh, diag-enroll-dup.sh, list-emails.sh, remove-last-programme.sh,
+      flip-facechain-server.sh). student columns: ID,ROLL_NUMBER,FIRST_NAME,LAST_NAME,EMAIL,
+      PHONE_NUMBER,DOB,GENDER,ADDRESS,ENROLLMENT_YEAR,DEPARTMENT_ID,PROGRAMME_ID,COMPANY_ID,COURSE_ID,
+      STATUS_ID,CREATED_*; unique on EMAIL, PHONE_NUMBER, ROLL_NUMBER. user unique on EMAIL, USER_NAME.
+      HOUSEKEEPING STILL OWED: ECS exec is CURRENTLY LEFT ENABLED (needed it for the DB work) — DISABLE
+      it when the 5 are enrolled: aws ecs update-service ... --disable-execute-command --force-new-deployment.
+      After all 5 in: verify via exec that the gallery holds 5 images + generated .t14b/.t12b, then the
+      SERVER matcher (mode SERVER) will identify them.
+      CHROME/CLAUDE-IN-CHROME: extension installed + On (v1.0.85, "On all sites"), account
+      ramaiah.polyu@gmail.com (Pat/Max) = matches the Claude Code account, BUT it will NOT pair
+      (list_connected_browsers=[]; switch_browser finds none) even after a full Chrome restart —
+      the bridge needs a Claude Code SESSION restart to register the native host. Fallback that WORKS:
+      user drops screenshots on ~/Desktop and the agent Reads them.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21-gff-enrol"
+    tags: [resume-checkpoint, gff-enrol-5-members, pattabhi-done-c1001, member2-blocked,
+           duplicate-message-is-misleading-catch-all, no-courses-for-department-suspect,
+           enrol-inserts-user-row-username-email, wipe-must-include-user-table,
+           db-is-vpc-private-aurora, reach-db-only-via-ecs-exec, mysql8-ssl-mode-required,
+           base64-exec-pattern, classifier-blocks-db-user-runs-via-bang, ecs-exec-left-enabled-DISABLE,
+           chrome-extension-wont-pair-needs-session-restart, screenshot-fallback-works]
+
 # Pruning rules
 pruning:
   max_entries: 500
