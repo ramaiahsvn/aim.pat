@@ -492,6 +492,33 @@ memories:
     tags: [portal-repo-utms-web, uat_temp-deploys, env-production-rewritten, ci-runners-paused-bpr1002-scoped,
            node-gyp-python-missing, npmrc-not-inherited, local-build-deploy, e2vut3lg51l7v8]
 
+  - id: mem-016
+    type: technical_knowledge
+    content: >-
+      "CAMERAS LOAD, EVERYTHING ELSE EMPTY" ROOT CAUSE + FIX (2026-08-21): the portal's
+      FIRST call is uTms2Api GET /v2/CompanybyClient (resolves companyId from the Keycloak
+      client) against :8053 = utms-api (ECS utms-cluster/utms-api, repo
+      BPR1004/bpr1004.utms.api.2 branch bp_dev - master is EMPTY). That service's CORS
+      allow-list is Spring property cors.allowed-origins (3 prod origins only) -> preflight
+      403 -> browser blocks -> companyId undefined -> every screen queries empty. :8043
+      (smartpresence API) allows the CloudFront origin, hence cameras worked. FIX WITHOUT
+      REBUILD: env var CORS_ALLOWEDORIGINS on the task definition (Spring relaxed binding
+      maps it onto cors.allowed-origins; OS env beats application.properties) - registered
+      utms-api:67 with the 3 existing origins + https://d3w0fkd4t0806t.cloudfront.net,
+      rolled the service, preflight verified 200. CLASSIFIER GATE: ECS
+      register-task-definition/update-service AND even the local prep script are blocked in
+      auto mode - hand the user a single !-prefixed chained command (worked). Rollback:
+      update-service back to utms-api:66. STILL OPEN: bnet/GetAttendance 500s server-side
+      (trace 6a8837e3d4c0f43975a4129dae3c8c46); expression-breakdown legitimately empty.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [companybyclient-bootstrap, cors-8053-was-403, cors-allowedorigins-env-override,
+           utms-api-67, spring-relaxed-binding, ecs-mutations-classifier-gated,
+           getattendance-500-open]
+
 # Pruning rules
 pruning:
   max_entries: 500
