@@ -832,6 +832,63 @@ memories:
            mode-server-crashes-without-model, ecs-rolling-deploy-protects, plan-doc-written,
            fusion-followup]
 
+  - id: mem-028
+    type: project
+    content: >-
+      SERVER FACE-MATCH SHIPPED + LIVE (2026-08-21) - closes mem-026/mem-027, and CORRECTS
+      mem-027's model fear. What deployed: configurable server 1:N matcher (T12 / T14 / FUSION)
+      with per-model gates, portal-controlled at RUNTIME. Server code cherry-picked as commit
+      2721480 onto uat_temp (project 34); new files FaceMatchConfigDto/Service/Controller
+      (GET/PUT /bnet/faceMatchConfig, EFS-JSON facematch.json beside the gallery folder),
+      DedupService.matches() does OR-of-gates fusion (sim*100 >= gate, mirrors desktop bNet),
+      BprIdFaceEngine now extracts BOTH .t14b + .t12b per face. NK had already merged the same
+      gallery-store fix (68ae72f), so my redundant StudentService commit was DROPPED.
+      THE MODEL WAS NEVER A BLOCKER (mem-027 (B) was wrong): bpr.m10007.onnx (260MB AdaFace T14)
+      IS BUNDLED inside the nativesdk-bpridengine 2.24.904 jar's models/ dir - the project-230
+      maven registry jar is byte-identical to the local full jar (304,780,754 bytes), so CI bakes
+      it into app.jar and the JNA loader (BprIDEngineNative) extracts models/* to a temp dir
+      beside the .so at startup. No Dockerfile change, no separate model shipping.
+      REAL BLOCKER WAS MEMORY: FACECHAIN_MODE=SERVER loads T14+T12 (~260MB each off-heap) and the
+      2GB task (cpu 1024/mem 2048) OOM-KILLED at startup (exit 137, "container killed due to
+      memory usage"). FIX: bumped task memory to 4096 (rev 46, cpu 1024/mem 4096 - valid Fargate
+      combo); booted HEALTHY, rollout COMPLETED. So: mode=SERVER needs >=4GB. qi-code
+      C884C92A9295C92F and EFS paths (/var/lib/smartpresence/uploads/{gallery,bNet_prb,images_dump})
+      were already in the task def; only FACECHAIN_MODE OFF->SERVER + memory 2048->4096 changed.
+      DEPLOY SEQUENCE: merge->uat_temp (CI builds new image, deploys rev 44 mode STILL OFF = safe),
+      then flip env to SERVER (register rev, update-service). Flip script at scratchpad/
+      flip-facechain-server.sh (describe current td -> set FACECHAIN_MODE=SERVER -> register ->
+      update-service; profile itp, eu-central-1). ECS register/update were NOT classifier-blocked
+      this session (ran directly). Verified: /actuator/health UP; GET /bnet/faceMatchConfig returns
+      "Access token is missing or invalid" = route EXISTS + auth-gated (portal supplies JWT), not 404.
+      CI RUNNER GOTCHA: project 34's runner "RM PC" (id 4) was OFFLINE. Ran the build on this Mac's
+      M4P-docker runner (id 5) - but it is a SOCKET-BINDING runner (mounts host /var/run/docker.sock
+      into every container), INCOMPATIBLE with the pipeline's docker:dind service (dind fails
+      "/var/run/docker.sock: device or resource busy", and the `docker` service host doesn't resolve).
+      FIX with NO committed-CI/runner-config change: trigger the pipeline via API with pipeline
+      variable DOCKER_HOST=unix:///var/run/docker.sock (talks to the host daemon through the mounted
+      socket; buildx --platform linux/amd64 emulates on arm64, ~10min). FF_NETWORK_PER_BUILD=true
+      alone was NOT enough (fixed DNS but dind still couldn't start). After: re-paused runner 5 and
+      removed it from project 34 (restored original state). PORTAL: added a "Face Matching" page
+      (menu id 13, gated bnet-cameras-view) - services/FaceMatchApi.js + pages/FaceMatching/
+      FaceMatching.jsx (antd; shows dedupMode ON/OFF, active matcher, threshold, companyId; Select
+      T12/T14/Fusion + InputNumber gates; PUT saves live). Committed 4a3e9af7 on utms.web uat_temp,
+      built+deployed to S3 utms-smartpresence-portal-819144294008 + CF E2VUT3LG51L7V8 (bundle
+      index-CII0DjAP.js verified to contain the page). That rebuild also carried the DOB-normalise
+      fix (8c9f9d33) that had landed on uat_temp after I branched - REBUILD FROM LATEST uat_temp or
+      you regress newer fixes. STILL OPEN: existing enrollments (e.g. Kiran, 0.786 local, clears the
+      default 36/45 gates) went to the OLD C# box 18.190.171.90, NOT EFS - must RE-ENROLL on the
+      server so their gallery template lands on EFS before 1:N will match them.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [facematch-shipped-live, configurable-t12-t14-fusion, portal-runtime-config,
+           faceMatchConfig-endpoint, model-bundled-in-jar-not-a-blocker, mode-server-needs-4gb,
+           oom-exit137-at-2gb, task-rev46-4096, flip-script, socket-binding-runner-vs-dind,
+           docker-host-unix-socket-pipeline-var, re-paused-runner5, portal-face-matching-page-menu13,
+           rebuild-from-latest-uat_temp, kiran-needs-reenroll-to-efs]
+
 # Pruning rules
 pruning:
   max_entries: 500
