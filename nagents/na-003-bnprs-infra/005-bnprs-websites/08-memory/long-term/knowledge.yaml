@@ -821,6 +821,11 @@ memories:
       soon — update bio when they arrive), Kaushiq keeps Eastnets role + a factual
       GCC/Africa/APAC line from his LinkedIn headline. Guests grid matches team grid
       styling exactly.
+      (commits 73bf346 + e97ea19): grids set to 3 cards/row (user); Dilip = DILIP SHELAR
+      (surname from his LinkedIn slug) with profile link
+      linkedin.com/in/dilip-shelar-1b93b06b on his card (icon, new tab, noopener). Team
+      card template now supports an optional `linkedin` field — add URLs to team/guest
+      entries as user supplies them.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
