@@ -750,6 +750,11 @@ memories:
       reveal (B2B 3DS access control server); Day 3 Fri 11 Sept = guest sessions at the
       booth. Day-of-week verified (9 Sep 2026 = Wednesday). Still pending: booth number,
       Calendly link.
+      Day-0 clarification (commit 09a5791): GFF actually OPENS Tue 8 Sept with a
+      RESTRICTED Day 0 (not open to all exhibitors/visitors) — public dates stay 9-11;
+      a gray footnote under the /gff schedule explains this so GFF's own 8-11 materials
+      don't confuse visitors. Full picture: fest 8-11 (Day 0 restricted), BNPRS programme
+      Days 1-3 = 9-11.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
