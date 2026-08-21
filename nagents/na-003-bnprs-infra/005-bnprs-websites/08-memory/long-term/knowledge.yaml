@@ -755,6 +755,14 @@ memories:
       a gray footnote under the /gff schedule explains this so GFF's own 8-11 materials
       don't confuse visitors. Full picture: fest 8-11 (Day 0 restricted), BNPRS programme
       Days 1-3 = 9-11.
+      TEAM SECTION (commit 8586f07, user pointed at bpr1010.misc.docs/04-sales-finance/
+      bnprs-sales-deck): "Our team at GFF" on /gff between schedule and why-visit —
+      leadership trio from the deck's create_deck.js slide 12: Pattabhi Ramaiah CEO
+      (20+ yrs biometrics/EMV; Aadhaar UIDAI, NPR, QiCard, Indonesia e-KTP), Ramesh Chugh
+      CPO (17+ yrs global card payments), Shanavas K CCO (25+ yrs MENA+India GTM).
+      HEADSHOTS NOT AVAILABLE (deck README: photo_pattabhi/ramesh/shanavas.png never
+      travelled with source) — monogram-initial avatars (PR/RC/SK on navy tiles) used;
+      swap to photos when user supplies them (also unblocks the deck rebuild itself).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
