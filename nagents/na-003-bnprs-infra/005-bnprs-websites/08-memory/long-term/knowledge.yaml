@@ -861,6 +861,11 @@ memories:
       (commit e2db392): CXO label REMOVED and both groups MERGED — one 9-card grid under
       "Our team at GFF" ([...cxos, ...heads].map; the two data arrays remain separate in
       code, render merged). Guests group unchanged.
+      (commit 667c02d): MAQBOOL (Desktop mm.jpeg, passport-style) + KIRAN (Desktop
+      rr.jpeg, casual — head-cropped first) headshots bg-removed and live
+      (team-maqbool.png / team-kiran.png); RAMESH LinkedIn added
+      (ramesh-kumar-chugh-29266597). All 5 LinkedIn links verified live. Photo-pending
+      now only: Murali Krishna, Manisha, Venkata Ganesh.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
