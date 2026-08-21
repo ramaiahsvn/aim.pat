@@ -741,6 +741,34 @@ memories:
            check-crops-per-camera-first, camera-row-detection-settings, restart-worker-after-db-change,
            hikvision-4k-rtsp-lossy]
 
+  - id: mem-025
+    type: technical_knowledge
+    content: >-
+      LOCAL FACE MATCH WORKS, SERVER 1:N DOESN'T RETURN IT (2026-08-21). Enrolled Kiran
+      (student 10, C1001) vs the 7 M4P clip chains: computed AdaFace T14 cosine locally ->
+      chain FCA64C27EFD3 = 0.7861 (clear genuine match; ref genuine median 0.84, gate 0.60),
+      other 6 = ~0.00-0.06 (different people). So the clip DOES contain Kiran and the model
+      identifies him strongly. BUT server verify1toNFace/ActiveFilteredMatchFace returned NO
+      match. Conclusion: chaining+extraction+recognition are sound; the gap is SERVER-side -
+      either the smartpresence API 1:N threshold is set too high, or Kiran's server-enrolled
+      template is weak/missing (note: studentimages sync failed with a 30s HttpClient timeout
+      earlier, so the server-side enrollment may be incomplete). HOW TO GET AN ADAFACE SCORE
+      WITHOUT THE BROKEN eval CLI (bengine-cli needs opencv 4.13, only 5.0 installed): the
+      .t14.yml is BINARY not YAML - magic 'BFE1' + 16-byte header + 512 float32 (L2 norm ~26,
+      normalise then cosine). Extract any face's template through the LIVE pipeline: make a
+      3s H.264 video from the photo (ffmpeg -loop 1 -i frame.jpg -t 3 -pix_fmt yuv420p
+      -c:v libx264), INSERT a temp camera (SCALE_FACTOR=1, SAVE_FLAG=1) pointing at it,
+      restart worker, read the new chain's .t14.yml, then DELETE the temp camera+querydata+
+      chain dir. Compare vectors in python. NEXT STEP for a real match: fix Kiran's server
+      enrollment (re-upload / confirm studentimages synced) and/or lower the server 1:N gate.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [local-match-079-server-no-match, adaface-cosine-scoring, t14-is-binary-BFE1-512f,
+           temp-camera-probe-trick, server-threshold-or-enrollment-gap, studentimages-sync-timeout]
+
 # Pruning rules
 pruning:
   max_entries: 500
