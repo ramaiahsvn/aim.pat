@@ -785,6 +785,15 @@ memories:
       initials tile otherwise. ALSO restored the sales deck's missing assets
       (bpr1010.misc.docs/.../bnprs-sales-deck/assets/photo_pattabhi.png +
       photo_ramesh.png) — deck build still blocked only on photo_shanavas.png.
+      GROUP PHOTO EXTRACTION (commit 2809273): Downloads/2026-08-03_115801_DSC03223.JPG =
+      4 people L-to-R Dilip, Pattabhi, Shanavas, Yasir (user-identified). Cropped all four
+      512px head-and-shoulders (scratchpad head-*.png; Yasir + group-Pattabhi unused so
+      far). SHANAVAS photo now on his gff team card (public/team-shanavas.jpg) AND deck
+      assets/photo_shanavas.png — SALES DECK BUILD FULLY UNBLOCKED (all 3 headshots
+      restored). GUESTS ROW added under the gff team grid: Dilip (photo,
+      public/guest-dilip.jpg) + Kaushik (KA initials) + Kiran (KI initials) — first names
+      only as given; ask for surnames/roles/photos for Kaushik & Kiran if the section
+      should grow. Leadership trio now fully photographed.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
