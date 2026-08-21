@@ -769,6 +769,42 @@ memories:
     tags: [local-match-079-server-no-match, adaface-cosine-scoring, t14-is-binary-BFE1-512f,
            temp-camera-probe-trick, server-threshold-or-enrollment-gap, studentimages-sync-timeout]
 
+  - id: mem-026
+    type: technical_knowledge
+    content: >-
+      WHY SERVER 1:N NEVER MATCHES - root cause is in the smartpresence API deployment/arch
+      (repo BPR1004/bpr1004.utms.api.bnet.smartpresence, 2026-08-21). THREE findings:
+      (1) D-LOOP/DEDUP IS OFF: the deployed ECS service utms-smartpresence-api has env
+      FACECHAIN_MODE=OFF; DedupService is @ConditionalOnProperty(name="facechain.mode",
+      havingValue="SERVER") so the bean is NOT created and its @Scheduled workers (gallery
+      template-gen + probe matching) never run. So verify1toNFace stores the probe and
+      NOTHING matches it. (2) GALLERY/PROBE ARE SPLIT ACROSS HOSTS: enrollment
+      (StudentService.registerStudents) saves the photo bytes to the FaceImageData table AND
+      POSTs it to a HARDCODED host http://18.190.171.90:6000/apis/bnet/StoreGalleryImage
+      (us-east, keyed by studentId as 'mobileNumber'); meanwhile bNet probes go to the ECS
+      gateway (utms-api-uat.itpgateway.com:8043, eu-central) which writes them to LOCAL
+      probe/gallery folders. So the enrolled gallery lives on 18.190.171.90 while the probes
+      land on the ECS box whose dedup is OFF - the matcher that has the gallery never sees
+      the probes. No template is generated at enrollment; templating only happens in the
+      (disabled) gallery-scan worker. (3) SINGLE MATCHER, NOT FUSION: DedupService.processProbe
+      calls faceEngine.matchTemplates(probe, gallery) on ONE template type FaceChainFiles
+      .TEMPLATE_SUFFIX = ".t14b" (AdaFace/M14, 2064B) and matches if similarity*100 >=
+      threshold (deployed FACECHAIN_SIMILARITY_THRESHOLD=16). The .t11/.t12b templates are
+      generated then DELETED for cleanup, never used - so NO T12+T14 fusion (the desktop
+      dedup DOES fuse M12+M14; the server is less robust). CONCLUSION: Kiran (0.79 local)
+      can't match with this config regardless of threshold. FIX (team/deploy decision, NOT
+      done): co-locate probes+gallery+dedup on one host - either FACECHAIN_MODE=SERVER on ECS
+      AND route enrollment gallery to the same box (fix the hardcoded 18.190.171.90 in
+      StudentService), or point bNet verify1toNFace at 18.190.171.90 where dedup+gallery live.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [facechain-mode-off-dedup-disabled, gallery-probe-split-across-hosts,
+           hardcoded-18-190-171-90-storegalleryimage, single-t14b-matcher-not-fusion,
+           conditionalonproperty-server, enrollment-saves-image-not-template, server-arch-broken]
+
 # Pruning rules
 pruning:
   max_entries: 500
