@@ -826,6 +826,8 @@ memories:
       linkedin.com/in/dilip-shelar-1b93b06b on his card (icon, new tab, noopener). Team
       card template now supports an optional `linkedin` field — add URLs to team/guest
       entries as user supplies them.
+      Correction (commit 85c9d8d): Dilip Shelar is CO-FOUNDER of "Bharat Livestock"
+      (two words) — not Founder/BharatLivestock.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
