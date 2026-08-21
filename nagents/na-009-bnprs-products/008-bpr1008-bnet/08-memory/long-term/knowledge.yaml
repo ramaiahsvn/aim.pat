@@ -993,6 +993,55 @@ memories:
            wrapper-was-stale-pinned-version, exec-local-bin-claude, session-restart-attaches-bridge,
            pgrep-shows-bound-host, bridge-socket-tmp-dir]
 
+  - id: mem-031
+    type: project
+    content: >-
+      *** RESUME CHECKPOINT (2026-08-22 overnight) *** — supersedes mem-029's open items.
+      GFF ENROLMENT COMPLETE: all 5 members enrolled+verified (12 Pattabhi C1001, 15 Ramesh C1002,
+      16 Shanavas C1003, 17 Dilip C1004, 18 Kaushiq C1005; demo emails firstname.lastname@bnprs.ai,
+      phones 9000024335-38, DOB 1980-01-01, dept 1, programme 1, company 1). ROOT CAUSE of the
+      member-2 "Duplicate entry" block: catch-all message hiding "No courses found for department"
+      — dept 1 is the ONLY department with active courses (4, all dept 1, verified via
+      bnet/Courses). Enrolment done DIRECTLY via API: POST /bnet/RegisterStudents multipart with a
+      Keycloak client_credentials token — kc-token.sh in scratchpad mints it from v1 App.config
+      creds; NO portal/browser needed. FACULTY: staff 5=C Krishna Mohan, staff 6=Ajay Kumar
+      (RegisterStaff JSON), then RegisterFaculty {name,staffId} 2/2 OK — but INVISIBLE to
+      FetchFaculty until COMPANY_ID backfilled (API entity bug below). COMPANIES: keep 1=IIM +
+      19=GBS (created, reg GBS0001); samples 2,13-18 pending STATUS_ID=2 via the DB script.
+      PENDING USER SCRIPT (one shot, ! prefix): scratchpad/fix-staff-company.sh = staff 5/6
+      COMPANY_ID=1 + deactivate sample companies + rm stale gallery 11_00* files.
+      SERVER 1:N "BprID_Match: argument" ROOT-CAUSED + FIXED IN CODE (NOT deployed): a
+      TEMPLATE-configured server wrote an EMPTY probe file for image-only verify1toNFace requests
+      (Base64.decode("")), so every match errored. Fix = per-request probe mode + 1:N now honours
+      the runtime FaceMatchConfig (T12/T14/FUSION gates) instead of fixed M14+threshold16.
+      Also fixed: Staff + FaceImageData COMPANY_ID mapped insertable=false on EVERY mapping =
+      silently dropped on insert (why FetchFaculty was empty). NEW read-only endpoints
+      BNetInsightsController: QueryDataRecords, IdentificationAudits (names resolved),
+      FaceMatchStats (counters+config+gallery census), PersonImage (1=student/2=faculty/3=staff;
+      faculty photos live on their STAFF row, type 3 + staffId).
+      COMMITS (all local uat_temp + pushed to backup branches; uat_temp NOT pushed because CI
+      auto-deploys): API repo 3d7a20e (branch cr-insights-portal); portal repo 5e2b5ad8+4b11cf68+
+      36973c94 (branch cr-portal-insights) = Face Matching page rebuilt in Wgate design, NEW
+      Operations page (menu 14: funnel+charts+recognised strip) + Query Data page (menu 15),
+      enrolled photos across Enrollments rows+edit drawers (PersonAvatar, initials fallback),
+      global CSS finish pass. Portal build verified: index-B3Hnwtfy.js, utms-api-uat, no old ALBs.
+      MORNING RUNBOOK (full commands): 07-axon-terminals/deliverables/
+      2026-08-22-gff-overnight-runbook.md. CRITICAL deploy trap: CI deploy re-registers its OWN
+      task-def — after rollout, RE-APPLY FACECHAIN_MODE=SERVER + memory 4096 or matching dies
+      (OOM at 2GB). A Pattabhi image-probe (FC GFFPROBE01) is stored server-side for the
+      post-deploy end-to-end test. ECS exec still ENABLED (disable after). Keycloak subdomain
+      origin (mem-020 step 3) + token/secret rotations still owed.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-overnight"
+    tags: [resume-checkpoint, gff-all-5-enrolled, dept1-only-active-courses, api-direct-enrolment,
+           kc-token-script, faculty-needs-company-backfill, companies-iim-gbs,
+           empty-probe-root-cause, per-request-probe-mode, fusion-in-1toN, companyid-insertable-bug,
+           insights-endpoints, personimage-types, portal-overnight-commits, backup-branches,
+           ci-redeploy-reverts-env-4gb-trap, runbook-deliverable, ecs-exec-still-on]
+
 # Pruning rules
 pruning:
   max_entries: 500
