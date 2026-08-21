@@ -885,6 +885,10 @@ memories:
       not used, not asked.)
       (commit 0faea3e): pp.jpeg was KIRAN's new headshot, not Pattabhi — replaced
       public/team-kiran.png (same filename, CDN invalidated). Photo-pending: Manisha only.
+      (commits 24dec0e, 6f8272a): Ramesh bio -> 19+ years. COPY LAW: user rejected
+      em-dashes ("big hyphens") - replaced all 51 site-wide (.astro + i18n.js) with
+      plain hyphens; never reintroduce em-dashes in bnprs.in copy. En-dashes in date
+      ranges (9-11 Sept) kept.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
