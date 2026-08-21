@@ -535,7 +535,11 @@ products:
             prod:    { host: "utms-bnet-spresence-api.bnprs.in",         status: planned }
           portal:
             sandbox: { host: "utms-bnet-spresence-portal.sandbox.bnprs.in", status: planned }
-            uat:     { host: "utms-bnet-spresence-portal.uat.bnprs.in",     status: planned }
+            uat:     { host: "utms-bnet-spresence-portal.uat.bnprs.in",     status: live-tls-pending-cors,
+                       target: "CloudFront E2VUT3LG51L7V8 (d3w0fkd4t0806t.cloudfront.net, itp acct)",
+                       cert: "*.uat.bnprs.in ACM us-east-1 87a03a3f-ee16-45a1-aeb0-4251179909d7 (FIRST *.uat.bnprs.in cert - clears the mem-010 gate)",
+                       verified_at: "2026-08-21",
+                       note: "page serves HTTPS 200 with valid cert. NOT yet functional: new origin still 403s on :8043 + :8053 CORS and is not a Keycloak redirect/web-origin - see follow-ups" }
             prod:    { host: "utms-bnet-spresence-portal.bnprs.in",         status: planned }
 
       # Same shape as bnet-smartpresence above: bnet- is part of the sub-project key.
