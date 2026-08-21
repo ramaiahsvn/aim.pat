@@ -724,6 +724,17 @@ unmapped_endpoints:
     status: no-name-assigned
 
 # ---- ACTIVE FAULTS -----------------------------------------------------
+# ── itpgateway.com additions ──────────────────────────────────────────────────
+# utms-api-uat.itpgateway.com CREATED 2026-08-21 (user approval, bNet sync outage):
+#   A-ALIAS -> utms-shared-alb-112281594.eu-central-1.elb.amazonaws.com (zone Z065126021WLLO6U774F7,
+#   itp acct). WHY: the ALB's :8043 listener went HTTPS-only serving ONLY *.itpgateway.com certs,
+#   and no itpgateway.com name pointed at utms-shared-alb — every client calling the raw ELB name
+#   over http got "400 plain HTTP request sent to HTTPS port", and https on the raw name can never
+#   validate. Follows live precedent (accounts-uat, kiosk-api-uat, smartpresence-api-uat). Verified
+#   2026-08-21: resolves, strict-TLS 200 on /bnet/Companies. Consumers: bNet v2 sync + verify
+#   (BNET_API_BASE). NOTE this is the LEGACY convention — the ratified target remains
+#   utms-api.uat.bnprs.in once the *.uat.bnprs.in cert gate is cleared.
+
 faults:
   - class: "cert-does-not-cover-hierarchical-names"
     hosts: ["aandhipe-mobile-api.sandbox.bnprs.in", "aandhipe-mobile-ai.sandbox.bnprs.in",

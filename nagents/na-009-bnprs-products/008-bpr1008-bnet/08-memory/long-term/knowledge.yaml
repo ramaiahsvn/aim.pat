@@ -415,6 +415,34 @@ memories:
     tags: [catalyst-titlebar, transparent-titlebar-over-dark-flyout, window-title-empty-fallback,
            scenewillconnect-too-early, windowhandler-mapper-titlevisibility-hidden]
 
+  - id: mem-013
+    type: technical_knowledge
+    content: >-
+      FULL LOCAL WIPE + SERVER RESYNC (2026-08-21, commit 36c8b7c) exposed TWO masked breaks.
+      (1) :8043 ON utms-shared-alb IS NOW HTTPS-ONLY - every sync call got "400 plain HTTP
+      request sent to HTTPS port". No itpgateway.com name pointed at that ALB, so
+      utms-api-uat.itpgateway.com was CREATED (Route53 A-alias, user-approved) and
+      BNET_API_BASE is now https://utms-api-uat.itpgateway.com:8043/ - set in run-macos.sh
+      AND in ~/BPR/Datasets/bnet-worker/bnet-worker-daemon.sh (the daemon does NOT inherit
+      run-macos.sh env; it has its own hardcoded exports - update BOTH or the worker keeps
+      the old base). (2) GenericUpsert NEVER WORKED for tables with NOT NULL no-default
+      snake_case columns (company, student, camera...): Java API sends camelCase, columns
+      are SCREAMING_SNAKE, "legalname"!="legal_name", and `catch (MySqlException) {}` ate
+      every failure while sync logged "15 tables ok". Fixed: columns also indexed by
+      underscore-squashed name; all-rows-failed now throws so SyncWorker warns. Masked
+      pre-wipe because tables already held old data. WIPE PROCEDURE that works: clean-data.sh
+      --yes (now unloads daemon first) + truncate the 15 synced tables + user, studentimages,
+      querydata_backup, worker_status (FK checks off). devadmin is NOT on the server - after
+      a user-table wipe, log in with a real server account. Local-only demo cameras
+      (Macbook/SmokeTest clip cameras) are gone after resync: server is truth (camera=2).
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [8043-https-only, utms-api-uat-created, daemon-has-own-env, generic-upsert-case-trap,
+           silent-catch-masked-by-old-data, wipe-procedure, devadmin-gone, server-is-truth]
+
 # Pruning rules
 pruning:
   max_entries: 500
