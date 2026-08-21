@@ -393,6 +393,28 @@ memories:
            launchctl-list-label, plus-jakarta-sans, run-macos-does-not-build,
            resizetizer-stale-fonts]
 
+  - id: mem-012
+    type: technical_knowledge
+    content: >-
+      "TITLE IN TOP IS BLACK AND CROPPING" (2026-08-21, fixed cb06f83): the mac Catalyst
+      WINDOW-TITLEBAR string, not a page label. The titlebar is transparent and the locked
+      flyout (Brand900 dark green) runs underneath, so the system-drawn black "Biometric
+      Network" was unreadable and clipped by the traffic lights - only visible after login
+      (login page hides the flyout, white bg). THREE-STEP FIX LADDER, first two fail:
+      (1) Window.Title = "" -> Catalyst falls back to the app name; (2) SceneWillConnect
+      lifecycle -> ws.Titlebar is still NULL that early; (3) WORKS:
+      WindowHandler.Mapper.AppendToMapping, handler.PlatformView.WindowScene.Titlebar
+      .TitleVisibility = Hidden (runs after the platform window exists). Verified by
+      screenshot: traffic lights only, no string. Page titles (PageTitle style, PJS
+      SemiBold 31, AppThemeBinding) were never the problem.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [catalyst-titlebar, transparent-titlebar-over-dark-flyout, window-title-empty-fallback,
+           scenewillconnect-too-early, windowhandler-mapper-titlevisibility-hidden]
+
 # Pruning rules
 pruning:
   max_entries: 500
