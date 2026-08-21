@@ -741,6 +741,15 @@ memories:
       Footer polish (commit 787cea1): all four footer column headings text-base->text-sm,
       tracking-wider->tracking-wide, + whitespace-nowrap — "Payment Processing" was
       wrapping to two lines in its narrow lg:col-span-2 track.
+      GFF DATES + SCHEDULE (commit 2d12bd2, user voice note): dates are 9-11 SEPTEMBER
+      2026 (the brief's "9-11" was correct; my earlier 8-10 standardization was the wrong
+      pick) — banner, /gff hero facts, meta title/description all updated, zero 8-10 refs
+      left. The placeholder "What to expect" booth cards were REPLACED with the real
+      three-day schedule: Day 1 Wed 9 Sept = AandhiPe LAUNCH (user said "DP", confirmed =
+      AandhiPe) + team on the floor/sessions/partner stalls; Day 2 Thu 10 Sept = bRUID ACS
+      reveal (B2B 3DS access control server); Day 3 Fri 11 Sept = guest sessions at the
+      booth. Day-of-week verified (9 Sep 2026 = Wednesday). Still pending: booth number,
+      Calendly link.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
