@@ -847,6 +847,12 @@ memories:
       (Pattabhi/Ramesh/Shanavas, `cxos` array), "Heads of Departments" (Murali/Ranjith/
       Kiran/Maqbool/Manisha/Venkata Ganesh, `heads` array, duplicated card template), and
       "Guests" (Dilip/Kaushiq, heading renamed from "Joining us as guests"). All 3-per-row.
+      (commit bc137e8): LinkedIn links live for Pattabhi (linkedin.com/in/bnprs), Shanavas
+      (shanavas-kanhikoth), Kaushiq (kaushiq-kodithodika-3747113) + Dilip from before.
+      ROLE CORRECTIONS: Kiran Kumar = "Sales Team" (was Head of Business), Maqbool Sultan
+      = "Marketing Team" (was Head of Sales) — note they now sit under the "Heads of
+      Departments" heading as team members, flagged to user (may want group renamed or
+      members moved).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
