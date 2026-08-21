@@ -889,6 +889,12 @@ memories:
       em-dashes ("big hyphens") - replaced all 51 site-wide (.astro + i18n.js) with
       plain hyphens; never reintroduce em-dashes in bnprs.in copy. En-dashes in date
       ranges (9-11 Sept) kept.
+      GFF page iteration (commits ..9e54ccb): banner comma not hyphen; Day-3 highlight =
+      Instant Card Issuance Solution Demo (was Guest sessions); schedule intro one-liner +
+      red HIGHLIGHT eyebrow per card; Day-0 note one line; team photos link to LinkedIn
+      (5 profiles); Kaushiq Kodithodika (no KK), Shanavas Kanhikoth (full surname);
+      "Get in touch" CTA removed (Book a meeting only); BOOTH CONFIRMED: JZ6, 3rd Floor,
+      Jasmin (user's spelling - Jio hall may be "Jasmine"). Ramesh 19+ yrs.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
