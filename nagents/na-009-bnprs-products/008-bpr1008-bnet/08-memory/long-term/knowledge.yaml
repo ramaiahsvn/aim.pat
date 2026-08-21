@@ -619,8 +619,14 @@ memories:
       (3) KEYCLOAK utms-bnet client (realm UTMS, accounts-uat.itpgateway.com) - add the
       origin to Valid Redirect URIs + Web Origins. NO keycloak admin creds on pat-m4p -
       user must do #3. ECS mutations are classifier-blocked - hand user the register/update
-      commands. Until all 3 done, use the CloudFront URL d3w0fkd4t0806t.cloudfront.net which
-      is already fully wired. CloudFront alias hostedZoneId for A-alias target = Z2FDTNDATAQYW2.
+      commands. CloudFront alias hostedZoneId for A-alias target = Z2FDTNDATAQYW2.
+      UPDATE 2026-08-21: CORS steps 1+2 DONE - utms-api:68 (CORS_ALLOWEDORIGINS) and
+      utms-smartpresence-api:43 (ALLOWED_ORIGINS) both deployed, both :8053 and :8043 return
+      200 for the subdomain origin (camera list served by :8043 now loads). GOTCHA: the
+      user's chained "register && update-service" only ran register for smartpresence - the
+      service stayed on rev 42 until a standalone update-service --task-definition
+      utms-smartpresence-api:43 was run. ONLY KEYCLOAK (step 3) remains for full login on the
+      subdomain; until then the CloudFront URL is the fully-wired fallback.
     created_at: "2026-08-21"
     last_accessed: "2026-08-21"
     access_count: 1
