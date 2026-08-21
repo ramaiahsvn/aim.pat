@@ -961,6 +961,38 @@ memories:
            base64-exec-pattern, classifier-blocks-db-user-runs-via-bang, ecs-exec-left-enabled-DISABLE,
            chrome-extension-wont-pair-needs-session-restart, screenshot-fallback-works]
 
+  - id: mem-030
+    type: technical_knowledge
+    content: >-
+      CHROME EXTENSION PAIRING FIXED (2026-08-22) — root cause of mem-029's "will NOT pair".
+      The Claude extension (fcoeoabgfenejglbffodgkkbkcdhcgfn v1.0.85) service worker tries native
+      hosts IN ORDER: com.anthropic.claude_browser_extension (Claude DESKTOP app) FIRST, then
+      com.anthropic.claude_code_browser_extension (Claude Code) — and binds to the FIRST that
+      answers its ping. With the desktop app's manifest present, the extension always bound to the
+      desktop host, whose bridge does NOT serve Claude Code sessions — so list_connected_browsers
+      stayed [] regardless of Chrome/session restarts. TWO FIXES APPLIED: (1) renamed
+      ~/Library/Application Support/Google/Chrome/NativeMessagingHosts/
+      com.anthropic.claude_browser_extension.json -> .json.disabled (RESTORE by renaming back —
+      this disables the Claude desktop app's Chrome integration while disabled); (2) the Claude
+      Code wrapper ~/.claude/chrome/chrome-native-host pointed at a STALE pinned CLI version
+      (versions/2.1.237 while running 2.1.239) — rewrote it to exec ~/.local/bin/claude
+      --chrome-native-host (the symlink always tracks the installed CLI, won't go stale again).
+      After a Chrome restart the extension spawns the Claude Code host (verified: pgrep shows
+      `claude --chrome-native-host`, socket /tmp/claude-mcp-browser-bridge-bnprs/<pid>.sock alive).
+      REMAINING STEP: the session's MCP bridge attaches ONLY at Claude Code session startup, so a
+      session restart is required after the host chain is fixed. DIAGNOSTIC RECIPE: pgrep -fl
+      chrome-native-host tells you WHICH host the extension bound to (Claude.app/Contents/Helpers/
+      = desktop = wrong for Code); ls /tmp/claude-mcp-browser-bridge-bnprs/ shows live bridge
+      sockets (name = host pid; stale files from dead pids possible).
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-gff-resume"
+    tags: [chrome-pairing-fixed, extension-prefers-desktop-host, desktop-manifest-disabled-restore-later,
+           wrapper-was-stale-pinned-version, exec-local-bin-claude, session-restart-attaches-bridge,
+           pgrep-shows-bound-host, bridge-socket-tmp-dir]
+
 # Pruning rules
 pruning:
   max_entries: 500
