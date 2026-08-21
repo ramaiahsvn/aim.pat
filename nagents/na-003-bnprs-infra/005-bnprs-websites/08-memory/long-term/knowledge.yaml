@@ -858,6 +858,9 @@ memories:
       Ganesh UX-UI) and the group heading renamed "Heads of Departments" -> "Team".
       Final /gff people structure: CXOs (3, photographed, 2 with LinkedIn) / Team (6, only
       Ranjith photographed) / Guests (2, photographed + LinkedIn).
+      (commit e2db392): CXO label REMOVED and both groups MERGED — one 9-card grid under
+      "Our team at GFF" ([...cxos, ...heads].map; the two data arrays remain separate in
+      code, render merged). Guests group unchanged.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
