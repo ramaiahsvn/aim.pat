@@ -775,6 +775,16 @@ memories:
       copy deliberately KEPT (different product, user scoped to AandhiPe). DO NOT re-add
       UPI to AandhiPe copy until the user says it is revealed — likely at/after the GFF
       Day-1 launch (9 Sept), when this may flip back deliberately.
+      TEAM PHOTOS FOUND + WIRED (commit 125f244, user: "if photos exist please include"):
+      Pattabhi = Desktop/bk/Photo-Pattabhi.jpg (professional headshot, square-cropped);
+      Ramesh = cropped from Desktop/bk/"Ramesh Kumar.png" — a BNPRS-PUBLISHED CPO welcome
+      graphic (confirms identity: full name Ramesh Kumar Chugh per HR record E1040; used
+      the published graphic, NOT HR personal-records files, deliberately). Crop iterated
+      visually (first attempt caught announcement text). Shanavas: NO photo found anywhere
+      — keeps monogram avatar; ask user for one. gff team cards render photo when present,
+      initials tile otherwise. ALSO restored the sales deck's missing assets
+      (bpr1010.misc.docs/.../bnprs-sales-deck/assets/photo_pattabhi.png +
+      photo_ramesh.png) — deck build still blocked only on photo_shanavas.png.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
