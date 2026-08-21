@@ -662,6 +662,29 @@ memories:
     tags: [stale-bundle-old-elb, verify-js-api-base-before-deploy, ca749ea5-fix-was-reverted,
            portal-sidebar-logo, bnprs-logo-png-app-jsx, portal-deploy-recipe]
 
+  - id: mem-022
+    type: technical_knowledge
+    content: >-
+      PORTAL "CAN'T SELECT COURSES" = antd Select-in-Modal focus-trap bug (2026-08-21, fixed
+      068a9c62). Symptom: options render, click does NOT select, NO js error (only a benign
+      "label for attribute" a11y warning). Cause: the course/faculty forms render inside a
+      PopUp (antd Modal), and raw <Select> dropdowns default to document.body - OUTSIDE the
+      modal's focus-trap, which swallows the click. The shared @bnprs/ui FormSelect already
+      sets getPopupContainer per-control; the app's raw Selects (CourseAllotmentForm 4,
+      CourseForm 6, etc.) did not. FIX: wrap the bnet app in <ConfigProvider
+      getPopupContainer={(n)=>n?.parentNode ?? document.body}> in main.jsx - renders every
+      popup inside its trigger's parent (inside the modal), fixing all modal dropdowns at
+      once. Scoped to bnet (per-app main.jsx). NOT caused by the navy recolor (recolor never
+      touched antd theming/logic). DIAGNOSTIC: options-visible-but-click-does-nothing +
+      no-js-error + inside-a-modal = getPopupContainer. Deploy verified index-DlAFslZ8.js.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [antd-select-in-modal, focus-trap-swallows-click, getpopupcontainer-configprovider,
+           no-js-error-only-a11y-warning, not-the-recolor, main-jsx-per-app]
+
 # Pruning rules
 pruning:
   max_entries: 500
