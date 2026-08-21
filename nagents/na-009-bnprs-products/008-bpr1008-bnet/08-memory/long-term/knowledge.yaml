@@ -635,6 +635,33 @@ memories:
     tags: [bnet-uat-portal-subdomain, first-uat-wildcard-cert, cloudfront-alias-cross-account,
            cors-3-places, keycloak-needs-admin, ecs-classifier-blocked, use-cloudfront-url-until-wired]
 
+  - id: mem-021
+    type: technical_knowledge
+    content: >-
+      PORTAL CAMERA-LIST STILL BROKE AFTER CORS FIX (2026-08-21) - root cause was a STALE
+      BUNDLE, not CORS. The navy-theme redeploy had rebuilt from a state that predated the
+      utms-api-uat API-base fix (ca749ea5), so the live JS (index-DfJUYvpk.js) called the raw
+      utms-shared-alb ELB (:8043/:8053, TLS fails) and the DELETED utms-smartpresence-api-alb
+      (resolves to nothing). CORS was green but the browser could not reach the hosts. LESSON:
+      after ANY portal rebuild, verify the built JS contains utms-api-uat.itpgateway.com and
+      ZERO utms-shared-alb/smartpresence-api-alb refs BEFORE deploying - do not check only
+      colors. Fixed by rebuilding from current uat_temp (has both navy + correct env) and
+      re-verifying. Also updated the sidebar LOGO: bnet App.jsx imports
+      ./assets/BNPRS_Logo.png and passes logo= to RootLayout/Sidebar (@bnprs/ui renders it
+      h-10 on the navy sidebar). Replaced with the BNPRS Payments white-lockup (navy PB
+      monogram + white text, made for dark bg; resized to 700px wide). Portal deploy recipe:
+      worktree from origin/uat_temp -> cp .npmrc into apps/bnet -> NPM_TOKEN=$GITLAB_PAT
+      npm install --legacy-peer-deps -> rm -rf node_modules/.vite dist -> npm run build ->
+      VERIFY js api-base + css colors -> s3 sync --delete to utms-smartpresence-portal-
+      819144294008 -> CF invalidate E2VUT3LG51L7V8 -> commit BNPRS_Logo.png to uat_temp.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [stale-bundle-old-elb, verify-js-api-base-before-deploy, ca749ea5-fix-was-reverted,
+           portal-sidebar-logo, bnprs-logo-png-app-jsx, portal-deploy-recipe]
+
 # Pruning rules
 pruning:
   max_entries: 500
