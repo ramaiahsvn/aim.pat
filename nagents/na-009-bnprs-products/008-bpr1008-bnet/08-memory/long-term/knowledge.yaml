@@ -712,6 +712,35 @@ memories:
     tags: [dob-slash-vs-dash-400, localdate-yyyy-mm-dd, courses-list-is-readonly-by-design,
            business-errors-are-http200-parse-errors-are-400, get-screenshot-early, photo-required]
 
+  - id: mem-024
+    type: technical_knowledge
+    content: >-
+      "NO FACE CHAIN FOR CAMERA X" - TWO per-camera settings gate it, both in the camera
+      table (2026-08-21). Camera 3 M4P_FileStreaming (local file cam, STREAM_URL =
+      Datasets/activity-video/VideoClips/2026-08-03_115835_C5012.MP4, a 6.7s clip of 7
+      people facing camera) produced 0 chains because: (1) SAVE_FLAG=0 - detector runs but
+      writes NO crops to bnet_oc_raw, so dedup has nothing to chain (set SAVE_FLAG=1); (2)
+      SCALE_FACTOR=2 - processes 1080p at 960x540, shrinking the 7 mid-distance faces to
+      ~60px, under the det>=82 gate, so 0 crops even with save on. Set SCALE_FACTOR=1 (full
+      res) -> 24 crops -> 7 chains (one per person). DIAGNOSTIC ORDER: check crops per camera
+      first (find bnet_oc_raw/<CAM>_* -type f) - 0 crops = detection/save problem (SAVE_FLAG,
+      SCALE_FACTOR, or faces too small/distant for det>=82); crops-but-"below quality" =
+      T12/T15 gate. These are camera-row columns (SAVE_FLAG, SCALE_FACTOR, SAVE_INTERVAL,
+      CONFIDENCE_THRESHOLD); a local-only camera (not in the 2-camera server set) keeps them
+      across sync since ComposeCameraStreamUrls only fills empty STREAM_URL and the upsert
+      never deletes non-server rows. Restart the worker (launchctl unload/load) after a DB
+      change so the stream re-reads config. Also: the two RTSP site cams stream, but
+      Hikvision 4K over public IP is lossy (RTP 'bad cseq', 'stream ended' loop); EZVIZ
+      steadier but wrote 0 crops (faces too far).
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [no-chain-save-flag-0, scale-factor-2-shrinks-faces, set-scale-1-full-res,
+           check-crops-per-camera-first, camera-row-detection-settings, restart-worker-after-db-change,
+           hikvision-4k-rtsp-lossy]
+
 # Pruning rules
 pruning:
   max_entries: 500
