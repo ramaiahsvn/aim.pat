@@ -763,6 +763,18 @@ memories:
       HEADSHOTS NOT AVAILABLE (deck README: photo_pattabhi/ramesh/shanavas.png never
       travelled with source) — monogram-initial avatars (PR/RC/SK on navy tiles) used;
       swap to photos when user supplies them (also unblocks the deck rebuild itself).
+      UPI CLAIMS SCRUBBED FOR AANDHIPE (commit c27a322, user: "AandhiPe with UPI is not
+      yet revealed, but ONDC and Razorpay integration is completed"): every AandhiPe-scoped
+      UPI mention removed/replaced with the completed ONDC + Razorpay integrations —
+      homepage card tagline (UPI SuperApp -> Consumer SuperApp) + desc, hero bullet f2
+      (now "EMVCo 3DS 2.3 ready · ONDC & Razorpay integrated"), Layout + homepage meta
+      descriptions, GFF Day-1 copy, aandhipe page (stat tile, feature rows, Zero Lock-in,
+      UPI/NPCI compliance tile -> "ONDC & Razorpay / Integrations complete"), ICBA tech
+      pill (UPI Compatible -> ONDC Compatible), i18n hero.f2 + product.aandhipe.desc in
+      all 4 locales. Verified live: ZERO "UPI" on /products/aandhipe. wGate's gateway UPI
+      copy deliberately KEPT (different product, user scoped to AandhiPe). DO NOT re-add
+      UPI to AandhiPe copy until the user says it is revealed — likely at/after the GFF
+      Day-1 launch (9 Sept), when this may flip back deliberately.
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
