@@ -685,6 +685,33 @@ memories:
     tags: [antd-select-in-modal, focus-trap-swallows-click, getpopupcontainer-configprovider,
            no-js-error-only-a11y-warning, not-the-recolor, main-jsx-per-app]
 
+  - id: mem-023
+    type: technical_knowledge
+    content: >-
+      PORTAL "CAN'T SELECT COURSE / ENROLLMENT 400" - two SEPARATE things, resolved via a
+      user screenshot after the Chrome extension refused to pair (2026-08-21, fix 8c9f9d33).
+      (1) "Courses in Selected Department" on the Create-Student form is a READ-ONLY <ul><li>
+      list by design (no checkbox/onClick) - it only shows the dept's courses; courses are
+      NOT part of the student payload. So "can't select course" there is expected, not a bug.
+      Programme/Specialisation Selects work fine, proving it was never a global dropdown
+      issue - my earlier focus-trap/getPopupContainer guesses were misdirected. (2) The 400
+      on submit = DATE FORMAT: the dob field is a plain <Input>, the user typed 1981/07/21
+      (slashes), the server parses dob as java.time.LocalDate and only accepts YYYY-MM-DD ->
+      "Failed to convert String to LocalDate" 400. Confirmed by probing RegisterStudents:
+      slashes=400, dashes=200. Note the API returns BUSINESS errors (photo required,
+      duplicate) as HTTP-200 {code:201,message}, but a type-parse failure is a real HTTP 400.
+      FIX: normalise data.dob = String(data.dob).replace(/\//g,'-') in StudentForm and
+      StaffForm onSubmit. Also: student creation REQUIRES a photo. LESSON: get a screenshot
+      early instead of blind-deploying; a plain-Input date with no mask is a 400 waiting to
+      happen. Deployed index-HI6tcLBc.js.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [dob-slash-vs-dash-400, localdate-yyyy-mm-dd, courses-list-is-readonly-by-design,
+           business-errors-are-http200-parse-errors-are-400, get-screenshot-early, photo-required]
+
 # Pruning rules
 pruning:
   max_entries: 500
