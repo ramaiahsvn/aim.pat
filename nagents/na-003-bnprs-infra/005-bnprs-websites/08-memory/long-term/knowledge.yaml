@@ -828,6 +828,10 @@ memories:
       entries as user supplies them.
       Correction (commit 85c9d8d): Dilip Shelar is CO-FOUNDER of "Bharat Livestock"
       (two words) — not Founder/BharatLivestock.
+      RANJITH KUMAR added (commit f90b05a): Head of Research & Development, team card
+      between Shanavas and Kiran, bg-removed headshot (Desktop screenshot 8.14.16 ->
+      public/team-ranjith.png). Team is now 5: Pattabhi CEO, Ramesh CPO, Shanavas CCO,
+      Ranjith Head of R&D, Kiran (role/photo pending).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
