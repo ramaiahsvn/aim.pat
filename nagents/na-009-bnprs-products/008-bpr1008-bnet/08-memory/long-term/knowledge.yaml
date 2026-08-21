@@ -443,6 +443,27 @@ memories:
     tags: [8043-https-only, utms-api-uat-created, daemon-has-own-env, generic-upsert-case-trap,
            silent-catch-masked-by-old-data, wipe-procedure, devadmin-gone, server-is-truth]
 
+  - id: mem-014
+    type: project_context
+    content: >-
+      UTMS-BNET PORTAL (https://d3w0fkd4t0806t.cloudfront.net, "uTMS - bNet" SPA) HAS THE
+      SAME TLS BREAK AS SYNC (found 2026-08-21): its bundled JS calls the RAW ELB name
+      https://utms-shared-alb-112281594.eu-central-1.elb.amazonaws.com on :8043 AND :8053 -
+      browser rejects the *.itpgateway.com cert, so login succeeds (Keycloak at
+      accounts-uat.itpgateway.com is fine) but EVERY data call fails and pages show empty
+      ("no cameras found"). Verified: strict TLS 000 on raw name both ports; 401 (correct)
+      via utms-api-uat.itpgateway.com both ports. FIX handed to team: rebuild frontend with
+      API bases https://utms-api-uat.itpgateway.com:8043 and :8053, redeploy to CloudFront.
+      DIAGNOSTIC PATTERN: "logs in but every list is empty" on this estate = auth host has
+      valid cert, data host does not.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [portal-raw-elb-tls, logs-in-but-empty-lists, 8043-8053, cloudfront-d3w0fkd4t0806t,
+           fix-utms-api-uat]
+
 # Pruning rules
 pruning:
   max_entries: 500
