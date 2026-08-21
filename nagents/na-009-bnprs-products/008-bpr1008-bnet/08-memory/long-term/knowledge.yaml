@@ -464,6 +464,34 @@ memories:
     tags: [portal-raw-elb-tls, logs-in-but-empty-lists, 8043-8053, cloudfront-d3w0fkd4t0806t,
            fix-utms-api-uat]
 
+  - id: mem-015
+    type: project_context
+    content: >-
+      PORTAL FIXED FROM OUR SIDE (2026-08-21): the uTMS-bNet portal frontend is
+      BPR1004/bpr1004.utms.web, monorepo bpr.utmsportal/apps/bnet (Vite), DEPLOYED BRANCH
+      uat_temp -> CI job build/deploy-smartpresence -> S3 utms-smartpresence-portal-819144294008
+      + CloudFront E2VUT3LG51L7V8 (d3w0fkd4t0806t.cloudfront.net). Its .env.production mixed
+      the DELETED smartpresence ALB (resolves to nothing) and the raw shared-ALB name (TLS
+      fail). Rewrote ALL VITE_* to https://utms-api-uat.itpgateway.com (:8043 = smartpresence
+      API default TG incl. /apis/iportal /ecr /becsapi /v2 and /bnet; :8053 = uTMS v2 API) -
+      commit ca749ea5 on uat_temp. CI IS BROKEN twice over (do not trust it): (a) only 2
+      runners online, BOTH paused, and both scoped to BPR1002 (assigned runner 5 M4P-docker
+      to the project, restored to paused after); local gitlab-runner had also stopped polling
+      - brew services restart gitlab-runner; (b) build image node:20-alpine lacks python for
+      node-gyp/bufferutil -> build-smartpresence FAILS. Deployed by LOCAL build instead:
+      npm install needs NPM_TOKEN=$GITLAB_PAT AND the repo-root .npmrc copied into apps/bnet
+      (npm does not walk up to the repo root; @bnprs/ui comes from GitLab Packages project 32
+      = utms.web itself). Also package-lock is out of sync with package.json (npm ci fails;
+      use npm install). Then s3 sync dist/ + invalidate. Verified live: bundle
+      index-D41cT4l6.js carries utms-api-uat, zero old-ALB refs.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [portal-repo-utms-web, uat_temp-deploys, env-production-rewritten, ci-runners-paused-bpr1002-scoped,
+           node-gyp-python-missing, npmrc-not-inherited, local-build-deploy, e2vut3lg51l7v8]
+
 # Pruning rules
 pruning:
   max_entries: 500
