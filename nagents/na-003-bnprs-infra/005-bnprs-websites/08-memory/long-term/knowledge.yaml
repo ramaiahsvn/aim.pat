@@ -832,6 +832,12 @@ memories:
       between Shanavas and Kiran, bg-removed headshot (Desktop screenshot 8.14.16 ->
       public/team-ranjith.png). Team is now 5: Pattabhi CEO, Ramesh CPO, Shanavas CCO,
       Ranjith Head of R&D, Kiran (role/photo pending).
+      (commit 7200204): team expanded to 7 in user-specified order — 1 Pattabhi CEO,
+      2 Ramesh CPO, 3 Shanavas CCO, 4 MURALI KRISHNA Head of Technology (user: keep 4th),
+      5 Ranjith Head of R&D, 6 KIRAN KUMAR Head of Business, 7 MAQBOOL SULTAN Head of
+      Sales. Murali/Kiran/Maqbool have monogram tiles — photos pending (an HR-record photo
+      exists for Murali at B_HR/.../E1017 but deliberately NOT used without user pointing
+      at it; ask for headshots).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
