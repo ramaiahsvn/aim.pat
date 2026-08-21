@@ -803,6 +803,14 @@ memories:
       asked), team-shanavas.jpg. Deck assets photo_pattabhi.png + photo_shanavas.png
       refreshed to match. PIPELINE NOTE: for future bg removals use
       scratchpad/venv/bin/python + rembg.remove().
+      Follow-ups (commits da7c81f + a61c1a7): gff photos ENLARGED (team w-14->w-20 80px,
+      guest chips w-12->w-16 64px); Dilip's crop background-removed -> transparent
+      public/guest-dilip.png (.jpg deleted). KAUSHIQ full details from user (LinkedIn):
+      Kaushiq (KK) Kodithodika, Director Business Development GCC/Africa/APAC at EASTNETS
+      (UAE, trade-based financial-crime detection; Oxford Said alum; mutual connections
+      with Shanavas + Ramesh). Card now: bg-removed headshot (Desktop kk.png ->
+      public/guest-kaushiq.png), full name, "Director, Business Development — Eastnets ·
+      Guest". Still initials-only: Kiran (no surname/photo yet).
     created_at: "2026-08-20"
     confidence: 1.0
     tags: [deployment, bnprs.in, two-colour, icon-tiles, navy-orange, design-system]
