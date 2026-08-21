@@ -572,6 +572,36 @@ memories:
            bpr-xaml-central-palette, gold-to-orange, type-scale-plus2, setter-fontsize-form,
            screencapture-black-when-asleep]
 
+  - id: mem-019
+    type: project_context
+    content: >-
+      PORTALS REBRANDED navy+orange (2026-08-21, user approved org-wide). The uTMS portals'
+      green chrome (#133331) lives in the SHARED @bnprs/ui package (project 32), consumed by
+      7 apps (bnet, CRM, mpos, iiskiosk, license, seba, patkiosk) with NO per-app theming -
+      colors hardcoded inline. So recolor = org-wide rebrand. TWO COLOR FORMS had to be
+      changed, not one: hex #133331 AND rgba(19,51,49,...) (136 uses in src!) - the rgba form
+      was the trap that left 14 green CSS rules after the hex-only pass. Mapping: green
+      #133331/rgb(19,51,49) -> navy #101B3D/rgb(16,27,61); kept orange #f2992f and semantics.
+      PUBLISH GOTCHA: source package.json was 1.0.10 but registry latest was 1.0.13 with
+      code NOT in git (published-never-committed). Rebuilding from stale source would regress
+      the other 6 apps - so I recolored the LIVE 1.0.13 dist tarball directly (hex+rgba),
+      bumped to 1.0.14 then 1.0.15, republished. bnet pinned to 1.0.15, rebuilt, deployed to
+      S3 utms-smartpresence-portal + CF E2VUT3LG51L7V8. TAILWIND MECHANISM: bnet scans LOCAL
+      packages/ui/src for class strings (CSS gen) but imports COMPONENTS from registry dist -
+      BOTH must carry the new colors or rendered class != generated CSS. npm needs
+      --legacy-peer-deps (lucide 0.562 vs ui peer ^0.500) + NPM_TOKEN=$GITLAB_PAT + .npmrc
+      copied into apps/bnet. Source committed to uat_temp (0c3bdccb). Other 6 apps get navy
+      on their next build/deploy (they use ^1.0.x). Portal Poppins font UNCHANGED (only
+      colors requested).
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [portals-rebranded-navy, shared-ui-pkg-project32, hex-AND-rgba-both, rgba-19-51-49-trap,
+           published-not-committed-1013, recolor-dist-directly, ui-1015, tailwind-scans-src-imports-dist,
+           legacy-peer-deps, org-wide-on-next-build]
+
 # Pruning rules
 pruning:
   max_entries: 500
