@@ -95,6 +95,13 @@ aws cloudfront create-invalidation --distribution-id E2VUT3LG51L7V8 --paths "/*"
 3. Desktop worker path: it sends Prob_Template (T14 record) — TEMPLATE probes now
    also honour fusion config.
 
+## Test suite status
+`mvn test`: 553 tests, 8 failures + 1 error — **all pre-existing** (verified identical
+on the pre-change commit 2721480 in a clean worktree): ApplicationTests.contextLoads
+(context excludes JPA so BNetGatewayController's repository can't wire — a test-config
+gap), CameraController delete tests, UserController GetUsers tests. Nothing from the
+overnight change fails; flag the 9 to NK's team.
+
 ## Housekeeping owed
 - **Disable ECS exec** when done:
   `aws ecs update-service --cluster utms-cluster --service utms-smartpresence-api --disable-execute-command --force-new-deployment --region eu-central-1 --profile itp`
