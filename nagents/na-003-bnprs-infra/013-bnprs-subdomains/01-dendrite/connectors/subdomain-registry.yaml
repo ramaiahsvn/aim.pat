@@ -25,8 +25,8 @@
 #    <product>[-<subproject>]-<component>.<env>.bnprs.in
 #    production is the BARE <product>[-<subproject>]-<component>.bnprs.in
 #
-#  129 hostnames, 6 products (2 of them groups) + 15 sub-projects. ONE resolves
-#  (aandhipe-mobile-api.sandbox, dns-only, 2026-08-20); the rest are `planned`.
+#  129 hostnames, 6 products (2 of them groups) + 15 sub-projects. THREE resolve
+#  (aandhipe-mobile-{api,ai,portal}.sandbox, dns-only; ai added 2026-08-21); rest `planned`.
 #  bNet is NOT a product here — it is delivered through uTMS (see utms.subprojects).
 #  Product ORDER is deliberate (mGate, AandhiPe, bRuID, BNA, TalabQi, uTMS last —
 #  AandhiPe and bRuID are GROUPS: they own no api/portal themselves, only sub-projects.
@@ -219,12 +219,23 @@ products:
             # after the instance is up and TLS on the instance is verified. Direct-to-EIP,
             # no ALB involved, so the *.sandbox.bnprs.in cert gate does not apply here.
             sandbox: { host: "aandhipe-mobile-api.sandbox.bnprs.in", status: dns-only,
-                       target: "EIP 63.183.165.64 (i-0bbc3bb5415249d9b aandhipe-sandbox, STOPPED)",
-                       verified_at: "2026-08-20" }
+                       target: "EIP 63.183.165.64 (i-0bbc3bb5415249d9b aandhipe-sandbox, running 2026-08-21)",
+                       verified_at: "2026-08-21" }
             uat:     { host: "aandhipe-mobile-api.uat.bnprs.in",     status: planned }
             prod:    { host: "aandhipe-mobile-api.bnprs.in",         status: planned }
+          ai:
+            # ADDED 2026-08-21 on user instruction (team request relayed verbatim). This is
+            # a NEW "ai" component, NOT a typo of "api" — the team's own TLS cert already
+            # carries an ...-ai-... SAN, confirming the name is intentional.
+            sandbox: { host: "aandhipe-mobile-ai.sandbox.bnprs.in", status: dns-only,
+                       target: "EIP 63.183.165.64 (i-0bbc3bb5415249d9b aandhipe-sandbox, running)",
+                       verified_at: "2026-08-21" }
+            uat:     { host: "aandhipe-mobile-ai.uat.bnprs.in",     status: planned }
+            prod:    { host: "aandhipe-mobile-ai.bnprs.in",         status: planned }
           portal:
-            sandbox: { host: "aandhipe-mobile-portal.sandbox.bnprs.in", status: planned }
+            sandbox: { host: "aandhipe-mobile-portal.sandbox.bnprs.in", status: dns-only,
+                       target: "EIP 63.183.165.64 (i-0bbc3bb5415249d9b aandhipe-sandbox, running)",
+                       verified_at: "2026-08-21" }
             uat:     { host: "aandhipe-mobile-portal.uat.bnprs.in",     status: planned }
             prod:    { host: "aandhipe-mobile-portal.bnprs.in",         status: planned }
 
@@ -714,6 +725,27 @@ unmapped_endpoints:
 
 # ---- ACTIVE FAULTS -----------------------------------------------------
 faults:
+  - class: "cert-does-not-cover-hierarchical-names"
+    hosts: ["aandhipe-mobile-api.sandbox.bnprs.in", "aandhipe-mobile-ai.sandbox.bnprs.in",
+            "aandhipe-mobile-portal.sandbox.bnprs.in"]
+    status: open
+    detail: >-
+      All three names resolve to EIP 63.183.165.64 and the instance answers TLS, but the
+      certificate it presents (CN=*.bnprs.in) carries SANs for the SUPERSEDED FLAT names
+      only: aandhipe-mobile-{api,ai,portal}-sandbox.bnprs.in (single label, hyphen-sandbox).
+      A wildcard/SAN covers one label, so none of the published .sandbox.bnprs.in names are
+      covered - strict HTTPS fails (curl 000; -k gives 404). Verified 2026-08-21 via
+      openssl s_client SAN dump. This is the predicted *.sandbox.bnprs.in cert gate
+      (mem-010) materialising on the very first live target of the standard.
+    impact: >-
+      Browsers and verifying TLS clients get a certificate error on all three sandbox hostnames;
+      only insecure clients reach the 404/app behind it.
+    fix_options: >-
+      Team reissues the instance cert for the three hierarchical names (e.g. Let's Encrypt
+      with all three .sandbox.bnprs.in SANs) - preferred, keeps the ratified standard. Do
+      NOT create flat -sandbox.bnprs.in DNS records to match the cert; that resurrects the
+      superseded scheme.
+    raised: "2026-08-21"
   - host: "smartpresence-api-uat.itpgateway.com"
     status: dangling
     detail: >-

@@ -316,6 +316,30 @@ memories:
            87-hostnames, api-only-is-deliberate, rengine-portal-via-acs, shared-portal-two-apis,
            feeds-d5]
 
+  - id: mem-011
+    type: technical_knowledge
+    content: >-
+      THE CERT GATE PREDICTED IN mem-010 MATERIALISED ON THE STANDARD'S FIRST LIVE TARGET
+      (2026-08-21). Records 2 and 3 of the standard created on user instruction:
+      aandhipe-mobile-ai.sandbox and aandhipe-mobile-portal.sandbox -> A 300 -> 63.183.165.64
+      (same EIP as -api; instance i-0bbc3bb5415249d9b now RUNNING). All three resolve
+      authoritatively and publicly. BUT the instance presents a cert whose SANs are the
+      SUPERSEDED FLAT names (aandhipe-mobile-{api,ai,portal}-sandbox.bnprs.in - hyphen-sandbox,
+      one label), so strict TLS fails on every published hierarchical name (curl 000, -k 404).
+      The team clearly built for the flat scheme - their cert is the tell. FIX DIRECTION:
+      reissue the cert for the .sandbox. names; NEVER create flat DNS to match the cert.
+      ALSO: "ai" is a real component, not an api typo - the team's own cert carries the
+      -ai- SAN. Registered as aandhipe.mobile.components.ai across all 3 envs.
+      Route53 CREATE for two A records in one change-batch ran fine from this Mac
+      (profile bnprs, zone Z04234212M3SJ07Y70SGQ) - not classifier-blocked.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [cert-gate-materialised, flat-san-cert-on-hierarchical-names, ai-is-a-real-component,
+           records-2-and-3, reissue-cert-not-flat-dns, instance-running]
+
 # Pruning rules
 pruning:
   max_entries: 500
