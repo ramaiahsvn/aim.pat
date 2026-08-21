@@ -1082,6 +1082,49 @@ memories:
            classifier-blocked-all-deploys, txx-mxx-naming-rule, pipeline-fails-harmless,
            housekeeping-ecs-exec-keycloak-rotations]
 
+  - id: mem-033
+    type: project
+    content: >-
+      *** RESUME CHECKPOINT (2026-08-22 block 2: classes/attendance/live-demo) *** — builds on
+      mem-032. LIVE CLASS DEMO PROVEN through the matcher: scheduled a class via API (timetable:
+      course 1 Java C01 + faculty 2 C Krishna Mohan + Zone-M4P + 2h window; then
+      CheckInCheckOutCameras {facultyId,courseId,zone,cameraId:[6],isCheckIn:true} → cameramapping
+      STATUS_ID=5 = class live). Registered server camera 6 "M4P-Webcam" (RegisterCamera needs
+      ip/port/user/password non-empty — placeholders ok; lands STATUS 4/licence-pending and is
+      HIDDEN from /bnet/Cameras until PUT /bnet/updateLicence?serialNumber&licence&isApproved=true
+      flips it ACTIVE). Client (Mac): bnet-mysql docker was DOWN (Docker restart) — start it;
+      camera 6 synced down, local STREAM_URL overwritten to the activity clip (user chose file-
+      stream over webcam — launchd daemon likely lacks TCC camera permission); camera 3 idled
+      (STREAM_URL+IP cleared; restore path in mem-024). RESULT: 7 chains cam 6 → event-push →
+      server FUSION identified Dilip 91%, Pattabhi 77-79%, Shanavas 77% FROM VIDEO (audits
+      1707-1713) — the clip contains 3 of the 5 enrolled. Attendance surfacing awaits deploy of
+      the AuditToFiltered copier.
+      CLASS MODEL (decoded): timetable = schedule; faculty check-in creates cameramapping row
+      STATUS 5 (in-progress; check-out sets end); filtered_match_face rows (copied from best
+      audits per FC+camera while STATUS 5) drive ActiveFilteredMatchFace + GetAttendance
+      (sessions = cameramapping createdAt→updatedAt windows, 10-min early grace, keys
+      "dd-MM-yyyy (HH:mm - HH:mm)" → "Present"/"Absent", grouped "Faculty - Course").
+      NEW CODE COMMITTED, NOT DEPLOYED: API uat_temp=ba765bd (10163af AuditToFiltered @Scheduled
+      30s SERVER-mode native-SQL upsert incl. CAMERAMAPPING_ID; ba765bd GET /bnet/ClassLiveStatus
+      one-call classes view + StudentAttendanceDto.studentId + getAttendance null-checkout guard).
+      PORTAL uat_temp=487737a9 (b232ea74: Operations MERGED into Face Matching per user
+      "duplication" feedback, menu 14 now = NEW Classes page with per-class student photo walls
+      present/absent; 487737a9: Attendance = live session×student matrix with photos/chips/%bars,
+      downloads demoted to menu PDF/Excel/CSV). Backup branches cr-insights-portal +
+      cr-portal-insights updated. Deploy+test runbook:
+      07-axon-terminals/deliverables/2026-08-22-classes-attendance-runbook.md (same deploy-all.sh,
+      user runs via !). Post-deploy: audits auto-become filtered rows in ~30s → Classes page
+      shows 3 present. Timetable slots are day-scoped — recreate a fresh slot when demoing later.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-block2"
+    tags: [resume-checkpoint, live-class-demo-proven, dilip91-pattabhi79-shanavas77-from-video,
+           class-model-decoded, camera-register-licence-flip, camera6-clip-stream, camera3-idled,
+           audittofiltered-committed-not-deployed, classlivestatus-endpoint, operations-merged,
+           classes-photo-wall-page, attendance-live-matrix, runbook-block2, deploy-pending]
+
 # Pruning rules
 pruning:
   max_entries: 500
