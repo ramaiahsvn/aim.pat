@@ -544,6 +544,34 @@ memories:
     tags: [camera-rtsp-urls, forwarded-ports-5541-5542-not-554, per-camera-paths, dynamic-public-ip,
            compose-fills-only-empty, ddns-recommended, ffprobe-path-discovery]
 
+  - id: mem-018
+    type: technical_knowledge
+    content: >-
+      APP THEME + ICON + FONTS (2026-08-21, commit 2c32479). (1) APP ICON was invisible
+      because Resources/AppIcon/appicon.svg was still the DEFAULT purple #512BD4 square -
+      the real bnet art lived in bnet_appicon.svg, but XSAppIconAssets in Info.plist wants
+      the asset named "appicon" (from the appicon.svg FILENAME), so the MauiIcon Include
+      pointing at bnet_appicon.svg generated an unused asset. FIX: put the art in
+      appicon.svg, MauiIcon Include="appicon.svg", delete the stray. rm the obj resizetizer
+      dir before rebuild or the icon caches stale. (2) THEME retargeted to bnprs.in "Ink
+      Navy": whole palette lives in Resources/Styles/Bpr.xaml - remapped the green Brand
+      ramp (Brand900 #16302A..Brand050 #EEF4F1) to navy (#0A1024..#EEF1FA), Gold #D4952B ->
+      orange #E8892A, green-biased neutrals -> navy-biased, aliases BprGreen/BprGold/BprInk.
+      Hardcoded pale-green text tints #CFE0D8->#C3CEEC and #EAF1ED->#EAEEF7 across AppShell/
+      LoginPage/CameraLivePage. Switch ON stays semantic green (#1F8A4C, not brand). Icon
+      recolored bg #2D4A3E->#101B3D, pupil ->#E8892A, MauiIcon Color->#101B3D. (3) TYPE
+      SCALE bumped ~2px (15->17,16->18,18->20,19->21,22->24,24->26,31->34; left 38/42) via
+      Setter Property="FontSize" Value="N" (NOT FontSize="N" - that attribute form doesn't
+      exist here). Could not screenshot-verify (display asleep -> screencapture all black).
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 0.9
+    source: "session-2026-08-21"
+    tags: [appicon-was-default-purple, appicon-svg-filename-is-asset-name, ink-navy-theme,
+           bpr-xaml-central-palette, gold-to-orange, type-scale-plus2, setter-fontsize-form,
+           screencapture-black-when-asleep]
+
 # Pruning rules
 pruning:
   max_entries: 500
