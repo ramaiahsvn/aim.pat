@@ -602,6 +602,33 @@ memories:
            published-not-committed-1013, recolor-dist-directly, ui-1015, tailwind-scans-src-imports-dist,
            legacy-peer-deps, org-wide-on-next-build]
 
+  - id: mem-020
+    type: project_context
+    content: >-
+      BNET UAT PORTAL SUBDOMAIN PROVISIONED (2026-08-21). INFRA DONE:
+      utms-bnet-spresence-portal.uat.bnprs.in -> A-alias -> CloudFront E2VUT3LG51L7V8
+      (d3w0fkd4t0806t.cloudfront.net). Created FIRST *.uat.bnprs.in ACM cert (us-east-1,
+      itp acct, 87a03a3f-ee16-45a1-aeb0-4251179909d7) - DNS-validated via bnprs.in zone
+      Z04234212M3SJ07Y70SGQ (profile bnprs); added as CloudFront alias + viewer cert;
+      A-alias record in bnprs.in zone. Page serves HTTPS 200 with the *.uat.bnprs.in cert.
+      THREE FUNCTIONAL STEPS REMAIN (new origin still 403s everywhere): (1) utms-api :8053
+      CORS_ALLOWEDORIGINS env - append the origin (td-utms-api-new.json ready, register rev
+      68 + update-service); (2) utms-smartpresence-api :8043 - add ALLOWED_ORIGINS env
+      (Spring prop allowed.origins, base value in the api.bnet.smartpresence repo
+      application.properties; td-spresence-new.json ready, register + update-service);
+      (3) KEYCLOAK utms-bnet client (realm UTMS, accounts-uat.itpgateway.com) - add the
+      origin to Valid Redirect URIs + Web Origins. NO keycloak admin creds on pat-m4p -
+      user must do #3. ECS mutations are classifier-blocked - hand user the register/update
+      commands. Until all 3 done, use the CloudFront URL d3w0fkd4t0806t.cloudfront.net which
+      is already fully wired. CloudFront alias hostedZoneId for A-alias target = Z2FDTNDATAQYW2.
+    created_at: "2026-08-21"
+    last_accessed: "2026-08-21"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-21"
+    tags: [bnet-uat-portal-subdomain, first-uat-wildcard-cert, cloudfront-alias-cross-account,
+           cors-3-places, keycloak-needs-admin, ecs-classifier-blocked, use-cloudfront-url-until-wired]
+
 # Pruning rules
 pruning:
   max_entries: 500
