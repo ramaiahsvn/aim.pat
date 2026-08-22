@@ -1308,6 +1308,33 @@ memories:
     tags: [utms-api-uat-bnprs-in-live, regional-cert-sni-alb, itpgateway-parallel-fallback,
            all-clients-switched, app-settings-defaults-1001-2001-3001, worker-label-renames]
 
+  - id: mem-040
+    type: project
+    content: >-
+      FIGHT-DETECTOR CLASS INVERSION: FIX SHIPPED + FIELD-VALIDATED (2026-08-22). The user's
+      "fight model gives false accepts only" was NOT the model: na-004/009 cpp-video's eval
+      (deliverable 2026-08-16-vision-detector-accuracy-and-class-inversion.md) had already proven
+      bpr.m10006.onnx carries names {0: non_violence, 1: violence} while BprFightDetect.cpp alerted
+      on class 0 — every alarm meant "confidently NOT violent" and real fights were discarded. The
+      SOURCE fix was committed (bpr.cpp 35d2c63) but the SHIPPED libBprVision.dylib staged Aug 20
+      PRE-DATED it (still carried the old "no-violence" label string — strings(1) on the dylib is
+      the tell). Rebuilt build/cmake/BprVision-macos (includes the uncommitted BprVideoCapture
+      cooperative-stop WIP that Bpr_Video_RequestStop needs), staged to bnet-worker + app bundle
+      (run-macos.sh VISION_LIB path), restarted. VALIDATED: jubli no-fight clip looped ~6 min →
+      0 events (was 471 false detections). Corrected operating point (from the eval, measured with
+      correct mapping): fight ~44% recall @ 3.2% clip-FAR, smoke ~29% @ ~10% — REVIEW CANDIDATES,
+      not alarms; positives corpus = Datasets/activity-video/vision-eval-positives (kinetics
+      proxies; caveats in its README). Models integrated = the evaluated ones (m10005 smoke,
+      m10006 fight). Architecture stays client-detect → push → server-display (ActivityPushWorker
+      + episode chips + LiveDashboard), per user direction — no server-side detection.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-vision-fix"
+    tags: [class-inversion-fix-shipped, stale-dylib-was-the-gap, strings-tell, zero-false-alarms-validated,
+           corrected-operating-point, review-candidates-not-alarms, models-are-the-evaluated-ones]
+
 # Pruning rules
 pruning:
   max_entries: 500
