@@ -1423,6 +1423,40 @@ memories:
            harvest-loop-second-fix, restricted-zone-built-undeployed, cam6-chains-pending,
            ecr-push-flaky-pending, portal-deploy-pending, class-schedule-pending]
 
+  - id: mem-043
+    type: project
+    content: >-
+      DEMO PREP COMPLETE — ALL 5 CHECKPOINT STEPS DONE + VERIFIED (2026-08-22 ~15:40 IST /
+      13:40 +04, closes mem-042). (1) Cam-6 face chains: the blocker was simply Docker/bnet-mysql
+      being DOWN (dedup logged "cannot load cameras"); after docker start, chains formed
+      immediately — querydata cam 6 filled, 6 RESTRICTED_ZONE imp_events with FC labels.
+      Red herring: Datasets/bnet-worker/worker.log is STALE (Aug 2, old FaceData-root +
+      cvNamedWindow crash-loop era) — the LIVE daemon log is ~/Library/Logs/
+      bnet-worker-service.log (launchd plist StandardOutPath). (2) ECR push of 98e1302
+      succeeded first try this session (docker login ecr eu-central-1 profile itp, then plain
+      docker push of :SHA and :latest) → registered TD rev 60 (FACECHAIN_MODE=SERVER + 4GB
+      preserved via jq image-swap on rev 59) → update-service → rollout COMPLETED.
+      (3) Portal synced to s3://utms-smartpresence-portal-819144294008 + CF invalidation
+      Completed; live site serves new bundle index-DxWHiFp8.js (portal domain
+      utms-bnet-spresence-portal.uat.bnprs.in, dist E2VUT3LG51L7V8). (4) Demo class scheduled:
+      RegisterTimetable {facultyId:2, courseId:1, zone:Zone-M4P, companyId:1, date+start/end
+      15:25→17:30 IST} then CheckInCheckOutCameras {cameraId:[6], isCheckIn:true} — both 200.
+      (5) App relaunched via BNET_WORKER_EXTERNAL=1 run-macos.sh (pid fresh, daemon reloaded,
+      events kept flowing after reload). VERIFIED LIVE: GET /bnet/RestrictedAlerts?companyId=1
+      → 200 with zone alerts incl. identity join (Shanavas Kanhikoth on FC935E081006) — NOTE
+      companyId is a REQUIRED param, without it the endpoint 500s (that was the only "error",
+      not a bug); ClassLiveStatus → Java/Zone-M4P live, 3/5 present (Pattabhi, Shanavas,
+      Dilip). Demo narrative per mem-042 stands; RestrictedAlerts card now has its endpoint.
+      Timetable slots are day-scoped — schedule a fresh slot + check-in when demoing later.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-demo-finish"
+    tags: [demo-prep-complete, all-5-steps-done, mysql-down-was-cam6-blocker, stale-worker-log-trap,
+           rev60-restrictedalerts-live, companyid-required-param, portal-deployed, class-live-3of5,
+           restricted-alerts-identity-join]
+
 # Pruning rules
 pruning:
   max_entries: 500
