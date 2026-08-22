@@ -1194,6 +1194,34 @@ memories:
            five-entities-companyid-fix, mtech-id7-created, department-repo-long-key,
            hard-delete-rev53-guarded]
 
+  - id: mem-036
+    type: project
+    content: >-
+      PORTAL POLISH ROUND (2026-08-22, API rev 54 = d4d9b51, portal 94a2393f). (1) ZONES ARE NOT A
+      TABLE — a zone is the free-text ZONE string on camera rows; /bnet/Zones derives the dropdown
+      by grouping cameras on it. Added GET /bnet/master/zone (cameras grouped per zone) + PUT
+      /bnet/master/zone/rename {companyId,from,to} which updates every camera carrying the name +
+      live sessions (cameramapping STATUS 5) + timetable slots not yet ended (historic sessions
+      keep their name); merge-by-rename refused. Portal Master Data gained a Zones tab (zone cards
+      with camera chips + rename drawer). Verified: rename roundtrip Zone-M4P↔"M4P Demo Lab".
+      (2) Cameras page now shows the camera ID column (first, orange mono). (3) ATTENDANCE PAGE
+      CRASH root-caused: the page iterated the ApiResponse ENVELOPE as the group map — fine while
+      empty/404, crashed the route the moment real data arrived (code:200 hit .filter). Fixed:
+      unwrap .data + keep only array-valued entries. (4) Attendance: bottom download bar
+      (PDF/Excel/CSV under the grid) + ?facultyId&courseId deep-link filters; Classes cards gained
+      "View attendance" → /AttendanceReport pre-filtered. (5) LAST GREEN SURVIVOR: the sidebar
+      collapse circle in @bnprs/ui dist is bg-[#0f2e2c] (missed by the 19,51,49-family recolor) —
+      fixed in ui SOURCE (for next publish) + app-level index.css override
+      `.bg-\\[\\#0f2e2c\\]{background:#0A1024!important}` (static rule, wins over the dist class).
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-zones-polish"
+    tags: [zones-are-camera-strings, zone-rename-endpoint, master-data-zones-tab, camera-id-column,
+           attendance-envelope-crash-fix, bottom-download-bar, class-deep-links,
+           sidebar-collapse-green-0f2e2c-override, rev54]
+
 # Pruning rules
 pruning:
   max_entries: 500
