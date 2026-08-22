@@ -920,8 +920,9 @@ memories:
       (git push https://root:$GITLAB_PAT@gitlab.bnprs.ai/... master) leaving the stored
       remote clean — use this whenever this repo needs pushing, or fix the credential.
       Follow-up same day (site 49eccc4): /gff heads roles changed from "X Team" to titles —
-      Head of Technology (Murali), R&D (Ranjith), Sales (Kiran), Marketing (Maqbool),
-      HR (Manisha), UX/UI (Venkata Ganesh); deployed + verified live. PENDING: user will
+      Head of Technology (Murali), R&D (Ranjith), Sales (Kiran), Marketing (Maqbool);
+      then per user correction (site cc8d91c): Manisha = "HR Lead", Venkata Ganesh =
+      "UX/UI Lead" (Lead, not Head of); deployed + verified live. PENDING: user will
       supply per-person experience blurbs to replace the one-line bios ("Technology at
       BNPRS." etc.) — update the heads[] bio fields when provided. Note the /gff build
       output is dist/gff.html (file, not gff/index.html).
