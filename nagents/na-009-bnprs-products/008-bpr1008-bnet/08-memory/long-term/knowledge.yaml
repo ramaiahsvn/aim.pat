@@ -1246,6 +1246,37 @@ memories:
     tags: [live-demo-recipe-3-commands, realtime-e2e-proven, worker-status-toggles-gate-workers,
            enabled0-after-db-outage, querydata-push-verified-7-rows]
 
+  - id: mem-038
+    type: project
+    content: >-
+      ACTIVITIES LIVE + REPORTS REBRANDED (2026-08-22, API rev 56 = 1d95255, portal fb3566b1).
+      (1) FIGHT DEMO E2E: enabled per-camera activity via runtime settings.json
+      CameraActivities["6"]="fight" (~/BPR/Datasets/bpr-runtime/settings.json, read live by
+      VisionEventWorker; fight wins over smoke, one analyser per camera) + camera 6 STREAM_URL →
+      "jubli check post_toAVI.avi" (eval clip with real fights; clips + .events.json ground truth
+      in Datasets/activity-video/VideoClips). Result: 471 detections → imp_events →
+      ActivityPushWorker → server → class card. EPISODE COLLAPSE added in ClassLiveStatus (same
+      event+camera, ≤60s gaps → {from,to,detections}, latest 10) — one incident = one chip
+      ("FIGHT · Cam 6 · 11:05–11:19 · ×471"), not 244 chips. (2) MOOD PANEL data path verified:
+      Java class shows 8 captures all "unscored" — correct until an expression-capable client
+      (Windows v1, or future macOS native from na-004) feeds Expression_* values; portal message
+      explains itself. (3) ATTENDANCE PDF+EXCEL REBRANDED to Ink Navy: navy header band with white
+      BNPRS lockup (static/logos/BNPRS_Logo.png; attendance-report.iim-logo property repointed),
+      orange keyline, navy table headers white text, zebra rows, branded footer; Excel navy
+      title/headers via XSSFColor; verified by downloading + rendering the PDF (both class
+      sessions, correct ticks/crosses). Also fixed same session: portal download handler
+      destructured {data} from a service already returning the {url} body (server+S3 were fine).
+      DEMO CLEANUP LATER: camera 6 is now on the FIGHT clip — restore STREAM_URL to
+      2026-08-03_115835_C5012.MP4 and CameraActivities["6"]="" for face-only demos; faculty 2
+      still checked in (check out via portal to close the session).
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-activities"
+    tags: [fight-demo-e2e-471, camera-activities-settings-json, episode-collapse, mood-unscored-correct,
+           pdf-excel-ink-navy, bnprs-logo-classpath, download-destructure-fix, rev56, demo-cleanup-camera6]
+
 # Pruning rules
 pruning:
   max_entries: 500
