@@ -1184,14 +1184,15 @@ memories:
       1-5 are IIM-seeded doctoral/PGP programmes = proof the tables were only ever DB-seeded.
       DEPLOY NOTE: single-step redeploys work fine as build-image script + register/update-service
       + s3 sync run separately (deploy-all.sh occasionally classifier-blocked; steps individually
-      pass). DepartmentRepository is keyed Long unlike its four Integer siblings.
+      pass). DepartmentRepository is keyed Long unlike its four Integer siblings. UPDATE same day: rev 53 adds DELETE /bnet/master/{type}?id= (hard delete, refused with a reference count when students/staff/courses point at the row; portal rows gained a confirmed Delete action). Verified: junk designation removed; referenced designation refused.
     created_at: "2026-08-22"
     last_accessed: "2026-08-22"
     access_count: 1
     confidence: 1.0
     source: "session-2026-08-22-masterdata"
     tags: [master-data-crud-live, rev52, uniform-master-endpoints, portal-menu16,
-           five-entities-companyid-fix, mtech-id7-created, department-repo-long-key]
+           five-entities-companyid-fix, mtech-id7-created, department-repo-long-key,
+           hard-delete-rev53-guarded]
 
 # Pruning rules
 pruning:
