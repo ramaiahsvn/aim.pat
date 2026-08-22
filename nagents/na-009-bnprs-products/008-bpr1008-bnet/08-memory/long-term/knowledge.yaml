@@ -1293,7 +1293,13 @@ memories:
       WorkstationCode 2001, SiteId 3001, Load() refills pre-default nulls. App worker labels:
       event-push = "FC Leader Push (1:N)", activity-push = "Activity Push". Wire-up script
       pattern kept at scratchpad/wire-bnprs-api-domain.sh (user ran it — route53/ALB mutations
-      classifier-blocked for the agent).
+      classifier-blocked for the agent). V1 WINDOWS CLIENT ALSO SWITCHED (same session): both v1
+      repos were pointing at the DELETED smartpresence ALB (resolves to nothing) and upstream NK
+      had "fixed" the service configs to the raw ELB name over PLAIN HTTP (:8043 is HTTPS-only —
+      also broken); all hosts now https://utms-api.uat.bnprs.in:8043 incl. Verify1toNApi. Commits:
+      main ai_dev 217954e, shared cr-bytearray ab6a594 (rebased over NK's f157371, conflict
+      resolved by taking upstream structure + correct host). Windows site machines need a config
+      redeploy to pick this up.
     created_at: "2026-08-22"
     last_accessed: "2026-08-22"
     access_count: 1
