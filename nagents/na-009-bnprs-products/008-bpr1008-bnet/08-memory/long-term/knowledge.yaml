@@ -1125,6 +1125,49 @@ memories:
            audittofiltered-committed-not-deployed, classlivestatus-endpoint, operations-merged,
            classes-photo-wall-page, attendance-live-matrix, runbook-block2, deploy-pending]
 
+  - id: mem-034
+    type: project
+    content: >-
+      *** RESUME CHECKPOINT (2026-08-22 block 3: attendance E2E + activities/moods pipeline) ***
+      — supersedes mem-033's deploy-pending state. EVERYTHING DEPLOYED + E2E VERIFIED: API rev 51
+      (uat_temp=6de6169, pushed), portal live (uat_temp=923f69af), client worker republished
+      locally (v2 main=66968ee). ATTENDANCE PROVEN: GetAttendance now returns "C Krishna Mohan -
+      Java / 21-08-2026 (04:01-06:01): Pattabhi+Shanavas+Dilip Present (from video matches),
+      Ramesh+Kaushiq Absent". THREE FIXES got it there: (1) OCI-index trap — docker buildx on this
+      Mac pushes an attestation manifest (platform unknown/unknown) that FARGATE REJECTS
+      ("image ... does not provide any platform"); build script now passes --provenance=false
+      --sbom=false, and NEVER run deploy-all concurrently (the first failure raced my background
+      run vs the user's). Recovery: re-push plain manifest, stuck IN_PROGRESS deployment self-heals.
+      (2) copier keys on SESSION WINDOWS ([check-in-10min, check-out-or-now]) not live STATUS 5,
+      and stamps CREATED_DATE with the IDENTIFICATION time — else a class's matches are lost when
+      the copier is down at check-out (exactly what happened), and late copies fall outside
+      attendance windows. (3) getAttendance had a HARDCODED Fri/Sat skip (v1 Middle-East weekend)
+      silently blanking those days' sessions — removed; that was the whole "attendance report not
+      working" mystery (demo ran Fri/Sat).
+      NEW PIPELINE (deployed, awaiting data): client ActivityPushWorker (v2, toggle activity-push,
+      default=event-push opt-in) uploads imp_events (fight/smoke from VisionEventWorker) via
+      bnet/insert/imp/event and querydata rows WITH expression columns via bnet/insert/querydata,
+      using the v1 updated/time server-waterline (stateless incremental; UPDATED_AT carries local
+      CREATED_AT). ClassLiveStatus now returns per-class moods {dominant-expression counts per
+      chain + moodUnscored} and activities []; Classes page renders a Classroom Mood distribution
+      bar + Activity Alerts chips. LIMIT: macOS EVAL natives have NO expression API (BprID
+      quality/extract/match + BprVision fight/smoke only — verified via nm) so Mac chains carry
+      NULL expressions ("unscored"); Windows v1 clients populate them; native expression build =
+      na-004 ask. MASTER-DATA GAP (user question answered): Programme/Department/Designation/
+      Semester/Qualification are GET-ONLY APIs — no create endpoints exist ANYWHERE (rows were
+      DB-seeded); NOT a permission issue; Courses/Companies/Cameras do have create endpoints.
+      Proposed next: master-data CRUD endpoints + portal page. Timetable row 18 (course 2 "C",
+      02:30-02:35) is the USER'S test edit of my Java slot — recreate slots per demo day.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-block3"
+    tags: [resume-checkpoint, attendance-e2e-proven, provenance-false-fargate, no-concurrent-deploys,
+           copier-session-windows, created-date-is-identification-time, weekend-skip-removed,
+           activity-push-worker, moods-in-classlivestatus, no-expression-api-on-macos,
+           master-data-get-only-gap, rev51-live]
+
 # Pruning rules
 pruning:
   max_entries: 500
