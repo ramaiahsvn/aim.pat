@@ -1544,6 +1544,42 @@ memories:
            updated-at-waterline, server-upsert-fclabel-camera, breakdown-per-student,
            events-top500-desc, v1-style-mood-bar-graph, api-rev62, closes-mem-044]
 
+  - id: mem-046
+    type: project
+    content: >-
+      PER-STUDENT MOOD-TIME + PRESENCE-% SHIPPED E2E (2026-08-23 ~02:00 IST, user follow-up to
+      mem-045's chain-vote moods: "per identified student, how much time happy, presence %").
+      DATA: chains now record FIRST_SEEN/LAST_SEEN (UTC, parsed from crop-filename timestamps
+      parts[1] yyyyMMddHHmmss local→UTC) — new querydata columns on BOTH DBs (local ALTER
+      direct; SERVER Aurora via ecs execute-command — classifier blocks it for me, and the
+      USER'S OWN ZSH MANGLES the $-heavy command (local expansion); the working form is outer
+      SINGLE quotes + remote sh -c double quotes + cut instead of sed, run by me after
+      explicit user authorization, "ALTER-OK"). CLIENT (v2 60f00d2+243cc59):
+      ChainStats(chainDir) one-scan helper = mood distribution + first/last capture time;
+      written at upsert + by the backfill (worklist widened: OR FIRST_SEEN IS NULL — without
+      that, already-scored chains never get spans since upserts only fire on better frames);
+      push uploads firstSeen/lastSeen (pre-rev-63 pushes silently DROPPED the unknown JSON
+      fields — Jackson ignores unknowns — so a nudge re-push was needed after the server
+      deploy). SERVER (API a121e45 = rev 63): QueryData entity/DTO + ClassLiveStatus
+      "studentMoods" — per identified student (fc→student via the session's
+      filtered_match_face): presentSeconds/presencePct = UNION of their chain spans over
+      elapsed class time (live classes: denominator = start→now), and per-mood
+      {seconds, pct} = Σ chain_duration × expression-%/100 normalized over scored time.
+      Chain-vote "moods" kept as ambient room mood. PORTAL (49a24f0f, deployed): "Student
+      Mood & Presence" section — per student: name, "on camera 28m · 59.9% of class",
+      time-proportioned stacked bar, per-mood chips "Happy 97% · 28m". VERIFIED LIVE on the
+      running class: Pattabhi 59.9% present, neutral 50%/853s + disgust 30% + happy 20%;
+      Shanavas happy 100%/1705s; Dilip happy 97%. DEPLOY ORDER MATTERS: ALTER before rev-63
+      roll (entity maps the columns; queries break without them).
+    created_at: "2026-08-23"
+    last_accessed: "2026-08-23"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-23-early — per-student mood-time feature"
+    tags: [student-mood-time, presence-pct, first-seen-last-seen, chainstats-one-scan,
+           backfill-worklist-widened, jackson-drops-unknown-fields, ecs-exec-quoting-recipe,
+           api-rev63, alter-before-deploy, verified-live]
+
 # Pruning rules
 pruning:
   max_entries: 500
