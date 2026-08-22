@@ -325,6 +325,42 @@ memories:
            index-118-is-biometric, native-harness-index-map, dump-before-skipping, workdrive-release,
            binaries-only, verified-at-destination, windows-32-still-unexecuted]
 
+  - id: mem-011
+    type: operation
+    content: >-
+      2026-08-22 RELEASE 2.22.37 — qiscript.ini NOW LOADS FROM THE DLL'S OWN DIRECTORY FIRST.
+      Integrator (kiosk app) feedback on 2.22.35: colocating qiscript.ini with Bpr.QiScript.dll
+      inside windows-32/ returned -401, because read_licence() opened the ini relative to the
+      WORKING DIRECTORY only. Fix (bpr.cpp 0ad5d33): new module_dir() helper resolves the
+      directory containing the library from a symbol inside it (GetModuleHandleExA
+      FROM_ADDRESS|UNCHANGED_REFCOUNT + GetModuleFileNameA on Windows, dladdr elsewhere);
+      read_licence() tries <dll-dir>/qiscript.ini FIRST, then the working directory, so every
+      pre-2.22.37 deployment keeps working; first file yielding a non-empty non-comment line
+      wins. The chosen PATH is logged at INFO (never the key); a miss logs one WARNING naming
+      both locations before returning -401. BprLogs stays anchored to the WORKING directory on
+      purpose (kiosk windows-32 is often not writable; the old comment claimed a JNI lib "has
+      no module handle of its own" — false, corrected).
+      VALIDATED WITH A REAL JVM before publishing (macOS dylib of the same source + tiny Java
+      driver, Temurin 25): no ini anywhere → -401; ini beside the LIBRARY only → -301 invalid-key
+      (past init — the integrator case, formerly -401); ini in CWD only → -301 (legacy intact);
+      BOTH present → library dir wins (log shows the lib path). -301 vs -401 is the clean
+      discriminator: it proves the licence was FOUND without needing a real key.
+      Export check on the shipped windows-32: BOTH qiCardTransmit names incl @36 ([[mem-006]]).
+      SHA256 (windows-32 / windows-64):
+        2.22.37  ee8c7fc0e184cfc7e80451315d601f5c659b80ee2e4010e180783f8bce664b8c
+                 891a7ff05c171ae86931ac31873ef1d0467429103fc735f35404bb7b09380fc1
+      Published to Z_RELEASE/TRP1002-cPerso/BprQiScript.2/_GnD/2.22.37/ — 7 files, binaries-only
+      per [[mem-008]]; verified AT the destination: published hashes match built, DLLs differ
+      from 2.22.36, five inputs byte-identical to 2.22.36 (library is the only change).
+      STILL TRUE: windows-32 never executed on a real host (no 32-bit JVM on MCES2), no
+      successful end-to-end perso observed, kSkippedApdus still { 0 } ([[mem-010]]).
+    created_at: "2026-08-22"
+    confidence: 1.0
+    source: "session-2026-08-22 — integrator feedback on 2.22.35, kiosk colocation"
+    tags: [2.22.37, qiscript-ini-dll-dir, module-dir, dladdr, GetModuleHandleExA, cwd-fallback,
+           minus-401, minus-301-discriminator, jvm-validated-before-publish, workdrive-release,
+           binaries-only, verified-at-destination, kiosk-integration]
+
 # Pruning rules
 pruning:
   max_entries: 500
