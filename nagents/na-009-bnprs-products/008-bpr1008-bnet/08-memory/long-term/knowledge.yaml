@@ -1335,6 +1335,33 @@ memories:
     tags: [class-inversion-fix-shipped, stale-dylib-was-the-gap, strings-tell, zero-false-alarms-validated,
            corrected-operating-point, review-candidates-not-alarms, models-are-the-evaluated-ones]
 
+  - id: mem-041
+    type: project
+    content: >-
+      CLEAN-SLATE REGRESSION RUN — ALL PASS (2026-08-22, API rev 58 = d0ed6c2). Full local wipe
+      (runtime dirs + local DB incl. synced tables/user/worker_status) then repeat: (1) fresh sync
+      repopulated 5 students/2 staff/4 courses/3 cameras/IIM+GBS/users/programmes + 5 photos —
+      faculty lands 0 on the FIRST pass and fills on the second (empty-table race, benign);
+      (2) worker_status toggles re-seed ON from env after wipe; (3) new class scheduled+checked-in
+      via API; (4) detection→chains→push→FUSION match→attendance: 3 present (Pattabhi/Shanavas/
+      Dilip) 2 absent, again; (5) server stats incrementing; (6) attendance report NOW INCLUDES
+      LIVE SESSIONS — fixed findAllWithDateRange, whose "updatedAt >= :start" predicate silently
+      dropped every no-check-out-yet session before the service-level null guard could apply
+      (rev 58). ALSO FIXED: clean-data.sh aborted silently doing nothing — under set -e/pipefail
+      the FILES=$(find ...) count died on find's non-zero exit (unreadable path); guarded with
+      || true (v2 main a49b296). MANUAL WIPE RECIPE (works): unload daemon → pkill app/worker →
+      rm -rf the 4 runtime dirs + worker.pid → TRUNCATE querydata/backup, imp_events,
+      restricted_events, studentimages, worker_status, user + all synced tables (FK checks off) →
+      reload daemon → set camera 6 STREAM_URL to the clip after sync composes junk from the
+      127.0.0.1 placeholder.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-regression"
+    tags: [clean-slate-regression-all-pass, live-sessions-in-report-rev58, faculty-second-pass-race,
+           clean-data-find-pipefail-fix, manual-wipe-recipe]
+
 # Pruning rules
 pruning:
   max_entries: 500
