@@ -1457,6 +1457,42 @@ memories:
            rev60-restrictedalerts-live, companyid-required-param, portal-deployed, class-live-3of5,
            restricted-alerts-identity-join]
 
+  - id: mem-044
+    type: project
+    content: >-
+      *** TODO — RESUME MONDAY 2026-08-24 (user parked the task; session closed near limit) ***
+      CONTEXT (2026-08-22 evening): user reported activities not uploading to the portal and
+      expression/behaviour ("mood of class") not reaching the server. ROOT CAUSE FOUND AND
+      FIXED for the not-uploading half: the 18:55 clean-data wipe UNLOADED the worker daemon
+      and killed the app, and NOTHING was restarted afterwards — launchd job absent, worker
+      log frozen at 18:56, worker_status stale. (The crash noise at the log tail was just the
+      wipe's pkill shutdown.) Restarted 21:32 +04 via BNET_WORKER_EXTERNAL=1 run-macos.sh:
+      all workers running, events re-accumulating (SMOKE 14 / FIGHT 13 / FIRE 5 /
+      RESTRICTED_ZONE 1, querydata 3, "activity push worker started (company 1)").
+      NOT YET VERIFIED (task 1 Monday): that the first activity-push cycle actually uploaded
+      (imp_events STATUS_ID>1 count rising) and that querydata rows WITH EXPRESSION COLUMNS
+      reach the server (bnet/insert/imp/event + bnet/insert/querydata per mem-034) and show
+      in the portal (Query Data / dashboards / class mood). If pushes fail check kc auth +
+      server API rev 60. LESSON also worth keeping: after ANY clean-data wipe the daemon
+      stays unloaded BY DESIGN — restarting is a manual step, don't assume the pipeline is up.
+      TASK 2 Monday (NEW FEATURE, client expectation): per-class MOOD ("mode of class")
+      ANALYTICAL BAR GRAPH in the portal Classes page. The v1 source
+      (~/BPR/GitRepos2/BPR1008_bNet/bpr1008.bnet.main) has the reference bar graph — find it
+      there first, mirror its analytics in the v2 portal
+      (bpr.utmsportal/apps/bnet, Classes page, menu 14; per-class student photo walls per
+      mem-033). Mood data source = querydata expression columns pushed to the server; check
+      whether an aggregation endpoint exists or must be added to the smartpresence API
+      (uat_temp branch, deploy = build-smartpresence-image.sh + rev bump, portal = s3 sync +
+      CF E2VUT3LG51L7V8, per scripts in 07-axon-terminals/scripts/).
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-evening — pipeline-down diagnosis + parked mood-graph feature"
+    tags: [todo-monday-2026-08-24, pipeline-restarted, wipe-leaves-daemon-unloaded,
+           activity-push-verify-pending, expression-upload-verify-pending,
+           class-mood-bar-graph-feature, v1-reference-graph, portal-classes-page]
+
 # Pruning rules
 pruning:
   max_entries: 500
