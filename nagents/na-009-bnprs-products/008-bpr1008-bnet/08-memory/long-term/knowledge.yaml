@@ -1372,6 +1372,57 @@ memories:
     tags: [clean-slate-regression-all-pass, live-sessions-in-report-rev58, faculty-second-pass-race,
            clean-data-find-pipefail-fix, manual-wipe-recipe]
 
+  - id: mem-042
+    type: project
+    content: >-
+      *** RESUME CHECKPOINT — DEMO PREP IN FLIGHT (2026-08-22 ~13:3x IST, demo within the hour;
+      session ended for compaction) *** SESSION SCRIPTS PRESERVED at 07-axon-terminals/scripts/
+      (kc-token.sh, build-smartpresence-image.sh [--provenance=false + MAVEN_TOKEN=$GITLAB_PAT],
+      deploy-all.sh, wire-bnprs-api-domain.sh, fire_scan.py) — old scratchpad is GONE, use these.
+      WORKING NOW (verified): demo cameras server ids 7 Demo-Fight / 8 Demo-Smoke / 9 Demo-Fire
+      (registered+licence-flipped ACTIVE), local STREAM_URLs → ~/BPR/Datasets/activity-video/demo/
+      {fight,smoke,fire}.mp4 (best-of scans: fight=boxing 6NPS3xfwJG4 conf8 peak0.85; smoke=
+      barbequing 2_GHlyLLOdc conf9 0.83; fire=extinguishing 1dOeCXDcaus conf9 0.91). EVENTS
+      FLOWING: SMOKE 1374+, FIGHT 1069+, FIRE 150+ (fire needed a 2nd fix: the HARVEST loop's own
+      {"Smoke","Fight"} array also needed "Fire" — commit v2 99bd8b0). FIRE INTEGRATION DONE E2E:
+      bpr.m10009.onnx (D-Fire YOLOv8s opset12, metadata {0:smoke,1:fire}, alert class 1 ONLY),
+      BprFireDetect in bpr.cpp (c4ae1fa, rebuilt BprVision-macos dylib staged), worker
+      bindings+switch fight>fire>smoke (d5f8316); model file staged in bnet-worker dir.
+      RESTRICTED ZONE BUILT: settings.json CameraZones {"6":"960,0,960,1080"} (>1=px, <=1=fraction
+      of camera HD), DedupWorker CheckRestrictedZoneAsync on new chains → imp_events
+      RESTRICTED_ZONE with FC label in IMAGE_PATH; server GET /bnet/RestrictedAlerts (names via
+      audit join) committed API uat_temp=98e1302 NOT DEPLOYED; portal restricted-alerts card +
+      FIRE/RESTRICTED_ZONE chip tones BUILT in apps/bnet/dist NOT DEPLOYED.
+      CameraActivities {7:fight,8:smoke,9:fire}; face detection FOCUSED via worker_status
+      camera:1,2,7,8,9 enabled=0 / camera:6=1 (vision analysers unaffected — they read
+      CameraActivities not worker_status).
+      REMAINING (finish before demo, in order): (1) face chains cam 6 were still 0 right after the
+      focus-restart — verify `querydata WHERE Camera_ID=6` fills; if not, check bnet_oc_raw for an
+      M4P-Webcam_* dir and dedup logs; zone alerts (RESTRICTED_ZONE) should follow since clip faces
+      sit right-half. (2) ECR push of image 98e1302 kept flaking (broken pipe via docker proxy;
+      LAST attempt was mid-push "Waiting" at save time — rerun scripts/build-smartpresence-image.sh
+      until PUSHED, then register-td-with-image + update-service (pattern in deploy-all.sh) →
+      rev 60 gives RestrictedAlerts endpoint). (3) portal deploy: aws s3 sync
+      bpr.utmsportal/apps/bnet/dist/ s3://utms-smartpresence-portal-819144294008/ --delete
+      --profile itp + CF invalidation E2VUT3LG51L7V8. (4) schedule demo class: RegisterTimetable
+      (course 1, faculty 2, Zone-M4P, date + now→+2h IST) + CheckInCheckOutCameras cameraId:[6]
+      isCheckIn true (kc-token.sh auth; API base https://utms-api.uat.bnprs.in:8043/). (5) relaunch
+      app: pkill Bpr.BNet.App; BNET_WORKER_EXTERNAL=1 bash run-macos.sh (v2 repo); login
+      ramaiah.polyu@gmail.com / Password123. DEMO NARRATIVE: Classes photo-wall live attendance;
+      Face Matching (identifications, funnel, restricted alerts card once deployed); Query Data;
+      activity events visible via ActivityPushWorker→server (LiveDashboard + FaceMatchStats);
+      demo cameras are NOT in a class so their events show on dashboards, while camera-6 zone
+      alerts attach to the class card. Note: RestrictedAlerts absent until rev 60 — the portal
+      card just hides, page still fine.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-demo-prep"
+    tags: [resume-checkpoint-demo, scripts-preserved-in-agent, demo-cameras-789, fire-e2e-flowing,
+           harvest-loop-second-fix, restricted-zone-built-undeployed, cam6-chains-pending,
+           ecr-push-flaky-pending, portal-deploy-pending, class-schedule-pending]
+
 # Pruning rules
 pruning:
   max_entries: 500
