@@ -1493,6 +1493,49 @@ memories:
            activity-push-verify-pending, expression-upload-verify-pending,
            class-mood-bar-graph-feature, v1-reference-graph, portal-classes-page]
 
+  - id: mem-045
+    type: project
+    content: >-
+      MOOD/ACTIVITY PORTAL PIPELINE FIXED E2E (2026-08-22 late night; CLOSES BOTH mem-044
+      Monday tasks — user said continue after all). THE THREE REAL BUGS (uploads themselves
+      were never broken): (1) EXPRESSIONS WERE NEVER COMPUTED LOCALLY — the detector stamps an
+      expression code 1..7 (angry,disgust,fearful,happy,neutral,sad,surprised — FaceChains.cs
+      order, filename parts[6]) into every crop name, but nothing aggregated codes into
+      querydata Expression_* (all NULL; the old "macOS has no expression API" note in mem-034
+      is STALE — codes are real). FIX v2 341e824: DedupWorker.ExpressionDistribution(chainDir)
+      — every frame votes, per-chain percentage distribution written at upsert + a per-pass
+      backfill for NULL-expression chains (no-op steady state). (2) PUSH-ONCE WATERLINE — the
+      client pushed querydata by CREATED_AT > server-waterline, so a chain pushed before
+      scoring stayed NULL server-side forever, and the server insert/querydata inserted
+      BLINDLY (duplicate rows per chain on the server). FIX: server upserts on
+      (fcLabelId,cameraId) (API e209ed5) + client waterlines on UPDATED_AT and sends the real
+      UPDATED_AT (v2 8e6c15d); mood backfill bumps UPDATED_AT so scores propagate. One-time
+      local nudge (UPDATE querydata SET UPDATED_AT=now WHERE scored) re-pushed the 8 existing
+      chains. (3) PORTAL READ ENDPOINTS BROKEN — student/Expression/breakdown 500'd (NULL
+      Short unboxed into primitive DTO; also NPE'd on audits without a student) and
+      important/events returned findAll() UNORDERED+UNBOUNDED (~49k rows, oldest seed rows
+      first — why the dashboard "showed nothing"). FIX API bd92139: breakdown null-safe,
+      skips unscored, aggregates ONE ENTRY PER STUDENT (dominant-expression votes, all 7
+      expressions; DTO grew neutral/sad/surprised), events = findTop500ByOrderByIdDesc.
+      DEPLOYED: API rev 62 (e209ed5) stable; portal deployed (Classes MoodPanel upgraded to
+      the V1-STYLE ANALYTICAL BAR GRAPH — per-expression rows Label|bar|count|%, sorted desc,
+      mirroring v1 StudentReportForm's Expression Breakdown; portal commit on uat_temp branch,
+      NEW on that repo's remote). VERIFIED LIVE: breakdown returns Pattabhi=neutral,
+      Shanavas=happy, Dilip=happy; events newest-first seconds old; local chains carry real
+      distributions (95% happy etc.). NOTES: ClassLiveStatus ALREADY had per-class moods +
+      episode activities server-side (portal MoodPanel reads them) — data appears for the next
+      scheduled class automatically; server has legacy duplicate querydata rows (pre-upsert,
+      NULL-expression) — harmless, skipped by breakdown, clean up someday; IST day rollover at
+      ~18:30 UTC empties ClassLiveStatus (slots are day-scoped).
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-night — mood pipeline E2E + v1 bar graph"
+    tags: [mood-pipeline-fixed-e2e, expressions-from-filename-codes, dedup-scores-moods,
+           updated-at-waterline, server-upsert-fclabel-camera, breakdown-per-student,
+           events-top500-desc, v1-style-mood-bar-graph, api-rev62, closes-mem-044]
+
 # Pruning rules
 pruning:
   max_entries: 500
