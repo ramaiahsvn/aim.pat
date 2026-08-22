@@ -919,6 +919,12 @@ memories:
       denied). Pushed with the root $GITLAB_PAT via a ONE-OFF URL
       (git push https://root:$GITLAB_PAT@gitlab.bnprs.ai/... master) leaving the stored
       remote clean — use this whenever this repo needs pushing, or fix the credential.
+      Follow-up same day (site 49eccc4): /gff heads roles changed from "X Team" to titles —
+      Head of Technology (Murali), R&D (Ranjith), Sales (Kiran), Marketing (Maqbool),
+      HR (Manisha), UX/UI (Venkata Ganesh); deployed + verified live. PENDING: user will
+      supply per-person experience blurbs to replace the one-line bios ("Technology at
+      BNPRS." etc.) — update the heads[] bio fields when provided. Note the /gff build
+      output is dist/gff.html (file, not gff/index.html).
     created_at: "2026-08-22"
     confidence: 1.0
     tags: [deployment, bnprs.in, gff-2026, team-photo, sips-top-crop, push-backlog-cleared,
