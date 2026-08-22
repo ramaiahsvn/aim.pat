@@ -1571,6 +1571,12 @@ memories:
       running class: Pattabhi 59.9% present, neutral 50%/853s + disgust 30% + happy 20%;
       Shanavas happy 100%/1705s; Dilip happy 97%. DEPLOY ORDER MATTERS: ALTER before rev-63
       roll (entity maps the columns; queries break without them).
+      UI ITERATION (portal 3bb33690, user: long rows "will not look good with many
+      students"): per-student moods moved ONTO the photo-wall tiles — a conic-gradient DONUT
+      RING around each present student's (now circular) photo, segments per mood by observed
+      time; "N% on cam" replaces the roll number under the name; full percentages + durations
+      in the tile tooltip. The separate Student Mood & Presence rows section was removed;
+      the ambient Classroom Mood bar graph stays.
     created_at: "2026-08-23"
     last_accessed: "2026-08-23"
     access_count: 1
