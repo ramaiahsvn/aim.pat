@@ -1357,6 +1357,13 @@ memories:
       compose overwrites nothing but the wipe cleared the manual values): probe
       103.106.181.48:5541/:5542 first (dynamic IP, mem-017 re-probe recipe), then the mem-017
       URLs. Internet RTSP is lossy — "stream ended" retries every supervisor cycle, normal.
+      OBSOLETED same day: SERVER now stores the PUBLIC ip+forwarded ports (new PUT
+      /bnet/UpdateCamera, rev 59; cameras were create-only before) and the client composer is
+      vendor-aware (EZVIZ→/ch1/main/av_stream by NAME, else /profile0) — a wiped client
+      re-derives correct public URLs automatically on first sync (proven: blanked both, compose
+      regenerated exactly right). Manual URL restore no longer needed; only the dynamic-IP
+      rotation (mem-017 re-probe) remains a manual concern — after rotation, UpdateCamera the
+      new ip once and every client follows.
     created_at: "2026-08-22"
     last_accessed: "2026-08-22"
     access_count: 1
