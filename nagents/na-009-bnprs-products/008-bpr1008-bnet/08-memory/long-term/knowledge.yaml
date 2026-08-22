@@ -1353,7 +1353,10 @@ memories:
       rm -rf the 4 runtime dirs + worker.pid → TRUNCATE querydata/backup, imp_events,
       restricted_events, studentimages, worker_status, user + all synced tables (FK checks off) →
       reload daemon → set camera 6 STREAM_URL to the clip after sync composes junk from the
-      127.0.0.1 placeholder.
+      127.0.0.1 placeholder → ALSO restore cameras 1+2 public RTSP URLs (server stores LAN-only;
+      compose overwrites nothing but the wipe cleared the manual values): probe
+      103.106.181.48:5541/:5542 first (dynamic IP, mem-017 re-probe recipe), then the mem-017
+      URLs. Internet RTSP is lossy — "stream ended" retries every supervisor cycle, normal.
     created_at: "2026-08-22"
     last_accessed: "2026-08-22"
     access_count: 1
