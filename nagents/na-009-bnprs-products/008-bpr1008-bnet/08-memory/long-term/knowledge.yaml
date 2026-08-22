@@ -1277,6 +1277,31 @@ memories:
     tags: [fight-demo-e2e-471, camera-activities-settings-json, episode-collapse, mood-unscored-correct,
            pdf-excel-ink-navy, bnprs-logo-classpath, download-destructure-fix, rev56, demo-cleanup-camera6]
 
+  - id: mem-039
+    type: project
+    content: >-
+      API MOVED TO THE bnprs.in STANDARD (2026-08-22): utms-api.uat.bnprs.in → utms-shared-alb
+      (A-alias in bnprs.in zone Z04234212M3SJ07Y70SGQ; NEW regional ACM cert *.uat.bnprs.in
+      eu-central-1 arn ...2fb7274e attached to the ALB :8043+:8053 listeners via SNI — the
+      *.itpgateway.com cert stays, so utms-api-uat.itpgateway.com KEEPS WORKING in parallel as
+      fallback). Verified 401-with-valid-TLS on both ports. WHY it had stayed on itpgateway: the
+      earlier bnprs.in switch covered only the PORTAL (CloudFront cert us-east-1); the ALB needed
+      its own regional cert. ALL CLIENTS SWITCHED + redeployed/restarted: portal .env.production
+      (e55b836e, Keycloak host unchanged), app DefaultServerUrl + settings.json + run-macos.sh +
+      bnet-worker-daemon.sh (833c338), deploy-all.sh bundle check now greps utms-api[.-].
+      App Settings defaults (same session): ServerUrl=the API base, WorkstationId 1001,
+      WorkstationCode 2001, SiteId 3001, Load() refills pre-default nulls. App worker labels:
+      event-push = "FC Leader Push (1:N)", activity-push = "Activity Push". Wire-up script
+      pattern kept at scratchpad/wire-bnprs-api-domain.sh (user ran it — route53/ALB mutations
+      classifier-blocked for the agent).
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-bnprs-domain"
+    tags: [utms-api-uat-bnprs-in-live, regional-cert-sni-alb, itpgateway-parallel-fallback,
+           all-clients-switched, app-settings-defaults-1001-2001-3001, worker-label-renames]
+
 # Pruning rules
 pruning:
   max_entries: 500
