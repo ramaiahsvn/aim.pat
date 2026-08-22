@@ -940,6 +940,15 @@ memories:
       making top row 2 = Dilip, Kaushiq, Murali; heads below the divider are now 5
       (Ranjith, Kiran, Maqbool / Manisha, Ganesh). Verified live by first-occurrence
       offsets of the names in the served HTML.
+      Ranjith bio filled per user (site ce8cc1a): "19+ years of experience in fintech,
+      secure HSM-based key management systems, real-time military simulators, and
+      graphics-intensive defense platforms." (first of the promised experience blurbs;
+      other heads' bios still placeholders).
+      CACHE-KEY TRAP (cost one stalled deploy): E1SC03F64TLZZ0 rewrites /gff -> /gff.html
+      BEFORE the cache lookup, so the cached key is /gff.html — an invalidation of only
+      "/gff" "/gff/" COMPLETES but purges nothing and the page stays stale while S3 is
+      already updated. ALWAYS include the .html path (or use "/*") when invalidating
+      extensionless pages on bnprs.in.
     created_at: "2026-08-22"
     confidence: 1.0
     tags: [deployment, bnprs.in, gff-2026, team-photo, sips-top-crop, push-backlog-cleared,
