@@ -361,6 +361,43 @@ memories:
            minus-401, minus-301-discriminator, jvm-validated-before-publish, workdrive-release,
            binaries-only, verified-at-destination, kiosk-integration]
 
+  - id: mem-012
+    type: operation
+    content: >-
+      2026-08-22 RELEASE 2.22.38 — PRE-SCRIPT APPLET SELECT (BIXAPP_K3), ALWAYS FIRST, NEVER
+      FATAL. Integrator request (same session as [[mem-011]]): send
+      00A404000E A0000003764249584150505F4B33 — SELECT by AID, P1=04, AID = A000000376 +
+      ASCII "BIXAPP_K3" — before the generated script, and proceed with the script
+      IRRESPECTIVE of the response. Implemented (bpr.cpp 50071d3) in the JNI TRANSMIT LAYER
+      (qiscript_jni.cpp, kPreSelectApdu, block "2b" after SCardConnect, before the loop) —
+      deliberately NOT in the shared script builder: apdu_qi_write_central_perso_gnd.cpp is
+      shared with the Raspberry host, and inserting a command there would SHIFT EVERY SCRIPT
+      INDEX, making kSkippedApdus{0} skip the new SELECT instead of the 903C pre-perso unlock
+      and silently changing the Pi. KEEP THIS RULE for any future "add a command" request.
+      Never-fatal covers BOTH a non-9000 SW (e.g. 6A82 applet not found) AND an SCardTransmit
+      transport error — logged at INFO/WARNING (header + SW only, per the PCI discipline; the
+      AID sits in the data field and is not logged at run time, though it is public and in
+      source). The key-value commit gate flags the APDU constant as a >=16-hex run — reviewed
+      and cleared: an AID is a public application identifier, same class as the AIDs already
+      hardcoded in the builder, NOT key material.
+      Export check passed (win32 both names incl @36). macOS dylib rebuild + JVM driver
+      re-run clean (-301 on bogus key, pre-connect — no regression). The pre-select itself
+      CANNOT be exercised locally (no PC/SC reader on pat-m4p; it runs after connect) — live
+      validation waits for MCES2/patwin like every release; by construction no code path in
+      the block sets a failure result.
+      SHA256 (windows-32 / windows-64):
+        2.22.38  7899dea2686d45732230d57e09522859d6f780059949dc7bdfd21db7877859ce
+                 2aea60ca960a3387e7a6f640f14c13bfe2f7bb990a46471c3614048fc698d8ee
+      Published Z_RELEASE/TRP1002-cPerso/BprQiScript.2/_GnD/2.22.38/ (7 files, binaries-only);
+      verified at destination: hashes match build, DLLs differ from 2.22.37, five inputs
+      byte-identical to 2.22.37.
+    created_at: "2026-08-22"
+    confidence: 1.0
+    source: "session-2026-08-22 — integrator request #2, pre-script BIXAPP_K3 select"
+    tags: [2.22.38, pre-select-bixapp-k3, select-by-aid, never-fatal, jni-layer-not-builder,
+           index-shift-trap, kSkippedApdus-would-break, aid-not-key-material, workdrive-release,
+           verified-at-destination, live-validation-pending-mces2]
+
 # Pruning rules
 pruning:
   max_entries: 500
