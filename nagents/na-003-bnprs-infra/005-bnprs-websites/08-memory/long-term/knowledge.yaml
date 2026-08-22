@@ -926,6 +926,14 @@ memories:
       supply per-person experience blurbs to replace the one-line bios ("Technology at
       BNPRS." etc.) — update the heads[] bio fields when provided. Note the /gff build
       output is dist/gff.html (file, not gff/index.html).
+      Also same day (site 4ae9067): Maqbool photo replaced from a Desktop screenshot with
+      the poster background REMOVED — no rembg needed on this Mac: a ~30-line Swift script
+      over Vision's VNGenerateForegroundInstanceMaskRequest + CIBlendWithMask (run with
+      plain `swift file.swift in out`, macOS 14+) produces a clean transparent-PNG person
+      cutout; then the usual square-crop + 512 + byte-compare-live pipeline. Screenshot
+      filenames use a NARROW NO-BREAK SPACE before AM/PM — quote-typed paths fail, copy
+      via glob (~/Desktop/*"7.46.23"*.png). Transparent team PNGs render fine on the navy
+      card (object-cover keeps them 80x80 rounded).
     created_at: "2026-08-22"
     confidence: 1.0
     tags: [deployment, bnprs.in, gff-2026, team-photo, sips-top-crop, push-backlog-cleared,
