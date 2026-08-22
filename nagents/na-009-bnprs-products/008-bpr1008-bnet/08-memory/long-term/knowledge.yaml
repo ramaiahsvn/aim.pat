@@ -1222,6 +1222,30 @@ memories:
            attendance-envelope-crash-fix, bottom-download-bar, class-deep-links,
            sidebar-collapse-green-0f2e2c-override, rev54]
 
+  - id: mem-037
+    type: project
+    content: >-
+      SECOND LIVE CLASS DEMO — FULLY REAL-TIME E2E (2026-08-22 ~10:42 IST). Recipe that works in
+      ~3 commands: (1) RegisterTimetable (course 1/faculty 2/Zone-M4P/now→+2h, needs date field);
+      (2) CheckInCheckOutCameras cameraId:[6] isCheckIn:true; (3) restart local worker (clip on
+      camera 6 replays). RESULT within ~10 min: 10 fresh audits (Dilip 91-94%, Pattabhi 76-77%,
+      Shanavas 79%), ClassLiveStatus shows the Java class LIVE with present 3/absent 2 (correct
+      names), ActivityPushWorker delivered all 7 querydata rows to the server (Query Data page
+      live; expressions NULL→"unscored" until a Windows/expression-capable client feeds them).
+      TRAP FOUND: the worker_status TABLE toggles (operator switches, seeded/overridden rows)
+      GATE every worker and had detection/dedup/event-push/sync/vision-events at enabled=0 —
+      env BNET_RUN_* defaults do NOT apply when a row exists. Diagnostic: no crops + worker_status
+      shows "disabled/off". Fix: UPDATE worker_status SET enabled=1 WHERE name IN (...) then
+      launchctl unload/load. Likely got zeroed when the daemon started while bnet-mysql was down
+      (Docker restart) — check toggles after any DB outage.
+    created_at: "2026-08-22"
+    last_accessed: "2026-08-22"
+    access_count: 1
+    confidence: 1.0
+    source: "session-2026-08-22-demo2"
+    tags: [live-demo-recipe-3-commands, realtime-e2e-proven, worker-status-toggles-gate-workers,
+           enabled0-after-db-outage, querydata-push-verified-7-rows]
+
 # Pruning rules
 pruning:
   max_entries: 500
