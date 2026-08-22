@@ -1527,6 +1527,14 @@ memories:
       scheduled class automatically; server has legacy duplicate querydata rows (pre-upsert,
       NULL-expression) — harmless, skipped by breakdown, clean up someday; IST day rollover at
       ~18:30 UTC empties ClassLiveStatus (slots are day-scoped).
+      FRESH-CLASS RETEST PASSED (00:50-02:55 IST 2026-08-23, user-requested): scheduled a new
+      slot + camera-6 check-in, clean-data wipe + relaunch so all chains were born INSIDE the
+      session window. Within minutes ClassLiveStatus showed the class LIVE, 3/5 present
+      (Pattabhi/Shanavas/Dilip), moods populating, then the mood backfill re-push DRAINED
+      unscored 4 -> 0 (final: happy 4 / neutral 4, 1 activity episode) — proving upsert +
+      UPDATED_AT waterline refine server rows in place. TEST RECIPE for next time: new chains
+      must be CREATED inside the class window for class moods (dedup merges repeat faces into
+      old chains whose CREATED_AT is outside), so wipe+relaunch right after check-in.
     created_at: "2026-08-22"
     last_accessed: "2026-08-22"
     access_count: 1
